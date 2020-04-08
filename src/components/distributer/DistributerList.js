@@ -1,0 +1,467 @@
+import React, { useState }  from "react";
+import ActivationService from "../service/ActivationService";
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
+import Table from "@material-ui/core/Table";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import TableCell from "@material-ui/core/TableCell";
+import TextField from '@material-ui/core/TextField';
+import axios from "axios";
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Notify from "../../utils/Notify";
+
+
+import Paper from "@material-ui/core/Paper";
+import TableBody from "@material-ui/core/TableBody";
+import Grid from "@material-ui/core/Grid";
+
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import PostLoginNavBar from "../PostLoginNavbar";
+import {Container} from "@material-ui/core";
+import {resolveResponse} from "../../utils/ResponseHandler";
+
+import StickyHeadTable from '../verify/StickyHeadTable';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import Input from "@material-ui/core/Input";
+
+import TablePagination from '@material-ui/core/TablePagination';
+
+
+class DataEntryList extends React.Component{
+
+    constructor(props) {
+        super(props);
+        this.state ={
+            products: [],
+            mobile:'',
+            sim:'',
+            txnId:'',
+            user_image:false,
+            user_image_upload:false,
+            user_signature_loader:false,
+            user_signature_upload:false,
+
+            retailer_signature_loader:false,
+            retailer_signature_upload:false,
+
+            poi_front_image_loader:false,
+            poi_front_image_upload:false,
+
+            poi_back_image_loader:false,
+            poi_back_image_upload:false,
+
+            pef_image_loader:false,
+            pef_image_upload:false,
+            pef_image_response:false,
+            poi_front_image_response:false,
+            poi_back_image_response:false
+            
+        };
+
+        this.loadProductList = this.loadProductList.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.searchOnDB = this.searchOnDB.bind(this); 
+        this.onUploadFiles = this.onUploadFiles.bind(this);
+        
+        
+        
+     
+    }
+
+
+    componentDidMount() {
+        // this.loadProductList();
+    }
+ 
+
+    onChange = (e) => {
+        this.setState({[e.target.name]: e.target.value});
+
+       // console.log(e.target.value , e.target.value.length,  e.target.value.substring(0, 10));
+        if(e.target.name =="mobile" && e.target.value.length > 10){
+            this.setState({mobile: e.target.value.substring(0, 10)});   
+        }
+
+        if(e.target.name =="sim" && e.target.value.length > 20){
+            this.setState({sim: e.target.value.substring(0, 20)});   
+        }
+       
+    }
+     
+    loadProductList() {
+        var d = new Date();
+        var endTime = d.getTime();
+
+        var startTime = endTime - 259200000; 
+        const data = {
+            "zone" : "West 1",
+            "startDate" : startTime,
+            "endDate" : endTime,
+            "type" : "NEXT",
+            "noOfRecords" : 20
+        }; 
+           ActivationService.listDocs(data)
+            .then((res) => {
+              
+                let data = resolveResponse(res);
+                if(data.result && data.result.activationList)
+                this.setState({products: data.result.activationList})
+            });   
+        
+    }
+
+    searchOnDB() {                        
+            const data = {
+                "mobileNumber" : this.state.mobile,
+                "simNumber" : this.state.sim
+            }; 
+
+           ActivationService.searchDistributer(data)
+            .then((res) => {
+              
+                let data = resolveResponse(res);
+                if(data.result && data.result.transactionId){
+                    this.setState({txnId:data.result.transactionId})
+
+                    this.setState({ user_image_upload: true, user_signature_upload :true,  retailer_signature_upload: true});
+                    this.setState({ poi_front_image_upload:data.result.poiFrontPending, poi_back_image_upload : data.result.poiBackPending,pef_image_upload : data.result.pefFPending});
+
+                    if(!data.result.pefFPending){
+                        this.setState({pef_image_response: true })
+                    }
+
+                    if(!data.result.poiFrontPending){
+                        this.setState({poi_front_image_response: true})
+                    }
+                    if(!data.result.poiBackPending){
+                        this.setState({poi_back_image_response: true})
+                    }
+
+
+                }else {
+                    this.setState({pef_image_response: false, poi_front_image_response: false,poi_back_image_response: false })
+                    this.setState({txnId:''})
+                    this.setState({user_image_upload:false})
+
+                 //   this.props.history.push('/');
+                }
+            });
+
+            document.getElementById("uploadform").reset();
+
+            // document.getElementById('user_image_response').innerHTML = ''; 
+            // document.getElementById('user_signature_response').innerHTML = ''; 
+            // document.getElementById('retailer_signature_response').innerHTML = ''; 
+
+            document.getElementById('poi_front_image_response').innerHTML = ''; 
+            document.getElementById('poi_back_image_response').innerHTML = ''; 
+            document.getElementById('pef_image_response').innerHTML = ''; 
+
+            
+            this.setState({ user_image_upload: false, user_signature_upload :false,  retailer_signature_upload: false});
+            this.setState({ poi_front_image_upload:false, poi_back_image_upload : false,pef_image_upload:false});
+
+    }
+
+    onChangeFileUpload = e => {
+        console.log(e.target.name); 
+        this.setState({ [e.target.name]: e.target.files[0]})
+        // if(e.target.name == "poi_front_image" && e.target.files[0].name != "poi_front_image.png" ){
+        //     document.getElementById(e.target.name+'_file').value = "";
+        //     Notify.showError("Image name to be 'poi_front_image.png'");
+        //     return;
+        // }
+        // if(e.target.name == "poi_back_image" && e.target.files[0].name != "poi_back_image.png" ){
+        //     document.getElementById(e.target.name+'_file').value = "";
+        //     Notify.showError("Image name to be 'poi_back_image.png'");
+        //     return;
+        // }
+    }; 
+
+
+    handleSubmit(e){
+        e.preventDefault();
+        e.target.reset();
+    }
+    
+
+    onUploadFiles = imageType => {
+
+    console.log("imageType",  this.state[imageType]); 
+
+    if(!this.state[imageType]){
+        Notify.showError("Please select a "+imageType.split('_').join(' ')+'.');
+        return;
+    }else{
+       
+        this.setState({ [imageType + '_loader']: true});
+        this.setState({ [imageType + '_upload']: false}); 
+
+
+    }
+
+
+
+    const formData = new FormData();
+    formData.append('file',this.state[imageType]);
+    formData.append('transactionId', this.state.txnId);
+    formData.append('isResubmit', 0);
+
+    // if(imageType == "poi_back_image" || imageType == "poi_front_image")
+    // formData.append('ImageType', 'poi');
+    // else
+    formData.append('ImageType', imageType);
+
+
+    ActivationService.uploadDistrubuter(formData)
+        .then((res) => {
+            
+            let data = resolveResponse(res);
+            if(data.status == 200 && data.message == "ok"){
+
+                this.setState({ [imageType + '_loader']: false});
+                document.getElementById(imageType+'_response').innerHTML= data.result.message;  
+                document.getElementById(imageType+'_file').value = "";
+                this.setState({[imageType]: null}); 
+
+            }else {
+                this.setState({ [imageType + '_loader']: false});
+                this.setState({ [imageType + '_upload']: true}); 
+
+            }
+        });
+   
+  };
+
+
+    render(){
+     
+      //  console.log("this.state.products",this.state.products); 
+        return(
+            <React.Fragment>
+                <PostLoginNavBar/>
+                <Paper style={{padding:"30px"}}>
+                <Container  >
+                    {/* <EnhancedTable products={this.state.products}/> */}
+
+                    {/* <StickyHeadTable products={this.state.products} someAction={this.someAction}/>
+                     */}
+
+                      
+                    {/* <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                      Search Mobile No.
+                      
+
+                    </Typography>  */}
+
+                        <form onSubmit={() => this.searchOnDB( this.state.searchby )} >
+
+                        <Grid spacing={1}  container  container
+                            direction="row"
+                            justify="right"
+                            alignItems="center">
+
+                            <Grid item xs={12} sm={7} >
+                            <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                             Distributor document upload
+                            </Typography> 
+                            </Grid>
+                            {/* InputLabelProps={{ shrink: true }} */}
+                            <Grid item xs={12} sm={2} alignItems="flex-end" alignContent="flex-end"  justify="flex-end" > 
+                                <TextField type="number" value={this.state.mobile}  label="Mobile No."  style={{width:"100%"}} name="Search by Mobile No." name="mobile" onChange={this.onChange} />
+                            </Grid>
+                            <Grid item xs={12} sm={2} alignItems="flex-end" alignContent="flex-end"  justify="flex-end" > 
+                                <TextField type="text" value={this.state.sim}  label="Sim No."  style={{width:"100%"}} name="Search by Mobile No." name="sim" onChange={this.onChange} />
+                            </Grid>
+                            <Grid item xs={12} sm={1} alignItems="flex-end" alignContent="flex-end"  justify="flex-end" > 
+                               <Button type="button"  onClick={() => this.searchOnDB(  )} variant="contained"  style={{marginLeft: '20px'}} >Search</Button>
+                            </Grid>
+                        </Grid>
+                        </form>
+
+                    <br /> 
+                       
+                       <Paper style={{padding:"20px"}}>
+                        <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
+                            
+                            <Grid item xs={12} sm={4}>
+                             <span style={{fontSize:"18px"}}>  Mobile Number: <b> {this.state.mobile} </b> </span>
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                            <span style={{fontSize:"18px"}}>  Sim Number:  <b>{this.state.sim}  </b>  </span>
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                            <span style={{fontSize:"18px"}}>  TxnId:<b>  {this.state.txnId}</b>  </span>
+                            </Grid>
+                        </Grid>
+                        </Paper>
+                        <br /> 
+                        <form id="uploadform"  onSubmit={this.handleSubmit.bind(this)} >
+                        {/* <Paper style={{padding:"20px"}}> 
+                            <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
+                                <Grid item xs={12} sm={4}>
+                                    <InputLabel htmlFor="gender">User Images</InputLabel>
+                                    <input id="user_image_file" type="file" name="user_image" onChange={this.onChangeFileUpload} />
+                                </Grid>
+
+                                <Grid item xs={12} sm={2}>
+                                    {this.state.user_image_loader ? <CircularProgress />: ""} 
+                                    {this.state.user_image_upload?<Button type="submit"  onClick={() => this.onUploadFiles('user_image')} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button>:<Button type="submit"  disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button> } 
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                        <span style={{fontSize:"16px",color:"green"}}><b id="user_image_response"> </b> </span>
+                                </Grid>
+                            </Grid>
+                        </Paper>
+                        <br /> 
+                        <Paper style={{padding:"20px"}}> 
+                            <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
+                                <Grid item xs={12} sm={4}>
+                                    <InputLabel htmlFor="gender">User Signature</InputLabel>
+                                    <input id="user_signature_file" type="file" name="user_signature" onChange={this.onChangeFileUpload} />
+                                </Grid>
+
+                                <Grid item xs={12} sm={2}>
+                                    {this.state.user_signature_loader ? <CircularProgress />: ""} 
+                                    {this.state.user_signature_upload?<Button type="submit"  onClick={() => this.onUploadFiles('user_signature')} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button>:<Button type="submit"  disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button> } 
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                        <span style={{fontSize:"16px",color:"green"}}><b id="user_signature_response"> </b> </span>
+                                </Grid>
+                            </Grid>
+                        </Paper>
+
+                        <br /> 
+                        <Paper style={{padding:"20px"}}> 
+                            <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
+                                <Grid item xs={12} sm={4}>
+                                    <InputLabel htmlFor="gender">Retailer Signature</InputLabel>
+                                    <input id="retailer_signature_file" type="file" name="retailer_signature" onChange={this.onChangeFileUpload} />
+                                </Grid>
+
+                                <Grid item xs={12} sm={2}>
+                                    {this.state.retailer_signature_loader ? <CircularProgress />: ""} 
+                                    {this.state.retailer_signature_upload?<Button type="submit"  onClick={() => this.onUploadFiles('retailer_signature')} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button>:<Button type="submit"  disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button> } 
+                                </Grid>
+                                <Grid item xs={12} sm={6}> 
+                                        <span style={{fontSize:"16px",color:"green"}}><b id="retailer_signature_response"> </b> </span>
+                                </Grid>
+                            </Grid>
+                        </Paper> */}
+                        
+
+                        <br /> 
+                        <Paper style={{padding:"20px"}}> 
+                            <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
+                                <Grid item xs={12} sm={4}>
+                                    <InputLabel htmlFor="gender">POI Front Image</InputLabel>
+                                    <input id="poi_front_image_file" type="file" name="poi_front_image" onChange={this.onChangeFileUpload} />
+                                    {/* <InputLabel style={{fontSize:"14px"}}>Note: image name should be "poi_front_image.png"</InputLabel> */}
+
+                                </Grid>
+
+                                <Grid item xs={12} sm={2}>
+                                    {this.state.poi_front_image_loader ? <CircularProgress />: ""} 
+                                    {this.state.poi_front_image_upload?<Button type="submit"  onClick={() => this.onUploadFiles('poi_front_image')} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button>:<Button type="submit"  disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button> } 
+                                </Grid>
+                                <Grid item xs={12} sm={6}> 
+                                        <span style={{fontSize:"16px",color:"green"}}><b id="poi_front_image_response"> {this.state.poi_front_image_response} </b> </span>
+                                        {this.state.poi_front_image_response?<span><b> POI front image already uploaded </b> </span> :""}
+
+                                </Grid>
+                            </Grid>
+                        </Paper>
+
+                        <br /> 
+                        <Paper style={{padding:"20px"}}> 
+                            <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
+                                <Grid item xs={12} sm={4}>
+                                    <InputLabel htmlFor="gender">POI Back Image</InputLabel>
+                                    <input id="poi_back_image_file" type="file" name="poi_back_image" onChange={this.onChangeFileUpload} />
+                                    {/* <InputLabel style={{fontSize:"14px"}}>Note: image name should be "poi_back_image.png"</InputLabel> */}
+
+                                </Grid>
+                                <Grid item xs={12} sm={2}>
+                                    {this.state.poi_back_image_loader ? <CircularProgress />: ""} 
+                                    {this.state.poi_back_image_upload?<Button type="submit"  onClick={() => this.onUploadFiles('poi_back_image')} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button>:<Button type="submit"  disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button> } 
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                        <span style={{fontSize:"16px",color:"green"}}><b id="poi_back_image_response"> {this.state.poi_back_image_response} </b> </span>
+                                        {this.state.poi_back_image_response?<span><b> POI back image already uploaded </b> </span> :""}
+
+                                </Grid>
+                            </Grid>
+                        </Paper>
+
+                        <br /> 
+                        <Paper style={{padding:"20px"}}> 
+                            <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
+                                <Grid item xs={12} sm={4}>
+                                    <InputLabel htmlFor="gender">PEF Image</InputLabel>
+                                    <input id="pef_image_file" type="file" name="pef_image" onChange={this.onChangeFileUpload} />
+                                    <InputLabel style={{fontSize:"14px"}}>Note: It's sigle image</InputLabel>
+
+                                </Grid>
+                                <Grid item xs={12} sm={2}>
+                                    {this.state.pef_image_loader ? <CircularProgress />: ""} 
+                                    {this.state.pef_image_upload?<Button type="submit"  onClick={() => this.onUploadFiles('pef_image')} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button>:<Button type="submit"  disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button> } 
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                        <span style={{fontSize:"16px",color:"green"}}><b id="pef_image_response">  </b> </span>
+                                        {this.state.pef_image_response?<span><b> PFE image already uploaded </b> </span> :""}
+                                </Grid>
+                            </Grid>
+                        </Paper>
+                        </form>
+
+                        
+                        
+                 </Container> 
+                 <br />  <br />  <br /> 
+                </Paper>
+            </React.Fragment>
+        )
+    }
+
+
+
+}
+
+const styles ={
+    formContainer : {
+        display: 'flex',
+        flexFlow: 'row wrap'
+    },
+
+    textStyle :{
+        display: 'flex',
+        justifyContent: 'center'
+
+    },
+    imgStyle:{
+        display:'flex'
+    }, 
+
+    selectStyle:{
+        minWidth: '100%',
+        marginBottom: '10px'
+    },
+
+    show:{
+        display:"block"
+    },
+    hide:{
+        display:"node"
+    }
+};
+
+
+
+export default DataEntryList;
+

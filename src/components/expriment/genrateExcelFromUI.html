@@ -1,0 +1,75 @@
+<script src="https://cdn.jsdelivr.net/alasql/0.3/alasql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.7.12/xlsx.core.min.js"></script>
+
+<button onclick="saveFile()">Save XLSX file</button>
+
+
+<script>
+window.saveFile = function saveFile () {
+    
+    var data = {"status":200,"message":"ok","result":{"data":[{"msisdn":"753651095","simNumber":"00017","customerPoiId":"801912575V","activationDate":"15-01-2020 13:44:34","zone":"West 1","imageCount":3,"status":"av_pending","submittedUserId":"9560210319","submittedDate":1582535180056,"submittedDateStr":null,"rejectionReason":null,"comment":null},{"msisdn":"753651096","simNumber":"00017","customerPoiId":"801912575V","activationDate":"15-01-2020 13:44:34","zone":"West 1","imageCount":3,"status":"av_pending","submittedUserId":"9560210319","submittedDate":1582535180056,"submittedDateStr":null,"rejectionReason":null,"comment":null}]}}; 
+
+   var data = {
+            "data": [
+                {
+                "complianceStatus": "string",
+                "customerNumber": "string",
+                "dataEnteredBy": "string",
+                "dataEnteredDate": {
+                    "calendarType": "string",
+                    "firstDayOfWeek": 0,
+                    "lenient": true,
+                    "minimalDaysInFirstWeek": 0,
+                    "time": "2020-02-24T07:21:26.943Z",
+                    "timeInMillis": 0,
+                    "timeZone": {
+                    "displayName": "string",
+                    "dstsavings": 0,
+                    "id": "string",
+                    "rawOffset": 0
+                    },
+                    "weekDateSupported": true,
+                    "weekYear": 0,
+                    "weeksInWeekYear": 0
+                },
+                "distributorName": "string",
+                "distributorNumber": "string",
+                "fseName": "string",
+                "fseNumber": "string",
+                "ftaDate": 0,
+                "reSubmitDate": "2020-02-24T07:21:26.943Z",
+                "rejectedReasons": "string",
+                "retailerName": "string",
+                "retailerNumber": "string",
+                "submitBy": "string",
+                "submitDate": 0,
+                "verifyBy": "string",
+                "verifyDate": {
+                    "calendarType": "string",
+                    "firstDayOfWeek": 0,
+                    "lenient": true,
+                    "minimalDaysInFirstWeek": 0,
+                    "time": "2020-02-24T07:21:26.943Z",
+                    "timeInMillis": 0,
+                    "timeZone": {
+                    "displayName": "string",
+                    "dstsavings": 0,
+                    "id": "string",
+                    "rawOffset": 0
+                    },
+                    "weekDateSupported": true,
+                    "weekYear": 0,
+                    "weeksInWeekYear": 0
+                }
+                }
+            ]
+            }; 
+    
+    var sheet_1_data = [{Col_One:"vijay kumar", Col_Two: "saurab"}, {Col_One:2, Col_Two:22}];
+    var sheet_2_data = [{Col_One:10, Col_Two:110}, {Col_One:20, Col_Two:220}];
+    var opts = [{sheetid:'Sheet One',header:true},{sheetid:'Sheet Two',header:false}];
+    var result = alasql('SELECT * INTO XLSX("sample_file.xlsx",?) FROM ?', 
+    									[opts,[data.data ]]);
+}
+</script>
+

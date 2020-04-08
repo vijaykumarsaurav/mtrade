@@ -1,0 +1,61 @@
+{
+  "name": "retailerweb-portal",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "https://retailer.airtel.lk/",
+  "dependencies": {
+    "@material-ui/core": "^4.5.0",
+    "@material-ui/icons": "^4.4.3",
+    "@material-ui/lab": "^4.0.0-alpha.40",
+    "aes256": "^1.0.4",
+    "alasql": "^0.5.5",
+    "axios": "^0.19.0",
+    "core-js-compat": "^3.4.2",
+    "crypto-js": "^4.0.0",
+    "history": "latest",
+    "jquery": "^3.4.1",
+    "json2csv": "^4.5.4",
+    "material-table": "^1.52.0",
+    "moment": "^2.24.0",
+    "react": "^16.8.6",
+    "react-csv": "^2.0.1",
+    "react-dom": "^16.8.6",
+    "react-image-lightbox": "^5.1.0",
+    "react-image-lightbox-rotate-fixed": "^1.2.3",
+    "react-image-pan-zoom-rotate": "^1.2.0",
+    "react-medium-image-zoom": "^3.1.2",
+    "react-native-base64": "0.0.2",
+    "react-native-image-pan-zoom": "^2.1.11",
+    "react-router-dom": "^5.0.1",
+    "react-scripts": "3.0.1",
+    "react-slideshow-image": "^1.3.3",
+    "react-spinner-material": "^1.1.3",
+    "react-toastify": "^5.3.2",
+    "recharts": "^1.7.1",
+    "redux-form": "^8.2.6",
+    "redux-thunk": "^2.3.0",
+    "rhino-react-image-lightbox-rotate": "^1.2.4",
+    "xlsx": "^0.15.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

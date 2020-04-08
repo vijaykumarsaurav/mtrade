@@ -1,0 +1,3 @@
+export const SET_PACK_LOADED = 'SET PACK LOADED';
+export const EDIT_PACK_INFO ='EDIT PACK INFO';
+export const GET_PACK_INFO_BY_ID ='GET_PACK_INFO_BY_ID';

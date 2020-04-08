@@ -1,0 +1,81 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 40vmin;
+  pointer-events: none;
+  
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+main, .jss10, .jss297{
+  padding: 0px !important;
+}
+.MuiFormControlLabel-label{
+  font-size: 10px !important;
+}
+
+/* .MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters { 
+      min-height: 0px;
+} */
+
+
+/* .MuiToolbar-regular{
+  min-height: 10px !important;; 
+} */
+/* .MuiIconButton-label {
+  color: white;
+} */
+/* 
+.MuiSvgIcon-root {
+ color: gray;
+} */
+
+.App-link {
+  color: #61dafb;
+}
+
+.infoMessage{
+  color: #17a2b8;
+}
+
+.hidden {
+  display: none;
+}
+.text-centered {
+  justifyContent: center
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+
+input[type=number] {
+  -moz-appearance:textfield;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
