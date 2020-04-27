@@ -20,8 +20,7 @@ function addMonths(date, months) {
 
 
 export default function MaterialUIPickers(props) {
-
-  console.log("startDatestartDate,",props ); 
+  //console.log("startDatestartDate,",props ); 
   var requiredDate ='';
   // The first commit of Material-UI
   var [selectedStartDate, setSelectedStartDate] = React.useState(new Date());
@@ -30,14 +29,15 @@ export default function MaterialUIPickers(props) {
      
      setSelectedStartDate(date);
     props.callbackFromParent.myCallback(date,"START_DATE");
+
   };
   const handleEndDateChange = date => {
-    console.log(date,"SELECTED_DATE")
+   // console.log(date,"SELECTED_DATE")
     setSelectedEndDate(date);
     props.callbackFromParent.myCallback(date,"END_DATE");
   };
 
-  console.log(props)
+  //console.log(props)
 
   // var date = new Date(); 
   // date.getMonth() - 6; 
@@ -74,10 +74,16 @@ export default function MaterialUIPickers(props) {
 //  if(selectedStartDate != new Date()){
 //   selectedStartDate = null; 
 //  }
+
+
 var today = new Date();
-if(selectedStartDate && selectedStartDate.getDate() == today.getDate() && selectedStartDate.getFullYear() == today.getFullYear()  && selectedStartDate.getMonth() == today.getMonth()){
+if(selectedStartDate && selectedStartDate.getDate() == today.getDate() && selectedStartDate.getFullYear() == today.getFullYear() && selectedStartDate.getMonth() == today.getMonth()){
   setSelectedStartDate(null);
- }
+}
+
+if(!props.callbackFromParent.startDate){
+  selectedStartDate = null;
+}
 
 
  return (

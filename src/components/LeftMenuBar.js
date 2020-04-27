@@ -87,6 +87,14 @@ export const  BOAMenuList  = (
       </ListItemIcon>
       <ListItemText primary="Verify Docs" />
     </ListItem>
+
+    {/* <ListItem component='a' href={"/#/dataentry"} button>
+      <ListItemIcon>
+        <EditIcon />
+      </ListItemIcon>
+      <ListItemText primary="Data Entry" />
+    </ListItem>    */}
+
     
   </div>
 );
@@ -134,12 +142,12 @@ export const AdminMenuList = (
     </ListItem>
 
 
-    <ListItem button component='a' href={"/#/role"} >
+    {/* <ListItem button component='a' href={"/#/role"} >
       <ListItemIcon>
         <PeopleIcon />
       </ListItemIcon>
       <ListItemText primary="Role Management" />
-    </ListItem>
+    </ListItem> */}
   
     
     <ListItem button component='a' href={"/#/report"}>
@@ -175,6 +183,13 @@ export const DEMenuList = (
   <div>
     {/* <ListSubheader inset>Update Acquisition</ListSubheader> */}
    
+    {/* <ListItem component='a' href={"/#/verify"} button>
+      <ListItemIcon>
+        <VerifiedUserIcon />
+      </ListItemIcon>
+      <ListItemText primary="Verify Docs" />
+    </ListItem> */}
+    
     <ListItem component='a' href={"/#/dataentry"} button>
       <ListItemIcon>
         <EditIcon />
@@ -191,13 +206,16 @@ function logoutPortal(){
   storeService.logout()
   .then(res => {
    // {"status":200,"message":"Success","result":{"message":"User logged out successfully"}}
-   console.log(res.data);
-   if(res.data &&  res.data.message == "Success"){
-    localStorage.clear();
-   }
+   //console.log(res.data);   
+   localStorage.clear();
    window.location.replace("/#/login");
    return;
- 
+  //  if(res.data && res.data.message == "Unauthorised" || res.data.message == "Success"){
+  //   localStorage.clear();
+  //   window.location.replace("/#/login");
+  //   return;
+  //  }
+
   });
  //  window.localStorage.setItem("userDetails", '' );
 }

@@ -73,7 +73,7 @@ class BaneerList extends React.Component{
     componentDidMount() {
         this.loadBannerList();
         localStorage.setItem("lastUrl","banners");
-        ActivationService.getStaticData('BOA').then(res => {
+        ActivationService.getStaticData('ADMIN').then(res => {
             let data = resolveResponse(res);
             this.setState({listofzones: data.result && data.result.zones}) 
         })

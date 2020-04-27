@@ -101,7 +101,7 @@ class RechargePack extends React.Component{
 
                         {/* <TableCell align="center">ProductId</TableCell> */}
                         <TableCell align="center">Connection Type</TableCell>
-                        <TableCell align="center">Pack Type</TableCell>
+                        <TableCell align="center">Pack</TableCell>
                         <TableCell align="center">Amount</TableCell>
 
                         <TableCell align="center">Status</TableCell>
@@ -131,7 +131,7 @@ class RechargePack extends React.Component{
                                 {row.connectionType}
                             </TableCell>
                             
-                            <TableCell align="center">{row.packType}</TableCell>
+                            <TableCell align="center">{row.pack}</TableCell>
                             <TableCell align="center">{row.amount}</TableCell>
 
                             <TableCell align="center">{row.active ? 'Active' : 'Inactive'}</TableCell>

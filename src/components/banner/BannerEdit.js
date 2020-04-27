@@ -127,7 +127,7 @@ class BannerEdit extends React.Component {
     });
 
 
-    ActivationService.getStaticData('BOA').then(res => {
+    ActivationService.getStaticData('ADMIN').then(res => {
       let data = resolveResponse(res);
       this.setState({listofzones: data.result && data.result.zones}) 
   })

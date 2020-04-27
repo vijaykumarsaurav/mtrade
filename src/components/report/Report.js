@@ -58,10 +58,12 @@ class Report extends React.Component {
             selectedZone:[],
             zone:'',
             selectAllzone:'Select All',
-            reportName : "Download Report"
+            reportName : "Download Report",
+            generateReportLoader:false,
+            generateReportMsg: ""
         };
         this.loadProductList = this.loadProductList.bind(this);
-        this.sendReportToEmail = this.sendReportToEmail.bind(this);
+        this.getReportDetails = this.getReportDetails.bind(this);
         this.convertBool = this.convertBool.bind(this);
         this.onChange = this.onChange.bind(this);
         this.myCallback = this.myCallback.bind(this);
@@ -85,7 +87,7 @@ class Report extends React.Component {
 
     componentDidMount() {
         //this.loadProductList();
-        ActivationService.getStaticData('BOA').then(res => {
+        ActivationService.getStaticData('ADMIN').then(res => {
             let data = resolveResponse(res);
             this.setState({listofzones: data.result && data.result.zones}) 
         })
@@ -103,21 +105,28 @@ class Report extends React.Component {
             this.setState({ showZoneSelection: false });
 
         }
-        this.setState({ [e.target.name]: e.target.value });
+        this.setState({ [e.target.name]: e.target.value, responseFlag : false, dataEntryData :false, generateReportLoader : false });
 
+        this.setState({ responseFlagMsg : "" });
     } 
 
 
-    sendReportToEmail() {
+    getReportDetails() {
 
-        //if(this.state.reporttype)
+                
+        var startd = new Date(); 
+        startd.setHours(0,0,0,0);
+
+        var endd = new Date(); 
+        endd.setHours(23,59,59,59);    
+
 
         if(!this.state.startDate){
-            this.state.startDate = new Date().getTime();
+            this.state.startDate = startd.getTime();
         }
       
         if(!this.state.endDate){
-            this.state.endDate = new Date().getTime();
+            this.state.endDate = endd.getTime();
         }
 
     
@@ -127,9 +136,15 @@ class Report extends React.Component {
         return;
         }
 
+        // BY_FTA_DATE,
+        // BY_SUBMIT_DATE,
+        // BY_VERIFICATION_DATE,
+        // BY_DATA_ENTRY_DATE
+
+        
       
         var data = {
-            retrieveType: 'BY_FTA_DATE',
+            retrieveType: 'BY_SUBMIT_DATE',
             startDate: this.state.startDate,
             endDate: this.state.endDate,
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null
@@ -141,9 +156,9 @@ class Report extends React.Component {
 
     //    console.log(data); 
 
-      this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report" });
+      this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report", generateReportLoader : true,generateReportMsg : "Genrating report please wait..." });
 
-
+      
         AdminService.sentReportToEmail(data,api)
             .then((res) => {
 
@@ -157,10 +172,13 @@ class Report extends React.Component {
                     this.setState({ products: data.result.verifications, responseFlag : true, reportName:"Verification Report" });
                     if(data.result && data.result.dataEntry)
                     this.setState({ dataEntryData: data.result.dataEntry});
+                    this.setState({ generateReportMsg:  "Ready to Download"});
 
                 }else if(data.result && data.result.data && data.result.data.length ){
+                    this.setState({ generateReportMsg:  "Ready to Download"});
                     this.setState({ products: data.result.data, responseFlag : true});
                 }else{
+                    this.setState({ generateReportMsg:  "",  generateReportLoader: false});
                     this.setState({ responseFlagMsg : "No Records Found" });
                 }
 
@@ -226,7 +244,11 @@ class Report extends React.Component {
                                         <MenuItem value="omniTransferReport">OMNI Transfer Report</MenuItem>
                                         <MenuItem value="summaryReportForDistributor">Summary Report For Distributor</MenuItem>
 
+
+                                      
                                         <MenuItem value="zoneWiseDetailedReport">Zone Wise Detailed Report </MenuItem>
+
+                                        <MenuItem value="simSwapReport">SIM Swap Report</MenuItem>
 
 
                                     </Select>
@@ -278,14 +300,19 @@ class Report extends React.Component {
                             alignItems="center">
 
 
-                            <Grid item xs={12} sm={2} item alignItems='flex-end'>
-                            <Button variant="contained" color="Primary" style={{ marginLeft: '20px' }} onClick={this.sendReportToEmail} >Generate Report</Button>
-
-                                {/* <Typography component="h2" variant="h4" color="primary" gutterBottom>
-                                    <TextField type="text" value={this.state.emails} label="You can type multiple emails by comma(,) seperated" style={{ width: "100%" }} name="emails" onChange={this.onChange} />
-                                </Typography> */}
+                            <Grid item xs={12} sm={3} item alignItems='flex-end'>
+                                
+                                {!this.state.generateReportLoader ? 
+                                <Button variant="contained" color="Primary" style={{ marginLeft: '20px' }} onClick={this.getReportDetails} >Generate Report</Button>
+                                :""}
+                                
+                                {this.state.generateReportLoader ? 
+                                <Typography  component="h5" color="primary" gutterBottom>
+                                    {this.state.generateReportMsg}
+                                </Typography>
+                                :""}
                             </Grid>
-                            <Grid item xs={12} sm={10} item alignItems='flex-end'  >
+                            <Grid item xs={12} sm={9} item alignItems='flex-end'  >
                                 {this.state.responseFlag ? 
                                 <CSVLink data={this.state.products}
                                     filename={this.state.reporttype+".csv"}
@@ -305,7 +332,7 @@ class Report extends React.Component {
                                     className="btn btn-primary"
                                     target="_blank"
                                     >
-                                    <Typography component="h2" variant="h6" style={{ color: 'green' }} gutterBottom>
+                                    <Typography component="h5" style={{ color: 'green' }} gutterBottom>
                                         Data Entry Report
                                     </Typography>
                                     </CSVLink> 
@@ -317,7 +344,7 @@ class Report extends React.Component {
                                   No Records Found
                                 </Typography> : "" } */}
 
-                                <Typography component="h2" variant="h6" color="error" gutterBottom>
+                                <Typography component="h5" color="error" gutterBottom>
                                   {this.state.responseFlagMsg}
                                 </Typography> 
                             </Grid>

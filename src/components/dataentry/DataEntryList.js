@@ -70,6 +70,8 @@ class DataEntryList extends React.Component{
         this.addProduct = this.addProduct.bind(this);
         this.editProduct = this.editProduct.bind(this);
         this.convertBool = this.convertBool.bind(this);
+        this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
+
 
         this.onChange = this.onChange.bind(this);
 
@@ -93,6 +95,9 @@ class DataEntryList extends React.Component{
     zoneChange = (e) =>{
         this.setState({[e.target.name]: e.target.value})
     }
+
+    
+
      
     loadProductList(mobileNumber) {
         var d = new Date();
@@ -123,7 +128,13 @@ class DataEntryList extends React.Component{
                     var listingIds = data.result.activationList.map(function(val, index){
                         return val.txnId
                     })
-                    localStorage.setItem("dataentryListingTxn",listingIds);
+
+                    if(listingIds){
+                        localStorage.setItem("dataentryListingTxn",listingIds); 
+                    }else{
+                        localStorage.setItem("dataentryListingTxn",""); 
+                    }
+                
                     document.getElementById('showMessage').innerHTML = "";
 
                  }else {
@@ -149,8 +160,29 @@ class DataEntryList extends React.Component{
         this.props.history.push('/add-product');
     }
 
+    onlockTransectionOnSkip = (txn) =>{
+        var transactionsIds = {
+            transactionsIds : txn
+        }
+
+        ActivationService.unlockTransectionsSkip( transactionsIds ).then(res => {
+            let data = resolveResponse(res);
+            if(data.message != 'ok'){
+                Notify.showError("Server Error"+data.message);
+            }  
+       });
+       
+    }
+
     searchOnDB(mobileNumber) {
         
+
+        var dataentryListingTxn = localStorage.getItem("dataentryListingTxn");
+        dataentryListingTxn =  dataentryListingTxn && dataentryListingTxn.split(',');
+       
+        if(dataentryListingTxn.length >= 1){
+            this.onlockTransectionOnSkip(dataentryListingTxn); 
+        }
 
         this.loadProductList(mobileNumber) ;
 

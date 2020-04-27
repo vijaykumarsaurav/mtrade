@@ -102,12 +102,17 @@ class DataEntryEdit extends React.Component {
         this.skipThisVerify = this.skipThisVerify.bind(this);
         this.loadOneTransection = this.loadOneTransection.bind(this);
         this.myCallback = this.myCallback.bind(this);
+        this.slideRef = React.createRef(); 
 
     }
     myCallback = (date, fromDate) => {
         if (fromDate === "START_DATE") {
-            console.log("date",date)
-            this.setState({ dob: new Date(date).getTime() });
+
+            var formattedDate = date.toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'numeric', year: 'numeric'
+            }).replace(/ /g, '/');
+           // var dateStr =  date.getDate() + "/" + date.getMonth() + '/' +  date.getFullYear();
+            this.setState({ dob: formattedDate });
         } 
     };
 
@@ -123,9 +128,9 @@ class DataEntryEdit extends React.Component {
              ActivationService.getOneDataEntry(dataEntryId).then(res => {
                  let data = resolveResponse(res);
                  const selectedProduct = data.result;
-                 
+ 
                  var genderSelect=''; 
-                 if(selectedProduct && selectedProduct.title == "Ms"){
+                 if(selectedProduct && selectedProduct.title == "Ms" || selectedProduct.title == 'Mrs'){
                      genderSelect = "F"; 
                  }
                  if(selectedProduct && selectedProduct.title == "Mr"){
@@ -164,14 +169,14 @@ class DataEntryEdit extends React.Component {
                         // firstName:selectedProduct.firstName, 
                         });
 
-                        console.log("getonedata",this.state); 
+                    //    console.log("getonedata",this.state); 
                  }
 
                 
              })
  
              const userDetails = JSON.parse(localStorage.getItem("userDetails")); 
-             console.log("this.state afer load", this.state);
+           //  console.log("this.state afer load", this.state);
 
              this.setState({  loginId : userDetails.loginId });
 
@@ -181,7 +186,7 @@ class DataEntryEdit extends React.Component {
                  this.setState({
                      propertiesName: data.result && data.result.screenFields && data.result.screenFields[0].fields
                      });
-                console.log("propertiesName screenFields", this.state.propertiesName);
+              //  console.log("propertiesName screenFields", this.state.propertiesName);
 
              })
          }
@@ -202,6 +207,10 @@ class DataEntryEdit extends React.Component {
         if(document.getElementById("presentAddress")){
             document.getElementById("presentAddress").style.fontSize = "12px";
         }
+        if(document.getElementById("rejectedReasons")){
+            document.getElementById("rejectedReasons").style.fontSize = "12px";
+        }
+
     }
 
 
@@ -216,7 +225,14 @@ class DataEntryEdit extends React.Component {
               featured: true,
             }); 
         }
-        
+        if(this.state.customerImageUrl){
+            imageDetails.push({
+                img: baseUrl+ this.state.customerImageUrl,
+                title: 'Customer Image',
+                author: 'Customer Image',
+                featured: true,
+              }); 
+          }
         if(this.state.poiBackImageUrl){
           imageDetails.push({
               img: baseUrl+ this.state.poiBackImageUrl,
@@ -225,15 +241,6 @@ class DataEntryEdit extends React.Component {
               featured: true,
             }); 
         }
-        if(this.state.customerImageUrl){
-          imageDetails.push({
-              img: baseUrl+ this.state.customerImageUrl,
-              title: 'Customer Image',
-              author: 'Customer Image',
-              featured: true,
-            }); 
-        }
-        
         if(this.state.customerSignatureUrl){
           imageDetails.push({
               img:  baseUrl+this.state.customerSignatureUrl,
@@ -262,7 +269,7 @@ class DataEntryEdit extends React.Component {
 
           const dateParam = {
             myCallback: this.myCallback,
-            startDate: '',
+            startDate: this.state.dob,
             endDate: ''
 
         }
@@ -289,7 +296,7 @@ class DataEntryEdit extends React.Component {
                         {/* <Typography variant="body1" style={styles.textStyle}>Document Uploaded</Typography> */}
 
                          {/* <ImageGalary imageDetails={imageDetails} />  */}
-                         <SlideShowGalary imageDetails={imageDetails} />
+                         <SlideShowGalary  imageDetails={{imageDetails: imageDetails, slideRef : this.slideRef}} />
 
                     </Paper>
 
@@ -326,7 +333,7 @@ class DataEntryEdit extends React.Component {
                         <Grid spacing={1} container direction="row">
                             <Grid item xs={12} sm={6}>
                                  <FormControl style={styles.selectStyle}>
-                                    <InputLabel htmlFor="gender">POI Type</InputLabel>
+                                    <InputLabel  required={true}  htmlFor="gender">POI Type</InputLabel>
                                     <Select value={this.state.poiType}  name="poiType" onChange={this.onChange}>
                                         <MenuItem value={"NIC"}>NIC</MenuItem>
                                         <MenuItem value={"DL"}>DL</MenuItem>
@@ -359,10 +366,11 @@ class DataEntryEdit extends React.Component {
                             <Grid item xs={12} sm={6}>
 
                              <FormControl style={styles.selectStyle}>
-                                    <InputLabel htmlFor="title">Title</InputLabel>
-                                    <Select value={this.state.title}  name="title" onChange={this.onChange}>
+                                    <InputLabel required={true} htmlFor="title">Title</InputLabel>
+                                    <Select  value={this.state.title}  name="title" onChange={this.onChange}>
                                         <MenuItem value={"Mr"}>Mr</MenuItem>
                                         <MenuItem value={"Ms"}>Ms</MenuItem>
+                                        <MenuItem value={"Mrs"}>Mrs</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -397,7 +405,7 @@ class DataEntryEdit extends React.Component {
  
                             <Grid item xs={12} sm={6}>
                                 <FormControl style={styles.selectStyle}>
-                                    <InputLabel htmlFor="gender">Gender</InputLabel>
+                                    <InputLabel required={true} htmlFor="gender">Gender</InputLabel>
                                     <Select value={this.state.gender}  name="gender" onChange={this.onChange}>
                                         <MenuItem value={"M"}>Male</MenuItem>
                                         <MenuItem value={"F"}>Female</MenuItem>
@@ -409,24 +417,48 @@ class DataEntryEdit extends React.Component {
 
                         <Grid spacing={1} container direction="row">
                             <Grid item xs={12} sm={6}>
-                                <TextField id="presentAddress" disabled  objects={styles.MuiTextField} label="Present Address" value={this.state.presentAddress} fullWidth/>
+                            <InputLabel style={{fontSize:"12px"}}>Present Address</InputLabel>
+                            <div id="presentAddress"   style={styles.MuiTextField} >{this.state.presentAddress} </div>
                             </Grid>
+
                             <Grid item xs={12} sm={6}>
-                                <TextField id="addressone"  label="Address 1"  value={this.state.address1}  fullWidth name="address1" onChange={this.onChange}/>
+                            <TextField id="addressone"  required={true} label="Address 1"  value={this.state.address1}  fullWidth name="address1" onChange={this.onChange}/>
+
                             </Grid>
 
                         </Grid>
 
+                        
+
+
+                        <Grid spacing={1} container direction="row">
+                            
+
+                            <Grid item xs={12} sm={6}>
+                            <TextField id="addresstwo"  label="Address 2"  value={this.state.address2}  fullWidth name="address2" onChange={this.onChange}/>
+
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                            <TextField id="addressthree"  label="Address 3" value={this.state.address3}   fullWidth name="address3" onChange={this.onChange}/>
+
+                            </Grid>
+
+
+                        </Grid>
+                           
+
                         <Grid spacing={1} container direction="row">
                             <Grid item xs={12} sm={6}>
-                                <TextField id="addresstwo"  label="Address 2"  value={this.state.address2}  fullWidth name="address2" onChange={this.onChange}/>
+                                 <InputLabel style={{fontSize:"12px"}}>Rejected Reasons</InputLabel>
+
+                                 <div id="rejectedReasons"  style={styles.MuiTextField}>{this.state.rejectedReasons} </div>
                             </Grid>
 
                             <Grid item xs={12} sm={6}>
-                                 <TextField id="addressthree"  label="Address 3" value={this.state.address3}   fullWidth name="address3" onChange={this.onChange}/>
+                            <TextField multiline variyant rows={2} value={this.state.comment} label="Comments" fullWidth margin="none" name="comment" onChange={this.onChange}/>
                             </Grid>
 
-                           
                         </Grid>
 
 
@@ -434,15 +466,15 @@ class DataEntryEdit extends React.Component {
                         
                         <br />
                         {/* <InputLabel htmlFor="title">Rejected Reasons</InputLabel> */}
-
-                        <Input fullWidth
+                        
+                        {/* <Input fullWidth
                             placeholder="Rejected Reasons" 
                             disabled
                             value={this.state.rejectedReasons}
                             inputProps={{
                             'aria-label': 'description',
                             }}
-                        />
+                        /> */}
                         {/* <TextField  value={this.state.rejectedReasons} multiline rows={2} label="Rejected Reasons" fullWidth margin="none" name="helpText" onChange={this.onChange}/> */}
                         {/* <TextField
                             label="Comments"
@@ -453,7 +485,6 @@ class DataEntryEdit extends React.Component {
                             />
                         */}
                          
-                        <TextField multiline variyant rows={2} value={this.state.comment} label="Comments upto 200 characters" fullWidth margin="none" name="comment" onChange={this.onChange}/>
                         <div><Grid  container spacing={24} style={{paddingTop:"4px"}} container
                             direction="row"
                             justify="center"
@@ -525,6 +556,36 @@ class DataEntryEdit extends React.Component {
 
 
     skipThisVerify = (e) => {
+
+         //reset 
+         this.setState({
+            txnId: '',
+            mobileNumber: '', 
+            poiNumber:'',
+            poiType:'',
+            title:'',
+            gender:'',
+            dob:'',
+            rejectedReasons:'',
+            approveLoader:false,
+            approveDone:false,
+            approveButton:true,
+            loginId:'',
+            firstName:"",
+            middleName:"",
+            lastName:"",
+            altContactNumber:'', 
+            propMobile:'',
+            emailid:'',
+            address1:'',
+            address2:'',
+            address3:'',
+            customerImageUrl:"",
+            presentAddress:"",
+            pefImageUrl:'',
+            comment:"" 
+        });
+
         //  e.preventDefault();
           var dataEntryId = localStorage.getItem("dataEntryId"); 
           var dataentryListingTxn = localStorage.getItem("dataentryListingTxn"); 
@@ -539,22 +600,31 @@ class DataEntryEdit extends React.Component {
   
          // this.updateLocalActList(dataEntryId); 
           this.onlockTransectionOnSkip(dataEntryId); 
-          console.log("nextid",nextid); 
+        //  console.log("nextid",nextid); 
           if(nextid){
 //            Notify.showSuccess("Acquisition skipped successfully and Lodding next...");
 
               localStorage.setItem("dataEntryId", nextid); 
               this.loadOneTransection();
+            
+           // To call the method you can use the slide's ref attribute and then call the method. 
+              this.slideRef.current.goTo(0);
+
+
+            
               this.setState({ approveLoader: false});
               this.setState({ approveDone: false});
               this.setState({ approveButton: true});
 
+            //  this.history.pushState(this.state, '/data-edit');
 
+
+            //  this.props.history.push('/data-edit');
             
            //  this.props.history.push('/data-edit');
              // this.render(); 
               //this.forceUpdate(); 
-              console.log("push to data-edit",nextid);   
+            //  console.log("push to data-edit",nextid);   
 
           }else{
              // Notify.showError("No item available");
@@ -573,7 +643,7 @@ class DataEntryEdit extends React.Component {
       
 
       //  Notify.showSuccess("Approved");
-        console.log("data entry post data",this.state)
+    //    console.log("data entry post data",this.state)
 
         if(!this.state.gender || !this.state.title || !this.state.poiNumber || !this.state.dob || !this.state.firstName || !this.state.lastName || !this.state.address1 ){
             Notify.showError("Missing required fields");
@@ -619,15 +689,13 @@ class DataEntryEdit extends React.Component {
 
             this.setState({ approveLoader: false});
             this.setState({ approveDone: true});
-            this.setState({ altContactNumber: '',dob:''});
+         //   this.setState({ altContactNumber: '',dob:''});
 
-            document.getElementById('dataentryform').reset();
-            
+           
 
-            //  this.skipThisVerify(); 
-               setTimeout(() => {
-                    this.skipThisVerify(); 
-                }, 2000);
+            setTimeout(() => {
+                this.skipThisVerify(); 
+            }, 2000);
 
             });
     };
@@ -672,7 +740,7 @@ class DataEntryEdit extends React.Component {
             this.setState({altContactNumber: e.target.value.substring(0, 10)});   
         }
 
-        if(e.target.name == "title" &&  e.target.value == "Ms"){
+        if(e.target.name == "title" &&  e.target.value == "Ms" || e.target.value == 'Mrs'){
             this.setState({gender: "F"});   
         }
         if(e.target.name == "title" &&  e.target.value == "Mr"){
@@ -715,7 +783,10 @@ const styles ={
         marginBottom: '10px'
     },
     MuiTextField:{
+        overflowY: 'scroll',
         fontSize:"12px", 
+        maxHeight:"50px",
+        
     },
 
     footerButton: {

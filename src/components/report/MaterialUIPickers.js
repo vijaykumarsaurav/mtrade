@@ -23,14 +23,19 @@ export default function MaterialUIPickers(props) {
 
   console.log("startDatestartDate,",props ); 
   var requiredDate ='';
+
+  var startd = new Date(); 
+  startd.setHours(0,0,0,0);
+
+  var endd = new Date(); 
+  endd.setHours(23,59,59,59);
+
   // The first commit of Material-UI
-  var [selectedStartDate, setSelectedStartDate] = React.useState(new Date());
-  var [selectedEndDate, setSelectedEndDate] = React.useState(new Date());
+  var [selectedStartDate, setSelectedStartDate] = React.useState(startd);
+  var [selectedEndDate, setSelectedEndDate] = React.useState(endd);
   const handleStartDateChange = date => {
     
     setSelectedStartDate(date);
-
-
 
     //console.log("6month later", selectedStartDate.setMonth(selectedStartDate.getMonth() + 6))
 

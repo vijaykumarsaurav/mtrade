@@ -76,6 +76,8 @@ class VerifyList extends React.Component{
         this.convertBool = this.convertBool.bind(this);
         this.onChange = this.onChange.bind(this);
         this.zoneChange = this.zoneChange.bind(this);
+        this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
+
     }
 
     componentDidMount() {
@@ -83,10 +85,33 @@ class VerifyList extends React.Component{
         localStorage.setItem("lastUrl","verify");
     }
 
-    searchOnDB(mobileNumber) {
-        
-        this.loadProductList(mobileNumber) ;
+    onlockTransectionOnSkip = (txn) =>{
+        var transactionsIds = {
+            transactionsIds : txn
+        }
 
+        ActivationService.unlockTransectionsSkip( transactionsIds ).then(res => {
+            let data = resolveResponse(res);
+            if(data.message != 'ok'){
+                Notify.showError("Server Error"+data.message);
+            }  
+       });
+       
+    }
+
+    searchOnDB(mobileNumber) {
+
+        var verifyListingTxn = localStorage.getItem("verifyListingTxn");
+        verifyListingTxn =  verifyListingTxn && verifyListingTxn.split(',');
+
+        if(verifyListingTxn.length >= 1){
+            this.onlockTransectionOnSkip(verifyListingTxn); 
+        }
+       
+
+        this.loadProductList(mobileNumber) ;
+       
+     
         // ActivationService.searchMobileNo(mobileNumber).then(res => {
         //     let data = resolveResponse(res);
         //     const selectedProduct = data.result;            
@@ -143,8 +168,14 @@ class VerifyList extends React.Component{
                         document.getElementById('showMessage').innerHTML = "";
                     }    
                 }
+
+                if(listingIds){
+                    localStorage.setItem("verifyListingTxn",listingIds); 
+                }else{
+                    localStorage.setItem("verifyListingTxn",""); 
+                }
                 
-                localStorage.setItem("verifyListingTxn",listingIds);  
+                 
             });
 
         setTimeout(() => {

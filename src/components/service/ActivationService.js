@@ -9,6 +9,10 @@ class ActivationService {
         //return axios.post(amsConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
       return axios.post(amsConstant.VERIFY_DOCS_LISTING,data, AuthService.getHeader() );
     }
+    
+    getListOfRoles(){
+        return axios.get(amsConstant.LIST_OF_ROLES , AuthService.getHeader());
+    }
 
     listActiveProduct(){
         return axios.get(amsConstant.PRODUCT_API_BASE_URL, AuthService.getHeader());

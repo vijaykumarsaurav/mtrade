@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ActivationService from "../service/ActivationService";
+import AdminService from "../service/AdminService";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Table from "@material-ui/core/Table";
@@ -10,7 +10,8 @@ import TableBody from "@material-ui/core/TableBody";
 import Paper from "@material-ui/core/Paper";
 import TextField from '@material-ui/core/TextField';
 import Notify from "../../utils/Notify";
-
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import Divider from '@material-ui/core/Divider';
 
 import InputLabel from '@material-ui/core/InputLabel';
@@ -27,6 +28,8 @@ import { Container } from "@material-ui/core";
 import { resolveResponse } from "../../utils/ResponseHandler";
 
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import $ from 'jquery'; 
+
 
 const handleChangePage = (event, newPage) => {
     //  this.setPage(newPage);
@@ -60,11 +63,13 @@ class RoleManagement extends React.Component {
             searchedproducts: '',
             searchby: '',
             listofzones: [],
+            selectedReasons: {},
             selectedZone: [],
             zone: '',
             addNewEnable:false,
             roleName:"",
-            rejectedReasons: ["Pack Activation", "Offer Upload", "Banner Upload", "Onboarding Agents", "Data Entry", "Verification", "Document Upload", "Agent Status Report", "Agent Audit Report", "Rejected Data"]
+            roleDetails:"",
+            selectedRole:false
         };
         this.loadProductList = this.loadProductList.bind(this);
         this.editProduct = this.editProduct.bind(this);
@@ -73,6 +78,9 @@ class RoleManagement extends React.Component {
         this.zoneChange = this.zoneChange.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.addRole = this.addRole.bind(this);
+        this.showRoleDetails = this.showRoleDetails.bind(this);
+
+        
 
         this.deleteNewRole = this.deleteNewRole.bind(this);
         this.deleteRole = this.deleteRole.bind(this);
@@ -86,16 +94,36 @@ class RoleManagement extends React.Component {
       //  this.loadProductList("");
         localStorage.setItem("lastUrl", "role");
 
-        var roles = ["Data Entry", "BO Agent", "Distributor", "FSE"];
+       // var roles = {"status":200,"message":"ok","result":[{"id":15,"role":"ADMIN"},{"id":16,"role":"BOA"},{"id":1,"role":"CEO"},{"id":8,"role":"CP"},{"id":11,"role":"CSM"},{"id":14,"role":"DE"},{"id":5,"role":"DIST"},{"id":10,"role":"DSA"},{"id":12,"role":"DTH Sales Head"},{"id":9,"role":"FSE"},{"id":6,"role":"RET"},{"id":7,"role":"SMH"},{"id":4,"role":"TM"},{"id":2,"role":"ZBM"},{"id":3,"role":"ZSM"}]}; 
+       // this.setState({ searchedproducts: roles && roles.result })
 
-        this.setState({ searchedproducts: roles })
+        AdminService.getListOfRoles().then(res => {
+            let data = resolveResponse(res);
+            this.setState({ searchedproducts: data && data.result })
+        })
+
+     
+    }
+   
+
+    showRoleDetails(id){
+        $("#tableId .rolesRow").css("background-color", ""); 
+        document.getElementById('roleId'+id).style.backgroundColor = "lightgray"; 
+        
+
+        AdminService.getRoleDetails(id).then(res => {
+            let data = resolveResponse(res);
+            this.setState({ roleDetails: data && data.result && data.result.authorites })
+           // this.setState({ selectedRole: true })
+        })
+
     }
 
     searchOnDB(mobileNumber) {
 
      //   this.loadProductList(mobileNumber);
 
-        // ActivationService.searchMobileNo(mobileNumber).then(res => {
+        // AdminService.searchMobileNo(mobileNumber).then(res => {
         //     let data = resolveResponse(res);
         //     const selectedProduct = data.result;            
 
@@ -136,7 +164,7 @@ class RoleManagement extends React.Component {
 
         document.getElementById('showMessage').innerHTML = "Please Wait Loading...";
 
-        ActivationService.listDocs(data)
+        AdminService.listDocs(data)
             .then((res) => {
                 let data = resolveResponse(res);
                 var activationList = data && data.result && data.result.activationList;
@@ -164,24 +192,7 @@ class RoleManagement extends React.Component {
                 localStorage.setItem("verifyListingTxn", listingIds);
             });
 
-        setTimeout(() => {
-            if (this.state.searchedproducts && this.state.searchedproducts.length == 0) {
-                document.getElementById('showMessage').innerHTML = "Server taking time to response please reload again and check";
-            }
-        }, 7000);
-
-
-        ActivationService.getStaticData('BOA').then(res => {
-            let data = resolveResponse(res);
-            this.setState({ listofzones: data && data.result && data.result.zones })
-        })
-
-
-
-        // ActivationService.testApi('BOA').then(res => {
-        //     let data = resolveResponse(res);
-        //     this.setState({listofzones: data.result && data.result.zones}) 
-        // })
+    
 
     }
 
@@ -244,24 +255,38 @@ class RoleManagement extends React.Component {
     }
 
 
-    handleChange = name => event => {
-        this.setState({ ...this.state, selectedReasons: { ...this.state.selectedReasons, [name]: event.target.checked } });
-    };
+    handleChange = obj => event => {
 
+        console.log("objid1", event.target.checked); 
+        var roleDetails = this.state.roleDetails;
+        for (var i = 0; i < roleDetails.length; i++) {
+            // if(roleDetails[i].id == obj.id && obj.alreadyAssigned == false) {
+            //     roleDetails[i].alreadyAssigned = true; 
+            // }else if(roleDetails[i].id == obj.id && obj.alreadyAssigned == true) {
+            //     roleDetails[i].alreadyAssigned = false; 
+            // }
+
+            if(roleDetails[i].id == obj.id)
+            roleDetails[i].alreadyAssigned =   event.target.checked
+        }
+        this.setState({ roleDetails: roleDetails }) 
+
+        //this.setState({ ...this.state, roleDetails : {...this.state.roleDetails, [obj.alreadyAssigned]: event.target.checked } });
+        console.log(this.state.roleDetails); 
+
+
+    };
 
 
     render() {
 
-        var rejectedReasons = this.state.rejectedReasons;
-        var reasonList = [];
-        for (var i = 0; i < rejectedReasons.length; i++) {
-            if (rejectedReasons[i] == "Verification") {
-                reasonList.push(<div> <label> <input selected type="checkbox" checked={true} /> {rejectedReasons[i]} </label></div>)
+      //onChange={this.handleChange(roleDetails[i].authority)} 
 
-            } else {
-                reasonList.push(<div> <label> <input selected type="checkbox" checked={false} /> {rejectedReasons[i]} </label></div>)
-
-            }
+        var roleDetails = this.state.roleDetails;
+        var authorites = [];
+        for (var i = 0; i < roleDetails.length; i++) {
+            authorites.push(<label><ListItem onChange={this.handleChange(roleDetails[i])} button> <input type="checkbox"  
+            checked={roleDetails[i].alreadyAssigned} /> {roleDetails[i].authority} </ListItem></label>)
 
         }
 
@@ -277,7 +302,7 @@ class RoleManagement extends React.Component {
                     <Grid container spacing={3} direction="row" alignItems="center" container>
 
                         <Grid item xs={12} sm={9} >
-                            <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                            <Typography variant="h6" color="primary" gutterBottom>
                                 Role Management
                                 </Typography>
                         </Grid>
@@ -313,14 +338,6 @@ class RoleManagement extends React.Component {
                     </Grid>
 
 
-
-
-
-
-                    <div style={{ padding: "10px", overflow: "auto", height: "550px" }} >
-
-
-
                         {/* <Container  > */}
                         {/* <EnhancedTable products={this.state.products}/> */}
 
@@ -340,8 +357,10 @@ class RoleManagement extends React.Component {
 
 
                                 <Grid item xs={12} sm={6} >
+                                <div style={{ padding: "10px", overflow: "auto", height: "400px" }} >
 
-                                    <Table size="small" aria-label="sticky table">
+
+                                    <Table id="tableId" size="small" aria-label="sticky table">
                                         <TableHead >
                                             <TableRow style={{ width: "170px", whiteSpace: "nowrap" }}>
                                                 {/* <TableCell align="">View</TableCell> */}
@@ -360,32 +379,22 @@ class RoleManagement extends React.Component {
                                         </TableHead>
                                         <TableBody style={{ whiteSpace: "nowrap" }}>
                                             {this.state.searchedproducts ? this.state.searchedproducts.map(row => (
-                                                <TableRow hover key={row.txnId} >
-                                                    {/* <TableCell  align="center" onClick={() => this.editProduct(row.txnId,row.sim)}><VisibilityIcon style={{cursor:"hand"}} /></TableCell> */}
-
-                                                    {row == "BO Agent" ?
-                                                        <><TableCell component="th" scope="row" className="hidden">
-                                                            <b> {row} </b> 
-                                                        </TableCell>
-                                                        <TableCell component="th" scope="row" className="hidden">
-                                                        
+                                                <TableRow id={"roleId"+row.id} className='rolesRow'  key={row.txnId} >
+                                                   
+                                                   <TableCell    onClick={() => this.showRoleDetails(row.id)}  component="th" scope="row" className="hidden">
+                                                        <ListItem  button>{row.role} </ListItem>
+                                                    </TableCell>
+                                                   
+                                                   
+                                                    <TableCell component="th" scope="row" className="hidden">
                                                         <Button onClick={() => this.deleteRole()} variant="contained" style={{marginTop: "12px", marginLeft: "5px"}} size="small" color="secondary"> <DeleteForeverIcon/></Button> 
-                                                   </TableCell> </>
-                                                        :
-                                                        <><TableCell component="th" scope="row" className="hidden">
-                                                            {row}  
-                                                        </TableCell>
-                                                        <TableCell component="th" scope="row" className="hidden">
-                                                         <Button onClick={() => this.deleteRole()} variant="contained" style={{marginTop: "12px", marginLeft: "5px"}} size="small" color="secondary"> <DeleteForeverIcon/></Button> 
-                                                    </TableCell></>}
-
-
-
+                                                    </TableCell>
 
                                                 </TableRow>
                                             )) : ""}
                                         </TableBody>
                                     </Table>
+                                    </div>
                                     {this.state.addNewEnable ? 
                                     <>
                                     <TextField label="Add New Role" style={{width: "525px"}}  name="roleName" value={this.state.roleName} onChange={this.onChange}/>
@@ -398,7 +407,7 @@ class RoleManagement extends React.Component {
                                     <Typography color="primary" gutterBottom>
                                         Privileges
                             </Typography>
-                                    {reasonList}
+                                    {authorites}
                                 </Grid>
 
 
@@ -435,7 +444,7 @@ class RoleManagement extends React.Component {
 
                         {/* </Container> */}
 
-                    </div>
+              
 
                 </Paper>
             </React.Fragment>

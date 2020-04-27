@@ -98,7 +98,7 @@ class BannerAdd extends React.Component {
   componentDidMount() {
     localStorage.setItem("lastUrl","add-banner");
 
-    ActivationService.getStaticData('BOA').then(res => {
+    ActivationService.getStaticData('ADMIN').then(res => {
       let data = resolveResponse(res);
       this.setState({listofzones: data.result && data.result.zones}) 
   })

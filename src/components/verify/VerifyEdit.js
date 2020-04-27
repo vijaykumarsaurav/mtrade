@@ -77,6 +77,7 @@ class VerifyEdit extends React.Component {
         this.rejectEV = this.rejectEV.bind(this);
         this.loadOneTransection = this.loadOneTransection.bind(this);
         this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
+        this.slideRef = React.createRef(); 
 
 
 
@@ -155,9 +156,9 @@ class VerifyEdit extends React.Component {
                                 let data = resolveResponse(res);
                                 var rejectedReasons = '';
                                 if(this.state.submittedBy != 'RETAILER'){
-                                    rejectedReasons = data.result && data.result.eActivatedRejectionReasons;
+                                    rejectedReasons = data.result && data.result.preActivatedRejectionReasons;
                                 }else {
-                                    rejectedReasons = data.result && data.result.preActivatedRejectionReasons; 
+                                    rejectedReasons = data.result && data.result.eActivatedRejectionReasons; 
                                 }
                                 this.setState({ rejectedReasons: rejectedReasons});
                             })
@@ -198,20 +199,12 @@ class VerifyEdit extends React.Component {
             }
         }
 
-          var imageDetails = []; var baseUrl= ''; //https://retailer.airtel.lk';
+          var imageDetails = []; var baseUrl= ''; //'https://retailer.airtel.lk';
           if(this.state.poiFrontImageUrl){
             imageDetails.push({
                 img: baseUrl+ this.state.poiFrontImageUrl,
                 title: 'POI Front Image',
                 author: 'Front Image',
-                featured: true,
-              });
-          }
-          if(this.state.poiBackImageUrl){
-            imageDetails.push({
-                img:  baseUrl+  this.state.poiBackImageUrl,
-                title: 'POI Back Image',
-                author: 'Back Image',
                 featured: true,
               });
           }
@@ -223,6 +216,15 @@ class VerifyEdit extends React.Component {
                 featured: true,
               });
           }
+          if(this.state.poiBackImageUrl){
+            imageDetails.push({
+                img:  baseUrl+  this.state.poiBackImageUrl,
+                title: 'POI Back Image',
+                author: 'Back Image',
+                featured: true,
+              });
+          }
+          
 
           if(this.state.customerSignatureUrl){
             imageDetails.push({
@@ -241,7 +243,9 @@ class VerifyEdit extends React.Component {
                 featured: true,
               });
           }
-          console.log("imageDetails.len",imageDetails.length)
+         
+         
+         // console.log("imageDetails.len",imageDetails)
 
 
           
@@ -249,32 +253,33 @@ class VerifyEdit extends React.Component {
           var prevImageDetails = [];
           if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.poiFrontImageUrl){
             prevImageDetails.push({
-                img: this.state.prevRejectedImgs.poiFrontImageUrl,
+                img: baseUrl+  this.state.prevRejectedImgs.poiFrontImageUrl,
                 title: 'POI Front Image',
                 author: 'Front Image',
                 featured: true,
               });
           }
-          if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.poiBackImageUrl){
-            prevImageDetails.push({
-                img:  this.state.prevRejectedImgs.poiBackImageUrl,
-                title: 'POI Back Image',
-                author: 'Back Image',
-                featured: true,
-              });
-          }
           if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.customerImageUrl){
             prevImageDetails.push({
-                img:  this.state.prevRejectedImgs.customerImageUrl,
+                img:  baseUrl+  this.state.prevRejectedImgs.customerImageUrl,
                 title: 'Customer Image',
                 author: 'Customer Image',
                 featured: true,
               });
           }
+          if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.poiBackImageUrl){
+            prevImageDetails.push({
+                img: baseUrl+   this.state.prevRejectedImgs.poiBackImageUrl,
+                title: 'POI Back Image',
+                author: 'Back Image',
+                featured: true,
+              });
+          }
+          
 
           if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.customerSignatureUrl){
             prevImageDetails.push({
-                img:  this.state.prevRejectedImgs.customerSignatureUrl,
+                img: baseUrl+  this.state.prevRejectedImgs.customerSignatureUrl,
                 title: 'Customer Signature',
                 author: 'Customer Signature',
                 featured: true,
@@ -283,7 +288,7 @@ class VerifyEdit extends React.Component {
 
           if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.retailerSignatureUrl){
             prevImageDetails.push({
-                img:  this.state.prevRejectedImgs.retailerSignatureUrl,
+                img: baseUrl+ this.state.prevRejectedImgs.retailerSignatureUrl,
                 title: 'Retailer Signature Image',
                 author: 'Retailer Signature Image',
                 featured: true,
@@ -292,12 +297,14 @@ class VerifyEdit extends React.Component {
 
           if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.pefImageUrl){
             prevImageDetails.push({
-                img:  this.state.prevRejectedImgs.pefImageUrl,
+                img:  baseUrl+  this.state.prevRejectedImgs.pefImageUrl,
                 title: 'Pef Image',
                 author: 'Pef Image',
                 featured: true,
               });
           }
+
+          console.log("prevRejectedImgs",prevImageDetails)
 
         var pefcontainer = 2, doccontaiter = 7, datacontainer=3;
         if(this.state.submittedBy !='RETAILER') {
@@ -328,11 +335,11 @@ class VerifyEdit extends React.Component {
 
                            {/* {this.state.status=="av_pending"? <ImageGalary imageDetails={imageDetails} /> : null} */}
                            {/* {imageDetails.length ? <Typography variant="h6">Customer Documents</Typography> : null } */}
-                           {this.state.status=="av_pending"? <SlideShowGalary imageDetails={imageDetails} /> : null}
+                           {this.state.status=="av_pending"? <SlideShowGalary imageDetails={{imageDetails: imageDetails, slideRef : this.slideRef}} /> : null}
                             <br />
                            {prevImageDetails.length ? <Typography variant="h6">Previous Rejected Documents</Typography> : null }
                            {/* {prevImageDetails.length ? <ImageGalary imageDetails={prevImageDetails} /> : null } */}
-                           {prevImageDetails.length ? <SlideShowGalary imageDetails={prevImageDetails} /> : null }
+                           {prevImageDetails.length ? <SlideShowGalary imageDetails={{imageDetails: prevImageDetails, slideRef : this.slideRef}} /> : null }
 
                     </Paper>
                 </Grid>
@@ -389,7 +396,11 @@ class VerifyEdit extends React.Component {
     }
 
     handleChange = name => event => {
+
+    
         this.setState({ ...this.state, selectedReasons: {...this.state.selectedReasons, [name]: event.target.checked } });
+       // console.log("name name", onlycode); 
+
     };
 
 
@@ -422,6 +433,9 @@ class VerifyEdit extends React.Component {
 
 
     skipThisVerify = (e) => {
+        this.setState({ comments : ""});
+
+
         console.log("here")
       //  e.preventDefault();
         var selectedProductId = localStorage.getItem("selectedProductId");
@@ -438,6 +452,7 @@ class VerifyEdit extends React.Component {
        // this.updateLocalActList(selectedProductId);
         this.onlockTransectionOnSkip(selectedProductId);
         console.log("next id",nextid );
+        
 
         if(nextid){
             localStorage.setItem("selectedProductId", nextid);
@@ -449,7 +464,12 @@ class VerifyEdit extends React.Component {
             this.setState({ approveButton: true});
 
             this.setState({ rejectDone: false});
-            this.setState({ rejectButton: true});
+            this.setState({ rejectButton: true, comments : ""});
+  
+           // To call the method you can use the slide's ref attribute and then call the method. 
+           this.slideRef.current.goTo(0);
+
+
 
 
         }else{
@@ -539,7 +559,18 @@ class VerifyEdit extends React.Component {
         this.setState({ rejectButton: false});
 
 
-        const selectedReasons =  Object.keys(this.state.selectedReasons).join("|");
+        var keys = Object.keys(this.state.selectedReasons); 
+
+        var onlyCode = []; 
+        for(var i=0; i < keys.length; i++){
+            var key = keys[i] && keys[i].split('-')[0].trim();
+            onlyCode.push(key);
+        }
+        console.log("selectd onlyCode", onlyCode); 
+
+
+
+        //const selectedReasons =  Object.keys(this.state.selectedReasons).join("|");
 
         var keyList = Object.keys(this.state.selectedReasons);
 
@@ -554,7 +585,7 @@ class VerifyEdit extends React.Component {
 
 
         const rejectData =  {
-            "rejectedReasons":selectedReasons,
+            "rejectedReasons":onlyCode.join(","),
             "comments": this.state.comments,
             "isPOIRejected": isPOIRejected,
             "isCumtomerPhotoRejected":0,
@@ -652,7 +683,7 @@ class SubmitedByRetailer extends React.Component {
                         <br /> 
                        <b> Gender : </b>  {this.props.cafdetails.gender} 
                         <br /> 
-                       <b> Address : </b>  {this.props.cafdetails.presentAddress}   
+                       <b> Address : </b>   {this.props.cafdetails.presentAddress}   
                         <br /> 
                       <b> Alternate  No. :</b>   {this.props.cafdetails.alternateNumber}   
                         <br /> 

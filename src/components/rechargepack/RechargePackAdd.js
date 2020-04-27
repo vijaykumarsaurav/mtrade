@@ -43,7 +43,8 @@ class RechargePackAdd extends React.Component {
         validityType: "",
         file: null,
         packtypevalue: [], 
-        packTypeitem:''
+        packTypeitem:'',
+        showDescription:false
     };
     this.savePack = this.savePack.bind(this);
     this.onChange = this.onChange.bind(this);
@@ -184,7 +185,7 @@ class RechargePackAdd extends React.Component {
                   <InputLabel htmlFor="Pack Type" >
                     Pack 
                   </InputLabel>
-                  <Select
+                  <Select required={true}
                     name="packType"
                     value={this.state.packType}
                     onChange={this.onChangePack}
@@ -199,33 +200,54 @@ class RechargePackAdd extends React.Component {
               </Grid>
              
               <Grid item xs={12} sm={6}>
+              <TextField
+                //label={this.state.showDescription ?  "Description" : "Type"}
+                  label="Description"
+                  min="1"
+                  max="99999"
+                  fullWidth
+                  name="packTypeitem"
+                  value={this.state.packTypeitem}
+                  onChange={this.onChange}
+                />
+
+              {/* {this.state.showDescription ? 
+                <TextField
+                //label={this.state.showDescription ?  "Description" : "Type"}
+                  label="Description"
+                  min="1"
+                  max="99999"
+                  fullWidth
+                  name="packTypeitem"
+                  value={this.state.packTypeitem}
+                  onChange={this.onChange}
+                />
+                :
                 <FormControl style={styles.multiselect}>
                   <InputLabel htmlFor="Pack Type" >
-                    Pack Type
+                    Description
                   </InputLabel>
                   <Select
                     name="packTypeitem"
                     value={this.state.packTypeitem}
                     onChange={this.onChange}
                   >
-
                   {this.state.packtypevalue ? this.state.packtypevalue.map(name => (
                       <MenuItem key={name} value={name} >
                           {name}
                       </MenuItem>
                   )): ""}
-                    
                   </Select>
                 </FormControl>
-              </Grid>
-            
+              } */}
+              </Grid> 
+
               </Grid>
              
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Data Day"
-                  // required={true}
-                  // type="number"
+                //label={this.state.showDescription ?  "Description" : "Type"}
+                  label="Description"
                   min="1"
                   max="99999"
                   fullWidth
@@ -236,7 +258,8 @@ class RechargePackAdd extends React.Component {
               </Grid>
               <Grid item xs={12} sm={6}>
               <TextField
-              label="Type"
+              //label={this.state.showDescription ?  "Description" : "Type"}
+              label="Description"
               style={{
                 marginLeft: "18px"
               }}
@@ -250,9 +273,8 @@ class RechargePackAdd extends React.Component {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Data Night"
-                  // required={true}
-                 // type="number"
+                  label="Description"
+                 //label={this.state.showDescription ?  "Description" : "Type"}
                   min="1"
                   max="99999"
                   fullWidth
@@ -263,10 +285,10 @@ class RechargePackAdd extends React.Component {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                label="Type"
+                label="Description"
                 style={{
-                  marginLeft: "18px"
-                }}
+                    marginLeft: "18px"
+                  }}
                 // required={true}
                 fullWidth
                 margin="none"
@@ -475,8 +497,8 @@ class RechargePackAdd extends React.Component {
     formData.append('displayOrder', this.state.displayOrder);
     formData.append('startDate',startDatetime);
     formData.append('endDate', endDatetime);
-    formData.append('pack', this.state.pack);
-    formData.append('packType', this.state.packType);
+    formData.append('pack', this.state.packType);
+    formData.append('packType', this.state.packTypeitem);
     formData.append('dataDay', this.state.dataDay);
     formData.append('dataDayType', this.state.dataDayType);
     formData.append('nightDay', this.state.nightDay);
@@ -551,24 +573,29 @@ class RechargePackAdd extends React.Component {
   onChangePack = e =>  {
     this.setState({ [e.target.name]: e.target.value });
     
+    var datatype = ['Anytime MB','Anytime GB', 'Nighttime MB', 'Nighttime GB']; 
+
     var voicetype = ['Type Rs', 'Minutes', 'Seconds']; 
-    var datatype = ['Anytime (Type MB, GB)', 'Nighttime (Type MB, GB)']; 
     var combotype = ['Combo']; 
     var iddsmstype = ['Type Rs', "SMS"]; 
 
-
-    if( e.target.value == "Voice"){
-      this.setState({packtypevalue:  voicetype});
-    }
     if( e.target.value == "Data"){
-      this.setState({packtypevalue:  datatype});
+      this.setState({packtypevalue:  datatype, showDescription: false});
+    }else{
+
+      this.setState({showDescription: true, packTypeitem : ""});
     }
-    if( e.target.value == "Combo"){
-      this.setState({packtypevalue:  combotype});
-    }
-    if( e.target.value == "IDD" || e.target.value == "SMS" ){
-      this.setState({packtypevalue:  iddsmstype});
-    }
+
+    // if( e.target.value == "Voice"){
+    //   this.setState({packtypevalue:  voicetype});
+    // }
+   
+    // if( e.target.value == "Combo"){
+    //   this.setState({packtypevalue:  combotype});
+    // }
+    // if( e.target.value == "IDD" || e.target.value == "SMS" ){
+    //   this.setState({packtypevalue:  iddsmstype});
+    // }
 
   }
 }

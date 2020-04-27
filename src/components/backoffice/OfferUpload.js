@@ -29,6 +29,7 @@ import Title from './Title';
 
 import InputLabel from "@material-ui/core/InputLabel";
 import { CRO_API_BASE_URL } from "../../utils/config";
+import { CSVLink } from "react-csv";
 
 
 class OfferUpload extends React.Component {
@@ -41,12 +42,13 @@ class OfferUpload extends React.Component {
             retailerDeleteExcelTemplatePath: "",
             deletefile:'', 
             searchby:'',
-            retailerDetails: ''
+            retailerDetails: '',
+            allOfferData:""
 
 
         };
         this.getAdmminStaticData = this.getAdmminStaticData.bind(this);
-        this.relailerOnboard = this.relailerOnboard.bind(this);
+        this.uploadOffer = this.uploadOffer.bind(this);
         this.relailerDelete = this.relailerDelete.bind(this);
         this.searchRetailer = this.searchRetailer.bind(this);
     }
@@ -79,28 +81,28 @@ class OfferUpload extends React.Component {
 
     componentDidMount() {
         this.getAdmminStaticData();
+
+        AdminService.downlaodAllOfferData()
+        .then((res) => {
+            let data = resolveResponse(res);
+            if (data.result)
+                this.setState({ allOfferData: data.result })
+            });
+
     }
 
     getAdmminStaticData() {
 
-        AdminService.getStaticData("ADMIN")
+            AdminService.getStaticData("ADMIN")
             .then((res) => {
-
                 let data = resolveResponse(res);
-
                 if (data.result && data.result)
                     this.setState({ retailerOnboardExcelTemplatePath: data.result.retailerOnboardExcelTemplatePath, retailerDeleteExcelTemplatePath: data.result.retailerDeleteExcelTemplatePath })
-                
                 });
-
-
-           
-            
-
     }
 
 
-    relailerOnboard() {
+    uploadOffer() {
     
 
         console.log(this.state.uploadfile);
@@ -110,20 +112,27 @@ class OfferUpload extends React.Component {
                 return;
             }
 
-            var userDetails = localStorage.getItem("userDetails")
-            userDetails = userDetails && JSON.parse(userDetails);
+            // var userDetails = localStorage.getItem("userDetails")
+            // userDetails = userDetails && JSON.parse(userDetails);
 
             const formData = new FormData();
             formData.append('file',this.state.uploadfile);
-            formData.append('submittedBy',userDetails && userDetails.loginId);
-            formData.append('email', '');
+          //  formData.append('submittedBy',userDetails && userDetails.loginId);
+           // formData.append('email', '');
         
             
-            AdminService.uploadRetailer(formData).then(res => {
-            resolveResponse(res, "Retailer On-Boarded successfully.");
-            Notify.showSuccess("Retailer On-Boarded successfully.");
-            document.getElementById('uploadfile').value = "";
+            AdminService.uploadOffer(formData).then(data => {
 
+           // var data = resolveResponse(res, "Offer Uploaded Successfully.");
+            console.log('datavijay',data);
+            var data = data && data.data;
+            if(data.status == 200){
+                Notify.showSuccess("Offer Uploaded Successfully.");
+            }else{
+                Notify.showError(data.message);
+            }
+          
+            document.getElementById('uploadfile').value = "";
         
             });
     }
@@ -239,12 +248,12 @@ class OfferUpload extends React.Component {
                 <Paper style={{ padding: "15px" }}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
                          Customer Offer Upload
-                        </Typography> 
+                    </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                         <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={this.state.retailerOnboardExcelTemplatePath}>Download Sample</Link>
+                                    <Link color="primary" href={"/webdata/Offers.xlsx"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>
@@ -267,9 +276,36 @@ class OfferUpload extends React.Component {
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
-                            <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={this.relailerOnboard}>Upload</Button>
+                            <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={this.uploadOffer}>Upload</Button>
                         </Grid>
                     </Grid>
+                </Paper>
+
+                <br />
+
+                <Paper style={{ padding: "15px" }}>
+                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                         Download Offers Details
+                    </Typography> 
+
+                    <Typography variant="subtitle1" gutterBottom>
+                        Total Offers:{this.state.allOfferData.length}
+                    </Typography>
+
+                    {this.state.allOfferData ? 
+                        
+                        <CSVLink data={this.state.allOfferData}
+                        filename={"offers-details.csv"}
+                        className="btn btn-primary"
+                        target="_blank"
+                        >
+                        <Typography variant="subtitle1"  gutterBottom>
+                            Download Offers
+                        </Typography>
+
+                        </CSVLink> 
+                        
+                    :""}
                 </Paper>
 
         </div>

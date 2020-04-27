@@ -1,36 +1,52 @@
 import axios from 'axios';
 import AuthService from "./AuthService";
-import  * as amsConstant from "../../utils/config";
+import  * as apiConstant from "../../utils/config";
 
 class AdminService {
 
     getStaticData(role){
-        return axios.get(amsConstant.VERIFICATION_STATIC_DATA + '?role=' + role, AuthService.getHeader());
+        return axios.get(apiConstant.VERIFICATION_STATIC_DATA + '?role=' + role, AuthService.getHeader());
+    }
+    getListOfRoles(){
+        return axios.get(apiConstant.LIST_OF_ROLES , AuthService.getHeader());
+    }
+
+    getRoleDetails(id){
+        return axios.get(apiConstant.ROLE_DETAILS_BY_ID+id , AuthService.getHeader());
+    }
+
+
+    downlaodAllOfferData(){
+        return axios.get(apiConstant.RETAILER_API_OFFER_DOWNLOAD, AuthService.getHeader());
     }
 
     uploadRetailer(formData){
-        return axios.post(amsConstant.RETAILER_ONBOARD, formData, AuthService.getHeader());
+        return axios.post(apiConstant.RETAILER_ONBOARD, formData, AuthService.getHeader());
+    }
+
+    uploadOffer(formData){
+        return axios.post(apiConstant.RETAILER_API_OFFER_UPLOAD, formData, AuthService.getHeader());
     }
 
     deleteRetailer(formData){
-        return axios.post(amsConstant.RETAILER_DELETE, formData, AuthService.getHeader());
+        return axios.post(apiConstant.RETAILER_DELETE, formData, AuthService.getHeader());
     }
 
     searchRetailer(lapuNumber){
-        return axios.get(amsConstant.RETAILER_SEARCH+"?laId=" +lapuNumber , AuthService.getHeader());
+        return axios.get(apiConstant.RETAILER_SEARCH+"?laId=" +lapuNumber , AuthService.getHeader());
     }
 
     sentReportToEmail(formData,api ){
-        return axios.post(amsConstant.RETAILER_REPORT_BASEAPI+api, formData, AuthService.getHeader());
+        return axios.post(apiConstant.RETAILER_REPORT_BASEAPI+api, formData, AuthService.getHeader());
     }
 
     // listActiveProduct(){lapuNumber
-    //     return axios.get(amsConstant.PRODUCT_API_BASE_URL, AuthService.getHeader());
+    //     return axios.get(apiConstant.PRODUCT_API_BASE_URL, AuthService.getHeader());
     // }
 
 
     // deleteProduct(productId){
-    //     return axios.delete(amsConstant.PRODUCT_API_BASE_URL + '/' + productId, AuthService.getHeader());
+    //     return axios.delete(apiConstant.PRODUCT_API_BASE_URL + '/' + productId, AuthService.getHeader());
     // }
 
 

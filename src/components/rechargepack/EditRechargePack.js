@@ -44,7 +44,8 @@ class RechargePackAdd extends React.Component {
             startDate: "",
             validityDays: "",
             validityType: "",
-            packvalue: []
+            packvalue: [],
+            showDescription:false
             
         }
         this.savePack = this.savePack.bind(this);
@@ -224,7 +225,7 @@ class RechargePackAdd extends React.Component {
               <Grid item xs={12} sm={6}>
                 <FormControl style={styles.multiselect}>
                   <InputLabel htmlFor="Pack Type" >
-                    Pack Type
+                    Pack 
                   </InputLabel>
                   <Select
                     name="pack"
@@ -241,7 +242,16 @@ class RechargePackAdd extends React.Component {
               </Grid>
              
               <Grid item xs={12} sm={6}>
-                <FormControl style={styles.multiselect}>
+                <TextField
+                  label="Description"
+                  min="1"
+                  max="99999"
+                  fullWidth
+                  name="packType"
+                  value={this.state.packType}
+                  onChange={this.onChange}
+                />
+                {/* <FormControl style={styles.multiselect}>
                   <InputLabel htmlFor="Pack Type" >
                     Pack Type
                   </InputLabel>
@@ -258,13 +268,42 @@ class RechargePackAdd extends React.Component {
                   )): ""}
                     
                   </Select>
+                </FormControl> */}
+                {/* {this.state.showDescription ? 
+                <TextField
+                  label="Description"
+                  min="1"
+                  max="99999"
+                  fullWidth
+                  name="packType"
+                  value={this.state.packType}
+                  onChange={this.onChange}
+                />
+                :
+                <FormControl style={styles.multiselect}>
+                  <InputLabel htmlFor="Pack Type" >
+                  Description
+                  </InputLabel>
+                  <Select
+                    name="packType"
+                    value={this.state.packType}
+                    onChange={this.onChange}
+                  >
+                  {this.state.packtypevalue ? this.state.packtypevalue.map(name => (
+                      <MenuItem key={name} value={name} >
+                          {name}
+                      </MenuItem>
+                  )): ""}
+                  </Select>
                 </FormControl>
+              } */}
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Data Day"
+                  //label={this.state.showDescription ?  "Description" : "Data Day"}
                   // required={true}
                   // type="number"
+                  label="Description"
                   min="1"
                   max="99999"
                   fullWidth
@@ -275,8 +314,9 @@ class RechargePackAdd extends React.Component {
               </Grid>
               <Grid item xs={12} sm={6}>
               <TextField
-              label="Type"
-              style={{
+             // label={this.state.showDescription ?  "Description" : "Type"}
+             label="Description" 
+             style={{
                 marginLeft: "18px"
               }}
               // required={true}
@@ -289,8 +329,9 @@ class RechargePackAdd extends React.Component {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Data Night"
-                  // required={true}
+                //  label={this.state.showDescription ?  "Description" : "Data Night"}
+                label="Description" 
+                // required={true}
                   // type="number"
                   min="1"
                   max="99999"
@@ -302,7 +343,8 @@ class RechargePackAdd extends React.Component {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                label="Type"
+              //  label={this.state.showDescription ?  "Description" : "Type"}
+                label="Description"
                 style={{
                   marginLeft: "18px"
                 }}
@@ -597,47 +639,24 @@ class RechargePackAdd extends React.Component {
       };
       
       addPackTpe = value => {
-
+        
+       // var datatype = ['Anytime (Type MB, GB)', 'Nighttime (Type MB, GB)']; 
         var voicetype = ['Type Rs', 'Minutes', 'Seconds']; 
-        var datatype = ['Anytime (Type MB, GB)', 'Nighttime (Type MB, GB)']; 
         var combotype = ['Combo']; 
         var iddsmstype = ['Type Rs', "SMS"]; 
 
-        if(value == "Voice"){
-          this.setState({packvalue:  voicetype});
+        var datatype = ['Anytime MB','Anytime GB', 'Nighttime MB', 'Nighttime GB']; 
+        
+        if(value == "Data"){
+          this.setState({packtypevalue:  datatype, showDescription: false});
+        }else{
+          this.setState({showDescription: true});
         }
-        if( value == "Data"){
-          this.setState({packvalue:  datatype});
-        }
-        if( value== "Combo"){
-          this.setState({packvalue:  combotype});
-        }
-        if( value == "IDD" || value == "SMS" ){
-          this.setState({packvalue:  iddsmstype});
-        }
+
       }
     
       onChangePack = e =>  {
         this.setState({ [e.target.name]: e.target.value });
-        
-        // var voicetype = ['Type Rs', 'Minutes', 'Seconds']; 
-        // var datatype = ['Anytime (Type MB, GB)', 'Nighttime (Type MB, GB)']; 
-        // var combotype = ['Combo']; 
-        // var iddsmstype = ['Type Rs', "SMS"]; 
-    
-        // if( e.target.value == "Voice"){
-        //   this.setState({packvalue:  voicetype});
-        // }
-        // if( e.target.value == "Data"){
-        //   this.setState({packvalue:  datatype});
-        // }
-        // if( e.target.value == "Combo"){
-        //   this.setState({packvalue:  combotype});
-        // }
-        // if( e.target.value == "IDD" || e.target.value == "SMS" ){
-        //   this.setState({packvalue:  iddsmstype});
-        // }
-
         this.addPackTpe(e.target.value); 
     
       }
