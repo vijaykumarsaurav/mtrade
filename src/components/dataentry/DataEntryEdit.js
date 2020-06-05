@@ -13,9 +13,6 @@ import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import PaperSheet from './PaperSheet';
-import Zoom from "./Zoom"
-import CheckboxList from "./CheckboxList"
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
@@ -24,19 +21,10 @@ import Input from "@material-ui/core/Input";
 
 import MaterialUIPickers from "./MaterialUIPickers";
 
-import ImageGalary from "./ImageGalary";
-
 //import SlideShowGalary from "./SlideShowGalary";
 
 import SlideShowGalary from "../../utils/SlideShowGalary";
-
-
-
 import "./DataEntry.css";
-import Divider from '@material-ui/core/Divider';
-import ReactPanZoom from "react-image-pan-zoom-rotate";
-import TitlebarGridList from './TitlebarGridList'
-import ImageZoom from 'react-medium-image-zoom'
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
@@ -107,10 +95,12 @@ class DataEntryEdit extends React.Component {
     }
     myCallback = (date, fromDate) => {
         if (fromDate === "START_DATE") {
-
             var formattedDate = date.toLocaleDateString('en-GB', {
             day: 'numeric', month: 'numeric', year: 'numeric'
             }).replace(/ /g, '/');
+            console.log(
+                "formattedDate",formattedDate
+            )
            // var dateStr =  date.getDate() + "/" + date.getMonth() + '/' +  date.getFullYear();
             this.setState({ dob: formattedDate });
         } 
@@ -313,7 +303,7 @@ class DataEntryEdit extends React.Component {
 
                         <Grid spacing={1} container direction="row">
                             <Grid item xs={12} sm={6}>
-                                <TextField label="Mobile No" required={true} fullWidth disabled name="mobileNumber" value={this.state.mobileNumber} onChange={this.onChange}/>
+                                <TextField label="Mobile No" fullWidth disabled name="mobileNumber" value={this.state.mobileNumber} onChange={this.onChange}/>
                             </Grid>
 
                             <Grid item xs={12} sm={6}>
@@ -333,7 +323,7 @@ class DataEntryEdit extends React.Component {
                         <Grid spacing={1} container direction="row">
                             <Grid item xs={12} sm={6}>
                                  <FormControl style={styles.selectStyle}>
-                                    <InputLabel  required={true}  htmlFor="gender">POI Type</InputLabel>
+                                    <InputLabel  htmlFor="gender">POI Type</InputLabel>
                                     <Select value={this.state.poiType}  name="poiType" onChange={this.onChange}>
                                         <MenuItem value={"NIC"}>NIC</MenuItem>
                                         <MenuItem value={"DL"}>DL</MenuItem>
@@ -344,7 +334,7 @@ class DataEntryEdit extends React.Component {
                             </Grid>
 
                             <Grid item xs={12} sm={6}>
-                                <TextField label="POI Number" required={true} fullWidth name="poiNumber" value={this.state.poiNumber} onChange={this.onChange}/>
+                                <TextField label="POI Number" fullWidth name="poiNumber" value={this.state.poiNumber} onChange={this.onChange}/>
 
                                 {/* <TextField label="POI Number" value={this.state.poiNumber} required={true} fullWidth name="poiNumber" onChange={this.onChange}/> */}
                             </Grid>
@@ -366,7 +356,7 @@ class DataEntryEdit extends React.Component {
                             <Grid item xs={12} sm={6}>
 
                              <FormControl style={styles.selectStyle}>
-                                    <InputLabel required={true} htmlFor="title">Title</InputLabel>
+                                    <InputLabel htmlFor="title">Title</InputLabel>
                                     <Select  value={this.state.title}  name="title" onChange={this.onChange}>
                                         <MenuItem value={"Mr"}>Mr</MenuItem>
                                         <MenuItem value={"Ms"}>Ms</MenuItem>
@@ -389,7 +379,7 @@ class DataEntryEdit extends React.Component {
                                 <TextField label="Middle Name"  value={this.state.middleName} fullWidth name="middleName" onChange={this.onChange}/>
                             </Grid>
                             <Grid item xs={12} sm={6} >
-                                <TextField label="Last Name" required={true} value={this.state.lastName}  fullWidth name="lastName"  onChange={this.onChange}/>
+                                <TextField label="Last Name" value={this.state.lastName}  fullWidth name="lastName"  onChange={this.onChange}/>
                             </Grid> 
                          </Grid>
 
@@ -405,7 +395,7 @@ class DataEntryEdit extends React.Component {
  
                             <Grid item xs={12} sm={6}>
                                 <FormControl style={styles.selectStyle}>
-                                    <InputLabel required={true} htmlFor="gender">Gender</InputLabel>
+                                    <InputLabel  htmlFor="gender">Gender</InputLabel>
                                     <Select value={this.state.gender}  name="gender" onChange={this.onChange}>
                                         <MenuItem value={"M"}>Male</MenuItem>
                                         <MenuItem value={"F"}>Female</MenuItem>
@@ -422,7 +412,7 @@ class DataEntryEdit extends React.Component {
                             </Grid>
 
                             <Grid item xs={12} sm={6}>
-                            <TextField id="addressone"  required={true} label="Address 1"  value={this.state.address1}  fullWidth name="address1" onChange={this.onChange}/>
+                            <TextField id="addressone"  label="Address 1"  value={this.state.address1}  fullWidth name="address1" onChange={this.onChange}/>
 
                             </Grid>
 
@@ -645,11 +635,17 @@ class DataEntryEdit extends React.Component {
       //  Notify.showSuccess("Approved");
     //    console.log("data entry post data",this.state)
 
-        if(!this.state.gender || !this.state.title || !this.state.poiNumber || !this.state.dob || !this.state.firstName || !this.state.lastName || !this.state.address1 ){
-            Notify.showError("Missing required fields");
+        //!this.state.gender || !this.state.title || !this.state.poiNumber || !this.state.dob || !this.state.firstName || !this.state.lastName || !this.state.address1 
+        if(!this.state.firstName){
+            Notify.showError("Missing First Name");
             return;
         }
 
+        if(this.state.dob.toLocaleLowerCase() == "invalid/date"){
+            Notify.showError("Invalid Date of Birth Format");
+            return;  
+        }  
+       
 
         if(this.state.comment && this.state.comment.length > 200){
             Notify.showError("Comments allow upto 200 characters only");

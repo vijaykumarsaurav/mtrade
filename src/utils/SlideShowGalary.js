@@ -2,13 +2,13 @@ import React, { Component } from "react";
 import { Fade,Slide,Zoom } from 'react-slideshow-image';
 import Grid from '@material-ui/core/Grid';
 import $ from 'jquery';
-import Lightbox from "rhino-react-image-lightbox-rotate";
 import ReactPanZoom from "react-image-pan-zoom-rotate";
 
 
 const fadeProperties = {
+  defaultIndex:0,
   duration: 1000,
-  transitionDuration: 500,
+  transitionDuration: 100,
   infinite: false,
   indicators: true,
   arrows: true,
@@ -120,12 +120,13 @@ class SlideSlowGalary extends Component {
   };
 
     const { photoIndex, isOpen } = this.state;
-    var  topImg = this.props.imageDetails;
+    var  topImg = this.props.imageDetails.imageDetails;
     
+    console.log(this.props.imageDetails,"vk" )
         
       var images = []; 
       const topImgItem = []
-          topImg.map((data,i)=>{
+          topImg && topImg.map((data,i)=>{
             images.push(topImg[i].img); 
               topImgItem.push(
 
@@ -156,7 +157,7 @@ class SlideSlowGalary extends Component {
                  {topImgItem}
               </Fade> */}
 
-               <Slide {...fadeProperties}>
+               <Slide ref={this.props.imageDetails.slideRef} {...fadeProperties}>
                   {topImgItem}
                </Slide>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import RetailerAdminService from "../service/RetailerAdminService";
+import AdminService from "../service/AdminService";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Table from "@material-ui/core/Table";
@@ -86,7 +86,7 @@ class BaneerList extends React.Component{
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null
           }
 
-        RetailerAdminService.getAllBanner(data)
+        AdminService.getAllBanner(data)
             .then((res) => {
                 let data = resolveResponse(res);
                 console.log(data);
@@ -101,7 +101,7 @@ class BaneerList extends React.Component{
 
     addProduct=(e)=> {
         console.log(this.props)
-        this.props.history.push('/add-banner');
+        this.props.history.push('/banner-add');
     }
 
     editProduct(productId) {

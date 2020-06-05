@@ -29,13 +29,6 @@ import {Container} from "@material-ui/core";
 import {resolveResponse} from "../../utils/ResponseHandler";
 import "./DataEntry.css";
 
-import StickyHeadTable from '../verify/StickyHeadTable';
-
-import TablePagination from '@material-ui/core/TablePagination';
-import Hooks from './Hooks'; 
-
-import EnhancedTable from './EnhancedTable';
-
 
 
 
@@ -75,9 +68,7 @@ class DataEntryList extends React.Component{
 
         this.onChange = this.onChange.bind(this);
 
-        this.page = Hooks.page; 
-        this.rowsPerPage=Hooks.rowsPerPage; 
-        console.log( "Hooks.page: " ,  Hooks.page); 
+    
      
     }
 
@@ -153,6 +144,12 @@ class DataEntryList extends React.Component{
                 let data = resolveResponse(res);
                 this.setState({listofzones: data && data.result && data.result.zones}) 
             })
+            
+            ActivationService.getTotalToBeProcessed().then(res => {
+                let data = resolveResponse(res);
+                this.setState({recordToBeProcessed: data.result && data.result.count}) 
+            })
+
 
     }
 
@@ -287,7 +284,10 @@ class DataEntryList extends React.Component{
                         alignItems="center">
                             <Grid item  xs={12} xs={6}>
                             <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                              Data Entry
+                              Data Entry 
+                            </Typography> 
+                            <Typography>
+                              Record to be Processed: {this.state.recordToBeProcessed}
                             </Typography> 
                             </Grid>
 

@@ -2,7 +2,7 @@ import React from 'react';
 import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import storeService from "../service/StoreService";
+import UserService from "../service/UserService";
 import LoginNavBar from "../LoginNavbar";
 import {Container} from "@material-ui/core";
 import Notify from "../../utils/Notify";
@@ -78,7 +78,7 @@ class LoginComponent extends React.Component{
             userName:  this.state.userName,
             password: this.state.password
         };
-        storeService.login(loginPayload)
+        UserService.login(loginPayload)
             .then(res => {
               //  Notify.showError("Olms Id and password is required.");
             //  alert(JSON.stringify(res));

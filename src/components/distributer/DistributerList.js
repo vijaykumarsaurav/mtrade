@@ -20,8 +20,6 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {Container} from "@material-ui/core";
 import {resolveResponse} from "../../utils/ResponseHandler";
-
-import StickyHeadTable from '../verify/StickyHeadTable';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import InputLabel from '@material-ui/core/InputLabel';
@@ -30,14 +28,12 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from "@material-ui/core/Input";
 
-import TablePagination from '@material-ui/core/TablePagination';
-
-
 class DataEntryList extends React.Component{
-
+ 
     constructor(props) {
         super(props);
         this.state ={
+                             
             products: [],
             mobile:'',
             sim:'',
@@ -48,7 +44,7 @@ class DataEntryList extends React.Component{
             user_signature_upload:false,
 
             retailer_signature_loader:false,
-            retailer_signature_upload:false,
+            uploadFlag:false,
 
             poi_front_image_loader:false,
             poi_front_image_upload:false,
@@ -60,17 +56,18 @@ class DataEntryList extends React.Component{
             pef_image_upload:false,
             pef_image_response:false,
             poi_front_image_response:false,
-            poi_back_image_response:false
+            poi_back_image_response:false,
+
+            numberFound:false,
+            uploadResponse: "", 
+            uploadLoader:false
             
         };
 
         this.loadProductList = this.loadProductList.bind(this);
         this.onChange = this.onChange.bind(this);
         this.searchOnDB = this.searchOnDB.bind(this); 
-        this.onUploadFiles = this.onUploadFiles.bind(this);
-        
-        
-        
+        this.onUploadFiles = this.onUploadFiles.bind(this);   
      
     }
 
@@ -116,38 +113,48 @@ class DataEntryList extends React.Component{
         
     }
 
-    searchOnDB() {                        
+    searchOnDB() {       
+           window.localStorage.setItem("deviceId",new Date().getTime().toString())
+
+           document.getElementById("uploadform").reset();
+           this.setState({uploadResponse: "",pef_image : null, poi_front_image:null , poi_back_image : null })
+
+            // document.getElementById('pef_image_file').innerHTML = ''; 
+            // document.getElementById('poi_front_image_file').innerHTML = ''; 
+            // document.getElementById('poi_back_image_file').innerHTML = ''; 
+
             const data = {
                 "mobileNumber" : this.state.mobile,
-                "simNumber" : this.state.sim
+                "simNumber" : this.state.sim,
             }; 
 
            ActivationService.searchDistributer(data)
             .then((res) => {
               
                 let data = resolveResponse(res);
-                if(data.result && data.result.transactionId){
-                    this.setState({txnId:data.result.transactionId})
+                if(data.message == "ok" && data.status == 200){
+                    this.setState({nic:data.result.nic, numberFound : true, ftaDate : data.result.ftaDate, uploadFlag: true})
 
-                    this.setState({ user_image_upload: true, user_signature_upload :true,  retailer_signature_upload: true});
-                    this.setState({ poi_front_image_upload:data.result.poiFrontPending, poi_back_image_upload : data.result.poiBackPending,pef_image_upload : data.result.pefFPending});
+                    // this.setState({ user_image_upload: true, user_signature_upload :true});
+                    // this.setState({ poi_front_image_upload:data.result.poiFrontPending, poi_back_image_upload : data.result.poiBackPending,pef_image_upload : data.result.pefFPending});
 
-                    if(!data.result.pefFPending){
-                        this.setState({pef_image_response: true })
-                    }
+                    // if(!data.result.pefFPending){
+                    //     this.setState({pef_image_response: true })
+                    // }
 
-                    if(!data.result.poiFrontPending){
-                        this.setState({poi_front_image_response: true})
-                    }
-                    if(!data.result.poiBackPending){
-                        this.setState({poi_back_image_response: true})
-                    }
+                    // if(!data.result.poiFrontPending){
+                    //     this.setState({poi_front_image_response: true})
+                    // }
+                    // if(!data.result.poiBackPending){
+                    //     this.setState({poi_back_image_response: true})
+                    // }
 
 
                 }else {
-                    this.setState({pef_image_response: false, poi_front_image_response: false,poi_back_image_response: false })
-                    this.setState({txnId:''})
-                    this.setState({user_image_upload:false})
+                    
+                  //  this.setState({pef_image_response: false, poi_front_image_response: false,poi_back_image_response: false })
+                   // this.setState({txnId:''})
+                    this.setState({numberFound:false})
 
                  //   this.props.history.push('/');
                 }
@@ -159,18 +166,19 @@ class DataEntryList extends React.Component{
             // document.getElementById('user_signature_response').innerHTML = ''; 
             // document.getElementById('retailer_signature_response').innerHTML = ''; 
 
-            document.getElementById('poi_front_image_response').innerHTML = ''; 
-            document.getElementById('poi_back_image_response').innerHTML = ''; 
-            document.getElementById('pef_image_response').innerHTML = ''; 
+            // document.getElementById('poi_front_image_response').innerHTML = ''; 
+            // document.getElementById('poi_back_image_response').innerHTML = ''; 
+            // document.getElementById('pef_image_response').innerHTML = ''; 
 
             
-            this.setState({ user_image_upload: false, user_signature_upload :false,  retailer_signature_upload: false});
+            this.setState({ user_image_upload: false, user_signature_upload :false,  uploadFlag: false});
             this.setState({ poi_front_image_upload:false, poi_back_image_upload : false,pef_image_upload:false});
 
     }
 
     onChangeFileUpload = e => {
-        console.log(e.target.name); 
+        console.log(e.target.files[0]);
+
         this.setState({ [e.target.name]: e.target.files[0]})
         // if(e.target.name == "poi_front_image" && e.target.files[0].name != "poi_front_image.png" ){
         //     document.getElementById(e.target.name+'_file').value = "";
@@ -191,50 +199,53 @@ class DataEntryList extends React.Component{
     }
     
 
-    onUploadFiles = imageType => {
+    onUploadFiles = () => {
 
-    console.log("imageType",  this.state[imageType]); 
+ //  console.log("imageType",  this.state[imageType]); 
 
-    if(!this.state[imageType]){
-        Notify.showError("Please select a "+imageType.split('_').join(' ')+'.');
+    if(!this.state.pef_image){
+        Notify.showError("Please select a PEF image");
         return;
-    }else{
-       
-        this.setState({ [imageType + '_loader']: true});
-        this.setState({ [imageType + '_upload']: false}); 
-
-
     }
 
+    if(!this.state.poi_front_image){
+        Notify.showError("Please select a poi front image");
+        return;
+    }
 
+    // if(!this.state.pef_image && !this.state.poi_front_image){
+    //     return ;
+    // }
+
+
+    this.setState({uploadFlag: false, uploadLoader:true}); 
 
     const formData = new FormData();
-    formData.append('file',this.state[imageType]);
-    formData.append('transactionId', this.state.txnId);
-    formData.append('isResubmit', 0);
-
-    // if(imageType == "poi_back_image" || imageType == "poi_front_image")
-    // formData.append('ImageType', 'poi');
-    // else
-    formData.append('ImageType', imageType);
-
+    formData.append('pefImage',this.state.pef_image );
+    formData.append('poiFrontImage', this.state.poi_front_image);
+    if(this.state.poi_back_image){
+        formData.append('poiBackImage', this.state.poi_back_image);
+    }
+    // else{
+    //     formData.append('poiBackImage', null);
+    // }
+    formData.append('mobileNumber', this.state.mobile);
+    formData.append('simNumber', this.state.sim);
+    formData.append('deviceId', localStorage.getItem("deviceId".toString()) );   
 
     ActivationService.uploadDistrubuter(formData)
         .then((res) => {
             
             let data = resolveResponse(res);
-            if(data.status == 200 && data.message == "ok"){
+            this.setState({uploadResponse: data.message, uploadLoader:false }); 
 
-                this.setState({ [imageType + '_loader']: false});
-                document.getElementById(imageType+'_response').innerHTML= data.result.message;  
-                document.getElementById(imageType+'_file').value = "";
-                this.setState({[imageType]: null}); 
+            // if(data.status == 200){
+            //     this.setState({uploadResponse: data.message, uploadLoader:false }); 
 
-            }else {
-                this.setState({ [imageType + '_loader']: false});
-                this.setState({ [imageType + '_upload']: true}); 
-
-            }
+            // }else {
+            //     Notify.showError(data.message);
+            //     return;
+            // }
         });
    
   };
@@ -246,7 +257,7 @@ class DataEntryList extends React.Component{
         return(
             <React.Fragment>
                 <PostLoginNavBar/>
-                <Paper style={{padding:"30px"}}>
+                <Paper style={{padding:"40px"}}>
                 <Container  >
                     {/* <EnhancedTable products={this.state.products}/> */}
 
@@ -286,21 +297,31 @@ class DataEntryList extends React.Component{
                         </form>
 
                     <br /> 
+
+                    {this.state.numberFound ? 
                        
                        <Paper style={{padding:"20px"}}>
                         <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
                             
-                            <Grid item xs={12} sm={4}>
-                             <span style={{fontSize:"18px"}}>  Mobile Number: <b> {this.state.mobile} </b> </span>
+                            <Grid item xs={12} sm={3}>
+                             Mobile No.: <b> {this.state.mobile} </b> 
                             </Grid>
-                            <Grid item xs={12} sm={4}>
-                            <span style={{fontSize:"18px"}}>  Sim Number:  <b>{this.state.sim}  </b>  </span>
+                            <Grid item xs={12} sm={3}>
+                             Sim No.:  <b>{this.state.sim}  </b> 
                             </Grid>
-                            <Grid item xs={12} sm={4}>
-                            <span style={{fontSize:"18px"}}>  TxnId:<b>  {this.state.txnId}</b>  </span>
+                        
+                            <Grid item xs={12} sm={3}>
+                               NIC: <b> {this.state.nic}</b> 
                             </Grid>
+                            <Grid item xs={12} sm={3}>
+                                 FTA Date: <b> {this.state.ftaDate}</b> 
+                            </Grid>
+
+                            
                         </Grid>
                         </Paper>
+
+                    :""}
                         <br /> 
                         <form id="uploadform"  onSubmit={this.handleSubmit.bind(this)} >
                         {/* <Paper style={{padding:"20px"}}> 
@@ -347,22 +368,66 @@ class DataEntryList extends React.Component{
 
                                 <Grid item xs={12} sm={2}>
                                     {this.state.retailer_signature_loader ? <CircularProgress />: ""} 
-                                    {this.state.retailer_signature_upload?<Button type="submit"  onClick={() => this.onUploadFiles('retailer_signature')} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button>:<Button type="submit"  disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button> } 
+                                    {this.state.uploadFlag?<Button type="submit"  onClick={() => this.onUploadFiles('retailer_signature')} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button>:<Button type="submit"  disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Upload</Button> } 
                                 </Grid>
                                 <Grid item xs={12} sm={6}> 
                                         <span style={{fontSize:"16px",color:"green"}}><b id="retailer_signature_response"> </b> </span>
                                 </Grid>
                             </Grid>
                         </Paper> */}
+                         <Paper style={{padding:"20px"}}> 
+                            <Grid spacing={1}  style={styles.textStyle} justify="flex-end"  container direction="row">
+                                 <Grid item xs={12} sm={3}>
+                                    <InputLabel htmlFor="gender" required={true}>PEF Image</InputLabel>
+                                    <input id="pef_image_file" disabled={!this.state.uploadFlag} type="file" name="pef_image" onChange={this.onChangeFileUpload} />
+                                </Grid>
+                                <Grid item xs={12} sm={3}>
+                                    <InputLabel htmlFor="gender" required={true}>POI Front Image</InputLabel>
+                                    <input id="poi_front_image_file" disabled={!this.state.uploadFlag} type="file" name="poi_front_image" onChange={this.onChangeFileUpload} />
+
+                                </Grid>
+
+                                <Grid item xs={12} sm={3}>
+                                    <InputLabel htmlFor="gender">POI Back Image</InputLabel>
+                                    <input id="poi_back_image_file" disabled={!this.state.uploadFlag} type="file" name="poi_back_image" onChange={this.onChangeFileUpload} />
+                                </Grid>
+
+
+                                <Grid item xs={12} item sm={1}>
+                                    {this.state.uploadFlag?<Button  onClick={() => this.onUploadFiles()} variant="contained"  color="primary" style={{marginLeft: '20px'}} >Submit</Button>:<Button disabled variant="contained"  color="primary" style={{marginLeft: '20px'}} >Submit</Button> } 
+
+                                </Grid>
+                              
+                                <Grid item xs={12} sm={2} style={{textAlign:"center"}} >
+                                 {this.state.uploadLoader ? <CircularProgress />: ""} 
+                                </Grid>
+                            </Grid>
+                            
+                            <br />
+                            <Grid  alignItems="center" style={styles.textStyle} container direction="row">
+
+                            <Grid style={{textAlign:"center"}}  item xs={12} sm={12}>
+                               <span style={{fontSize:"18px"}}> <b> {this.state.uploadResponse} </b> </span>
+                            </Grid>
+                          
                         
+                        </Grid>
+                            
+
+                        </Paper>
+
+                      
+
+                        {/*
+
+
 
                         <br /> 
                         <Paper style={{padding:"20px"}}> 
                             <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
                                 <Grid item xs={12} sm={4}>
-                                    <InputLabel htmlFor="gender">POI Front Image</InputLabel>
+                                    <InputLabel htmlFor="gender" required={true}>POI Front Image</InputLabel>
                                     <input id="poi_front_image_file" type="file" name="poi_front_image" onChange={this.onChangeFileUpload} />
-                                    {/* <InputLabel style={{fontSize:"14px"}}>Note: image name should be "poi_front_image.png"</InputLabel> */}
 
                                 </Grid>
 
@@ -384,7 +449,6 @@ class DataEntryList extends React.Component{
                                 <Grid item xs={12} sm={4}>
                                     <InputLabel htmlFor="gender">POI Back Image</InputLabel>
                                     <input id="poi_back_image_file" type="file" name="poi_back_image" onChange={this.onChangeFileUpload} />
-                                    {/* <InputLabel style={{fontSize:"14px"}}>Note: image name should be "poi_back_image.png"</InputLabel> */}
 
                                 </Grid>
                                 <Grid item xs={12} sm={2}>
@@ -403,7 +467,7 @@ class DataEntryList extends React.Component{
                         <Paper style={{padding:"20px"}}> 
                             <Grid spacing={5} alignItems="center" style={styles.textStyle} container direction="row">
                                 <Grid item xs={12} sm={4}>
-                                    <InputLabel htmlFor="gender">PEF Image</InputLabel>
+                                    <InputLabel htmlFor="gender" required={true}>PEF Image</InputLabel>
                                     <input id="pef_image_file" type="file" name="pef_image" onChange={this.onChangeFileUpload} />
                                     <InputLabel style={{fontSize:"14px"}}>Note: It's sigle image</InputLabel>
 
@@ -417,7 +481,7 @@ class DataEntryList extends React.Component{
                                         {this.state.pef_image_response?<span><b> PFE image already uploaded </b> </span> :""}
                                 </Grid>
                             </Grid>
-                        </Paper>
+                        </Paper> */}
                         </form>
 
                         

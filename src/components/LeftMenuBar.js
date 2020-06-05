@@ -17,9 +17,11 @@ import { Link } from "react-router-dom";
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import EditIcon from '@material-ui/icons/Edit';
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
+import LocalOfferIcon from '@material-ui/icons/LocalOffer';
+import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
+import UserService from "./service/UserService";
 
-import storeService from "./service/StoreService";
-
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 //import RouterComponent from '../RouterComponent'; 
 
 // function appLogout(props) {
@@ -37,7 +39,7 @@ import storeService from "./service/StoreService";
 //   logout() {
 
 
-//     storeService.login(loginPayload)
+//     UserService.login(loginPayload)
 //     .then(res => {
 //     //  alert(JSON.stringify(res));
 
@@ -105,11 +107,19 @@ export const AdminMenuList = (
   <div>
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
+
     <ListItem button component='a' href={"/#/welcome"} >  
       <ListItemIcon>
-        <LayersIcon />
+        <EmojiEmotionsIcon />
       </ListItemIcon>
       <ListItemText primary="Welcome" />
+    </ListItem>
+
+    <ListItem button component='a' href={"/#/msisdn-status"} >  
+      <ListItemIcon>
+        <FileCopyIcon />
+      </ListItemIcon>
+      <ListItemText primary="MSISDN History" />
     </ListItem>
 
     <ListItem button component='a' href={"/#/packs"} >  
@@ -121,7 +131,7 @@ export const AdminMenuList = (
 
     <ListItem button component='a' href={"/#/offerupload"} >
       <ListItemIcon>
-        <PeopleIcon />
+        <LocalOfferIcon />
       </ListItemIcon>
       <ListItemText primary="Offer Upload" />
     </ListItem>
@@ -175,6 +185,13 @@ export const DISTMenuList = (
       </ListItemIcon>
       <ListItemText primary="Upload Document" />
     </ListItem>   
+    
+    <ListItem button component='a' href={"/#/report"}>
+      <ListItemIcon>
+        <BarChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Reports" />
+    </ListItem>
 
   </div>
 );
@@ -203,7 +220,7 @@ export const DEMenuList = (
 function logoutPortal(){
   //console.log("yo_man")
 
-  storeService.logout()
+  UserService.logout()
   .then(res => {
    // {"status":200,"message":"Success","result":{"message":"User logged out successfully"}}
    //console.log(res.data);   

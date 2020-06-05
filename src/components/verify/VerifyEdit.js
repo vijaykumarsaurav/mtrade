@@ -10,8 +10,7 @@ import PostLoginNavBar from "../PostLoginNavbar";
 import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import ImageGalary from "./ImageGalary";
-import ImageGalaryPEF from "./ImageGalaryPEF";
+
 import SlideShowGalary from "../../utils/SlideShowGalary";
 
 

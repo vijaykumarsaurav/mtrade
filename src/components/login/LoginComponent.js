@@ -2,7 +2,7 @@ import React from 'react';
 import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import storeService from "../service/StoreService";
+import UserService from "../service/UserService";
 import LoginNavBar from "../LoginNavbar";
 import {Container} from "@material-ui/core";
 import { resolveResponse } from '../../utils/ResponseHandler';
@@ -10,9 +10,9 @@ import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 
-import base64 from 'react-native-base64'; 
 import CryptoJS  from 'crypto-js'; 
-var aes256 = require('aes256');
+
+import LoginNewUI from './LoginNewUI';
 
 
 class LoginComponent extends React.Component{
@@ -26,6 +26,7 @@ class LoginComponent extends React.Component{
             
         };
         this.login = this.login.bind(this);
+
     }
 
 
@@ -34,30 +35,33 @@ class LoginComponent extends React.Component{
 
         return(
             <React.Fragment>
-                <LoginNavBar/><br/><br/><br/>
-                <Container maxWidth="sm">
+                <LoginNavBar/>
+                
+                {/* <Container maxWidth="sm">
+                     <br/><br/><br/> 
                     <Typography variant="h4" style={styles.label}>Login</Typography>
                     <form style={styles.formStyle}>
-                    {/* value={this.state.olmsId} */}
                         <TextField type="text"  required={true} label="Olms Id" fullWidth margin="normal" name="userName" value={this.state.userName}  onChange={this.onChange}/>
 
                         <TextField type="password"  required={true} label="Password" fullWidth margin="normal" name="password" value={this.state.password} onChange={this.onChange}/>
-                        
-
-                        <Grid item  xs={12} sm={2}>
+                        <Grid item  xs={12} sm={8}>
                             <Button disabled={this.state.isDasable}  variant="contained" color="primary" onClick={this.login}>Login</Button>
                         </Grid>
-
-
                         <Grid item  xs={12} sm={10}>
                              {this.state.isDasable ? <InputLabel variant="subtitle1" style={styles.waitMessage}> Please wait...</InputLabel> :""} 
                              {this.state.isError ? <InputLabel variant="subtitle1" style={styles.errorMessage}> {this.state.isError} </InputLabel>: ""}  
                         </Grid>
-
                     </form>
+                </Container> */}
 
-                    
-                </Container>
+                {/* New Login UI */}
+                <LoginNewUI loginProps={ {onChange : this.onChange, login: this.login,   userName: this.state.userName, password:  this.state.password } }/>
+                <Grid container justify="space-around">
+                    <Grid justify={"center"} container  xs={12} sm={10}>
+                            {this.state.isDasable ? <InputLabel variant="subtitle1" style={styles.waitMessage}> Please wait...</InputLabel> :""} 
+                            {this.state.isError ? <InputLabel variant="subtitle1" style={styles.errorMessage}> {this.state.isError} </InputLabel>: ""}  
+                    </Grid>
+                </Grid>
             </React.Fragment>
         )
 
@@ -75,9 +79,14 @@ class LoginComponent extends React.Component{
 
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value.trim() });
+        console.log(e.target.name, e.target.value.trim());
     }
 
     login = (e) => {
+        
+        this.setState({ isError: "" });
+
+
         e.preventDefault();
         if(!this.state.userName || !this.state.password){
             this.setState({ isError: "Olms Id and password is required." });
@@ -93,6 +102,9 @@ class LoginComponent extends React.Component{
         this.setState({ isDasable: true });
 
         var keynum = Math.floor(Math.random()*1E16);
+        if(keynum.toString().length == 15){
+            keynum = keynum.toString() + "9"; 
+        }
         var atualkey = (keynum * 69-99).toString(); 
         atualkey =  atualkey.substring(0, 15);
 
@@ -104,7 +116,7 @@ class LoginComponent extends React.Component{
             password: encryptedPass+keynum // this.state.password //
 
         };
-        storeService.login(loginPayload)
+        UserService.login(loginPayload)
             .then(res => {
               //  Notify.showError("Olms Id and password is required.");
             //  alert(JSON.stringify(res));

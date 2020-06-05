@@ -2,6 +2,8 @@ import 'date-fns';
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
 import DateFnsUtils from '@date-io/date-fns';
+import $ from 'jquery';
+
 import {
   MuiPickersUtilsProvider,
   KeyboardTimePicker,
@@ -20,10 +22,7 @@ function addMonths(date, months) {
 
 
 export default function MaterialUIPickers(props) {
-
-  console.log("startDatestartDate,",props ); 
-  var requiredDate ='';
-
+  var maxAllowedDate ='';
   var startd = new Date(); 
   startd.setHours(0,0,0,0);
 
@@ -34,48 +33,49 @@ export default function MaterialUIPickers(props) {
   var [selectedStartDate, setSelectedStartDate] = React.useState(startd);
   var [selectedEndDate, setSelectedEndDate] = React.useState(endd);
   const handleStartDateChange = date => {
-    
     setSelectedStartDate(date);
-
-    //console.log("6month later", selectedStartDate.setMonth(selectedStartDate.getMonth() + 6))
-
     props.callbackFromParent.myCallback(date,"START_DATE");
   };
   const handleEndDateChange = date => {
-    console.log(date,"SELECTED_DATE")
     setSelectedEndDate(date);
     props.callbackFromParent.myCallback(date,"END_DATE");
   };
 
-  console.log(props)
+  const showSingleDate =  props.callbackFromParent && props.callbackFromParent.showSingleDate; 
 
-  // var date = new Date(); 
-  // date.getMonth() - 6; 
+  if(!selectedStartDate){
+    selectedStartDate = new Date().getTime();
+  }
+
 
   
-   var dateObj = new Date(selectedStartDate);
 
-  
-
-   var requiredDate = dateObj.setMonth(dateObj.getMonth() + 6);
-
-
+  var dateObj = new Date(selectedStartDate);
+  var maxAllowedDate = dateObj.setMonth(dateObj.getMonth() + 6);
   var currDate = new Date();
   var back18Month= currDate.setMonth(currDate.getMonth() - 18);
-  console.log(new Date(back18Month),"back18Month");
 
   if(selectedStartDate <  back18Month){
     selectedStartDate = back18Month;
   }
 
-  if(selectedEndDate <  selectedStartDate){
-    selectedEndDate = requiredDate;
+  if(selectedStartDate >  selectedEndDate){
+    selectedEndDate = new Date().getTime();
   }
 
-  // if(requiredDate > new Date() ) {
-  //   requiredDate = new Date();
-  // }
- // var requiredDate = selectedStartDate.setMonth(selectedStartDate.getMonth() + 6)
+
+  var d = new Date();
+  if(showSingleDate){
+    maxAllowedDate = d.setDate(d.getDate()-1);
+  }
+
+  if(showSingleDate && selectedStartDate.getDate() == new Date().getDate()){
+    selectedStartDate = d;
+  }
+  
+
+ $('.MuiInputBase-inputAdornedEnd').prop('readonly', true);
+
 
  return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -89,22 +89,23 @@ export default function MaterialUIPickers(props) {
           allowKeyboardControl="true"
           minDate={back18Month}
           minDateMessage="Only 18 months back report can be fatch."
+          maxDate={maxAllowedDate}
+          maxDateMessage="Current date report won't be available"
           id="date-picker-dialog"
-          label="Start Date"
+          label={ showSingleDate ? "Select Verification Date" :  "Start Date" }
           format="dd/MM/yyyy"
-          value={selectedStartDate}
+          value={selectedStartDate ? selectedStartDate : maxAllowedDate}
           onChange={handleStartDateChange}
           KeyboardButtonProps={{
             'aria-label': 'change date',
           }}
         />
-        <KeyboardDatePicker
-      
+        { !showSingleDate ? <KeyboardDatePicker
           disableFuture="true"
           maxDateMessage="Max allowed date range is 6 months."
-          minDateMessage="End date can't be less than start date."
+      //    minDateMessage="End date can't be less than start date."
           minDate={selectedStartDate}
-          maxDate={requiredDate}
+          maxDate={maxAllowedDate}
           margin="normal"
           id="date-picker-dialog"
           label="End Date"
@@ -113,8 +114,9 @@ export default function MaterialUIPickers(props) {
           onChange={handleEndDateChange}
           KeyboardButtonProps={{
             'aria-label': 'change date',
-          }}
-        />
+          }} 
+        />: ""}
+          
        
       </Grid>
     </MuiPickersUtilsProvider>

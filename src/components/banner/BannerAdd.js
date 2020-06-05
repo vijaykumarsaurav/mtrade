@@ -3,7 +3,7 @@ import axios from "axios";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
-import pack from "../service/PackService";
+import pack from "../service/AdminService";
 import PostLoginNavBar from "../PostLoginNavbar";
 import { Container, Paper } from "@material-ui/core";
 import { resolveResponse } from "../../utils/ResponseHandler";
@@ -24,6 +24,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import  * as amsConstant from "../../utils/config";
+import md5  from 'md5'; 
 
 
 const ITEM_HEIGHT = 48;
@@ -64,12 +65,14 @@ class BannerAdd extends React.Component {
         listofzones:[],
         selectedZone:[],
         zone:'',
+        showFileSize: "", 
         selectAllzone:'Select All'
     };
     this.savePack = this.savePack.bind(this);
     this.onChange = this.onChange.bind(this);
     this.myCallback = this.myCallback.bind(this);
     this.zoneChange = this.zoneChange.bind(this);
+    this.validateUploadFile = this.validateUploadFile.bind(this);
 
   }
   myCallback = (date, fromDate) => {
@@ -101,7 +104,7 @@ class BannerAdd extends React.Component {
     ActivationService.getStaticData('ADMIN').then(res => {
       let data = resolveResponse(res);
       this.setState({listofzones: data.result && data.result.zones}) 
-  })
+    })
 
   }
 
@@ -136,15 +139,27 @@ class BannerAdd extends React.Component {
                                 </Select>
                             </FormControl>                    
                         </Grid>
+
                         <Grid item xs={12} sm={6}>
                             <FormControl style={styles.multiselect}>
                                 <InputLabel  required={true}>Order</InputLabel>
                                 <Select name="order" value={this.state.order} onChange={this.onChange}>
-                                    <MenuItem value="1">1</MenuItem>
-                                    <MenuItem value="2">2</MenuItem>
-                                    <MenuItem value="3">3</MenuItem>
-                                    <MenuItem value="4">4</MenuItem>
-                                    <MenuItem value="5">5</MenuItem>
+                                      <MenuItem value="1">1</MenuItem>
+                                      <MenuItem value="2">2</MenuItem>
+                                      <MenuItem value="3">3</MenuItem>
+                                      <MenuItem value="4">4</MenuItem>
+
+                                      <MenuItem value="5">5</MenuItem>
+                                      <MenuItem value="6">6</MenuItem>
+                                      <MenuItem value="7">7</MenuItem>
+                                      <MenuItem value="8">8</MenuItem>
+                                      <MenuItem value="9">9</MenuItem>
+                                      <MenuItem value="10">10</MenuItem>
+                                      <MenuItem value="11">11</MenuItem>
+                                      <MenuItem value="12">12</MenuItem>
+                                      <MenuItem value="13">13</MenuItem>
+                                      <MenuItem value="14">14</MenuItem>
+                                      <MenuItem value="15">15</MenuItem>
                                 </Select>
                             </FormControl>                        
                         </Grid>
@@ -274,6 +289,8 @@ class BannerAdd extends React.Component {
                               <FormControl style={styles.multiselect}>
                                   <InputLabel htmlFor="display-type" required={true}>Upload Banner</InputLabel>
                               </FormControl>
+
+                             
                             </Grid>
 
                             <Grid item xs={12} sm={9}>
@@ -285,13 +302,33 @@ class BannerAdd extends React.Component {
                                     }}
                                     type="file"
                                     name="file"
+                                    id="bannerImage"
                                     // onChange={this.onChangeHandler}
                                     onChange={this.onChangeFileUpload}
                                   />
+                                  
                                 </FormControl>
+                          
+                               
                             </Grid>
-                            
+
+                          
                     </Grid>
+                    
+
+                    <Grid  container spacing={24} container
+                        direction="row"
+                        justify="center">
+                          
+                          <Grid item xs={12} sm={6}>
+                                Selected File Size: {this.state.showFileSize}
+                                <br />
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                              <img title="Preview Banner"  style={{width:"200px", height:"100px"}} src={this.state.imageURL} />
+                          </Grid>
+                      </Grid>
                     
 
                     {/* <TextField label="Comment" fullWidth margin="normal" name="helpTextImage" value={this.state.helpTextImage} onChange={this.onChange}/> */}
@@ -402,12 +439,52 @@ class BannerAdd extends React.Component {
   };
 
 
+  validateUploadFile = (file) => {
+    const filename = file.name.toString(); 
+
+    if (/[^a-zA-Z0-9\.\-\_ ]/.test(filename)) {
+        Notify.showError("File name can contain only alphanumeric characters including space and dots")
+        return false;
+    }
+
+    if(file.type == "image/png" || file.type == "image/jpeg"){
+        var fileSize = file.size / 1000; //in kb
+        if(fileSize >= 100 && fileSize <= 2048){
+          const fileext =  filename.split('.').pop(); 
+          Object.defineProperty(file, 'name', {
+            writable: true,
+            value:  md5(file.name) +"."+ fileext
+          });
+          return file;
+        }else{
+          Notify.showError("File size should be grater than 100KB and less than 2MB")
+        }
+    }else {
+      Notify.showError("Only png and jpeg file allowd.")
+    }
+    return false;
+  }
 
 
-  onChangeFileUpload = e => this.setState({
-    //  file:e.target.files[0]
-      [e.target.name]: e.target.files[0]
-  })
+  onChangeFileUpload = e => {
+
+   const filetoupload = this.validateUploadFile(e.target.files[0]); 
+    if (filetoupload){
+      this.setState({
+          [e.target.name]: e.target.files[0], 
+          showFileSize : e.target.files[0].size / 1000 + "KB",
+          imageURL: URL.createObjectURL(e.target.files[0])
+      })
+    }else{
+      this.setState({
+          [e.target.name]: null, 
+          showFileSize : "",
+          imageURL: ""
+      })
+      e.target.value = null;
+
+    }
+  } 
 
 
 

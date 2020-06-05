@@ -2,6 +2,8 @@ import 'date-fns';
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
 import DateFnsUtils from '@date-io/date-fns';
+//import $ from 'jquery';
+
 import {
   MuiPickersUtilsProvider,
   KeyboardTimePicker,
@@ -37,43 +39,9 @@ export default function MaterialUIPickers(props) {
     props.callbackFromParent.myCallback(date,"END_DATE");
   };
 
-  //console.log(props)
-
-  // var date = new Date(); 
-  // date.getMonth() - 6; 
-
   
-  //  var dateObj = new Date(selectedStartDate);
-
-  
-
-  //  var requiredDate = dateObj.setMonth(dateObj.getMonth() + 6);
-
-
-  // var currDate = new Date();
-  // var back18Month= currDate.setMonth(currDate.getMonth() - 18);
-  // console.log(new Date(back18Month),"back18Month");
-
-  // if(selectedStartDate <  back18Month){
-  //   selectedStartDate = back18Month;
-  // }
-
-  // if(selectedEndDate <  selectedStartDate){
-  //   selectedEndDate = requiredDate;
-  // }
-
-  // if(requiredDate > new Date() ) {
-  //   requiredDate = new Date();
-  // }
   var date15Years = new Date(); 
       date15Years.setFullYear( date15Years.getFullYear() - 15 );
-    //  selectedStartDate =  date;
- // var requiredDate = selectedStartDate.setMonth(selectedStartDate.getMonth() + 6)
-
-//  console.log("selectedStartDate",selectedStartDate, new Date()); 
-//  if(selectedStartDate != new Date()){
-//   selectedStartDate = null; 
-//  }
 
 
 var today = new Date();
@@ -84,6 +52,9 @@ if(selectedStartDate && selectedStartDate.getDate() == today.getDate() && select
 if(!props.callbackFromParent.startDate){
   selectedStartDate = null;
 }
+//$('.MuiInputBase-inputAdornedEnd').prop('readonly', true);
+
+console.log("keydate", selectedStartDate); 
 
 
  return (
@@ -91,7 +62,7 @@ if(!props.callbackFromParent.startDate){
       <Grid container justify="space-around">
      
         <KeyboardDatePicker
-        required={true}
+        // required={true}
         //  emptyLabel=""
           margin="normal"
           //readOnly="true"

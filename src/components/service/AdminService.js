@@ -40,14 +40,47 @@ class AdminService {
         return axios.post(apiConstant.RETAILER_REPORT_BASEAPI+api, formData, AuthService.getHeader());
     }
 
-    // listActiveProduct(){lapuNumber
-    //     return axios.get(apiConstant.PRODUCT_API_BASE_URL, AuthService.getHeader());
-    // }
+    
 
+    //from pack service
+    uploadPackImage(formData) {
+        return axios.post(apiConstant.UPLAOD_PACK_IMAGE, formData, AuthService.getHeader());
+    }
 
-    // deleteProduct(productId){
-    //     return axios.delete(apiConstant.PRODUCT_API_BASE_URL + '/' + productId, AuthService.getHeader());
-    // }
+    addPack(pack) {
+        return axios.post(apiConstant.SAVE_PACK, pack, AuthService.getHeader());
+    }
+
+    addBanner(pack) {
+        return axios.post(apiConstant.SAVE_BANNER, pack, AuthService.getHeader());
+    }
+
+    updateBanner(pack) {
+        return axios.post(apiConstant.UPDATE_BANNER, pack, AuthService.getHeader());
+    }
+
+    getOneBanner(id) {
+        return axios.get(apiConstant.GET_ONE_BANNER+"?bannerId="+id, AuthService.getHeader());
+
+    }
+
+    //retailer admin service
+    listPack(data){
+        // return axios.get(apiConstant.RECHARGE_PACK_LISTING , '');
+        return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
+ 
+     }
+ 
+ 
+     getAllBanner(data){
+         return axios.post(apiConstant.GET_ALL_BANNERS_DETAILS,data,  AuthService.getHeader());
+     }
+ 
+
+     searchMSISDN(id) {
+        return axios.get(apiConstant.SEARCH_BY_MSISDN+"?msisdn="+id, AuthService.getHeader());
+    }
+
 
 
 }

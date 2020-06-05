@@ -27,14 +27,6 @@ import {resolveResponse} from "../../utils/ResponseHandler";
 
  import "./Verify.css";
 
-import StickyHeadTable from '../verify/StickyHeadTable';
-
-import TablePagination from '@material-ui/core/TablePagination';
-import MaterialUIPickers from "./MaterialUIPickers";
-
-
-import EnhancedTable from './EnhancedTable';
-
  const handleChangePage = (event, newPage) => {
    //  this.setPage(newPage);
   };
@@ -190,10 +182,10 @@ class VerifyList extends React.Component{
             this.setState({listofzones: data && data.result && data.result.zones}) 
         })
 
-        // ActivationService.testApi('BOA').then(res => {
-        //     let data = resolveResponse(res);
-        //     this.setState({listofzones: data.result && data.result.zones}) 
-        // })
+        ActivationService.getTotalToBeProcessed().then(res => {
+            let data = resolveResponse(res);
+            this.setState({recordToBeProcessed: data.result && data.result.count}) 
+        })
         
     }
 
@@ -256,6 +248,9 @@ class VerifyList extends React.Component{
                             <Grid item xs={12} sm={6} >
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
                                     Document Verification  
+                                </Typography> 
+                                <Typography>
+                                Record to be Processed: {this.state.recordToBeProcessed}
                                 </Typography> 
                             </Grid>
                             <Grid item xs={10} sm={3}> 
