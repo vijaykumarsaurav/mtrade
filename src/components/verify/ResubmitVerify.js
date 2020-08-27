@@ -11,7 +11,6 @@ import Paper from "@material-ui/core/Paper";
 import TextField from '@material-ui/core/TextField';
 import Notify from "../../utils/Notify";
 
-
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
@@ -24,7 +23,20 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {Container} from "@material-ui/core";
 import {resolveResponse} from "../../utils/ResponseHandler";
-import "./Verify.css";
+
+ import "./Verify.css";
+
+ const handleChangePage = (event, newPage) => {
+   //  this.setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = event => {
+   
+   // this.setRowsPerPage(parseInt(event.target.value, 10));
+  // this.setPage(0);
+  };
+
+
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -50,6 +62,7 @@ class VerifyList extends React.Component{
             zone:''
         };
         this.loadProductList = this.loadProductList.bind(this);
+        this.addProduct = this.addProduct.bind(this);
         this.editProduct = this.editProduct.bind(this);
         this.convertBool = this.convertBool.bind(this);
         this.onChange = this.onChange.bind(this);
@@ -61,11 +74,10 @@ class VerifyList extends React.Component{
     componentDidMount() {
         this.loadProductList("");
         localStorage.setItem("lastUrl","verify");
+
         ActivationService.getTotalToBeProcessed().then(res => {
             let data = resolveResponse(res);
             console.log(data.result)
-            this.setState({['recordToBeProcessed']: data.result && data.result.count})
-
             localStorage.setItem("acquisitionCount",data.result && data.result.acquisitionCount ); 
             localStorage.setItem("resubmitCount",data.result && data.result.resubmitCount ); 
         })
@@ -124,34 +136,21 @@ class VerifyList extends React.Component{
 
         var startTime = endTime - 172800000; 
 
-        // var  data =  {
-
-        //     "mobileNumber": mobileNumber ? mobileNumber : null,
-        //     "zones": this.state.selectedZone.length ? this.state.selectedZone : null
-        //   }
-
         var  data =  {
-            "endDate": endTime,
-          
-            "mobileNumber": mobileNumber ? mobileNumber : null,
-            "noOfRecords": 20,
-            "role": "DE",
-            "startDate": 0,
-            "txnId": 0,
-            "type": "next",
             
+            "mobileNumber": mobileNumber ? mobileNumber : null,
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null
-        }
+          }
         
         document.getElementById('showMessage').innerHTML = "Please Wait Loading...";
 
-        ActivationService.listDocs(data)
+        ActivationService.listDocsResubmit(data)
             .then((res) => {
                 let data = resolveResponse(res);
-                var activationList = data && data.result && data.result.activationList; 
+                var activationList = data.result && data.result.activationList; 
                 this.setState({products: activationList})
                 this.setState({searchedproducts: activationList})
-                var listingIds = activationList && activationList.map(function(val, index){
+                var listingIds =  activationList && activationList.map(function(val, index){
                 return val.txnId
                 });
 
@@ -199,6 +198,9 @@ class VerifyList extends React.Component{
         this.setState({[e.target.name]: e.target.value})
     }
 
+    addProduct() {
+        this.props.history.push('/add-product');
+    }
 
     someAction() {
       alert("action happed in other commpornt"); 
@@ -212,8 +214,7 @@ class VerifyList extends React.Component{
         
         window.localStorage.setItem("selectedProductId", productId);
         window.localStorage.setItem("selectedSim", sim);
-        window.localStorage.setItem("fromSubmit", '');
-
+        window.localStorage.setItem("fromSubmit", 'yes');
 
         this.props.history.push('/verify-edit');
 
@@ -236,24 +237,18 @@ class VerifyList extends React.Component{
         return(
 
             <React.Fragment>
-                {/* <PostLoginNavBar showCount={{acquisitionCount :this.state.acquisitionCount, resubmitCount :this.state.resubmitCount}} /> */}
-
                 <PostLoginNavBar/>
 
                 <Paper style={{padding:"10px", overflow:"auto"}} >
                
                     <Grid syt  container spacing={3}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
-                                {/* <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                Acquisition  –  Document Verification  
-                                </Typography>  */}
-
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                Document Verification  
+                                Resubmit – Document Verfication
                                 </Typography> 
-                                <Typography>
+                                {/* <Typography>
                                 Record to be Processed: {this.state.recordToBeProcessed}
-                                </Typography> 
+                                </Typography>  */}
                             </Grid>
                             <Grid item xs={10} sm={3}> 
                                 <FormControl style={styles.selectStyle}>
@@ -303,8 +298,8 @@ class VerifyList extends React.Component{
                                 <TableCell align="">Zone</TableCell>
                                 <TableCell align="">FTA Date</TableCell>
                                 {/* <TableCell align="">Status</TableCell> */}
-                                <TableCell align="">Resubmit</TableCell>
-                                <TableCell align="">Verified Date</TableCell>
+                                {/* <TableCell align="">Resubmit</TableCell>
+                                <TableCell align="">Verified Date</TableCell> */}
                                 <TableCell align="">Submit Date</TableCell>
                                 <TableCell align="">Resubmit Date</TableCell>
 
@@ -325,9 +320,9 @@ class VerifyList extends React.Component{
                                     <TableCell align="center">{row.zone}</TableCell>
                                     <TableCell align="center">{row.ftaDate.substring(0, 10)}</TableCell>
                                     {/* <TableCell align="center">{row.status ? 'YES' : 'NO'}</TableCell> */}
-                                     <TableCell align="center">{row.resubmit}</TableCell> 
+                                    {/* <TableCell align="center">{row.resubmit}</TableCell>
                                     <TableCell align="center">{row.verifiedDate ? row.verifiedDate.substring(0, 10) : "none"}</TableCell>
-                                     
+                                     */}
                                     <TableCell align="center">{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
                                     <TableCell align="center">{row.resubmitDate ? row.resubmitDate.substring(0, 10) : "none"}</TableCell>
 

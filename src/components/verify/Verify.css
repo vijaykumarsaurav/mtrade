@@ -40,7 +40,22 @@
     figure:hover img {
       opacity: 0;
     }
+
+    .image-container {
+      position: relative;
+      
+    }
     
+    .titleOverlay {
+     
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    z-index: 1;
+    color: black;
+    transform: translate(-50%, -50%);
+    background: rgb(244, 244, 244);
+    }
     /* .img {
      
       flex-direction: column;

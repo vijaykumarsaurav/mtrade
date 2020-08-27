@@ -24,6 +24,8 @@ import AirtellLogo from './airtellogo.png';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
+import ActivationService from "./service/ActivationService";
+import {resolveResponse} from "../utils/ResponseHandler";
 
 
 const drawerWidth = 240;
@@ -89,7 +91,15 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function PostLoginNavBar() {
+export default function PostLoginNavBar(props) {
+
+    const [values, setValues] = React.useState({
+        acquisitionCount: '',
+        resubmitCount:''
+    });
+    
+
+
     const classes = useStyles();
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
@@ -113,9 +123,18 @@ export default function PostLoginNavBar() {
 
     var userDetails = localStorage.getItem("userDetails")
     userDetails = userDetails && JSON.parse(userDetails);
-    // console.log("userDetails.roleCode",userDetails.roleCode)
-    return (
+     
+    var roleCode = userDetails && userDetails.roleCode; 
 
+
+    var acquisitionCountText='', resubmitCountText=''; 
+    if(roleCode == "DE" || roleCode == "BOA"){
+        acquisitionCountText = "Acquisition records to be processed: " ; // ACQUISITION RECORDS TO BE PROCESSED:
+        resubmitCountText =  "Resubmit records to be processed:  "; //'RESUBMIT RECORDS TO BE PROCESSED: ';
+    }
+
+  //  console.log("propsss", props)
+    return (
 
         <div className={classes.root}>
             <CssBaseline />
@@ -127,10 +146,6 @@ export default function PostLoginNavBar() {
 
             >
                 <Toolbar>
-
-
-
-
 
                     <IconButton
                         aria-label="open drawer"
@@ -149,15 +164,73 @@ export default function PostLoginNavBar() {
                     </div>
 
 
-                    <Grid direction="row" container  alignItems="flex-end" style={{ paddingLeft: "10px", paddingRight: "10px"}}>
+                    <Grid direction="row" container  justify="space-between"   spacing={10} style={{ paddingLeft: "10px", paddingRight: "10px"}}>
 
-                        <Grid item xs={12} sm={10} alignContent="flex-end" justify="flex-end"></Grid>
-                        <Grid item xs={12} sm={2} style={{textAlign:"right"}}>
+                        <Grid item xs={12} sm={1}></Grid>
+
+                       
+
+                        <Grid item xs={12} sm={3} style={{textAlign:"right"}}>
                             <Typography variant="p" style={{ color: "white" }} noWrap>
-                               {userDetails && userDetails.loginName ? userDetails.loginName.toUpperCase() : null}
+                              {userDetails && userDetails.loginName ? userDetails.loginName.toUpperCase() : null}
                             </Typography> 
                         </Grid>
                     </Grid>
+
+
+                        {/* sprint 7 &  8 changes */}
+                        {/* <Grid
+                                justify="space-between"
+                                container
+                            >
+                        <Grid item >
+                        <Typography variant="h6" noWrap>
+                            SL MITRA Retailer Portal
+                         </Typography>
+                        </Grid>
+
+                        <Grid item >
+
+                        <Grid
+                           
+                            container
+                            direction="row"
+                        >
+
+                            <Grid item >
+                                <Typography style={{ color: "white" }} >
+                                {acquisitionCountText} {localStorage.getItem("acquisitionCount")}
+                                </Typography> 
+                            </Grid>
+                                <Grid item >
+                                    &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              </Grid>
+
+                            <Grid item >
+                                <Typography style={{ color: "white" }} noWrap>
+                                {resubmitCountText} {localStorage.getItem("resubmitCount")}
+                                </Typography> 
+                            </Grid>
+                             <Grid item >
+                                    &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              </Grid>
+
+                           
+
+                            <Grid item>
+                                <Typography variant="p" style={{ color: "white" }} noWrap>
+                                {userDetails && userDetails.loginName ? userDetails.loginName.toUpperCase() : null}
+                                </Typography> 
+                            </Grid>
+
+
+                        </Grid>
+
+
+
+                        </Grid>
+
+                        </Grid> */}
 
                 </Toolbar>
             </AppBar>
@@ -183,10 +256,10 @@ export default function PostLoginNavBar() {
 
 
                 <Divider />
-                {userDetails && userDetails.roleCode == "ADMIN" ? <List>{Menu.AdminMenuList}</List> : null}
-                {userDetails && userDetails.roleCode == "BOA" ? <List>{Menu.BOAMenuList}</List> : null}
-                {userDetails && userDetails.roleCode == "DE" ? <List>{Menu.DEMenuList}</List> : null}
-                {userDetails && userDetails.roleCode == "DIST" ? <List>{Menu.DISTMenuList}</List> : null}
+                {roleCode == "ADMIN" ? <List>{Menu.AdminMenuList}</List> : null}
+                {roleCode == "BOA" ? <List>{Menu.BOAMenuList}</List> : null}
+                {roleCode == "DE" ? <List>{Menu.DEMenuList}</List> : null}
+                {roleCode == "DIST" ? <List>{Menu.DISTMenuList}</List> : null}
 
                 <Divider />
                 <List>{Menu.LogoutMenu}</List>

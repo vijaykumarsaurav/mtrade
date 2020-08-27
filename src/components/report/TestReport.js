@@ -9,6 +9,11 @@ import ActivationService from "../service/ActivationService";
 
 import TextField from '@material-ui/core/TextField';
 
+import $ from "jquery";
+
+import AuthService from "../service/AuthService";
+
+
 import PostLoginNavBar from "../PostLoginNavbar";
 import { resolveResponse } from "../../utils/ResponseHandler";
 import FormControl from "@material-ui/core/FormControl";
@@ -48,12 +53,7 @@ class Report extends React.Component {
           reporttype: '',
             startDate: "",
             endDate: "",
-            month: "",
-            year: '', 
-            days: '',
-            day:'',
-            numofDays : [],
-            listofYear: [], 
+            emails: "",
             responseFlag: false,
             responseFlagMsg:'',
             listofzones:[],
@@ -67,8 +67,9 @@ class Report extends React.Component {
             retrieveType:"BY_SUBMIT_DATE", 
             showSingleDate: false, 
             retrieveTypeAll:false,
+            generateReportbutton:true, 
             resetCalander:false,
-            filenameToGo:"",
+            showagentlink: false,
             retrieveTypeDataEntry:false
         };
         this.getReportDetails = this.getReportDetails.bind(this);
@@ -102,8 +103,9 @@ class Report extends React.Component {
 
         var userDetails = localStorage.getItem("userDetails")
         userDetails = userDetails && JSON.parse(userDetails);
-        this.setState({roleCode: userDetails.roleCode}) ; 
         var roleCode = userDetails && userDetails.roleCode; 
+
+        this.setState({roleCode: roleCode}) 
     
         if(roleCode == "ADMIN"){
             ActivationService.getStaticData(roleCode).then(res => {
@@ -111,35 +113,29 @@ class Report extends React.Component {
                 this.setState({listofzones: data.result && data.result.zones}) 
             })  
         }
-
-        
-        for(var i = 2018; i <= new Date().getFullYear(); i++){
-           this.state.listofYear.push(i); 
-        }
-        for(var i = 1; i <= 60; i++){
-            this.state.numofDays.push(i); 
-        }
-       
-
     }
 
     onChange = e => {
 
-        this.setState({ [e.target.name]: e.target.value, retrieveTypeAll: false,  retrieveType:"BY_SUBMIT_DATE" });
+        this.setState({ [e.target.name]: e.target.value, retrieveTypeAll: false, generateReportbutton:true,showagentlink:false,   retrieveType:"BY_SUBMIT_DATE" });
         if(e.target.value == 'zoneWiseDetailedReport'){
             this.setState({ showZoneSelection: true });
         }else{
             this.setState({ showZoneSelection: false });
         }
 
-        if(e.target.value == 'disconnectionReport' || e.target.value == 'reconnectionReport'||  e.target.value == 'getDailyActiveRetailers'){
+        if(e.target.value == 'disconnectionReport' || e.target.value == 'reconnectionReport'){
             this.setState({ showSingleDate: true });
         }else{
             this.setState({ showSingleDate: false });
         }
 
         if(e.target.value == 'agentStatusReport'){
-            this.setState({ retrieveTypeAll: true });
+            this.setState({ retrieveTypeAll: true, generateReportbutton:false, showagentlink:true });
+
+            this.setState({ dataEntryReportAPI:   'http://125.16.74.160:30611/SLRetailer/reports/agentStatusDataEntryReport/?retrieveType=' }); 
+            this.setState({ verificatioinReportAPI:   'http://125.16.74.160:30611/SLRetailer/reports/agentStatusDataEntryReport/'+"?retrieveType="+this.state.retrieveType+"&startDate="+this.state.startDate+"&endDate="+this.state.endDate + '&id='+ localStorage.getItem("token") }); 
+
         }
 
         if(e.target.value == 'agentWisePerformanceLog' || e.target.value == "agentAuditReport"  || e.target.value == "ipacsReadyReport"){
@@ -147,46 +143,106 @@ class Report extends React.Component {
         }else{
             this.setState({ retrieveTypeDataEntry: false }); 
         }
-
+        
+        
         this.setState({responseFlag : false, dataEntryData :false, generateReportLoader : false,  responseFlagMsg : "", resetCalander:true });
-
-
-
     } 
 
     onChangeRetriveBy = e => {
+
         this.setState({ [e.target.name]: e.target.value });
         this.setState({responseFlag : false, dataEntryData :false, generateReportLoader : false,  responseFlagMsg : "" });
     } 
 
+
     getReportDetails() {
-        this.setState({verficationname:"", filenameToGo : this.state.reporttype});
+        this.setState({verficationname:""});
+        
+        // $.ajax({
+        //     type: "GET",
+        //     url: "http://125.16.74.160:30611/SLRetailer/reports/ftaDeviationReportCsv?retrieveType=BY_FTA_DATE&startDate=1577817000000&endDate=1592850599059",
+        //     headers: AuthService.getHeader(),
+        //     xhrFields: {
+        //       responseType: 'csv'
+        //     },
+        //     success: function (blob) {
+        //       var windowUrl = window.URL || window.webkitURL;
+        //       var url = windowUrl.createObjectURL(blob);
+        //       var anchor = document.createElement('a');
+        //       anchor.href = url;
+        //       anchor.download = 'filename.csv';
+        //       anchor.click();
+        //       anchor.parentNode.removeChild(anchor);
+        //       windowUrl.revokeObjectURL(url);
+        //     },
+        //     error: function (error) {
+        //       console.log(error);
+        //     }
+        //   });
+
+
+        // $.ajax({
+        //     url: 'http://125.16.74.160:30611/SLRetailer/reports/ftaDeviationReportCsv?retrieveType=BY_FTA_DATE&startDate=1577817000000&endDate=1592850599059',
+        //     type: 'GET',
+        //     dataType: 'binary',
+        //     headers: AuthService.getHeader(),
+        //     processData: false,
+        //     success: function(blob) {
+        //         alert("success"); 
+        //         var windowUrl = window.URL || window.webkitURL;
+        //         var url = windowUrl.createObjectURL(blob);
+        //         anchor.prop('href', url);
+        //         anchor.prop('download', fileName);
+        //         anchor.get(0).click();
+        //         windowUrl.revokeObjectURL(url);
+        //     }
+        // });
+
+
+        // $.ajax({
+        //     // `url` 
+        //     url: 'http://125.16.74.160:30611/SLRetailer/reports/ftaDeviationReportCsv?retrieveType=BY_FTA_DATE&startDate=1577817000000&endDate=1592850599059',
+        //     type: "GET",
+        //     dataType: 'csv',
+        //     // `file`, data-uri, base64
+            
+        //     // `custom header`
+        //     headers: AuthService.getHeader(),
+        //     beforeSend: function (jqxhr) {
+        //         console.log(this.headers);
+        //         alert("custom headers" + JSON.stringify(this.headers));
+        //     },
+        //     success: function (data) {
+        //         // `file download`
+        //         $("a")
+        //             .attr({
+        //             "href": data.file,
+        //                 "download": "file.csv"
+        //         })
+        //             .html($("a").attr("download"))
+        //             .get(0).click();
+        //         console.log(JSON.parse(JSON.stringify(data)));
+        //     },
+        //     error: function (jqxhr, textStatus, errorThrown) {
+        //       console.log(textStatus, errorThrown)
+        //     }
+        // });
 
 
         if(!this.state.startDate){
             var startd = new Date(); 
             startd.setHours(0,0,0,0);
-            if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype =='getDailyActiveRetailers'){
-                startd.setDate(startd.getDate() - 1);
-            }
             this.state.startDate = startd.getTime();
-            this.setState({ startDate : startd.getTime() }, () => {
-                console.log("startDate : setting", this.state.startDate);
-            }); 
-
         }else{
             var startd = new Date(this.state.startDate); 
             startd.setHours(0,0,0,0);
-            this.setState({ startDate : startd.getTime() }); 
+            this.state.startDate = startd.getTime();
         }
       
         if(!this.state.endDate){
             var endd = new Date(); 
             endd.setHours(23,59,59,59);    
             this.state.endDate = endd.getTime();
-            this.setState({ endDate : endd.getTime()  }, () => {
-                console.log("endDate : setting", this.state.endDate);
-            }); 
         }else{
             var endd = new Date(this.state.endDate); 
             endd.setHours(23,59,59,59);
@@ -195,95 +251,105 @@ class Report extends React.Component {
 
           
         if(!this.state.reporttype){
-            Notify.showError("First select report type");
-            return;
+        Notify.showError("First select report type");
+        return;
         }
 
-        console.log("year",this.state.year , "month", this.state.month); 
-
-
-        if(this.state.reporttype == 'getMonthlyActiveRetailers'){
-         
-            var firstDate = new Date("1 " + this.state.month + ' ' + this.state.year);
-            firstDate.setHours(0,0,0,0);
-            var startDate =  new  Date(firstDate.getDate()+ ' '+ this.state.month+ ' '+ this.state.year);
-            var endd = new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0);
-            endd.setHours(23,59,59,59);  
-            this.state.startDate = startDate.getTime();
-            this.setState({ startDate : startDate.getTime() }, () => {
-              //  console.log("startDate : setting", this.state.startDate);
-            }); 
-         //   console.log("startDate", new Date( this.state.startDate ));   
-            this.state.endDate = endd.getTime();
-            this.setState({ endDate : endd.getTime() }, () => {
-               // console.log("endDate : setting", this.state.endDate);
-            }); 
-          //  console.log("endDate", new Date( this.state.endDate ) );   
+        if(this.state.reporttype ==  "zoneWiseDetailedReport" && !this.state.selectedZone.length){
+                Notify.showError("Select filter zones");
+                return;
         }
 
-       
+        // BY_FTA_DATE,
+        // BY_SUBMIT_DATE,
+        // BY_VERIFICATION_DATE,
+        // BY_DATA_ENTRY_DATE
         var data = {
                retrieveType: this.state.retrieveType,
                startDate: this.state.startDate,
                endDate: this.state.endDate,
                zones: this.state.selectedZone.length ? this.state.selectedZone : null
            } 
-           console.log("param data" ,data)
-
-        if(this.state.reporttype == 'getReloadAndBillPayCount' || this.state.reporttype == 'getSimSwapCount' || this.state.reporttype == 'getMpinResetCount' || this.state.reporttype == 'getMonthlyActiveRetailers' || this.state.reporttype =='getIdleRetailers' || this.state.reporttype =='acquisitionCountReport'){
-            data = {
-                startDate: this.state.startDate,
-                endDate: this.state.endDate,
-            }
-        }
        
-        if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype == 'getDailyActiveRetailers'){
-            data = {
-                date: this.state.startDate,
-            }
-        }
+        // if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport'){
+        //     data = {
+        //         date: this.state.startDate,
+        //     }
 
-        if(this.state.reporttype == 'retailerOnboardedReport' ){
-            data = {
-                range: this.state.day || 0
-            }
-        }
-       
+
+        // }
+        
+        this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report", generateReportLoader : true,generateReportMsg : "Generating report please wait..." });
         
 
-      this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report", generateReportLoader : true,generateReportMsg : "Generating report please wait..." });
+        if(this.state.reporttype == "agentStatusReport"){
 
-        
-        AdminService.sentReportToEmail(data,this.state.reporttype)
+            AdminService.sentReportToEmail(data,this.state.reporttype)
             .then((res) => {
 
                 let data = resolveResponse(res);
+              //  console.log("report data",res.data)
             
+              
+            //  this.setState({ products: res.data, responseFlag : true});
+
                 if(this.state.reporttype == "agentStatusReport" && data.result){
 
-                    if(data.result && data.result.verifications)
+                    if(data.result)
                     this.setState({ products: data.result.verifications, responseFlag : true, reportName:"Verification Report" });
                     if(data.result && data.result.dataEntry)
                     this.setState({ dataEntryData: data.result.dataEntry});
                     this.setState({ generateReportMsg:  "Ready to Download", verficationname:"VerficationReport_of_"});
 
-                    this.setState({  generateReportLoader: false});
-
-                }else if(data.result && data.result.data && data.result.data.length ){
-                    this.setState({ generateReportMsg:  "Ready to Download"});
-                    this.setState({ products: data.result.data, responseFlag : true});
-
-                    if(this.state.reporttype == "detailedPendingReport"){
-                        this.setState({ filenameToGo: "distributorDetailReport"});
-                    }
-                    this.setState({  generateReportLoader: false});
-
                 }else{
                     this.setState({ generateReportMsg:  "",  generateReportLoader: false});
                     this.setState({ responseFlagMsg : "No Records Found" });
                 }
+
                 
             });
+        
+        }else{
+            if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport'){
+
+                window.open('http://125.16.74.160:30611/SLRetailer/reports/'+this.state.reporttype+ "?date="+data.startDate+'&id='+ localStorage.getItem("token"));
+
+            }else{
+
+                window.open('http://125.16.74.160:30611/SLRetailer/reports/'+this.state.reporttype+'?retrieveType='+this.state.retrieveType+"&startDate="+this.state.startDate+"&endDate="+this.state.endDate+"&zones="+this.state.selectedZone+'&id='+localStorage.getItem("token"), '');
+
+            }
+
+           this.setState({ generateReportLoader : false });
+
+        }
+
+
+
+      
+    //    AdminService.reportDirectDownload(data,this.state.reporttype)
+
+    //         .then((res) => {
+
+            
+    //             let data = resolveResponse(res);
+          
+    //             if(res.data){
+    //                 //this.setState({ generateReportMsg:  "Ready to Download"});
+    //                // http://125.16.74.160:30611/SLRetailer/reports/ftaDeviationReport?retrieveType=BY_FTA_DATE&startDate=1577817000000&endDate=1593023399059&id=ZXlKaGJHY2lPaUpJVXpJMU5pSjkuZXlKemRXSWlPaUpNUVRGUVRVaExNU0lzSW5SdmEyVnVTV1FpT2lJeE5Ua3pNREF4TmpjM01EZzVJaXdpVWs5TVJVTlBSRVVpT2lKQlJFMUpUaUlzSWtsVFgxQlBVbFJCVENJNmRISjFaU3dpUVVsU1ZFVk1YMGxFSWpvaVRFRXhVRTFJU3pFaUxDSnBjM01pT2lKb2RIUndjem92TDJGcGNuUmxiQzVqYjIwaUxDSnBZWFFpT2pFMU9UTXdNREUyTnpjc0ltVjRjQ0k2TVRVNU16QTRPREEzTjMwLi1iQVpfdUlqaldUMlN1U3ZBaGxGWjhPQU9BTUlROTdlMUpEZjdTb1hyTE0=
+    //                 window.open('http://125.16.74.160:30611/SLRetailer/reports/'+this.state.reporttype+'?retrieveType='+this.state.retrieveType+"&startDate="+this.state.startDate+"&endDate="+this.state.endDate+'&id='+localStorage.getItem("token"), '');
+    //                 this.setState({ generateReportLoader : false });
+    //               //  this.setState({ products: data.result.data, responseFlag : true});
+
+    //                 // if(this.state.reporttype == "detailedPendingReport"){
+    //                 //     this.setState({ reporttype: "distributorDetailReport"});
+    //                 // }
+
+    //             }
+                
+              
+                
+    //         });
     }
 
 
@@ -293,42 +359,13 @@ class Report extends React.Component {
     }
 
     myCallback = (date, fromDate) => {
-
         if (fromDate === "START_DATE") {
             console.log("date",date)
             this.setState({ startDate: new Date(date).getTime(),  generateReportLoader: false, responseFlag:false, responseFlagMsg : "", dataEntryData:"" });
-       
-            var dateObj = new Date(date);
-            dateObj.setMonth(dateObj.getMonth() + 6);
-            dateObj.setHours(23,59,59,59);
-            dateObj.setDate(dateObj.getDate() - 1);
-           
-            var endD = this.state.endDate; 
-            //console.log("endDate",  new Date(this.state.endDate) ); 
-            if(!this.state.endDate){
-                 endD = new Date(); 
-                 endD.setHours(23,59,59,59);
-            }
-
-            console.log("start: " +date +" | start+6month "+ dateObj,   "  | end date: "+ new Date(endD), endD > dateObj.getTime() )
-          
-            if(endD > dateObj.getTime()){
-                this.setState({ disabledGenButton: true  });
-            }else{
-                this.setState({ disabledGenButton: false  });
-            }
-            
         } else if (fromDate === "END_DATE") {
             this.setState({ endDate: new Date(date).getTime(), generateReportLoader: false, responseFlag:false, responseFlagMsg : "",dataEntryData:"" });
-            this.setState({ disabledGenButton: false  });
         }
-
     };
-
-    
-
-
-
 
 
     render() {
@@ -338,15 +375,10 @@ class Report extends React.Component {
             startDate: '',
             endDate: '', 
             showSingleDate: this.state.showSingleDate,
-            resetCalander : this.state.resetCalander,
-            generateReportLoader: this.state.generateReportLoader,
-           
-
+            resetCalander : this.state.resetCalander
         }
 
         var adminReports = []; 
-
-
 
         //POST /reports/ftaDeviationReportCsv
         adminReports.push(<MenuItem value="agentStatusReport">Agent Status Report</MenuItem>); 
@@ -362,47 +394,26 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
         adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
 
-        //sprint 7 changes
-        // adminReports.push(<MenuItem value="getSimSwapCount">Sim Swap Count Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getMpinResetCount">Mpin Reset Count Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getReloadAndBillPayCount">Reload & Bill Pay Count Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getIdleRetailers">Idle Retailers Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getMonthlyActiveRetailers">Monthly Active Retailers Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getDailyActiveRetailers">Daily Active Retailers Report</MenuItem>);
-        // adminReports.push(<MenuItem value="acquisitionCountReport">SUK vs CYN Count Report</MenuItem>);
-        // adminReports.push(<MenuItem value="retailerOnboardedReport">Retailer Onboarded Report</MenuItem>);
-
-        // BY_VERIFICATION_DATE,
+           // BY_VERIFICATION_DATE,
         // BY_DATA_ENTRY_DATE
         var agentStatusRetrieveBy = []; 
         agentStatusRetrieveBy.push(<MenuItem key={'BY_VERIFICATION_DATE'} value={'BY_VERIFICATION_DATE'} >By Verification Date</MenuItem>); 
         agentStatusRetrieveBy.push(<MenuItem key={'BY_DATA_ENTRY_DATE'} value={'BY_DATA_ENTRY_DATE'} >By Data Entry Date</MenuItem>); 
-        var downloadfilename = this.state.verficationname + this.state.filenameToGo+"_"+ this.state.retrieveType.toLowerCase()+"_"+this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"; 
-
-   //   console.log("this.state.reporttype",this.state.reporttype)
-
-        if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport'){
-            downloadfilename =  this.state.reporttype+"_by_verification_date_"+this.dateFormat(this.state.startDate)+".csv"; 
-        }
-        if(this.state.reporttype == 'getDailyActiveRetailers'){
-            downloadfilename =  this.state.reporttype+"_report_of_"+this.dateFormat(this.state.startDate)+".csv"; 
-        }
-
         
-
         return (
 
             <React.Fragment>
                 <PostLoginNavBar />
                 <div style={{ padding: "20px" }}>
                     <br />
+                   
                     <Paper style={{ padding: "40px" }}>
 
                         <Typography component="h2" variant="h6" color="primary" gutterBottom>
                         Report Download
                         </Typography>
              
-                        <Grid syt container spacing={2} container
+                        <Grid syt container spacing={1} container
                             direction="row"
                             justify="right"
                             alignItems="center">
@@ -410,7 +421,7 @@ class Report extends React.Component {
                                 <FormControl style={styles.multiselect}>
                                 {/* ftaDeviationReport */}
                                     <InputLabel htmlFor="Active" required={true}>Select type of report</InputLabel>
-                                    <Select name="reporttype" disabled={this.state.generateReportLoader} value={this.state.reporttype} onChange={this.onChange}>
+                                    <Select name="reporttype" value={this.state.reporttype} onChange={this.onChange}>
                                     <MenuItem value="distributorLastUploadedData">Distributor Uploaded Data Status</MenuItem>
                                     <MenuItem value="detailedPendingReport">Distributor Detail Report</MenuItem>
                                     <MenuItem value="rejectReport"> Distributor Reject Data Report</MenuItem>
@@ -427,8 +438,7 @@ class Report extends React.Component {
                             <Grid item xs={12} sm={3}>
                                 <FormControl style={styles.selectStyle}>
                                     <InputLabel id="demo-mutiple-name-label">Select Zone</InputLabel>
-                                    <Select 
-                                    disabled={this.state.generateReportLoader}
+                                    <Select
                                     labelId="demo-mutiple-name-label"
                                     id="demo-mutiple-name"
                                     multiple
@@ -451,17 +461,17 @@ class Report extends React.Component {
                             </Grid>
                             :""}
 
-                          {this.state.reporttype != 'disconnectionReport' && this.state.reporttype != 'reconnectionReport' && this.state.reporttype != 'getSimSwapCount' && this.state.reporttype != 'getMpinResetCount' && this.state.reporttype != 'getReloadAndBillPayCount' && this.state.reporttype != 'getIdleRetailers' &&  this.state.reporttype != 'getMonthlyActiveRetailers' && this.state.reporttype != 'getDailyActiveRetailers' && this.state.reporttype !=  'acquisitionCountReport' &&  this.state.reporttype != 'retailerOnboardedReport'? 
+                          {this.state.reporttype != 'disconnectionReport' && this.state.reporttype != 'reconnectionReport' ? 
                             <Grid item xs={12} sm={3}>
                                 <FormControl style={styles.selectStyle}>
                                     <InputLabel id="demo-mutiple-name-label">Retrieve Type</InputLabel>
                                     <Select
-                                    disabled={this.state.generateReportLoader}
                                     name="retrieveType"
                                     value={this.state.retrieveType}
                                     onChange={this.onChangeRetriveBy}
                                     >
-                                     {this.state.reporttype != 'simSwapReport' ?  
+                                   
+                                    {this.state.reporttype != 'simSwapReport' ?  
                                         <MenuItem key={'BY_FTA_DATE'} value={'BY_FTA_DATE'} >
                                         By FTA Date
                                     </MenuItem>
@@ -483,100 +493,9 @@ class Report extends React.Component {
                             </Grid>
                             :""}
 
-                                {this.state.reporttype =='retailerOnboardedReport' ? 
-                                    <Grid item xs={12} sm={3}>
-                                    <FormControl style={styles.selectStyle}>
-                                        <InputLabel id="demo-mutiple-name-label">Select No. of Days</InputLabel>
-                                        <Select 
-                                        disabled={this.state.generateReportLoader}
-                                        labelId="demo-mutiple-name-label"
-                                        id="demo-mutiple-name"
-                                        
-                                        name="day"
-                                        value={this.state.day}
-                                        onChange={this.onChange}
-                                        input={<Input />}
-                                        MenuProps={MenuProps}
-                                        >
-                                        {this.state.numofDays ? this.state.numofDays.map(name => (
-                                            <MenuItem key={name} value={name} >
-                                                {name}
-                                            </MenuItem>
-                                        )): ""}
-                                    
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                            : ""}
-
-                          
-                            {this.state.reporttype != 'getMonthlyActiveRetailers' && this.state.reporttype != 'retailerOnboardedReport' ? 
                             <Grid item xs={12} sm={3} >
-                                <MaterialUIPickers  callbackFromParent={dateParam} /> 
-
-                                </Grid>
-                            : ""}
-
-                            {this.state.reporttype =='getMonthlyActiveRetailers' ? 
-                                    <Grid item xs={12} sm={3}>
-                                    <FormControl style={styles.selectStyle}>
-                                        <InputLabel id="demo-mutiple-name-label">Select Year</InputLabel>
-                                        <Select 
-                                        disabled={this.state.generateReportLoader}
-                                        labelId="demo-mutiple-name-label"
-                                        id="demo-mutiple-name"
-                                        
-                                        name="year"
-                                        value={this.state.year}
-                                        onChange={this.onChange}
-                                        input={<Input />}
-                                        MenuProps={MenuProps}
-                                        >
-                                        {this.state.listofYear ? this.state.listofYear.map(name => (
-                                            <MenuItem key={name} value={name} >
-                                                {name}
-                                            </MenuItem>
-                                        )): ""}
-                                    
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                            : ""}
-
-                            {this.state.reporttype =='getMonthlyActiveRetailers' ? 
-                                <Grid item xs={12} sm={3}>
-                                    <FormControl style={styles.selectStyle}>
-                                        <InputLabel id="demo-mutiple-name-label">Select Month</InputLabel>
-                                        <Select 
-                                        disabled={this.state.generateReportLoader}
-                                        labelId="demo-mutiple-name-label"
-                                        id="demo-mutiple-name"
-                                        
-                                        name="month"
-                                        value={this.state.month}
-                                        onChange={this.onChange}
-                                        input={<Input />}
-                                        MenuProps={MenuProps}
-                                        >
-                                        <MenuItem key='1' value='jan'>January</MenuItem>
-                                        <MenuItem key='2' value='feb'>February</MenuItem>
-                                        <MenuItem key='3' value='mar'>March</MenuItem>
-                                        <MenuItem key='4' value='apr'>April</MenuItem>
-                                        <MenuItem key='5' value='may'>May</MenuItem>
-                                        <MenuItem key='6' value='jun'>June </MenuItem>
-                                        <MenuItem key='7' value='jul'>July</MenuItem>
-                                        <MenuItem key='8' value='aug'>August</MenuItem>
-                                        <MenuItem key='9' value='sept'>September</MenuItem>
-                                        <MenuItem key='10' value='oct'>October</MenuItem>
-                                        <MenuItem key='11' value='nov'>November</MenuItem>
-                                        <MenuItem key='12' value='dec'>December</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                :""}
-
-                            
-                          
+                                <MaterialUIPickers callbackFromParent={dateParam} />
+                            </Grid>
 
                             </Grid>
 
@@ -603,11 +522,11 @@ class Report extends React.Component {
                             justify="right"
                             alignItems="">
 
-
+                            {this.state.generateReportbutton ?     
                             <Grid item xs={12} sm={3} item alignItems='flex-end'>
                                 
                                 {!this.state.generateReportLoader ? 
-                                <Button disabled={this.state.disabledGenButton} variant="contained" color="Primary" style={{ marginLeft: '20px' }} onClick={this.getReportDetails} >Generate Report</Button>
+                                <Button variant="contained" color="Primary" style={{ marginLeft: '20px' }} onClick={this.getReportDetails} >Generate Report</Button>
                                 :""}
                                 
                                 {this.state.generateReportLoader ? 
@@ -616,11 +535,28 @@ class Report extends React.Component {
                                 </Typography>
                                 :""}
                             </Grid>
+
+                            :""}
+
+                            {this.state.showagentlink ?     <>  
+                            <Grid item xs={12} sm={3} item alignItems='flex-end'>
+                                <a   target="_blank" href={this.state.dataEntryReportAPI + this.state.retrieveType+"&startDate="+this.state.startDate+"&endDate="+this.state.endDate + '&id='+ localStorage.getItem("token")} >Download Data Entry</a>
+                             
+                                
+        
+
+                            </Grid>
+
+                            <Grid item xs={12} sm={3} item alignItems='flex-end'>
+                                <a target="_blank"  href={this.state.verificatioinReportAPI + this.state.retrieveType+"&startDate="+this.state.startDate+"&endDate="+this.state.endDate + '&id='+ localStorage.getItem("token")}>  Download Verification </a>
+                            </Grid> 
+                            </>
+                            :""}
+
                             <Grid item xs={12} sm={9} item alignItems='flex-end'  >
                                 {this.state.responseFlag ? 
                                 <CSVLink data={this.state.products}
-                                  //  filename={this.state.verficationname + this.state.reporttype+"_"+ this.state.retrieveType.toLowerCase()+"_"+this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"}
-                                    filename={downloadfilename}
+                                    filename={this.state.verficationname + this.state.reporttype+"_"+ this.state.retrieveType.toLowerCase()+"_"+this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"}
                                     className="btn btn-primary"
                                     target="_blank"
                                     >

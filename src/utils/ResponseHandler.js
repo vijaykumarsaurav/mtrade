@@ -15,10 +15,9 @@ export function resolveResponse(response, msg) {
               //  Notify.showError("We need to authenticate you. Please login again.");
                 localStorage.clear();
                 //return window.location.replace("/#/login");
-
                 return Promise.reject(window.location.replace("/#/login"));
             }else {
-                console.log(data.message,"XXXX");
+               // console.log(data.message,"XXXX");
                 Notify.showError(data.message);
                 return Promise.reject(data.message);
             }

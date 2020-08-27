@@ -72,7 +72,10 @@ class BannerEdit extends React.Component {
 
   }
   zoneChange = (e) =>{
-    this.setState({[e.target.name]: e.target.value})
+
+    if(e.target.value){
+      this.setState({[e.target.name]: e.target.value})
+    }
   }
 
   myCallback = (date, fromDate) => {
@@ -413,7 +416,10 @@ class BannerEdit extends React.Component {
     formData.append('expireDay', this.state.expireDay); 
 
     formData.append('link', this.state.link);
-    formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
+
+    if(this.state.selectedZone.length){
+      formData.append('zones',this.state.selectedZone);
+    }
 
 
     //formData.append('validityDays', this.state.validityDays);

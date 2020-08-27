@@ -40,9 +40,7 @@ class RechargePack extends React.Component{
     }
 
     loadPackList() {
-
-        var data = { allPacks:true, portal: true}; 
-        
+        var data = { allPacks:true, portal: true};
         AdminService.listPack(data)
             .then((res) => {
                 let data = resolveResponse(res);

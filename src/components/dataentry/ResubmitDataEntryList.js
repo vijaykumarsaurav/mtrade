@@ -30,6 +30,10 @@ import {resolveResponse} from "../../utils/ResponseHandler";
 import "./DataEntry.css";
 
 
+
+
+
+
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
@@ -47,7 +51,7 @@ class DataEntryList extends React.Component{
         super(props);
         this.state ={
             products: [],
-            searchedproducts: '',
+            searchedproducts: null,
             searchby:'',
             listingTakingTime : null,
             listofzones:[],
@@ -56,6 +60,7 @@ class DataEntryList extends React.Component{
 
         };
         this.loadProductList = this.loadProductList.bind(this);
+        this.addProduct = this.addProduct.bind(this);
         this.editProduct = this.editProduct.bind(this);
         this.convertBool = this.convertBool.bind(this);
         this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
@@ -78,15 +83,9 @@ class DataEntryList extends React.Component{
         ActivationService.getTotalToBeProcessed().then(res => {
             let data = resolveResponse(res);
             console.log(data.result)
-         
-            this.setState({['recordToBeProcessed']: data.result && data.result.count})
-
             localStorage.setItem("acquisitionCount",data.result && data.result.acquisitionCount ); 
             localStorage.setItem("resubmitCount",data.result && data.result.resubmitCount ); 
-            
-
         })
-
     }
 
     zoneChange = (e) =>{
@@ -102,35 +101,28 @@ class DataEntryList extends React.Component{
 
         var startTime = endTime - 259200000; 
        
-        // var  data =  {
-          
-        //     "mobileNumber": mobileNumber ? mobileNumber : null,
-            
-        //     "zones": this.state.selectedZone.length ? this.state.selectedZone : null
-        // }
         var  data =  {
             "endDate": endTime,
-          
             "mobileNumber": mobileNumber ? mobileNumber : null,
             "noOfRecords": 20,
             "role": "DE",
             "startDate": 0,
             "txnId": 0,
             "type": "next",
-            
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null
         }
-        
 
         document.getElementById('showMessage').innerHTML = "Please Wait Loading...";
 
-        ActivationService.listDocs(data)
+        ActivationService.listDocsResubmit(data)
             .then((res) => {
               
-                    let data = resolveResponse(res);
+               
+                let data = resolveResponse(res);
                     var activationList = data.result && data.result.activationList; 
                     this.setState({products: activationList})
                     this.setState({searchedproducts:activationList})
+                    
                     var listingIds = activationList && activationList.map(function(val, index){
                         return val.txnId
                     })
@@ -161,6 +153,10 @@ class DataEntryList extends React.Component{
                 this.setState({listofzones: data && data.result && data.result.zones}) 
             })
 
+    }
+
+    addProduct() {
+        this.props.history.push('/add-product');
     }
 
     onlockTransectionOnSkip = (txn) =>{
@@ -229,7 +225,7 @@ class DataEntryList extends React.Component{
         console.log("productid",productId )
         
         window.localStorage.setItem("dataEntryId", productId);
-        window.localStorage.setItem("fromSubmit", '');
+        window.localStorage.setItem("fromSubmit", 'yes');
 
         this.props.history.push('/data-edit');
 
@@ -244,11 +240,7 @@ class DataEntryList extends React.Component{
         return flag ? 'Yes' : 'No';
     }
 
-
-      
-
     render(){
-
       
       //  console.log("this.state.products",this.state.products); 
         return(
@@ -266,16 +258,12 @@ class DataEntryList extends React.Component{
                         justify="right"
                         alignItems="center">
                             <Grid item  xs={12} xs={6}>
-                            {/* <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                            Acquisition  – Data Entry
-                            </Typography>  */}
                             <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                            Data Entry
+                            Resubmit – Data Entry
                             </Typography> 
-                           
-                            <Typography>
+                            {/* <Typography>
                               Record to be Processed: {this.state.recordToBeProcessed}
-                            </Typography> 
+                            </Typography>  */}
                             </Grid>
 
                             <Grid item xs={10} sm={3}> 
@@ -333,8 +321,8 @@ class DataEntryList extends React.Component{
                                 <TableCell align="">Zone</TableCell>
                                 <TableCell align="">FTA Date</TableCell>
                                 {/* <TableCell align="">Status</TableCell> */}
-                                <TableCell align="">Resubmit</TableCell>
-                                <TableCell align="">Verified Date</TableCell>
+                                {/* <TableCell align="">Resubmit</TableCell>
+                                <TableCell align="">Verified Date</TableCell> */}
                                 <TableCell align="">Submit Date</TableCell>
                                 <TableCell align="">Resubmit Date</TableCell>
 
@@ -355,9 +343,9 @@ class DataEntryList extends React.Component{
                                     <TableCell align="center">{row.zone}</TableCell>
                                     <TableCell align="center">{row.ftaDate.substring(0, 10)}</TableCell>
                                     {/* <TableCell align="center">{row.status ? 'YES' : 'NO'}</TableCell> */}
-                                    <TableCell align="center">{row.resubmit}</TableCell>
+                                    {/* <TableCell align="center">{row.resubmit}</TableCell>
                                     <TableCell align="center">{row.verifiedDate ? row.verifiedDate.substring(0, 10) : "none"}</TableCell>
-                                    
+                                     */}
                                     <TableCell align="center">{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
                                     <TableCell align="center">{row.resubmitDate ? row.resubmitDate.substring(0, 10) : "none"}</TableCell>
                                   

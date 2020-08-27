@@ -402,6 +402,7 @@ class BannerAdd extends React.Component {
     //formData.append('category', this.state.category);
 
     formData.append('link', this.state.link);
+    
     formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
 
     if(!this.state.publishDay){

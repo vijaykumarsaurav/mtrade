@@ -27,6 +27,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from "@material-ui/core/Input";
+import md5  from 'md5'; 
 
 class DataEntryList extends React.Component{
  
@@ -135,6 +136,8 @@ class DataEntryList extends React.Component{
                 if(data.message == "ok" && data.status == 200){
                     this.setState({nic:data.result.nic, numberFound : true, ftaDate : data.result.ftaDate, uploadFlag: true})
 
+                    this.setState({sim: data.result.simNumber})
+
                     // this.setState({ user_image_upload: true, user_signature_upload :true});
                     // this.setState({ poi_front_image_upload:data.result.poiFrontPending, poi_back_image_upload : data.result.poiBackPending,pef_image_upload : data.result.pefFPending});
 
@@ -176,10 +179,42 @@ class DataEntryList extends React.Component{
 
     }
 
+
+    validateUploadFile = (file) => {
+        const filename = file.name.toString(); 
+    
+        if (/[^a-zA-Z0-9\.\-\_ ]/.test(filename)) {
+            Notify.showError("File name can contain only alphanumeric characters including space and dots")
+            return false;
+        }
+    
+        if(file.type == "image/png" || file.type == "image/jpeg"){
+            var fileSize = file.size / 1000; //in kb
+            if(fileSize >= 100 && fileSize <= 2048){
+              const fileext =  filename.split('.').pop(); 
+              Object.defineProperty(file, 'name', {
+                writable: true,
+                value:  md5(file.name) +"."+ fileext
+              });
+              return file;
+            }else{
+              Notify.showError("File size should be grater than 100KB and less than 2MB")
+            }
+        }else {
+          Notify.showError("Only png and jpeg file allowd.")
+        }
+        return false;
+      }
+
     onChangeFileUpload = e => {
         console.log(e.target.files[0]);
-
-        this.setState({ [e.target.name]: e.target.files[0]})
+        const filetoupload = this.validateUploadFile(e.target.files[0]); 
+        if (filetoupload) {
+            this.setState({ [e.target.name]: e.target.files[0]});
+        }
+        else{
+            e.target.value = null;
+        }
         // if(e.target.name == "poi_front_image" && e.target.files[0].name != "poi_front_image.png" ){
         //     document.getElementById(e.target.name+'_file').value = "";
         //     Notify.showError("Image name to be 'poi_front_image.png'");
@@ -232,6 +267,7 @@ class DataEntryList extends React.Component{
     formData.append('mobileNumber', this.state.mobile);
     formData.append('simNumber', this.state.sim);
     formData.append('deviceId', localStorage.getItem("deviceId".toString()) );   
+    
 
     ActivationService.uploadDistrubuter(formData)
         .then((res) => {
@@ -284,12 +320,12 @@ class DataEntryList extends React.Component{
                             </Typography> 
                             </Grid>
                             {/* InputLabelProps={{ shrink: true }} */}
-                            <Grid item xs={12} sm={2} alignItems="flex-end" alignContent="flex-end"  justify="flex-end" > 
+                            <Grid item xs={12} sm={3    } alignItems="flex-end" alignContent="flex-end"  justify="flex-end" > 
                                 <TextField type="number" value={this.state.mobile}  label="Mobile No."  style={{width:"100%"}} name="Search by Mobile No." name="mobile" onChange={this.onChange} />
-                            </Grid>
-                            <Grid item xs={12} sm={2} alignItems="flex-end" alignContent="flex-end"  justify="flex-end" > 
+                            </Grid>     
+                            {/* <Grid item xs={12} sm={2} alignItems="flex-end" alignContent="flex-end"  justify="flex-end" > 
                                 <TextField type="text" value={this.state.sim}  label="Sim No."  style={{width:"100%"}} name="Search by Mobile No." name="sim" onChange={this.onChange} />
-                            </Grid>
+                            </Grid> */}
                             <Grid item xs={12} sm={1} alignItems="flex-end" alignContent="flex-end"  justify="flex-end" > 
                                <Button type="button"  onClick={() => this.searchOnDB(  )} variant="contained"  style={{marginLeft: '20px'}} >Search</Button>
                             </Grid>

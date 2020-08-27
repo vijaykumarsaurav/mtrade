@@ -92,7 +92,8 @@ class VerifyEdit extends React.Component {
 
         if(selectedProductId == null) {
            // alert("Please select a product to edit.");
-            this.props.history.push('/verify');
+         //   this.props.history.push('/verify');
+            this.cancel();
         }else {
             ActivationService.getOneVerify(selectedProductId).then(res => {
                 let data = resolveResponse(res);
@@ -147,10 +148,10 @@ class VerifyEdit extends React.Component {
                         });
 
                         const userDetails = JSON.parse(localStorage.getItem("userDetails"));
-                        console.log("Role", userDetails.roleCode);
+                        var roleCode = userDetails && userDetails.roleCode; 
 
-                        if(userDetails && userDetails.roleCode){
-                            ActivationService.getStaticData(userDetails.roleCode).then(res => {
+                        if(roleCode){
+                            ActivationService.getStaticData(roleCode).then(res => {
                                 console.log("reason:", res);
                                 let data = resolveResponse(res);
                                 var rejectedReasons = '';
@@ -244,7 +245,7 @@ class VerifyEdit extends React.Component {
           }
          
          
-         // console.log("imageDetails.len",imageDetails)
+          console.log("imageDetails.len",imageDetails)
 
 
           
@@ -466,14 +467,15 @@ class VerifyEdit extends React.Component {
             this.setState({ rejectButton: true, comments : ""});
   
            // To call the method you can use the slide's ref attribute and then call the method. 
-           this.slideRef.current.goTo(0);
+           this.slideRef && this.slideRef.current && this.slideRef.current.goTo(0);
 
 
 
 
         }else{
         //    Notify.showError("No item available");
-            this.props.history.push('/verify');
+           // this.props.history.push('/verify');
+           this.cancel();
         }
     };
 
@@ -611,7 +613,13 @@ class VerifyEdit extends React.Component {
     };
 
     cancel = (e) => {
-        this.props.history.push('/verify');
+
+        if(localStorage.getItem('fromSubmit') == 'yes'){
+            this.props.history.push('/resubmit-verify');
+        }else{
+            this.props.history.push('/verify');
+        }
+        
     };
 
     onChange = (e) => {
@@ -760,11 +768,16 @@ class SubmitedByDistributer extends React.Component {
         return(
             <>
          
-                <Typography  style={styles.textStyle} variant="body2"> Customer Application Form </Typography>
+            
+                <div className="image-container"  style={{height:'70vh'}}> 
+                <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp;  Customer Application Form &nbsp;&nbsp;</div> 
+
+
+                {/* <Typography  style={styles.textStyle} variant="body2"> Customer Application Form </Typography> */}
                 {/* <SlideShowGalary imageDetails={data} />  */}
                 
                 <ReactPanZoom  image={pefdetails.img} alt={pefdetails.title}/>
-
+                </div>
                 {/* <iframe style={{width: "100%", height:"527px"}}  frameBorder="0" src="https://pbs.twimg.com/media/Bpbm1DXCAAA5vk4?format=jpg&name=900x900"> </iframe> */}
                 {/* <img style={{width: "555px", height:"555px"}} src={"https://pbs.twimg.com/media/Bpbm1DXCAAA5vk4?format=jpg&name=900x900"}/> */}
 

@@ -47,13 +47,18 @@ export default function MaterialUIPickers(props) {
     selectedStartDate = new Date().getTime();
   }
 
-
+ 
   
 
   var dateObj = new Date(selectedStartDate);
-  var maxAllowedDate = dateObj.setMonth(dateObj.getMonth() + 6);
+  dateObj.setMonth(dateObj.getMonth() + 6);
+
+  var maxAllowedDate = dateObj.setDate(dateObj.getDate() - 1);
+
+
   var currDate = new Date();
   var back18Month= currDate.setMonth(currDate.getMonth() - 18);
+
 
   if(selectedStartDate <  back18Month){
     selectedStartDate = back18Month;
@@ -72,16 +77,15 @@ export default function MaterialUIPickers(props) {
   if(showSingleDate && selectedStartDate.getDate() == new Date().getDate()){
     selectedStartDate = d;
   }
-  
 
  $('.MuiInputBase-inputAdornedEnd').prop('readonly', true);
-
 
  return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
       <Grid container justify="space-around">
      
         <KeyboardDatePicker
+          disabled={props.callbackFromParent && props.callbackFromParent.generateReportLoader}
           margin="normal"
           //readOnly="true"
           // disabled="true"
@@ -102,6 +106,7 @@ export default function MaterialUIPickers(props) {
         />
         { !showSingleDate ? <KeyboardDatePicker
           disableFuture="true"
+          disabled={props.callbackFromParent && props.callbackFromParent.generateReportLoader}
           maxDateMessage="Max allowed date range is 6 months."
       //    minDateMessage="End date can't be less than start date."
           minDate={selectedStartDate}

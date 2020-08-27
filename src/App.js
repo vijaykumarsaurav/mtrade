@@ -12,9 +12,9 @@ import LoginComponent from "./components/login/LoginComponent";
 function App() {
   const token = window.localStorage.getItem("token"); 
 
-  if(!token){
-     window.location.replace("/#/login");  
-  }
+  // if(!token){
+  //    window.location.replace(window.location.pathname + "/#/login");  
+  // }
 
   return (
     <React.Fragment>
