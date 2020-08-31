@@ -1,5 +1,6 @@
 var RETAILER_API_BASE_URL = 'https://retailer.airtel.lk/SLRetailer/';
 var STAGING_IP_PORT = 'http://125.16.74.160:30611/';
+var DEV_IP_PORT = 'http://125.17.6.6/retailer/';
 
 
 if(window.location.hostname == "retailer.airtel.lk"){
@@ -24,8 +25,8 @@ if(window.location.hostname == "tstretailer.airtel.lk"){
 }
 
 if(window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1"){
-    RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
-  //  RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
+  //  RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
+    RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
 }
 
 //reports 
@@ -46,14 +47,13 @@ export const RETAILER_SLRetailerA = STAGING_IP_PORT + 'SLRetailerA/' + 'reports/
 export const SL_AD_LOGIN_URL = RETAILER_API_BASE_URL + 'auth/portaLogin';
 export const SL_AD_LOGOUT_URL = RETAILER_API_BASE_URL + 'user/logout'; 
 
-export const VERIFY_DOCS_LISTING = RETAILER_API_BASE_URL + 'createCAF/prepaidAcqTxns';
+export const VERIFY_DOCS_LISTING = RETAILER_API_BASE_URL + 'avde/prepaidAcquisitions';
 export const VERIFY_DOCS_LISTING_RESUBMIT = RETAILER_API_BASE_URL + 'avde/prepaidResubmits';
 export const RECORD_TOBE_PROCESSED =  RETAILER_API_BASE_URL + "avde/pendingCount";
 
 // export const VERIFY_DOCS_LISTING = STAGING_IP_PORT + 'SLRetailerA/' + 'avde/prepaidAcquisitions';
 // export const VERIFY_DOCS_LISTING_RESUBMIT = STAGING_IP_PORT + 'SLRetailerA/'  + 'avde/prepaidResubmits';
 // export const RECORD_TOBE_PROCESSED =  STAGING_IP_PORT + 'SLRetailerA/'  + "avde/pendingCount";
-
 
 //packs 
 export const RECHARGE_PACK_LISTING = RETAILER_API_BASE_URL + 'recharges/getPrepaidPacksForPortal';

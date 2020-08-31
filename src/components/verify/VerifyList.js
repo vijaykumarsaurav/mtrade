@@ -124,24 +124,24 @@ class VerifyList extends React.Component{
 
         var startTime = endTime - 172800000; 
 
-        // var  data =  {
-
-        //     "mobileNumber": mobileNumber ? mobileNumber : null,
-        //     "zones": this.state.selectedZone.length ? this.state.selectedZone : null
-        //   }
-
         var  data =  {
-            "endDate": endTime,
-          
+
             "mobileNumber": mobileNumber ? mobileNumber : null,
-            "noOfRecords": 20,
-            "role": "DE",
-            "startDate": 0,
-            "txnId": 0,
-            "type": "next",
-            
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null
-        }
+          }
+
+        // var  data =  {
+        //     "endDate": endTime,
+          
+        //     "mobileNumber": mobileNumber ? mobileNumber : null,
+        //     "noOfRecords": 20,
+        //     "role": "DE",
+        //     "startDate": 0,
+        //     "txnId": 0,
+        //     "type": "next",
+            
+        //     "zones": this.state.selectedZone.length ? this.state.selectedZone : null
+        // }
         
         document.getElementById('showMessage').innerHTML = "Please Wait Loading...";
 
@@ -244,16 +244,16 @@ class VerifyList extends React.Component{
                
                     <Grid syt  container spacing={3}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
-                                {/* <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                Acquisition  –  Document Verification  
-                                </Typography>  */}
-
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                                Acquisition  –  Document Verification  
+                                </Typography> 
+
+                                {/* <Typography component="h2" variant="h6" color="primary" gutterBottom>
                                 Document Verification  
                                 </Typography> 
                                 <Typography>
-                                Record to be Processed: {this.state.recordToBeProcessed}
-                                </Typography> 
+                                Record to be Processed: {this.state.recordToBeProcessed} 
+                                </Typography> */}
                             </Grid>
                             <Grid item xs={10} sm={3}> 
                                 <FormControl style={styles.selectStyle}>
@@ -301,12 +301,13 @@ class VerifyList extends React.Component{
                                 <TableCell align="">NIC Count</TableCell>
                                 <TableCell align="">Distributor</TableCell>
                                 <TableCell align="">Zone</TableCell>
+
                                 <TableCell align="">FTA Date</TableCell>
-                                {/* <TableCell align="">Status</TableCell> */}
-                                <TableCell align="">Resubmit</TableCell>
+                                {/* <TableCell align="">Resubmit</TableCell>
                                 <TableCell align="">Verified Date</TableCell>
+                                 */}
                                 <TableCell align="">Submit Date</TableCell>
-                                <TableCell align="">Resubmit Date</TableCell>
+                                {/* <TableCell align="">Resubmit Date</TableCell> */}
 
                             </TableRow>
                         </TableHead>
@@ -324,12 +325,11 @@ class VerifyList extends React.Component{
                                     <TableCell align="center">{row.distributer}</TableCell>
                                     <TableCell align="center">{row.zone}</TableCell>
                                     <TableCell align="center">{row.ftaDate.substring(0, 10)}</TableCell>
-                                    {/* <TableCell align="center">{row.status ? 'YES' : 'NO'}</TableCell> */}
-                                     <TableCell align="center">{row.resubmit}</TableCell> 
+                                     {/* <TableCell align="center">{row.resubmit}</TableCell> 
                                     <TableCell align="center">{row.verifiedDate ? row.verifiedDate.substring(0, 10) : "none"}</TableCell>
-                                     
+                                      */}
                                     <TableCell align="center">{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
-                                    <TableCell align="center">{row.resubmitDate ? row.resubmitDate.substring(0, 10) : "none"}</TableCell>
+                                    {/* <TableCell align="center">{row.resubmitDate ? row.resubmitDate.substring(0, 10) : "none"}</TableCell> */}
 
 
                                     {/* <TableCell align="center">{this.convertBool(row.showRecent)}</TableCell> */}

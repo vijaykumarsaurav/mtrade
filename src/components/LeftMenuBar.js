@@ -107,16 +107,16 @@ export const  BOAMenuList  = (
       <ListItemIcon>
         <VerifiedUserIcon />
       </ListItemIcon>
-      <ListItemText primary="Verify Docs" />
+      <ListItemText primary="Acquisition Verification" />
     </ListItem>
 
     {/* sprint 7 &  8 changes */}
-    {/* <ListItem component='a' href={"#/resubmit-verify"} button>
+    <ListItem component='a' href={"#/resubmit-verify"} button>
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>
       <ListItemText primary="Resubmit Verification" />
-    </ListItem>    */}
+    </ListItem>   
     
   </div>
 );
@@ -131,18 +131,18 @@ export const DEMenuList = (
         <VerifiedUserIcon />
       </ListItemIcon>
         {/* sprint 7 &  8 changes */}
-      {/* <ListItemText primary="Acquisition Data Entry" /> */}
-      <ListItemText primary="Data Entry" />
+      <ListItemText primary="Acquisition Data Entry" />
+      {/* <ListItemText primary="Data Entry" /> */}
 
     </ListItem> 
     
     {/* sprint 7 &  8 changes */}
-    {/* <ListItem component='a' href={"#/resubmit-dataentry"} button>
+    <ListItem component='a' href={"#/resubmit-dataentry"} button>
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>
       <ListItemText primary="Resubmit Data Entry" />
-    </ListItem>    */}
+    </ListItem>   
 
   </div>
 );
