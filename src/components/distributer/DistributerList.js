@@ -179,6 +179,8 @@ class DataEntryList extends React.Component{
 
     }
 
+    
+
 
     validateUploadFile = (file) => {
         const filename = file.name.toString(); 

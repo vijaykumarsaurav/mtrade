@@ -272,6 +272,7 @@ class DataEntryList extends React.Component{
                             <Typography component="h2" variant="h6" color="primary" gutterBottom>
                             Data Entry
                             </Typography> 
+                            
                            
                             <Typography>
                               Record to be Processed: {this.state.recordToBeProcessed}
