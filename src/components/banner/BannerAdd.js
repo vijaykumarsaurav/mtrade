@@ -56,8 +56,8 @@ class BannerAdd extends React.Component {
         forWindows:'', 
         validityDays:"",
         updateTime:'',
-        publishDay:'',
-        expireDay: "",
+        publishDate:'',
+        expireDate: "",
         updateBy:'', 
         imageURL:'', 
         file: null,
@@ -77,9 +77,9 @@ class BannerAdd extends React.Component {
   }
   myCallback = (date, fromDate) => {
     if (fromDate === "START_DATE") {
-      this.setState({ publishDay: new Date(date).getTime() });
+      this.setState({ publishDate: new Date(date).getTime() });
     } else if (fromDate === "END_DATE") {
-      this.setState({ expireDay: new Date(date).getTime()  });
+      this.setState({ expireDate: new Date(date).getTime()  });
     }
   };
 
@@ -354,7 +354,7 @@ class BannerAdd extends React.Component {
 
     
     e.preventDefault();
-   // if(!this.state.title ||!this.state.bannerType || !this.state.order || !this.state.section || !this.state.categoryType || !this.state.category || !this.state.publishDay || !this.state.expireDay || !this.state.active ){
+   // if(!this.state.title ||!this.state.bannerType || !this.state.order || !this.state.section || !this.state.categoryType || !this.state.category || !this.state.publishDate || !this.state.expireDate || !this.state.active ){
     if(!this.state.title ||!this.state.bannerType || !this.state.order   ){
       Notify.showError("Missing required fields");
         return;
@@ -386,40 +386,28 @@ class BannerAdd extends React.Component {
     const formData = new FormData();
     formData.append('file',this.state.file);
     formData.append('title', this.state.title);
-    formData.append('order', this.state.order);
-
-    formData.append('active', this.state.active);
+    formData.append('order', parseInt(this.state.order));
+    formData.append('active', this.state.active == true);
     formData.append('bannerType', this.state.bannerType);
-    // formData.append('section', this.state.section);
-    // formData.append('forAndroid', this.state.forAndroid);
-    // formData.append('forIos', this.state.forIos);
-    // formData.append('forWindows', this.state.forWindows);
-
-    // formData.append('section', '');
-    // formData.append('forAndroid', '');
-    // formData.append('forIos', '');
-    // formData.append('forWindows', '');
-    //formData.append('category', this.state.category);
 
     formData.append('link', this.state.link);
     
-    formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
-
-    if(!this.state.publishDay){
-      this.state.publishDay = new Date().getTime();
+    if(this.state.selectedZone && this.state.selectedZone.length){
+      formData.append('zones', this.state.selectedZone);
     }
 
-    if(!this.state.expireDay){
-      this.state.expireDay = new Date().getTime();
+    if(!this.state.publishDate){
+      this.state.publishDate = new Date().getTime();
     }
 
-    formData.append('publishDay', this.state.publishDay);
-    formData.append('expireDay', this.state.expireDay);
+    if(!this.state.expireDate){
+      this.state.expireDate = new Date().getTime();
+    }
+
+    formData.append('publishDate', this.state.publishDate);
+    formData.append('expireDate', this.state.expireDate);
     formData.append('categoryType', this.state.categoryType);
     
-
-    formData.append('updateBy', userDetails && userDetails.loginId);
-
     pack.addBanner(formData).then(res => {
       var data = resolveResponse(res, "Baneer saved successfully.");
      // Notify.showSuccess("Baneer saved successfully.");

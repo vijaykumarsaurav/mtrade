@@ -31,17 +31,16 @@ if(window.location.hostname == "localhost" || window.location.hostname == "127.0
 
 //reports 
 export const RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'reports/';
-export const RETAILER_RECHAGE_REPORT_BASEAPI = STAGING_IP_PORT + 'SLRetailerA/' + 'recharges/';
-export const RETAILER_SIMSWAP_REPORT_BASEAPI = STAGING_IP_PORT + 'SLRetailerA/' + 'swapping/';
-export const RETAILER_RETAILER_REPORT_BASEAPI = STAGING_IP_PORT + 'SLRetailerA/' + 'retailer/';
-export const RETAILER_SLRetailerA = STAGING_IP_PORT + 'SLRetailerA/' + 'reports/';
+// export const RETAILER_RECHAGE_REPORT_BASEAPI = STAGING_IP_PORT + 'SLRetailerA/' + 'recharges/';
+// export const RETAILER_SIMSWAP_REPORT_BASEAPI = STAGING_IP_PORT + 'SLRetailerA/' + 'swapping/';
+// export const RETAILER_RETAILER_REPORT_BASEAPI = STAGING_IP_PORT + 'SLRetailerA/' + 'retailer/';
+// export const RETAILER_SLRetailerA = STAGING_IP_PORT + 'SLRetailerA/' + 'reports/';
 
 //d1 reports changes 
-// export const RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'reports/';
-// export const RETAILER_RECHAGE_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'recharges/';
-// export const RETAILER_SIMSWAP_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'swapping/';
-// export const RETAILER_RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'retailer/';
-// export const RETAILER_SLRetailerA = RETAILER_API_BASE_URL+ 'reports/';
+export const RETAILER_RECHAGE_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'recharges/';
+export const RETAILER_SIMSWAP_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'simswap/';
+export const RETAILER_RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'retailer/';
+export const RETAILER_SLRetailerA = RETAILER_API_BASE_URL+ 'reports/';
 
 //login
 export const SL_AD_LOGIN_URL = RETAILER_API_BASE_URL + 'auth/portaLogin';
@@ -63,31 +62,35 @@ export const UPLAOD_PACK_IMAGE= RETAILER_API_BASE_URL + 'recharges/uploadRecharg
 
 
 //Baneer 
-export const GET_ALL_BANNERS_DETAILS = RETAILER_API_BASE_URL + 'banner/getBanner/portal';
-export const SAVE_BANNER = RETAILER_API_BASE_URL + 'banner/uploadBanner';
-export const UPDATE_BANNER = RETAILER_API_BASE_URL + 'banner/updateBanner';
+export const GET_ALL_BANNERS_DETAILS = RETAILER_API_BASE_URL + 'banner/getAllBannersForPortal';
+export const SAVE_BANNER = RETAILER_API_BASE_URL + 'banner/upload';
+export const UPDATE_BANNER = RETAILER_API_BASE_URL + 'banner/update';
 
 
 export const UPLOAD_IMG_BANNER = RETAILER_API_BASE_URL + 'recharges/uploadRechargeImage';
-export const GET_ONE_BANNER = RETAILER_API_BASE_URL + 'banner/getBannerById/portal';
+export const GET_ONE_BANNER = RETAILER_API_BASE_URL + 'banner/getById';
 
-
-//arti api 
-export const SEARCH_BY_MOBILE_NO = RETAILER_API_BASE_URL + 'createCAF/prepaidAcqTxnData';
-export const VERIFY_DOCS_BY_ID = RETAILER_API_BASE_URL + 'createCAF/prepaidAcqTxnData?role=AV';
+//arti api  old: createCAF/prepaidAcqTxnData new: avde/acqDataForDataEntry
+export const SEARCH_BY_MOBILE_NO = RETAILER_API_BASE_URL + 'avde/acqDataForDataEntry';
+export const VERIFY_DOCS_BY_ID = RETAILER_API_BASE_URL + 'avde/acqDataForDataEntry?role=AV';
 export const VERIFICATION_STATIC_DATA = RETAILER_API_BASE_URL + 'cms/data';
 
-export const VERIFY_DOCS_APPROVE = RETAILER_API_BASE_URL + 'createCAF/saveVerificationDetails';
-export const VERIFY_DETAILS = RETAILER_API_BASE_URL + 'createCAF/prepaidAcqTxnData?role=BOA';
-export const DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'createCAF/prepaidAcqTxnData?role=DE';
-export const SAVE_DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'createCAF/saveDataEntryDetails';
+export const VERIFY_DETAILS = RETAILER_API_BASE_URL + 'avde/acqDataForVerification';
+export const VERIFY_DOCS_APPROVE = RETAILER_API_BASE_URL + 'avde/saveVerificationDetails';
+
+export const DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'avde/acqDataForDataEntry';
+export const SAVE_DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'avde/saveDataEntryDetails';
 
 //distributer
 //export const DISTRIBUTER_SEARCH = RETAILER_API_BASE_URL + 'createCAF/validatePreActivation';
 
-export const DISTRIBUTER_SEARCH = RETAILER_API_BASE_URL + 'createCAF/validatePreActivation';
+//createCAF/validatePreActivation createCAF/submitPreActivationForPortal
+export const DISTRIBUTER_SEARCH = RETAILER_API_BASE_URL + 'preactivation/validate';
 export const DISTRIBUTER_SUBMIT = RETAILER_API_BASE_URL + 'createCAF/submitPreActivation';
-export const DISTRIBUTER_UPLOAD = RETAILER_API_BASE_URL + 'createCAF/submitPreActivationForPortal';
+export const DISTRIBUTER_UPLOAD = RETAILER_API_BASE_URL + 'preactivation/portal';
+
+export const DISTRIBUTER_SEARCH_RESUBMIT = RETAILER_API_BASE_URL + 'resubmit/data';
+export const DISTRIBUTER_UPLOAD_RESUBMIT = RETAILER_API_BASE_URL + 'resubmit/portal';
 
 export const UNLOCK_SKIP_VERIFICATION = RETAILER_API_BASE_URL + 'cms/unlockSelection';
 

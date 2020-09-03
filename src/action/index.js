@@ -13,10 +13,10 @@ export const setPackLoaded = ()=> async dispatch=> {
      
 
       //add getPrepaidPacksById after / in sprint 7 and 8
-      const response = await performServerAction.post('/', { productId : id}, AuthService.getHeader());
+     // const response = await performServerAction.post('/', { productId : id}, AuthService.getHeader());
     
      //sprint 8 & 9
-     // const response = await performServerAction.get('?productId='+id, AuthService.getHeader());
+      const response = await performServerAction.get('?productId='+id, AuthService.getHeader());
 
       return  dispatch( { type: actionTypes.GET_PACK_INFO_BY_ID,payload:response });
     }catch(err){

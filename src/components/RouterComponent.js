@@ -21,6 +21,8 @@ import ResubmitDataEntryList from './dataentry/ResubmitDataEntryList';
 import DataEntryEdit from './dataentry/DataEntryEdit';
 //Distributer
 import DistributerList from './distributer/DistributerList';
+import DistResubmit from './distributer/DistResubmit';
+
 
 //Admin
 import RechargePack from "./pack/RechargePack";
@@ -55,6 +57,9 @@ const AppRouter = () => {
                     <Route path="/data-edit" replace component={DataEntryEdit} />
 
                     <Route path="/distributor" component={DistributerList} />
+                    <Route path="/dist-resubmit" component={DistResubmit} />
+
+                    
 
                     {/* admin dashboard */}
                     <Route path="/banners" component={BaneerList} />
@@ -74,7 +79,7 @@ const AppRouter = () => {
                     <Route path="/role" component={RoleManagement} />
 
                     <Route path="/msisdn-status" component={CurrentMSISDNStatus} />
-
+                    
                     {/* <Route path="/testreport" component={TestReport} /> */}
 
                     <Route path="*" component={LoginComponent} />

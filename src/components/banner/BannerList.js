@@ -205,7 +205,7 @@ class BaneerList extends React.Component{
                 <TableBody style={{width:"",whiteSpace: "nowrap"}}>
                 
                     {this.state.products && this.state.products ? this.state.products.map(row => (
-                        <TableRow key={row.productId} onClick={() => this.editProduct( row.bannerId)}>
+                        <TableRow key={row.productId} onClick={() => this.editProduct( row.id)}>
 
                             <TableCell align="center"> <img style={{width:"100px", height:"50px"}} src={row.imageURL} /> </TableCell>
                             <TableCell align="center">{row.title}</TableCell>

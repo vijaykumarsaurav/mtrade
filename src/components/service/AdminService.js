@@ -174,14 +174,14 @@ class AdminService {
     }
 
     getOneBanner(id) {
-        return axios.get(apiConstant.GET_ONE_BANNER+"?bannerId="+id, AuthService.getHeader());
+        return axios.get(apiConstant.GET_ONE_BANNER+"?Id="+id, AuthService.getHeader());
 
     }
 
     //retailer admin service
     listPack(data){
-       //  return axios.get(apiConstant.RECHARGE_PACK_LISTING , AuthService.getHeader());
-        return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
+         return axios.get(apiConstant.RECHARGE_PACK_LISTING , AuthService.getHeader());
+       // return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
  
      }
  

@@ -172,7 +172,7 @@ export default function PostLoginNavBar(props) {
                     </Grid> */}
 
 
-                        {/* sprint 7 &  8 changes */}
+                        {/* sprint 8 changes */}
                         <Grid
                                 justify="space-between"
                                 container
@@ -193,7 +193,7 @@ export default function PostLoginNavBar(props) {
 
                             <Grid item >
                                 <Typography style={{ color: "white" }} >
-                                {acquisitionCountText} {localStorage.getItem("acquisitionCount") || 0}
+                                {acquisitionCountText} {localStorage.getItem("acquisitionCount") || ''}
                                 </Typography> 
                             </Grid>
                                 <Grid item >
@@ -202,7 +202,7 @@ export default function PostLoginNavBar(props) {
 
                             <Grid item >
                                 <Typography style={{ color: "white" }} noWrap>
-                                {resubmitCountText} {localStorage.getItem("resubmitCount") || 0}
+                                {resubmitCountText} {localStorage.getItem("resubmitCount") || ''}
                                 </Typography> 
                             </Grid>
                              <Grid item >

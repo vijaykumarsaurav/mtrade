@@ -362,15 +362,15 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
         adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
 
-        //sprint 7 changes
-        // adminReports.push(<MenuItem value="getSimSwapCount">Sim Swap Count Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getMpinResetCount">Mpin Reset Count Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getReloadAndBillPayCount">Reload & Bill Pay Count Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getIdleRetailers">Idle Retailers Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getMonthlyActiveRetailers">Monthly Active Retailers Report</MenuItem>);
-        // adminReports.push(<MenuItem value="getDailyActiveRetailers">Daily Active Retailers Report</MenuItem>);
-        // adminReports.push(<MenuItem value="acquisitionCountReport">SUK vs CYN Count Report</MenuItem>);
-        // adminReports.push(<MenuItem value="retailerOnboardedReport">Retailer Onboarded Report</MenuItem>);
+        //sprint 8 changes
+        adminReports.push(<MenuItem value="getSimSwapCount">Sim Swap Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="getMpinResetCount">Mpin Reset Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="getReloadAndBillPayCount">Reload & Bill Pay Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="getIdleRetailers">Idle Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="getMonthlyActiveRetailers">Monthly Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="getDailyActiveRetailers">Daily Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="acquisitionCountReport">SUK vs CYN Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="retailerOnboardedReport">Retailer Onboarded Report</MenuItem>);
 
         // BY_VERIFICATION_DATE,
         // BY_DATA_ENTRY_DATE

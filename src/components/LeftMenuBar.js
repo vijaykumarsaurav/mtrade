@@ -158,6 +158,13 @@ export const DISTMenuList = (
       </ListItemIcon>
       <ListItemText primary="Upload Document" />
     </ListItem>   
+
+    <ListItem component='a' href={"#/dist-resubmit"} button>
+      <ListItemIcon>
+        <CloudUploadIcon />
+      </ListItemIcon>
+      <ListItemText primary="Resubmit Document" />
+    </ListItem>   
     
     <ListItem button component='a' href={"#/report"}>
       <ListItemIcon>

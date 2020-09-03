@@ -80,9 +80,9 @@ class BannerEdit extends React.Component {
 
   myCallback = (date, fromDate) => {
     if (fromDate === "START_DATE") {
-      this.setState({ publishDay: new Date(date).getTime() });
+      this.setState({ publishDate: new Date(date).getTime() });
     } else if (fromDate === "END_DATE") {
-      this.setState({ expireDay: new Date(date).getTime() });
+      this.setState({ expireDate: new Date(date).getTime() });
     }
   };
 
@@ -119,13 +119,13 @@ class BannerEdit extends React.Component {
          forAndroid:selectedData.forAndroid,
          forIos:selectedData.forIos, 
          forWindows:selectedData.forWindows, 
-         publishDay:selectedData.publishDay,
-         expireDay: selectedData.expireDay,
+         publishDate:selectedData.publishDate,
+         expireDate: selectedData.expireDate,
          updateTime:selectedData.updateTime,
          imageURL:selectedData.imageURL, 
-         bannerId : selectedData.bannerId, 
+         bannerId : selectedData.id, 
          link:selectedData.link, 
-         selectedZone :selectedData.zones.split(",")
+         selectedZone : selectedData.zones ? selectedData.zones.split(",") : [] 
          });
 
      }
@@ -151,8 +151,8 @@ class BannerEdit extends React.Component {
 
     const dateParam = {
       myCallback: this.myCallback,
-      startDate: this.state.publishDay,
-      endDate:this.state.expireDay,
+      startDate: this.state.publishDate,
+      endDate:this.state.expireDate,
       firstLavel : "Publish Date", 
       secondLavel : "End Date"
     }
@@ -402,28 +402,22 @@ class BannerEdit extends React.Component {
     
 
     const formData = new FormData();
-    formData.append('file',this.state.file);
+    if(this.state.file){
+      formData.append('file',this.state.file); 
+    }
     formData.append('title', this.state.title);
-    formData.append('order', this.state.order);
-
-    formData.append('active', this.state.active);
+    formData.append('order', parseInt(this.state.order));
+    formData.append('active', this.state.active == true);
     formData.append('bannerType', this.state.bannerType);
-    // formData.append('section', this.state.section);
-    // formData.append('forAndroid', this.state.forAndroid);
-    // formData.append('forIos', this.state.forIos);
-   // formData.append('forWindows', this.state.forWindows);
-    formData.append('publishDay', this.state.publishDay);
-    formData.append('expireDay', this.state.expireDay); 
+
+    formData.append('publishDate', this.state.publishDate);
+    formData.append('expireDate', this.state.expireDate); 
 
     formData.append('link', this.state.link);
 
-    if(this.state.selectedZone.length){
+    if(this.state.selectedZone && this.state.selectedZone.length){
       formData.append('zones',this.state.selectedZone);
     }
-
-
-    //formData.append('validityDays', this.state.validityDays);
-    formData.append('updateBy', userDetails && userDetails.loginName);
   
     formData.append('categoryType', this.state.categoryType);
     formData.append('category', this.state.category);

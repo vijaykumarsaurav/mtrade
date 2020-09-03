@@ -78,9 +78,6 @@ class VerifyEdit extends React.Component {
         this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
         this.slideRef = React.createRef(); 
 
-
-
-
     }
 
     loadOneTransection(){
