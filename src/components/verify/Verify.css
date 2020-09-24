@@ -47,7 +47,6 @@
     }
     
     .titleOverlay {
-     
     position: absolute;
     top: 15px;
     left: 50%;
@@ -56,38 +55,17 @@
     transform: translate(-50%, -50%);
     background: rgb(244, 244, 244);
     }
-    /* .img {
-     
-      flex-direction: column;
-      width: 100%;
-      pointer-events: none;
-    } */
-    /* subgrid  inline-flex; */
-      /* sticky  relative */
-  
-  
-  
-  /* .pan-container {
-    margin-top: -122px;
-  } */
-  
-  
-  /* .sc-bdVaJa div svg:nth-child(1) {
-    transform: rotateZ(90deg);
-  } */
-  
-  /* .sc-bdVaJa div svg:nth-child(3) {
-    transform: rotateZ(0deg);
-  } */
+   
 
-  /* .sc-bdVaJa{
-    opacity: 0.9;
-    transform: rotateZ(270deg); 
-    margin: 79px 131px 12px 160%;
-    display: inline-flex;
-    position: relative !important;
-    margin-top: 75px;
-  }
-     */
-  
+    .titleOverlayPEF {
+      position: absolute;
+      top: 40px;
+      left: 50%;
+      padding: 2px;
+      z-index: 1;
+      color: black;
+      transform: translate(-50%, -50%);
+      background: rgb(244, 244, 244);
+      }
+     
 

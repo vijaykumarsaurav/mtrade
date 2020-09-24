@@ -47,7 +47,7 @@ class RechargePackAdd extends React.Component {
         displayOrder: "",
         displayType: "",
         endDate: new Date(),
-        imageURL: "",
+        imageURL: "imageURL",
         isFtr: "",
         nightDay: "",
         nightDayType: "",
@@ -566,6 +566,7 @@ class RechargePackAdd extends React.Component {
                    <Button
                 variant="contained"
                 color="primary"
+                disabled={!this.state.imageURL}
                 onClick={this.savePack}
               >
                 Save
@@ -592,7 +593,7 @@ class RechargePackAdd extends React.Component {
   savePack = e => {
     
     e.preventDefault();
-    if(!this.state.amount || !this.state.displayOrder || !this.state.startDate || !this.state.endDate || !this.state.packType  ){
+    if(!this.state.amount || !this.state.displayOrder || !this.state.startDate || !this.state.endDate || !this.state.packType || !this.state.displayType  ){
         Notify.showError("Missing required fields");
         return;
     }
@@ -670,7 +671,7 @@ class RechargePackAdd extends React.Component {
     formData.append('description', this.state.description);
     formData.append('activationStatus', this.state.activationStatus);
     formData.append('comment', this.state.comment);
-    formData.append('isFtr', this.state.isFtr);
+  //  formData.append('isFtr', this.state.isFtr);
 
     if(this.state.selectedZone.length){
       formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
@@ -740,7 +741,8 @@ class RechargePackAdd extends React.Component {
     }
 
     if(e.target.name == 'displayType' && e.target.value =="details"){      
-      this.setState({showFileBrowser: false});
+      this.setState({showFileBrowser: false,  imageURL: 'currentImage'});
+
     }
   } 
 

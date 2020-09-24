@@ -82,7 +82,8 @@ class DataEntryEdit extends React.Component {
                 customerImageUrl:"",
                 presentAddress:"",
                 pefImageUrl:'',
-                comment:""
+                comment:"",
+                loading: true
                 
         }
         this.updateLocalActList = this.updateLocalActList.bind(this);
@@ -163,7 +164,7 @@ class DataEntryEdit extends React.Component {
                     //    console.log("getonedata",this.state); 
                  }
 
-                
+                this.setState({loading:false}) 
              })
  
              const userDetails = JSON.parse(localStorage.getItem("userDetails")); 
@@ -262,6 +263,15 @@ class DataEntryEdit extends React.Component {
             startDate: this.state.dob,
             endDate: ''
 
+        }
+
+        if(this.state.loading){
+            return (  
+                 <React.Fragment>
+                    <PostLoginNavBar/><br />
+                    <Typography variant="h6" >Loading...please wait.</Typography>
+                </React.Fragment> 
+                )   
         }
 
 

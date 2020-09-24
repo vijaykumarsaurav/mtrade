@@ -205,8 +205,8 @@ class BannerAdd extends React.Component {
                             <FormControl style={styles.multiselect}>
                                 <InputLabel htmlFor="Active" required={true}>Status</InputLabel>
                                 <Select name="active" value={this.state.active} onChange={this.onChange}>
-                                    <MenuItem value="true">Active</MenuItem>
-                                    <MenuItem value="false">In Active</MenuItem>
+                                    <MenuItem value="active">Active</MenuItem>
+                                    <MenuItem value="in_active">In Active</MenuItem>
                                 </Select>
                             </FormControl>                        
                         </Grid>
@@ -355,7 +355,7 @@ class BannerAdd extends React.Component {
     
     e.preventDefault();
    // if(!this.state.title ||!this.state.bannerType || !this.state.order || !this.state.section || !this.state.categoryType || !this.state.category || !this.state.publishDate || !this.state.expireDate || !this.state.active ){
-    if(!this.state.title ||!this.state.bannerType || !this.state.order   ){
+    if(!this.state.title ||!this.state.bannerType || !this.state.order  || !this.state.active ){
       Notify.showError("Missing required fields");
         return;
     }
@@ -387,7 +387,7 @@ class BannerAdd extends React.Component {
     formData.append('file',this.state.file);
     formData.append('title', this.state.title);
     formData.append('order', parseInt(this.state.order));
-    formData.append('active', this.state.active == true);
+    formData.append('active', this.state.active === 'active' ? true : false);
     formData.append('bannerType', this.state.bannerType);
 
     formData.append('link', this.state.link);

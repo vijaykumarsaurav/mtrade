@@ -111,7 +111,7 @@ class BannerEdit extends React.Component {
          this.setState({   
          title: selectedData.title,
          order: selectedData.order,
-         active: selectedData.active,
+         active: selectedData.active ? 'active' :"in_active" ,
          bannerType:selectedData.bannerType,
          section:selectedData.section, 
          categoryType:selectedData.categoryType, 
@@ -241,8 +241,8 @@ class BannerEdit extends React.Component {
                             <FormControl style={styles.multiselect}>
                                 <InputLabel htmlFor="Active" required={true}>Status</InputLabel>
                                 <Select name="active" value={this.state.active} onChange={this.onChange}>
-                                    <MenuItem value="true">Active</MenuItem>
-                                    <MenuItem value="false">In Active</MenuItem>
+                                    <MenuItem value="active">Active</MenuItem>
+                                    <MenuItem value="in_active">In Active</MenuItem>
                                 </Select>
                             </FormControl>                        
                         </Grid>
@@ -391,6 +391,10 @@ class BannerEdit extends React.Component {
     //     Notify.showError("Missing required fields");
     //     return;
     // }
+    if(!this.state.title ||!this.state.bannerType || !this.state.order  || !this.state.active ){
+      Notify.showError("Missing required fields");
+        return;
+    }
    
     // if(!this.state.file){
     //   Notify.showError("Missing required image upload");
@@ -407,7 +411,7 @@ class BannerEdit extends React.Component {
     }
     formData.append('title', this.state.title);
     formData.append('order', parseInt(this.state.order));
-    formData.append('active', this.state.active == true);
+    formData.append('active', this.state.active === 'active' ? true : false );
     formData.append('bannerType', this.state.bannerType);
 
     formData.append('publishDate', this.state.publishDate);

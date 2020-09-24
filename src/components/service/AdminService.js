@@ -120,16 +120,15 @@ class AdminService {
     sentReportToEmail(formData,api ){
         const instance = axios.create();
         instance.defaults.timeout = 10 * 60 * 1000;
-
-        console.log("log",api); 
+        
         var fullapiurl = apiConstant.RETAILER_REPORT_BASEAPI+api ; 
-        if(api === 'getReloadAndBillPayCount'){
+        if(api === 'reloadAndBillPayCount'){
              fullapiurl = apiConstant.RETAILER_RECHAGE_REPORT_BASEAPI+api; 
         }
-        if(api === 'getSimSwapCount' ){
+        if(api === 'simSwapCount' ){
             fullapiurl = apiConstant.RETAILER_SIMSWAP_REPORT_BASEAPI+api; 
         }
-       if(api === 'getMpinResetCount' || api === 'getIdleRetailers' || api ==='getMonthlyActiveRetailers' || api === 'getDailyActiveRetailers'){
+       if(api === 'mpinResetCount' || api === 'idleRetailers' || api ==='monthlyActiveRetailers' || api === 'dailyActiveRetailers'){
             fullapiurl = apiConstant.RETAILER_RETAILER_REPORT_BASEAPI+api; 
         }
 

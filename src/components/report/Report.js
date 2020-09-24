@@ -69,7 +69,8 @@ class Report extends React.Component {
             retrieveTypeAll:false,
             resetCalander:false,
             filenameToGo:"",
-            retrieveTypeDataEntry:false
+            retrieveTypeDataEntry:false,
+            d1DateRangeFlag:false
         };
         this.getReportDetails = this.getReportDetails.bind(this);
         this.convertBool = this.convertBool.bind(this);
@@ -125,17 +126,24 @@ class Report extends React.Component {
 
     onChange = e => {
 
-        this.setState({ [e.target.name]: e.target.value, retrieveTypeAll: false,  retrieveType:"BY_SUBMIT_DATE" });
+        this.setState({ [e.target.name]: e.target.value, retrieveTypeAll: false,  retrieveType:"BY_SUBMIT_DATE", startDate : '', endDate:''  });
         if(e.target.value == 'zoneWiseDetailedReport'){
             this.setState({ showZoneSelection: true });
         }else{
             this.setState({ showZoneSelection: false });
         }
 
-        if(e.target.value == 'disconnectionReport' || e.target.value == 'reconnectionReport'||  e.target.value == 'getDailyActiveRetailers'){
-            this.setState({ showSingleDate: true });
+        
+        if(e.target.value == 'disconnectionReport' || e.target.value == 'reconnectionReport'||  e.target.value == 'dailyActiveRetailers'){
+            this.setState({ showSingleDate: true , retrieveType: '', });
         }else{
             this.setState({ showSingleDate: false });
+        }
+
+        if(e.target.value == 'simSwapCount' || e.target.value == 'mpinResetCount'||  e.target.value == 'reloadAndBillPayCount' ||  e.target.value == 'idleRetailers' ||  e.target.value == 'acquisitionCountReport'){
+            this.setState({ d1DateRangeFlag: true, retrieveType: '' });  
+        }else{
+            this.setState({ d1DateRangeFlag: false });  
         }
 
         if(e.target.value == 'agentStatusReport'){
@@ -150,8 +158,6 @@ class Report extends React.Component {
 
         this.setState({responseFlag : false, dataEntryData :false, generateReportLoader : false,  responseFlagMsg : "", resetCalander:true });
 
-
-
     } 
 
     onChangeRetriveBy = e => {
@@ -162,11 +168,10 @@ class Report extends React.Component {
     getReportDetails() {
         this.setState({verficationname:"", filenameToGo : this.state.reporttype});
 
-
         if(!this.state.startDate){
             var startd = new Date(); 
             startd.setHours(0,0,0,0);
-            if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype =='getDailyActiveRetailers'){
+            if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype =='dailyActiveRetailers' || this.state.reporttype  == 'simSwapCount' || this.state.reporttype =='mpinResetCount' || this.state.reporttype =='reloadAndBillPayCount' || this.state.reporttype == 'idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
                 startd.setDate(startd.getDate() - 1);
             }
             this.state.startDate = startd.getTime();
@@ -182,7 +187,10 @@ class Report extends React.Component {
       
         if(!this.state.endDate){
             var endd = new Date(); 
-            endd.setHours(23,59,59,59);    
+            endd.setHours(23,59,59,59);   
+            if(this.state.reporttype  == 'simSwapCount' || this.state.reporttype =='mpinResetCount' || this.state.reporttype =='reloadAndBillPayCount' || this.state.reporttype == 'idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
+                endd.setDate(endd.getDate() - 1);
+            } 
             this.state.endDate = endd.getTime();
             this.setState({ endDate : endd.getTime()  }, () => {
                 console.log("endDate : setting", this.state.endDate);
@@ -202,7 +210,7 @@ class Report extends React.Component {
         console.log("year",this.state.year , "month", this.state.month); 
 
 
-        if(this.state.reporttype == 'getMonthlyActiveRetailers'){
+        if(this.state.reporttype == 'monthlyActiveRetailers'){
          
             var firstDate = new Date("1 " + this.state.month + ' ' + this.state.year);
             firstDate.setHours(0,0,0,0);
@@ -230,14 +238,15 @@ class Report extends React.Component {
            } 
            console.log("param data" ,data)
 
-        if(this.state.reporttype == 'getReloadAndBillPayCount' || this.state.reporttype == 'getSimSwapCount' || this.state.reporttype == 'getMpinResetCount' || this.state.reporttype == 'getMonthlyActiveRetailers' || this.state.reporttype =='getIdleRetailers' || this.state.reporttype =='acquisitionCountReport'){
+        if(this.state.reporttype == 'reloadAndBillPayCount' || this.state.reporttype == 'simSwapCount' || this.state.reporttype == 'mpinResetCount' || this.state.reporttype == 'monthlyActiveRetailers' || this.state.reporttype =='idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
             data = {
                 startDate: this.state.startDate,
                 endDate: this.state.endDate,
             }
+           
         }
        
-        if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype == 'getDailyActiveRetailers'){
+        if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype == 'dailyActiveRetailers'){
             data = {
                 date: this.state.startDate,
             }
@@ -265,7 +274,7 @@ class Report extends React.Component {
                     this.setState({ products: data.result.verifications, responseFlag : true, reportName:"Verification Report" });
                     if(data.result && data.result.dataEntry)
                     this.setState({ dataEntryData: data.result.dataEntry});
-                    this.setState({ generateReportMsg:  "Ready to Download", verficationname:"VerficationReport_of_"});
+                    this.setState({ generateReportMsg:  "Ready to Download", verficationname:"VerificationReport_of_"});
 
                     this.setState({  generateReportLoader: false});
 
@@ -340,6 +349,7 @@ class Report extends React.Component {
             showSingleDate: this.state.showSingleDate,
             resetCalander : this.state.resetCalander,
             generateReportLoader: this.state.generateReportLoader,
+            d1DateRangeFlag: this.state.d1DateRangeFlag
            
 
         }
@@ -363,31 +373,35 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
 
         //sprint 8 changes
-        adminReports.push(<MenuItem value="getSimSwapCount">Sim Swap Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="getMpinResetCount">Mpin Reset Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="getReloadAndBillPayCount">Reload & Bill Pay Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="getIdleRetailers">Idle Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="getMonthlyActiveRetailers">Monthly Active Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="getDailyActiveRetailers">Daily Active Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="acquisitionCountReport">SUK vs CYN Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="retailerOnboardedReport">Retailer Onboarded Report</MenuItem>);
+        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="mpinResetCount">D-1 Mpin Reset Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
 
         // BY_VERIFICATION_DATE,
         // BY_DATA_ENTRY_DATE
         var agentStatusRetrieveBy = []; 
         agentStatusRetrieveBy.push(<MenuItem key={'BY_VERIFICATION_DATE'} value={'BY_VERIFICATION_DATE'} >By Verification Date</MenuItem>); 
         agentStatusRetrieveBy.push(<MenuItem key={'BY_DATA_ENTRY_DATE'} value={'BY_DATA_ENTRY_DATE'} >By Data Entry Date</MenuItem>); 
-        var downloadfilename = this.state.verficationname + this.state.filenameToGo+"_"+ this.state.retrieveType.toLowerCase()+"_"+this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"; 
+       
+        var retrieveTypeFileName = this.state.retrieveType ? this.state.retrieveType.toLowerCase()+"_" : ""; 
+        var downloadfilename = this.state.verficationname + this.state.filenameToGo+"_"+ retrieveTypeFileName + this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"; 
 
    //   console.log("this.state.reporttype",this.state.reporttype)
 
         if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport'){
             downloadfilename =  this.state.reporttype+"_by_verification_date_"+this.dateFormat(this.state.startDate)+".csv"; 
         }
-        if(this.state.reporttype == 'getDailyActiveRetailers'){
+        if(this.state.reporttype == 'dailyActiveRetailers'){
             downloadfilename =  this.state.reporttype+"_report_of_"+this.dateFormat(this.state.startDate)+".csv"; 
         }
-
+        if(this.state.reporttype == 'retailerOnboardedReport'){
+            downloadfilename =  this.state.reporttype+"_report_for_"+this.state.day+"_days.csv"; 
+        }
         
 
         return (
@@ -451,7 +465,7 @@ class Report extends React.Component {
                             </Grid>
                             :""}
 
-                          {this.state.reporttype != 'disconnectionReport' && this.state.reporttype != 'reconnectionReport' && this.state.reporttype != 'getSimSwapCount' && this.state.reporttype != 'getMpinResetCount' && this.state.reporttype != 'getReloadAndBillPayCount' && this.state.reporttype != 'getIdleRetailers' &&  this.state.reporttype != 'getMonthlyActiveRetailers' && this.state.reporttype != 'getDailyActiveRetailers' && this.state.reporttype !=  'acquisitionCountReport' &&  this.state.reporttype != 'retailerOnboardedReport'? 
+                          {this.state.reporttype != 'disconnectionReport' && this.state.reporttype != 'reconnectionReport' && this.state.reporttype != 'simSwapCount' && this.state.reporttype != 'mpinResetCount' && this.state.reporttype != 'reloadAndBillPayCount' && this.state.reporttype != 'idleRetailers' &&  this.state.reporttype != 'monthlyActiveRetailers' && this.state.reporttype != 'dailyActiveRetailers' && this.state.reporttype !=  'acquisitionCountReport' &&  this.state.reporttype != 'retailerOnboardedReport'? 
                             <Grid item xs={12} sm={3}>
                                 <FormControl style={styles.selectStyle}>
                                     <InputLabel id="demo-mutiple-name-label">Retrieve Type</InputLabel>
@@ -510,14 +524,14 @@ class Report extends React.Component {
                             : ""}
 
                           
-                            {this.state.reporttype != 'getMonthlyActiveRetailers' && this.state.reporttype != 'retailerOnboardedReport' ? 
+                            {this.state.reporttype != 'monthlyActiveRetailers' && this.state.reporttype != 'retailerOnboardedReport' ? 
                             <Grid item xs={12} sm={3} >
                                 <MaterialUIPickers  callbackFromParent={dateParam} /> 
 
                                 </Grid>
                             : ""}
 
-                            {this.state.reporttype =='getMonthlyActiveRetailers' ? 
+                            {this.state.reporttype =='monthlyActiveRetailers' ? 
                                     <Grid item xs={12} sm={3}>
                                     <FormControl style={styles.selectStyle}>
                                         <InputLabel id="demo-mutiple-name-label">Select Year</InputLabel>
@@ -543,7 +557,7 @@ class Report extends React.Component {
                                 </Grid>
                             : ""}
 
-                            {this.state.reporttype =='getMonthlyActiveRetailers' ? 
+                            {this.state.reporttype =='monthlyActiveRetailers' ? 
                                 <Grid item xs={12} sm={3}>
                                     <FormControl style={styles.selectStyle}>
                                         <InputLabel id="demo-mutiple-name-label">Select Month</InputLabel>
@@ -634,7 +648,7 @@ class Report extends React.Component {
                                 {this.state.dataEntryData ? 
                                 <CSVLink data={this.state.dataEntryData}
                                     //filename={"dataEntry.csv"}
-                                    filename={"DateEntryReport_of_"+this.state.reporttype+"_"+this.state.retrieveType.toLowerCase()+"_"+this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"} 
+                                    filename={"DataEntryReport_of_"+this.state.reporttype+"_"+this.state.retrieveType.toLowerCase()+"_"+this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"} 
                                     className="btn btn-primary"
                                     target="_blank"
                                     >

@@ -61,17 +61,19 @@ class SlideSlowGalary extends Component {
 
 
   componentDidMount() {
-    // document.addEventListener("keypress", function(t) {
-    //   console.log("t.keyCode",t.keyCode)
-    //   if(43 === t.keyCode || 61 === t.keyCode){
-    //     zoomIn();
-    //   }else if(45 === t.keyCode){
-    //     zoomOut();
-    //   }else if(17 == t.keyCode ){
-    //     rotate();
-    //   }
-    // });
-}
+      // document.addEventListener("keypress", function(t) {
+      //   console.log("t.keyCode",t.keyCode)
+      //   if(43 === t.keyCode || 61 === t.keyCode){
+      //     zoomIn();
+      //   }else if(45 === t.keyCode){
+      //     zoomOut();
+      //   }else if(17 == t.keyCode ){
+      //     rotate();
+      //   }
+      // });
+      console.log("imageDetailsSlide", this.props.imageDetails)
+
+  }
 
 
   openImageGalary = (index) => {
@@ -122,7 +124,7 @@ class SlideSlowGalary extends Component {
     const { photoIndex, isOpen } = this.state;
     var  topImg = this.props.imageDetails.imageDetails;
     
-    console.log(this.props.imageDetails,"vk" )
+    console.log("imageDetailsslide", this.props.imageDetails)
         
       var images = []; 
       const topImgItem = []

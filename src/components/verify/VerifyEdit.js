@@ -52,6 +52,7 @@ class VerifyEdit extends React.Component {
                 poiType: null,
                 status: "",
                 submittedBy:'',
+                showPersonalDetails:'',
                 title: "",
                 rejectedReasons:'',
                 transactionId: '',
@@ -67,8 +68,9 @@ class VerifyEdit extends React.Component {
                 loginId:'',
                 emailid:'',
                 presentAddress:'',
-                comments:""
-
+                comments:"",
+                bothReasons:'',
+                loading: true
 
             }
         this.onChange = this.onChange.bind(this);
@@ -95,6 +97,7 @@ class VerifyEdit extends React.Component {
             ActivationService.getOneVerify(selectedProductId).then(res => {
                 let data = resolveResponse(res);
                 const selectedProduct = data.result;
+                console.log("selectedProduct",selectedProduct);
                 var objectReason = '';
                 if(selectedProduct && selectedProduct.rejectedReasons){
                     var listReasons = selectedProduct.rejectedReasons && selectedProduct.rejectedReasons.split("|");
@@ -132,6 +135,7 @@ class VerifyEdit extends React.Component {
                         poiType: selectedProduct.poiType,
                         status: selectedProduct.status,
                         submittedBy:  selectedProduct.submittedBy,
+                        showPersonalDetails: selectedProduct.showPersonalDetails,
                         title: selectedProduct.title,
                         transactionId: selectedProduct.transactionId,
                         selectedReasons: objectReason,   //{"One":true, Two: true}
@@ -144,44 +148,53 @@ class VerifyEdit extends React.Component {
                         prevRejectedImgs : selectedProduct.prevData
                         });
 
-                        const userDetails = JSON.parse(localStorage.getItem("userDetails"));
-                        var roleCode = userDetails && userDetails.roleCode; 
-
-                        if(roleCode){
-                            ActivationService.getStaticData(roleCode).then(res => {
-                                console.log("reason:", res);
-                                let data = resolveResponse(res);
-                                var rejectedReasons = '';
-                                if(this.state.submittedBy != 'RETAILER'){
-                                    rejectedReasons = data.result && data.result.preActivatedRejectionReasons;
-                                }else {
-                                    rejectedReasons = data.result && data.result.eActivatedRejectionReasons; 
-                                }
-                                this.setState({ rejectedReasons: rejectedReasons});
-                            })
+                    
+                        if(this.state.showPersonalDetails){
+                            this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
+                        }else {
+                            this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
                         }
-
-                        this.setState({ loader: true,  loginId : userDetails.loginId });
 
                 }else{
                     Notify.showError(JSON.stringify(data));
                 }
+
+                this.setState({loading:false})
 
             })
 
 
 
         }
+
+     
     }
 
     componentDidMount() {
         this.loadOneTransection();
         localStorage.setItem("lastUrl","verify-edit");
+        const userDetails = JSON.parse(localStorage.getItem("userDetails"));
+        var roleCode = userDetails && userDetails.roleCode; 
+        this.setState({ loader: true,  loginId : userDetails.loginId });
+        if(roleCode){
+            ActivationService.getStaticData(roleCode).then(res => {
+                console.log("reason:", res);
+                let data = resolveResponse(res);
+                var rejectedReasons = '';
+
+                if(data.result){
+                    this.setState({ bothReasons: data.result});
+                }
+             
+
+            })
+        }
     }
     render() {
 
         // reasonList.push(<div style={{color:"red"}}> <FormControlLabel  color="primary"  control={<Checkbox  onChange={this.handleChange(rejectedReasons[i].exemptReason)} checked={this.state.selectedReasons[rejectedReasons[i].exemptReason] ? true: false} /> } label={rejectedReasons[i].exemptReason} /> </div>)
         // reasonList.push(<div> <FormControlLabel  control={<Checkbox   onChange={this.handleChange(rejectedReasons[i].exemptReason)} checked={this.state.selectedReasons[rejectedReasons[i].exemptReason] ? true: false} color="primary"/> } label={rejectedReasons[i].exemptReason} /> </div>)
+        console.log('this.state',this.state)
 
 
         var rejectedReasons =  this.state.rejectedReasons;
@@ -242,7 +255,7 @@ class VerifyEdit extends React.Component {
           }
          
          
-          console.log("imageDetails.len",imageDetails)
+          console.log("imageDetails",imageDetails);
 
 
           
@@ -292,25 +305,35 @@ class VerifyEdit extends React.Component {
               });
           }
 
-          if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.pefImageUrl){
+          if(this.state.showPersonalDetails && this.state.prevRejectedImgs && this.state.prevRejectedImgs.pefImageUrl){
             prevImageDetails.push({
                 img:  baseUrl+  this.state.prevRejectedImgs.pefImageUrl,
-                title: 'Pef Image',
-                author: 'Pef Image',
+                title: 'CAF Image',
+                author: 'CAF Image',
                 featured: true,
               });
           }
 
+
           console.log("prevRejectedImgs",prevImageDetails)
 
         var pefcontainer = 2, doccontaiter = 7, datacontainer=3;
-        if(this.state.submittedBy !='RETAILER') {
+        if(!this.state.showPersonalDetails) {
             pefcontainer = 5; 
             doccontaiter = 5;
             datacontainer = 2
         }
+        if(this.state.loading){
+            return (  
+                 <React.Fragment>
+                    <PostLoginNavBar/><br />
+                    <Typography variant="h6" >Loading...please wait.</Typography>
+                </React.Fragment> 
+                )   
+        }
         
         return(
+
 
             <React.Fragment>
             <PostLoginNavBar/>
@@ -322,7 +345,7 @@ class VerifyEdit extends React.Component {
 
                 <Grid item xs={12} sm={pefcontainer}>
                     <Paper style={{overflow:"scroll", height:"78vh"}}>
-                     {this.state.loader ?  this.state.submittedBy=='RETAILER' ?    <SubmitedByRetailer cafdetails={this.state} /> : <SubmitedByDistributer pefImageUrl={this.state.pefImageUrl} /> : ""}
+                     {this.state.loader ?  this.state.showPersonalDetails ?    <SubmitedByRetailer cafdetails={this.state} /> : <SubmitedByDistributer pefImageUrl={{pefImage: this.state.pefImageUrl, prevPefImage: this.state.prevRejectedImgs && this.state.prevRejectedImgs.pefImageUrl }} /> : ""}
                     </Paper>
                 </Grid>
 
@@ -332,7 +355,7 @@ class VerifyEdit extends React.Component {
 
                            {/* {this.state.status=="av_pending"? <ImageGalary imageDetails={imageDetails} /> : null} */}
                            {/* {imageDetails.length ? <Typography variant="h6">Customer Documents</Typography> : null } */}
-                           {this.state.status=="av_pending"? <SlideShowGalary imageDetails={{imageDetails: imageDetails, slideRef : this.slideRef}} /> : null}
+                           {imageDetails.length? <SlideShowGalary imageDetails={{imageDetails: imageDetails, slideRef : this.slideRef}} /> : null}
                             <br />
                            {prevImageDetails.length ? <Typography variant="h6">Previous Rejected Documents</Typography> : null }
                            {/* {prevImageDetails.length ? <ImageGalary imageDetails={prevImageDetails} /> : null } */}
@@ -347,7 +370,7 @@ class VerifyEdit extends React.Component {
                     <form style={styles.formContainer}>
                         {/* <Typography variant="h6" component="h3">Mobile : {this.state.mobileNumber}   </Typography> */}
                         <TextField label="Mobile No" required={true} fullWidth name="productName" value={this.state.mobileNumber} />
-                        <TextField label="NIC" required={true} fullWidth name="displayName" value={this.state.poiNumber} />
+                        <TextField label={this.state.poiType} required={true} fullWidth name="displayName" value={this.state.poiNumber} />
                         <TextField label="SIM" required={true} fullWidth name="displayName" value={this.state.sim} />
 
                          <Grid item xs={12} sm={12}  >
@@ -742,20 +765,26 @@ class SubmitedByRetailer extends React.Component {
 
 class SubmitedByDistributer extends React.Component {
     render() {
-
+        
         //this.state.customerImageUrl
         var pefdetails = {
-            img: this.props.pefImageUrl,
-            title: 'Customer Application Form',
-            author: 'Customer Application Form',
+            img: this.props.pefImageUrl.pefImage,
+            title: 'CAF Image',
+            author: 'CAF Image',
+            featured: true,
+          };
+        var prevPefdetails = {
+            img: this.props.pefImageUrl.prevPefImage,
+            title: 'Previous CAF Image',
+            author: 'Previous CAF Image',
             featured: true,
           };
 
           var data = []; 
 
-          if(this.props.pefImageUrl){
+          if(this.props.pefImageUrl.pefImage){
             data.push({
-                img:  this.props.pefImageUrl,
+                img:  this.props.pefImageUrl.pefImage,
                 title: 'Customer Application Form',
                 author: 'Customer Application Form',
                 featured: true,
@@ -765,22 +794,23 @@ class SubmitedByDistributer extends React.Component {
         return(
             <>
          
-            
                 <div className="image-container"  style={{height:'70vh'}}> 
-                <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp;  Customer Application Form &nbsp;&nbsp;</div> 
 
-
-                {/* <Typography  style={styles.textStyle} variant="body2"> Customer Application Form </Typography> */}
-                {/* <SlideShowGalary imageDetails={data} />  */}
-                
+                <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp; CAF Image &nbsp;&nbsp;</div> 
                 <ReactPanZoom  image={pefdetails.img} alt={pefdetails.title}/>
+        
+                {prevPefdetails.img ? <> 
+                <div  style={{textAlign:"center", position: "relative"}}><br />
+                <span className="titleOverlayPEF"> &nbsp;&nbsp; Previous CAF Image &nbsp;&nbsp; </span>   </div> 
+             
+              
+                <ReactPanZoom  image={prevPefdetails.img} alt={prevPefdetails.title}/>  
+               
+                </> :''}
+              
+               
                 </div>
-                {/* <iframe style={{width: "100%", height:"527px"}}  frameBorder="0" src="https://pbs.twimg.com/media/Bpbm1DXCAAA5vk4?format=jpg&name=900x900"> </iframe> */}
-                {/* <img style={{width: "555px", height:"555px"}} src={"https://pbs.twimg.com/media/Bpbm1DXCAAA5vk4?format=jpg&name=900x900"}/> */}
-
-
-            {/* <ImageGalaryPEF imageDetails={PEFData} /> */}
-
+        
             </>
         )
     }

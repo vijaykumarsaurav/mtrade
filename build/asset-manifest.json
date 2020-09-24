@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/retailer/static/css/main.261a8353.chunk.css",
-    "main.js": "/retailer/static/js/main.d244d7c8.chunk.js",
-    "main.js.map": "/retailer/static/js/main.d244d7c8.chunk.js.map",
-    "runtime~main.js": "/retailer/static/js/runtime~main.417e53cc.js",
-    "runtime~main.js.map": "/retailer/static/js/runtime~main.417e53cc.js.map",
-    "static/css/2.39017165.chunk.css": "/retailer/static/css/2.39017165.chunk.css",
-    "static/js/2.5dc8cd4e.chunk.js": "/retailer/static/js/2.5dc8cd4e.chunk.js",
-    "static/js/2.5dc8cd4e.chunk.js.map": "/retailer/static/js/2.5dc8cd4e.chunk.js.map",
-    "index.html": "/retailer/index.html",
-    "precache-manifest.01af75baca86a847c1e8cdbed9ae1d01.js": "/retailer/precache-manifest.01af75baca86a847c1e8cdbed9ae1d01.js",
-    "service-worker.js": "/retailer/service-worker.js",
-    "static/css/2.39017165.chunk.css.map": "/retailer/static/css/2.39017165.chunk.css.map",
-    "static/css/main.261a8353.chunk.css.map": "/retailer/static/css/main.261a8353.chunk.css.map",
-    "static/media/airtellogo.png": "/retailer/static/media/airtellogo.09dde59b.png"
+    "main.css": "/static/css/main.47d07bbc.chunk.css",
+    "main.js": "/static/js/main.a768548f.chunk.js",
+    "main.js.map": "/static/js/main.a768548f.chunk.js.map",
+    "runtime~main.js": "/static/js/runtime~main.a8a9905a.js",
+    "runtime~main.js.map": "/static/js/runtime~main.a8a9905a.js.map",
+    "static/css/2.39017165.chunk.css": "/static/css/2.39017165.chunk.css",
+    "static/js/2.423ccc2b.chunk.js": "/static/js/2.423ccc2b.chunk.js",
+    "static/js/2.423ccc2b.chunk.js.map": "/static/js/2.423ccc2b.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.078b58d74391224a7aea7707cb2fa09d.js": "/precache-manifest.078b58d74391224a7aea7707cb2fa09d.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/2.39017165.chunk.css.map": "/static/css/2.39017165.chunk.css.map",
+    "static/css/main.47d07bbc.chunk.css.map": "/static/css/main.47d07bbc.chunk.css.map",
+    "static/media/airtellogo.png": "/static/media/airtellogo.09dde59b.png"
   }
 }

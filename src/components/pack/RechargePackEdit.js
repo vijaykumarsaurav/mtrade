@@ -153,7 +153,7 @@ class RechargePackAdd extends React.Component {
         const id = localStorage.getItem('selectedProductId');
         this.setState({loading:true})
         const packRes = await  this.props.getPackById(id);
-        console.log("packRes:", packRes); 
+       
         if(packRes.payload && packRes.payload.data && packRes.payload.data.result){
             this.setState(packRes.payload.data.result);
         }
@@ -163,6 +163,10 @@ class RechargePackAdd extends React.Component {
 
         if(this.state.displayType =='detailsWithImage' ){
           this.setState({showFileBrowser:true})
+        }
+       
+        if(this.state.displayType == "details"){
+          this.setState({imageURL:'imageURL'})
         }
 
         this.addPackTpe(this.state.pack); 
@@ -202,7 +206,7 @@ class RechargePackAdd extends React.Component {
       }
       console.log("dateparam",dateParam);
       if(this.state.loading){
-          return <div>Laoding</div>
+          return <div>Loading</div>
       }
        return(
         
@@ -575,7 +579,7 @@ class RechargePackAdd extends React.Component {
               >
                 <Grid item xs={12} sm={6}>
                   <FormControl style={styles.multiselect}>
-                    <InputLabel htmlFor="display-type" required={true}>
+                    <InputLabel htmlFor="display-type" >
                       Display Type
                     </InputLabel>
                     <Select
@@ -650,6 +654,7 @@ class RechargePackAdd extends React.Component {
                        <Button
                         variant="contained"
                         color="primary"
+                        disabled={!this.state.imageURL}
                         onClick={this.savePack}
                       >
                         Save
@@ -739,10 +744,10 @@ class RechargePackAdd extends React.Component {
         return;
       }
 
-      if(this.state.displayType==="detailsWithImage" && !this.state.file){
-        Notify.showError("Select the file.");
-        return;
-      }
+      // if(this.state.displayType==="detailsWithImage"){
+      //   Notify.showError("Select the file.");
+      //   return;
+      // }
 
       const formData = new FormData();
 
@@ -772,7 +777,7 @@ class RechargePackAdd extends React.Component {
       formData.append('description', this.state.description);
       formData.append('activationStatus', this.state.activationStatus);
       formData.append('comment', this.state.comment);
-      formData.append('isFtr', this.state.ftr);
+     // formData.append('isFtr', this.state.ftr);
      
       if(this.state.selectedZone.length){
         formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
@@ -845,7 +850,8 @@ class RechargePackAdd extends React.Component {
         }
     
         if(e.target.name == 'displayType' && e.target.value =="details"){      
-          this.setState({showFileBrowser: false});
+          this.setState({showFileBrowser: false,  imageURL: 'currentImage'});
+
         }
       } 
 
