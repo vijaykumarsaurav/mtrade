@@ -3,17 +3,26 @@ import React from "react";
 import LoginComponent from "./login/LoginComponent";
 
 import Report from "./report/Report";
+import TestReport from "./report/TestReport";
+
 //Baneer 
 import BannerAdd from "./banner/BannerAdd";
 import BannerEdit from "./banner/BannerEdit";
 
 import VerifyList from './verify/VerifyList';
+import ResubmitVerify from './verify/ResubmitVerify';
+
 import VerifyEdit from './verify/VerifyEdit';
 //data entry
 import DataEntryList from './dataentry/DataEntryList';
+import ResubmitDataEntryList from './dataentry/ResubmitDataEntryList';
+
+
 import DataEntryEdit from './dataentry/DataEntryEdit';
 //Distributer
 import DistributerList from './distributer/DistributerList';
+import DistResubmit from './distributer/DistResubmit';
+
 
 //Admin
 import RechargePack from "./pack/RechargePack";
@@ -39,12 +48,18 @@ const AppRouter = () => {
                     <Route path="/login" component={LoginComponent} />
 
                     <Route path="/verify" component={VerifyList} />
+                    <Route path="/resubmit-verify" component={ResubmitVerify} />
                     <Route path="/verify-edit" component={VerifyEdit} />
 
                     <Route path="/dataentry" component={DataEntryList} />
+                    <Route path="/resubmit-dataentry" component={ResubmitDataEntryList} />
+
                     <Route path="/data-edit" replace component={DataEntryEdit} />
 
                     <Route path="/distributor" component={DistributerList} />
+                    <Route path="/dist-resubmit" component={DistResubmit} />
+
+                    
 
                     {/* admin dashboard */}
                     <Route path="/banners" component={BaneerList} />
@@ -64,8 +79,13 @@ const AppRouter = () => {
                     <Route path="/role" component={RoleManagement} />
 
                     <Route path="/msisdn-status" component={CurrentMSISDNStatus} />
+                    
+                    {/* <Route path="/testreport" component={TestReport} /> */}
 
                     <Route path="*" component={LoginComponent} />
+
+
+
 
                     {/* <Route render={() => <Redirect to={{pathname: "/"}} />} /> */}
                     

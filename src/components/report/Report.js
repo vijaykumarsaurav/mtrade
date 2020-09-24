@@ -22,6 +22,7 @@ import MaterialUIPickers from "./MaterialUIPickers";
 
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
 import { CSVLink } from "react-csv";
+import * as moment from 'moment';
 
 
 const ITEM_HEIGHT = 48;
@@ -47,7 +48,12 @@ class Report extends React.Component {
           reporttype: '',
             startDate: "",
             endDate: "",
-            emails: "",
+            month: "",
+            year: '', 
+            days: '',
+            day:'',
+            numofDays : [],
+            listofYear: [], 
             responseFlag: false,
             responseFlagMsg:'',
             listofzones:[],
@@ -60,8 +66,11 @@ class Report extends React.Component {
             roleCode:"",
             retrieveType:"BY_SUBMIT_DATE", 
             showSingleDate: false, 
-            retrieveTypeAll:false ,
-            resetCalander:false    
+            retrieveTypeAll:false,
+            resetCalander:false,
+            filenameToGo:"",
+            retrieveTypeDataEntry:false,
+            d1DateRangeFlag:false
         };
         this.getReportDetails = this.getReportDetails.bind(this);
         this.convertBool = this.convertBool.bind(this);
@@ -84,67 +93,108 @@ class Report extends React.Component {
         }
 
     }
+    dateFormat(date){ 
+      return  moment.unix(date / 1000).format("DD/MM/YYYY")
+
+       // return moment.utc(date).format('DD-MM-YYYY');
+    }
 
     componentDidMount() {
 
         var userDetails = localStorage.getItem("userDetails")
         userDetails = userDetails && JSON.parse(userDetails);
-        this.setState({roleCode: userDetails.roleCode}) 
+        this.setState({roleCode: userDetails.roleCode}) ; 
+        var roleCode = userDetails && userDetails.roleCode; 
     
-        if(userDetails.roleCode == "ADMIN"){
-            ActivationService.getStaticData(userDetails.roleCode).then(res => {
+        if(roleCode == "ADMIN"){
+            ActivationService.getStaticData(roleCode).then(res => {
                 let data = resolveResponse(res);
                 this.setState({listofzones: data.result && data.result.zones}) 
             })  
         }
 
+        
+        for(var i = 2018; i <= new Date().getFullYear(); i++){
+           this.state.listofYear.push(i); 
+        }
+        for(var i = 1; i <= 60; i++){
+            this.state.numofDays.push(i); 
+        }
+       
+
     }
 
     onChange = e => {
 
-        this.setState({ [e.target.name]: e.target.value, retrieveTypeAll: false,  retrieveType:"BY_SUBMIT_DATE" });
+        this.setState({ [e.target.name]: e.target.value, retrieveTypeAll: false,  retrieveType:"BY_SUBMIT_DATE", startDate : '', endDate:''  });
         if(e.target.value == 'zoneWiseDetailedReport'){
             this.setState({ showZoneSelection: true });
         }else{
             this.setState({ showZoneSelection: false });
         }
 
-        if(e.target.value == 'disconnectionReport' || e.target.value == 'reconnectionReport'){
-            this.setState({ showSingleDate: true });
+        
+        if(e.target.value == 'disconnectionReport' || e.target.value == 'reconnectionReport'||  e.target.value == 'dailyActiveRetailers'){
+            this.setState({ showSingleDate: true , retrieveType: '', });
         }else{
             this.setState({ showSingleDate: false });
+        }
+
+        if(e.target.value == 'simSwapCount' || e.target.value == 'mpinResetCount'||  e.target.value == 'reloadAndBillPayCount' ||  e.target.value == 'idleRetailers' ||  e.target.value == 'acquisitionCountReport'){
+            this.setState({ d1DateRangeFlag: true, retrieveType: '' });  
+        }else{
+            this.setState({ d1DateRangeFlag: false });  
         }
 
         if(e.target.value == 'agentStatusReport'){
             this.setState({ retrieveTypeAll: true });
         }
-        
+
+        if(e.target.value == 'agentWisePerformanceLog' || e.target.value == "agentAuditReport"  || e.target.value == "ipacsReadyReport"){
+            this.setState({ retrieveTypeDataEntry: true });
+        }else{
+            this.setState({ retrieveTypeDataEntry: false }); 
+        }
+
         this.setState({responseFlag : false, dataEntryData :false, generateReportLoader : false,  responseFlagMsg : "", resetCalander:true });
+
     } 
 
     onChangeRetriveBy = e => {
-
         this.setState({ [e.target.name]: e.target.value });
         this.setState({responseFlag : false, dataEntryData :false, generateReportLoader : false,  responseFlagMsg : "" });
     } 
 
-
     getReportDetails() {
+        this.setState({verficationname:"", filenameToGo : this.state.reporttype});
 
         if(!this.state.startDate){
             var startd = new Date(); 
             startd.setHours(0,0,0,0);
+            if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype =='dailyActiveRetailers' || this.state.reporttype  == 'simSwapCount' || this.state.reporttype =='mpinResetCount' || this.state.reporttype =='reloadAndBillPayCount' || this.state.reporttype == 'idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
+                startd.setDate(startd.getDate() - 1);
+            }
             this.state.startDate = startd.getTime();
+            this.setState({ startDate : startd.getTime() }, () => {
+                console.log("startDate : setting", this.state.startDate);
+            }); 
+
         }else{
             var startd = new Date(this.state.startDate); 
             startd.setHours(0,0,0,0);
-            this.state.startDate = startd.getTime();
+            this.setState({ startDate : startd.getTime() }); 
         }
       
         if(!this.state.endDate){
             var endd = new Date(); 
-            endd.setHours(23,59,59,59);    
+            endd.setHours(23,59,59,59);   
+            if(this.state.reporttype  == 'simSwapCount' || this.state.reporttype =='mpinResetCount' || this.state.reporttype =='reloadAndBillPayCount' || this.state.reporttype == 'idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
+                endd.setDate(endd.getDate() - 1);
+            } 
             this.state.endDate = endd.getTime();
+            this.setState({ endDate : endd.getTime()  }, () => {
+                console.log("endDate : setting", this.state.endDate);
+            }); 
         }else{
             var endd = new Date(this.state.endDate); 
             endd.setHours(23,59,59,59);
@@ -153,54 +203,94 @@ class Report extends React.Component {
 
           
         if(!this.state.reporttype){
-        Notify.showError("First select report type");
-        return;
+            Notify.showError("First select report type");
+            return;
         }
 
-        // BY_FTA_DATE,
-        // BY_SUBMIT_DATE,
-        // BY_VERIFICATION_DATE,
-        // BY_DATA_ENTRY_DATE
+        console.log("year",this.state.year , "month", this.state.month); 
+
+
+        if(this.state.reporttype == 'monthlyActiveRetailers'){
+         
+            var firstDate = new Date("1 " + this.state.month + ' ' + this.state.year);
+            firstDate.setHours(0,0,0,0);
+            var startDate =  new  Date(firstDate.getDate()+ ' '+ this.state.month+ ' '+ this.state.year);
+            var endd = new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0);
+            endd.setHours(23,59,59,59);  
+            this.state.startDate = startDate.getTime();
+            this.setState({ startDate : startDate.getTime() }, () => {
+              //  console.log("startDate : setting", this.state.startDate);
+            }); 
+         //   console.log("startDate", new Date( this.state.startDate ));   
+            this.state.endDate = endd.getTime();
+            this.setState({ endDate : endd.getTime() }, () => {
+               // console.log("endDate : setting", this.state.endDate);
+            }); 
+          //  console.log("endDate", new Date( this.state.endDate ) );   
+        }
+
+       
         var data = {
                retrieveType: this.state.retrieveType,
                startDate: this.state.startDate,
                endDate: this.state.endDate,
                zones: this.state.selectedZone.length ? this.state.selectedZone : null
            } 
+           console.log("param data" ,data)
+
+        if(this.state.reporttype == 'reloadAndBillPayCount' || this.state.reporttype == 'simSwapCount' || this.state.reporttype == 'mpinResetCount' || this.state.reporttype == 'monthlyActiveRetailers' || this.state.reporttype =='idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
+            data = {
+                startDate: this.state.startDate,
+                endDate: this.state.endDate,
+            }
+           
+        }
        
-        if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport'){
+        if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype == 'dailyActiveRetailers'){
             data = {
                 date: this.state.startDate,
             }
         }
+
+        if(this.state.reporttype == 'retailerOnboardedReport' ){
+            data = {
+                range: this.state.day || 0
+            }
+        }
+       
         
 
       this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report", generateReportLoader : true,generateReportMsg : "Generating report please wait..." });
 
-      
+        
         AdminService.sentReportToEmail(data,this.state.reporttype)
             .then((res) => {
 
                 let data = resolveResponse(res);
-               // console.log("report data",data.result.data)
-
-
+            
                 if(this.state.reporttype == "agentStatusReport" && data.result){
 
                     if(data.result && data.result.verifications)
                     this.setState({ products: data.result.verifications, responseFlag : true, reportName:"Verification Report" });
                     if(data.result && data.result.dataEntry)
                     this.setState({ dataEntryData: data.result.dataEntry});
-                    this.setState({ generateReportMsg:  "Ready to Download"});
+                    this.setState({ generateReportMsg:  "Ready to Download", verficationname:"VerificationReport_of_"});
+
+                    this.setState({  generateReportLoader: false});
 
                 }else if(data.result && data.result.data && data.result.data.length ){
                     this.setState({ generateReportMsg:  "Ready to Download"});
                     this.setState({ products: data.result.data, responseFlag : true});
+
+                    if(this.state.reporttype == "detailedPendingReport"){
+                        this.setState({ filenameToGo: "distributorDetailReport"});
+                    }
+                    this.setState({  generateReportLoader: false});
+
                 }else{
                     this.setState({ generateReportMsg:  "",  generateReportLoader: false});
                     this.setState({ responseFlagMsg : "No Records Found" });
                 }
-
                 
             });
     }
@@ -212,13 +302,39 @@ class Report extends React.Component {
     }
 
     myCallback = (date, fromDate) => {
+
         if (fromDate === "START_DATE") {
             console.log("date",date)
             this.setState({ startDate: new Date(date).getTime(),  generateReportLoader: false, responseFlag:false, responseFlagMsg : "", dataEntryData:"" });
+       
+            var dateObj = new Date(date);
+            dateObj.setMonth(dateObj.getMonth() + 6);
+            dateObj.setHours(23,59,59,59);
+            dateObj.setDate(dateObj.getDate() - 1);
+           
+            var endD = this.state.endDate; 
+            //console.log("endDate",  new Date(this.state.endDate) ); 
+            if(!this.state.endDate){
+                 endD = new Date(); 
+                 endD.setHours(23,59,59,59);
+            }
+
+            console.log("start: " +date +" | start+6month "+ dateObj,   "  | end date: "+ new Date(endD), endD > dateObj.getTime() )
+          
+            if(endD > dateObj.getTime()){
+                this.setState({ disabledGenButton: true  });
+            }else{
+                this.setState({ disabledGenButton: false  });
+            }
+            
         } else if (fromDate === "END_DATE") {
             this.setState({ endDate: new Date(date).getTime(), generateReportLoader: false, responseFlag:false, responseFlagMsg : "",dataEntryData:"" });
+            this.setState({ disabledGenButton: false  });
         }
+
     };
+
+    
 
 
 
@@ -231,10 +347,18 @@ class Report extends React.Component {
             startDate: '',
             endDate: '', 
             showSingleDate: this.state.showSingleDate,
-            resetCalander : this.state.resetCalander
+            resetCalander : this.state.resetCalander,
+            generateReportLoader: this.state.generateReportLoader,
+            d1DateRangeFlag: this.state.d1DateRangeFlag
+           
+
         }
 
         var adminReports = []; 
+
+
+
+        //POST /reports/ftaDeviationReportCsv
         adminReports.push(<MenuItem value="agentStatusReport">Agent Status Report</MenuItem>); 
         adminReports.push(<MenuItem value="backOfficeReceptionReport">Back Office Reception Report</MenuItem>); 
         adminReports.push(<MenuItem value="backOfficeReceptionReportWithDetails">Back Office Reception Report with Details</MenuItem>); 
@@ -248,12 +372,38 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
         adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
 
-           // BY_VERIFICATION_DATE,
+        //sprint 8 changes
+        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="mpinResetCount">D-1 Mpin Reset Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
+
+        // BY_VERIFICATION_DATE,
         // BY_DATA_ENTRY_DATE
         var agentStatusRetrieveBy = []; 
         agentStatusRetrieveBy.push(<MenuItem key={'BY_VERIFICATION_DATE'} value={'BY_VERIFICATION_DATE'} >By Verification Date</MenuItem>); 
-        agentStatusRetrieveBy.push(<MenuItem key={'BY_DATA_ENTRY_DATE'} value={'BY_DATA_ENTRY_DATE'} >By Data Entry</MenuItem>); 
+        agentStatusRetrieveBy.push(<MenuItem key={'BY_DATA_ENTRY_DATE'} value={'BY_DATA_ENTRY_DATE'} >By Data Entry Date</MenuItem>); 
+       
+        var retrieveTypeFileName = this.state.retrieveType ? this.state.retrieveType.toLowerCase()+"_" : ""; 
+        var downloadfilename = this.state.verficationname + this.state.filenameToGo+"_"+ retrieveTypeFileName + this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"; 
+
+   //   console.log("this.state.reporttype",this.state.reporttype)
+
+        if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport'){
+            downloadfilename =  this.state.reporttype+"_by_verification_date_"+this.dateFormat(this.state.startDate)+".csv"; 
+        }
+        if(this.state.reporttype == 'dailyActiveRetailers'){
+            downloadfilename =  this.state.reporttype+"_report_of_"+this.dateFormat(this.state.startDate)+".csv"; 
+        }
+        if(this.state.reporttype == 'retailerOnboardedReport'){
+            downloadfilename =  this.state.reporttype+"_report_for_"+this.state.day+"_days.csv"; 
+        }
         
+
         return (
 
             <React.Fragment>
@@ -266,16 +416,17 @@ class Report extends React.Component {
                         Report Download
                         </Typography>
              
-                        <Grid syt container spacing={1} container
+                        <Grid syt container spacing={2} container
                             direction="row"
                             justify="right"
                             alignItems="center">
                             <Grid item xs={12} sm={3} >
                                 <FormControl style={styles.multiselect}>
+                                {/* ftaDeviationReport */}
                                     <InputLabel htmlFor="Active" required={true}>Select type of report</InputLabel>
-                                    <Select name="reporttype" value={this.state.reporttype} onChange={this.onChange}>
+                                    <Select name="reporttype" disabled={this.state.generateReportLoader} value={this.state.reporttype} onChange={this.onChange}>
                                     <MenuItem value="distributorLastUploadedData">Distributor Uploaded Data Status</MenuItem>
-                                    <MenuItem value="detailedPendingReport">Distributor Detailed Pending Report</MenuItem>
+                                    <MenuItem value="detailedPendingReport">Distributor Detail Report</MenuItem>
                                     <MenuItem value="rejectReport"> Distributor Reject Data Report</MenuItem>
                                     <MenuItem value="summaryReportForDistributor">Distributor Summary Report</MenuItem>
                                     <MenuItem value="ftaDeviationReport">FTA Deviation Report</MenuItem>
@@ -290,7 +441,8 @@ class Report extends React.Component {
                             <Grid item xs={12} sm={3}>
                                 <FormControl style={styles.selectStyle}>
                                     <InputLabel id="demo-mutiple-name-label">Select Zone</InputLabel>
-                                    <Select
+                                    <Select 
+                                    disabled={this.state.generateReportLoader}
                                     labelId="demo-mutiple-name-label"
                                     id="demo-mutiple-name"
                                     multiple
@@ -313,30 +465,132 @@ class Report extends React.Component {
                             </Grid>
                             :""}
 
-                          {this.state.reporttype != 'disconnectionReport' && this.state.reporttype != 'reconnectionReport' ? 
+                          {this.state.reporttype != 'disconnectionReport' && this.state.reporttype != 'reconnectionReport' && this.state.reporttype != 'simSwapCount' && this.state.reporttype != 'mpinResetCount' && this.state.reporttype != 'reloadAndBillPayCount' && this.state.reporttype != 'idleRetailers' &&  this.state.reporttype != 'monthlyActiveRetailers' && this.state.reporttype != 'dailyActiveRetailers' && this.state.reporttype !=  'acquisitionCountReport' &&  this.state.reporttype != 'retailerOnboardedReport'? 
                             <Grid item xs={12} sm={3}>
                                 <FormControl style={styles.selectStyle}>
                                     <InputLabel id="demo-mutiple-name-label">Retrieve Type</InputLabel>
                                     <Select
+                                    disabled={this.state.generateReportLoader}
                                     name="retrieveType"
                                     value={this.state.retrieveType}
                                     onChange={this.onChangeRetriveBy}
                                     >
-                                    <MenuItem key={'BY_FTA_DATE'} value={'BY_FTA_DATE'} >
-                                       By FTA Date
+                                     {this.state.reporttype != 'simSwapReport' ?  
+                                        <MenuItem key={'BY_FTA_DATE'} value={'BY_FTA_DATE'} >
+                                        By FTA Date
                                     </MenuItem>
+                                    : ""} 
                                     <MenuItem key={'BY_SUBMIT_DATE'} value={'BY_SUBMIT_DATE'} >
                                         By Submit Date
                                     </MenuItem>
+
+                                    
+                                    {this.state.retrieveTypeDataEntry ?  
+                                        <MenuItem key={'BY_DATA_ENTRY_DATE'} value={'BY_DATA_ENTRY_DATE'} >
+                                            By Data Entry Date
+                                        </MenuItem>
+                                    : ""}
+
                                     {this.state.retrieveTypeAll ? agentStatusRetrieveBy : ""}
                                     </Select>
                                 </FormControl>
                             </Grid>
                             :""}
 
+                                {this.state.reporttype =='retailerOnboardedReport' ? 
+                                    <Grid item xs={12} sm={3}>
+                                    <FormControl style={styles.selectStyle}>
+                                        <InputLabel id="demo-mutiple-name-label">Select No. of Days</InputLabel>
+                                        <Select 
+                                        disabled={this.state.generateReportLoader}
+                                        labelId="demo-mutiple-name-label"
+                                        id="demo-mutiple-name"
+                                        
+                                        name="day"
+                                        value={this.state.day}
+                                        onChange={this.onChange}
+                                        input={<Input />}
+                                        MenuProps={MenuProps}
+                                        >
+                                        {this.state.numofDays ? this.state.numofDays.map(name => (
+                                            <MenuItem key={name} value={name} >
+                                                {name}
+                                            </MenuItem>
+                                        )): ""}
+                                    
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            : ""}
+
+                          
+                            {this.state.reporttype != 'monthlyActiveRetailers' && this.state.reporttype != 'retailerOnboardedReport' ? 
                             <Grid item xs={12} sm={3} >
-                                <MaterialUIPickers callbackFromParent={dateParam} />
-                            </Grid>
+                                <MaterialUIPickers  callbackFromParent={dateParam} /> 
+
+                                </Grid>
+                            : ""}
+
+                            {this.state.reporttype =='monthlyActiveRetailers' ? 
+                                    <Grid item xs={12} sm={3}>
+                                    <FormControl style={styles.selectStyle}>
+                                        <InputLabel id="demo-mutiple-name-label">Select Year</InputLabel>
+                                        <Select 
+                                        disabled={this.state.generateReportLoader}
+                                        labelId="demo-mutiple-name-label"
+                                        id="demo-mutiple-name"
+                                        
+                                        name="year"
+                                        value={this.state.year}
+                                        onChange={this.onChange}
+                                        input={<Input />}
+                                        MenuProps={MenuProps}
+                                        >
+                                        {this.state.listofYear ? this.state.listofYear.map(name => (
+                                            <MenuItem key={name} value={name} >
+                                                {name}
+                                            </MenuItem>
+                                        )): ""}
+                                    
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            : ""}
+
+                            {this.state.reporttype =='monthlyActiveRetailers' ? 
+                                <Grid item xs={12} sm={3}>
+                                    <FormControl style={styles.selectStyle}>
+                                        <InputLabel id="demo-mutiple-name-label">Select Month</InputLabel>
+                                        <Select 
+                                        disabled={this.state.generateReportLoader}
+                                        labelId="demo-mutiple-name-label"
+                                        id="demo-mutiple-name"
+                                        
+                                        name="month"
+                                        value={this.state.month}
+                                        onChange={this.onChange}
+                                        input={<Input />}
+                                        MenuProps={MenuProps}
+                                        >
+                                        <MenuItem key='1' value='jan'>January</MenuItem>
+                                        <MenuItem key='2' value='feb'>February</MenuItem>
+                                        <MenuItem key='3' value='mar'>March</MenuItem>
+                                        <MenuItem key='4' value='apr'>April</MenuItem>
+                                        <MenuItem key='5' value='may'>May</MenuItem>
+                                        <MenuItem key='6' value='jun'>June </MenuItem>
+                                        <MenuItem key='7' value='jul'>July</MenuItem>
+                                        <MenuItem key='8' value='aug'>August</MenuItem>
+                                        <MenuItem key='9' value='sept'>September</MenuItem>
+                                        <MenuItem key='10' value='oct'>October</MenuItem>
+                                        <MenuItem key='11' value='nov'>November</MenuItem>
+                                        <MenuItem key='12' value='dec'>December</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                :""}
+
+                            
+                          
 
                             </Grid>
 
@@ -367,7 +621,7 @@ class Report extends React.Component {
                             <Grid item xs={12} sm={3} item alignItems='flex-end'>
                                 
                                 {!this.state.generateReportLoader ? 
-                                <Button variant="contained" color="Primary" style={{ marginLeft: '20px' }} onClick={this.getReportDetails} >Generate Report</Button>
+                                <Button disabled={this.state.disabledGenButton} variant="contained" color="Primary" style={{ marginLeft: '20px' }} onClick={this.getReportDetails} >Generate Report</Button>
                                 :""}
                                 
                                 {this.state.generateReportLoader ? 
@@ -379,7 +633,8 @@ class Report extends React.Component {
                             <Grid item xs={12} sm={9} item alignItems='flex-end'  >
                                 {this.state.responseFlag ? 
                                 <CSVLink data={this.state.products}
-                                    filename={this.state.reporttype+".csv"}
+                                  //  filename={this.state.verficationname + this.state.reporttype+"_"+ this.state.retrieveType.toLowerCase()+"_"+this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"}
+                                    filename={downloadfilename}
                                     className="btn btn-primary"
                                     target="_blank"
                                     >
@@ -392,7 +647,8 @@ class Report extends React.Component {
 
                                 {this.state.dataEntryData ? 
                                 <CSVLink data={this.state.dataEntryData}
-                                    filename={"dataEntry.csv"}
+                                    //filename={"dataEntry.csv"}
+                                    filename={"DataEntryReport_of_"+this.state.reporttype+"_"+this.state.retrieveType.toLowerCase()+"_"+this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"} 
                                     className="btn btn-primary"
                                     target="_blank"
                                     >

@@ -18,88 +18,14 @@ import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import EditIcon from '@material-ui/icons/Edit';
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
 import LocalOfferIcon from '@material-ui/icons/LocalOffer';
+import HistoryIcon from '@material-ui/icons/History';
+
 import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
 import UserService from "./service/UserService";
 
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 //import RouterComponent from '../RouterComponent'; 
 
-// function appLogout(props) {
-//  // this.props.history.push('/dashboard');
-//  alert("ddd")
-// }
-
-
-// class AppLogout extends  React.Component {
-//   constructor(props) {
-//     super(props);
-//     this.logout = this.logout.bind(this);
-//   }
-  
-//   logout() {
-
-
-//     UserService.login(loginPayload)
-//     .then(res => {
-//     //  alert(JSON.stringify(res));
-
-  
-        
-//     });
-
-//    //alert("logout")
-//    console.log(this.props); 
-
-//    //const { history } = this.props;
-//    // history.push("/login")
-
-//    //this.props.history.push('/login');
-//     //return  (<Redirect to='/login' /> ); 
-  
-//   }
-
-//   render() {
-
-
-//     return (
-     
-      
-//       //  onClick={this.logout()} 
-//     <ListItem button component="a" href="/login" >
-//         <ListItemIcon>
-//           <PowerSettingsNewIcon />
-//         </ListItemIcon>
-//         <ListItemText primary="Logout" />
-//     </ListItem>
-//     );
-//   }
-
-
-// }
-
-
-export const  BOAMenuList  = (
-
-  <div>
-    {/* selected */}
-   
-    <ListItem component='a' href={"/#/verify"} button>
-      <ListItemIcon>
-        <VerifiedUserIcon />
-      </ListItemIcon>
-      <ListItemText primary="Verify Docs" />
-    </ListItem>
-
-    {/* <ListItem component='a' href={"/#/dataentry"} button>
-      <ListItemIcon>
-        <EditIcon />
-      </ListItemIcon>
-      <ListItemText primary="Data Entry" />
-    </ListItem>    */}
-
-    
-  </div>
-);
 
 
 
@@ -108,35 +34,35 @@ export const AdminMenuList = (
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
 
-    <ListItem button component='a' href={"/#/welcome"} >  
+    <ListItem button component='a' href={"#/welcome"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
       <ListItemText primary="Welcome" />
     </ListItem>
 
-    <ListItem button component='a' href={"/#/msisdn-status"} >  
+    <ListItem button component='a' href={"#/msisdn-status"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="MSISDN History" />
     </ListItem>
 
-    <ListItem button component='a' href={"/#/packs"} >  
+    <ListItem button component='a' href={"#/packs"} >  
       <ListItemIcon>
         <LayersIcon />
       </ListItemIcon>
       <ListItemText primary="Pack Activation" />
     </ListItem>
 
-    <ListItem button component='a' href={"/#/offerupload"} >
+    <ListItem button component='a' href={"#/offerupload"} >
       <ListItemIcon>
         <LocalOfferIcon />
       </ListItemIcon>
       <ListItemText primary="Offer Upload" />
     </ListItem>
 
-    <ListItem button component='a' href={"/#/banners"} >
+    <ListItem button component='a' href={"#/banners"} >
       <ListItemIcon>
         <AssignmentIcon />
       </ListItemIcon>
@@ -144,7 +70,7 @@ export const AdminMenuList = (
     </ListItem>
 
     
-    <ListItem button component='a' href={"/#/backoffice"} >
+    <ListItem button component='a' href={"#/backoffice"} >
       <ListItemIcon>
         <PeopleIcon />
       </ListItemIcon>
@@ -152,67 +78,100 @@ export const AdminMenuList = (
     </ListItem>
 
 
-    {/* <ListItem button component='a' href={"/#/role"} >
+    {/* <ListItem button component='a' href={"#/role"} >
       <ListItemIcon>
-        <PeopleIcon />
+        <PeopleIcon /> 
       </ListItemIcon>
       <ListItemText primary="Role Management" />
     </ListItem> */}
   
     
-    <ListItem button component='a' href={"/#/report"}>
+    <ListItem button component='a' href={"#/report"}>
       <ListItemIcon>
         <BarChartIcon />
       </ListItemIcon>
       <ListItemText primary="Reports" />
     </ListItem>
-  
+
 
   </div>
 );
 
 
+export const  BOAMenuList  = (
 
+  <div>
+    {/* selected */}
+   
+    <ListItem component='a' href={"#/verify"} button>
+      <ListItemIcon>
+        <VerifiedUserIcon />
+      </ListItemIcon>
+      <ListItemText primary="Acquisition Verification" />
+    </ListItem>
+
+    {/* sprint 7 &  8 changes */}
+    <ListItem component='a' href={"#/resubmit-verify"} button>
+     <ListItemIcon>
+        <HistoryIcon />
+      </ListItemIcon>
+      <ListItemText primary="Resubmit Verification" />
+    </ListItem>   
+    
+  </div>
+);
+
+
+export const DEMenuList = (
+  <div>
+    {/* <ListSubheader inset>Update Acquisition</ListSubheader> */}
+
+    <ListItem component='a' href={"#/dataentry"} button>
+      <ListItemIcon>
+        <VerifiedUserIcon />
+      </ListItemIcon>
+        {/* sprint 7 &  8 changes */}
+      <ListItemText primary="Acquisition Data Entry" />
+      {/* <ListItemText primary="Data Entry" /> */}
+
+    </ListItem> 
+    
+    {/* sprint 7 &  8 changes */}
+    <ListItem component='a' href={"#/resubmit-dataentry"} button>
+     <ListItemIcon>
+        <HistoryIcon />
+      </ListItemIcon>
+      <ListItemText primary="Resubmit Data Entry" />
+    </ListItem>   
+
+  </div>
+);
 
 
 export const DISTMenuList = (
   <div>
     {/* <ListSubheader inset>Upload</ListSubheader> */}
    
-    <ListItem component='a' href={"/#/distributor"} button>
+    <ListItem component='a' href={"#/distributor"} button>
       <ListItemIcon>
         <CloudUploadIcon />
       </ListItemIcon>
       <ListItemText primary="Upload Document" />
     </ListItem>   
+
+    <ListItem component='a' href={"#/dist-resubmit"} button>
+      <ListItemIcon>
+        <CloudUploadIcon />
+      </ListItemIcon>
+      <ListItemText primary="Resubmit Document" />
+    </ListItem>   
     
-    <ListItem button component='a' href={"/#/report"}>
+    <ListItem button component='a' href={"#/report"}>
       <ListItemIcon>
         <BarChartIcon />
       </ListItemIcon>
       <ListItemText primary="Reports" />
     </ListItem>
-
-  </div>
-);
-
-export const DEMenuList = (
-  <div>
-    {/* <ListSubheader inset>Update Acquisition</ListSubheader> */}
-   
-    {/* <ListItem component='a' href={"/#/verify"} button>
-      <ListItemIcon>
-        <VerifiedUserIcon />
-      </ListItemIcon>
-      <ListItemText primary="Verify Docs" />
-    </ListItem> */}
-    
-    <ListItem component='a' href={"/#/dataentry"} button>
-      <ListItemIcon>
-        <EditIcon />
-      </ListItemIcon>
-      <ListItemText primary="Data Entry" />
-    </ListItem>   
 
   </div>
 );
@@ -225,11 +184,11 @@ function logoutPortal(){
    // {"status":200,"message":"Success","result":{"message":"User logged out successfully"}}
    //console.log(res.data);   
    localStorage.clear();
-   window.location.replace("/#/login");
+   window.location.replace("#/login");
    return;
   //  if(res.data && res.data.message == "Unauthorised" || res.data.message == "Success"){
   //   localStorage.clear();
-  //   window.location.replace("/#/login");
+  //   window.location.replace("#/login");
   //   return;
   //  }
 

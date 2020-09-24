@@ -8,7 +8,6 @@ import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import Notify from "../../utils/Notify";
-
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SearchIcon from '@material-ui/icons/Search';
@@ -17,20 +16,16 @@ import PostLoginNavBar from "../PostLoginNavbar";
 import { Container } from "@material-ui/core";
 import { resolveResponse } from "../../utils/ResponseHandler";
 import TextField from '@material-ui/core/TextField';
-
 import Link from '@material-ui/core/Link';
-
 import TablePagination from '@material-ui/core/TablePagination';
-
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-
 import Title from './Title';
-
 import InputLabel from "@material-ui/core/InputLabel";
 import { CRO_API_BASE_URL } from "../../utils/config";
 import { CSVLink } from "react-csv";
-
+import md5  from 'md5'; 
+import  {DEV_PROTJECT_PATH} from "../../utils/config";
 
 class OfferUpload extends React.Component {
 
@@ -53,16 +48,47 @@ class OfferUpload extends React.Component {
         this.searchRetailer = this.searchRetailer.bind(this);
     }
 
+
+    validateUploadFile = (file) => {
+        const filename = file.name.toString(); 
+    
+        if (/[^a-zA-Z0-9\.\-\_ ]/.test(filename)) {
+            Notify.showError("File name can contain only alphanumeric characters including space and dots")
+            return false;
+        }
+    
+        const fileext =  filename.split('.').pop(); 
+        console.log("File Extension: ",fileext);
+
+        if(fileext == 'xlsx'){
+            var fileSize = file.size / 1000; //in kb
+            if(fileSize >= 5 && fileSize <= 2048){
+              Object.defineProperty(file, 'name', {
+                writable: true,
+                value:  md5(file.name) +"."+ fileext
+              });
+              
+              return file;
+            }else{
+              Notify.showError("File size should be grater than 5KB and less than 2MB")
+            }
+        }else {
+          Notify.showError("Only xlsx file allow to upload")
+        }
+        return false;
+      }
+
+
     onChangeFileUpload = e => {
-        var extention =  e.target.files[0] && e.target.files[0].name.split('.').pop();
-        console.log("extention",extention);
-        if(extention != 'xlsx' ){
-            Notify.showError("Only xlsx file allow to upload");
-            document.getElementById(e.target.name).value = "";
+        const fileToUpload = this.validateUploadFile(e.target.files[0]);
+
+        if(fileToUpload){
+            console.log(e.target.name);
+            this.setState({[e.target.name]: e.target.files[0]})
             return;
         }else{
-            console.log(e.target.name); 
-                this.setState({[e.target.name]: e.target.files[0]})
+            console.log("Not Valid file: ",e.target.name); 
+            document.getElementById(e.target.name).value = "";
         }
     }
 
@@ -253,7 +279,7 @@ class OfferUpload extends React.Component {
                         <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={"/webdata/Offers.xlsx"}>Download Sample</Link>
+                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/Offers.xlsx"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>

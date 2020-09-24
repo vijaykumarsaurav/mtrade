@@ -61,17 +61,19 @@ class SlideSlowGalary extends Component {
 
 
   componentDidMount() {
-    // document.addEventListener("keypress", function(t) {
-    //   console.log("t.keyCode",t.keyCode)
-    //   if(43 === t.keyCode || 61 === t.keyCode){
-    //     zoomIn();
-    //   }else if(45 === t.keyCode){
-    //     zoomOut();
-    //   }else if(17 == t.keyCode ){
-    //     rotate();
-    //   }
-    // });
-}
+      // document.addEventListener("keypress", function(t) {
+      //   console.log("t.keyCode",t.keyCode)
+      //   if(43 === t.keyCode || 61 === t.keyCode){
+      //     zoomIn();
+      //   }else if(45 === t.keyCode){
+      //     zoomOut();
+      //   }else if(17 == t.keyCode ){
+      //     rotate();
+      //   }
+      // });
+      console.log("imageDetailsSlide", this.props.imageDetails)
+
+  }
 
 
   openImageGalary = (index) => {
@@ -122,7 +124,7 @@ class SlideSlowGalary extends Component {
     const { photoIndex, isOpen } = this.state;
     var  topImg = this.props.imageDetails.imageDetails;
     
-    console.log(this.props.imageDetails,"vk" )
+    console.log("imageDetailsslide", this.props.imageDetails)
         
       var images = []; 
       const topImgItem = []
@@ -130,10 +132,11 @@ class SlideSlowGalary extends Component {
             images.push(topImg[i].img); 
               topImgItem.push(
 
+              
                 <Grid item xs={12} sm={12} >  
                   <div className="each-fade" style={{verticalAlign:"middle !important"}}>
                         <div className="image-container"  style={{height:'70vh'}}> 
-                        <div style={{textAlign:"center"}}> {data.title} </div> 
+                        <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp; {data.title} &nbsp;&nbsp;</div> 
 
                           {/* <img  id="imageCon" src={data.img} /> */}
                           <ReactPanZoom image={data.img} alt={data.title}/>
@@ -141,6 +144,7 @@ class SlideSlowGalary extends Component {
                         
                       </div>
                 </Grid>
+
                 ); 
 
           })

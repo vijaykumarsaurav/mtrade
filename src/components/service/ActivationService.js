@@ -8,6 +8,10 @@ class ActivationService {
         //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
       return axios.post(apiConstant.VERIFY_DOCS_LISTING,data, AuthService.getHeader() );
     }
+    listDocsResubmit(data){
+        //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
+      return axios.post(apiConstant.VERIFY_DOCS_LISTING_RESUBMIT,data, AuthService.getHeader() );
+    }
     
     getListOfRoles(){
         return axios.get(apiConstant.LIST_OF_ROLES , AuthService.getHeader());
@@ -15,11 +19,12 @@ class ActivationService {
 
     getOneVerify(productId){
         //return axios.get(apiConstant.VERIFY_DOCS_BY_ID + '&txnId=' + productId, AuthService.getHeader());
-        return axios.get(apiConstant.VERIFY_DETAILS + '&txnId=' + productId, AuthService.getHeader());
+        return axios.get(apiConstant.VERIFY_DETAILS + '?txnId=' + productId, AuthService.getHeader());
     }
 
     getOneDataEntry(productId){
-        return axios.get(apiConstant.DATAENTRY_DETAILS + '&txnId=' + productId, AuthService.getHeader());
+        
+        return axios.get(apiConstant.DATAENTRY_DETAILS + '?txnId=' + productId, AuthService.getHeader());
     }
 
 
@@ -48,12 +53,20 @@ class ActivationService {
     }
 
     searchDistributer(object){
-        return axios.get(apiConstant.DISTRIBUTER_SEARCH+'?mobileNumber='+object.mobileNumber+'&simNumber='+object.simNumber, AuthService.getHeader());
+        return axios.get(apiConstant.DISTRIBUTER_SEARCH+'?mobileNumber='+object.mobileNumber, AuthService.getHeader());
     }
 
     uploadDistrubuter(formData){
         return axios.post(apiConstant.DISTRIBUTER_UPLOAD, formData, AuthService.getHeader());
-    }  
+    } 
+    
+    searchDistributerResubmit(object){
+        return axios.get(apiConstant.DISTRIBUTER_SEARCH_RESUBMIT+'?mobileNumber='+object.mobileNumber, AuthService.getHeader());
+    } 
+
+    uploadDistrubuterResubmit(formData){
+        return axios.post(apiConstant.DISTRIBUTER_UPLOAD_RESUBMIT, formData, AuthService.getHeader());
+    } 
 
 
     

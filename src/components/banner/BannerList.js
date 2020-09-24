@@ -205,7 +205,7 @@ class BaneerList extends React.Component{
                 <TableBody style={{width:"",whiteSpace: "nowrap"}}>
                 
                     {this.state.products && this.state.products ? this.state.products.map(row => (
-                        <TableRow key={row.productId} onClick={() => this.editProduct( row.bannerId)}>
+                        <TableRow key={row.productId} onClick={() => this.editProduct( row.id)}>
 
                             <TableCell align="center"> <img style={{width:"100px", height:"50px"}} src={row.imageURL} /> </TableCell>
                             <TableCell align="center">{row.title}</TableCell>
@@ -215,8 +215,8 @@ class BaneerList extends React.Component{
                             {/* <TableCell align="center">{row.section}</TableCell> */}
                             <TableCell align="center">{row.categoryType}</TableCell>
                             {/* <TableCell align="center">{row.category}</TableCell> */}
-                             <TableCell align="center">{row.publishDay ? new Date(row.publishDay).toString().substring(0, 15) : ""}</TableCell>
-                            <TableCell align="center">{row.expireDay ? new Date(row.expireDay).toString().substring(0, 15): ""}</TableCell>
+                             <TableCell align="center">{row.publishDate ? new Date(row.publishDate).toString().substring(0, 25) : ""}</TableCell>
+                            <TableCell align="center">{row.expireDate ? new Date(row.expireDate).toString().substring(0, 25): ""}</TableCell>
 
                             
                         </TableRow>

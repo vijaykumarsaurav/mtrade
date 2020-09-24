@@ -31,7 +31,6 @@ class LoginComponent extends React.Component{
 
 
     render() {
-        var password = "U*0elFh:"; 
 
         return(
             <React.Fragment>
@@ -69,17 +68,14 @@ class LoginComponent extends React.Component{
 
     componentDidMount() {
       const token =   window.localStorage.getItem("token"); 
-
       if(token){
         const lastUrl = localStorage.getItem("lastUrl"); 
         this.props.history.push('/'+lastUrl);
       }
-        
     }
 
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value.trim() });
-        console.log(e.target.name, e.target.value.trim());
     }
 
     login = (e) => {
@@ -124,16 +120,11 @@ class LoginComponent extends React.Component{
               
               this.setState({ isError: res.data.message });
 
-              //  let data = resolveResponse(res);
-                console.log("resolveResponse",data); 
-                // if(!data.result)
-                //     Notify.showError("Something Went worng...");
-
-                var data = res.data; 
+                var data = resolveResponse(res);
+                console.log("resolveResponse",data.result && data.result.roleCode); 
+              
+               // data = res.data; 
                 this.setState({ isDasable: false });
-
-                // else
-                //     resolveResponse(res, "Login success.");
 
                 if(data.result){
                     window.localStorage.setItem("userDetails",JSON.stringify(data.result));
@@ -145,8 +136,12 @@ class LoginComponent extends React.Component{
                 // Admin : ADMIN
                 // Distributor : DIST
 
-                if(data.result && data.result.roleCode == "BOA")
-                this.props.history.push('/verify');
+                console.log(this.props.history);
+                if(data.result && data.result.roleCode == "BOA"){
+                    this.props.history.push('/verify');
+                    return;
+                }
+              //  window.location.replace( "#/verify");  
 
                 if(data.result && data.result.roleCode == "DE")
                 this.props.history.push('/dataentry');

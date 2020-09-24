@@ -30,10 +30,6 @@ import {resolveResponse} from "../../utils/ResponseHandler";
 import "./DataEntry.css";
 
 
-
-
-
-
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
@@ -51,7 +47,7 @@ class DataEntryList extends React.Component{
         super(props);
         this.state ={
             products: [],
-            searchedproducts: null,
+            searchedproducts: '',
             searchby:'',
             listingTakingTime : null,
             listofzones:[],
@@ -60,7 +56,6 @@ class DataEntryList extends React.Component{
 
         };
         this.loadProductList = this.loadProductList.bind(this);
-        this.addProduct = this.addProduct.bind(this);
         this.editProduct = this.editProduct.bind(this);
         this.convertBool = this.convertBool.bind(this);
         this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
@@ -80,6 +75,17 @@ class DataEntryList extends React.Component{
     componentDidMount() {
         this.loadProductList();
         localStorage.setItem("lastUrl","dataentry");
+        ActivationService.getTotalToBeProcessed().then(res => {
+            let data = resolveResponse(res);
+            console.log(data.result)
+         
+            this.setState({['recordToBeProcessed']: data.result && data.result.count})
+
+            localStorage.setItem("acquisitionCount",data.result && data.result.acquisitionCount ); 
+            localStorage.setItem("resubmitCount",data.result && data.result.resubmitCount ); 
+            
+
+        })
 
     }
 
@@ -97,26 +103,33 @@ class DataEntryList extends React.Component{
         var startTime = endTime - 259200000; 
        
         var  data =  {
-            "endDate": endTime,
             "mobileNumber": mobileNumber ? mobileNumber : null,
-            "noOfRecords": 20,
-            "role": "DE",
-            "startDate": 0,
-            "txnId": 0,
-            "type": "next",
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null
         }
+        // var  data =  {
+        //     "endDate": endTime,
+          
+        //     "mobileNumber": mobileNumber ? mobileNumber : null,
+        //     "noOfRecords": 20,
+        //     "role": "DE",
+        //     "startDate": 0,
+        //     "txnId": 0,
+        //     "type": "next",
+            
+        //     "zones": this.state.selectedZone.length ? this.state.selectedZone : null
+        // }
+        
 
         document.getElementById('showMessage').innerHTML = "Please Wait Loading...";
 
         ActivationService.listDocs(data)
             .then((res) => {
               
-                let data = resolveResponse(res);
-                if(data && data.result && data.result.activationList){
-                    this.setState({products: data && data.result.activationList})
-                    this.setState({searchedproducts:data && data.result.activationList})
-                    var listingIds = data.result.activationList.map(function(val, index){
+                    let data = resolveResponse(res);
+                    var activationList = data.result && data.result.activationList; 
+                    this.setState({products: activationList})
+                    this.setState({searchedproducts:activationList})
+                    var listingIds = activationList && activationList.map(function(val, index){
                         return val.txnId
                     })
 
@@ -125,13 +138,14 @@ class DataEntryList extends React.Component{
                     }else{
                         localStorage.setItem("dataentryListingTxn",""); 
                     }
-                
+                  
                     document.getElementById('showMessage').innerHTML = "";
+                    if(document.getElementById('showMessage')){
+                        if(activationList == null){
+                            document.getElementById('showMessage').innerHTML = "No new documents for verification";
+                        }  
+                    }
 
-                 }else {
-                    if(document.getElementById('showMessage')) 
-                        document.getElementById('showMessage').innerHTML = "No new documents for data entry.";
-                 }
             });
 
             setTimeout(() => {
@@ -144,17 +158,7 @@ class DataEntryList extends React.Component{
                 let data = resolveResponse(res);
                 this.setState({listofzones: data && data.result && data.result.zones}) 
             })
-            
-            ActivationService.getTotalToBeProcessed().then(res => {
-                let data = resolveResponse(res);
-                this.setState({recordToBeProcessed: data.result && data.result.count}) 
-            })
 
-
-    }
-
-    addProduct() {
-        this.props.history.push('/add-product');
     }
 
     onlockTransectionOnSkip = (txn) =>{
@@ -223,6 +227,8 @@ class DataEntryList extends React.Component{
         console.log("productid",productId )
         
         window.localStorage.setItem("dataEntryId", productId);
+        window.localStorage.setItem("fromSubmit", '');
+
         this.props.history.push('/data-edit');
 
         // this.props.history.push({
@@ -240,31 +246,6 @@ class DataEntryList extends React.Component{
       
 
     render(){
-       
-        // const [page, setPage] = React.useState(0);
-        // const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
-
-        // function handleChangePage(event, newPage){
-        //     setPage(newPage);
-        // }
-
-        // function handleChangePage(event){
-        //     setRowsPerPage(+event.target.value);
-        //     setPage(0);
-        // }
-
-
-        // function handleChangeRowsPerPage(event){
-        //     setRowsPerPage(+event.target.value);
-        //     setPage(0);
-        // };
-
-
-        // const editProduct = (productId) => {
-        //   window.localStorage.setItem("selectedProductId", productId);
-        //  // props.history.push('/edit-doc');
-        // };
 
       
       //  console.log("this.state.products",this.state.products); 
@@ -284,11 +265,14 @@ class DataEntryList extends React.Component{
                         alignItems="center">
                             <Grid item  xs={12} xs={6}>
                             <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                              Data Entry 
+                            Acquisition  – Data Entry
+                            </Typography> 
+                            {/* <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                            Data Entry
                             </Typography> 
                             <Typography>
                               Record to be Processed: {this.state.recordToBeProcessed}
-                            </Typography> 
+                            </Typography>  */}
                             </Grid>
 
                             <Grid item xs={10} sm={3}> 
@@ -346,10 +330,10 @@ class DataEntryList extends React.Component{
                                 <TableCell align="">Zone</TableCell>
                                 <TableCell align="">FTA Date</TableCell>
                                 {/* <TableCell align="">Status</TableCell> */}
-                                <TableCell align="">Resubmit</TableCell>
-                                <TableCell align="">Verified Date</TableCell>
+                                {/* <TableCell align="">Resubmit</TableCell>
+                                <TableCell align="">Verified Date</TableCell> */}
                                 <TableCell align="">Submit Date</TableCell>
-                                <TableCell align="">Resubmit Date</TableCell>
+                                {/* <TableCell align="">Resubmit Date</TableCell> */}
 
                             </TableRow>
                         </TableHead>
@@ -368,12 +352,12 @@ class DataEntryList extends React.Component{
                                     <TableCell align="center">{row.zone}</TableCell>
                                     <TableCell align="center">{row.ftaDate.substring(0, 10)}</TableCell>
                                     {/* <TableCell align="center">{row.status ? 'YES' : 'NO'}</TableCell> */}
-                                    <TableCell align="center">{row.resubmit}</TableCell>
-
+                                    {/* <TableCell align="center">{row.resubmit}</TableCell>
                                     <TableCell align="center">{row.verifiedDate ? row.verifiedDate.substring(0, 10) : "none"}</TableCell>
+                                     */}
                                     <TableCell align="center">{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
-                                    <TableCell align="center">{row.resubmitDate ? row.resubmitDate.substring(0, 10) : "none"}</TableCell>
-                                  
+                                    {/* <TableCell align="center">{row.resubmitDate ? row.resubmitDate.substring(0, 10) : "none"}</TableCell>
+                                   */}
                                 </TableRow>
                             )): ""}
                         </TableBody>

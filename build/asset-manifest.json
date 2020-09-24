@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/static/css/main.837abfa9.chunk.css",
-    "main.js": "/static/js/main.5a1cf542.chunk.js",
-    "main.js.map": "/static/js/main.5a1cf542.chunk.js.map",
+    "main.css": "/static/css/main.47d07bbc.chunk.css",
+    "main.js": "/static/js/main.a768548f.chunk.js",
+    "main.js.map": "/static/js/main.a768548f.chunk.js.map",
     "runtime~main.js": "/static/js/runtime~main.a8a9905a.js",
     "runtime~main.js.map": "/static/js/runtime~main.a8a9905a.js.map",
-    "static/css/2.f116a1c3.chunk.css": "/static/css/2.f116a1c3.chunk.css",
-    "static/js/2.0879da92.chunk.js": "/static/js/2.0879da92.chunk.js",
-    "static/js/2.0879da92.chunk.js.map": "/static/js/2.0879da92.chunk.js.map",
+    "static/css/2.39017165.chunk.css": "/static/css/2.39017165.chunk.css",
+    "static/js/2.423ccc2b.chunk.js": "/static/js/2.423ccc2b.chunk.js",
+    "static/js/2.423ccc2b.chunk.js.map": "/static/js/2.423ccc2b.chunk.js.map",
     "index.html": "/index.html",
-    "precache-manifest.889ef456ecefdbc1462bfa98580fbf25.js": "/precache-manifest.889ef456ecefdbc1462bfa98580fbf25.js",
+    "precache-manifest.078b58d74391224a7aea7707cb2fa09d.js": "/precache-manifest.078b58d74391224a7aea7707cb2fa09d.js",
     "service-worker.js": "/service-worker.js",
-    "static/css/2.f116a1c3.chunk.css.map": "/static/css/2.f116a1c3.chunk.css.map",
-    "static/css/main.837abfa9.chunk.css.map": "/static/css/main.837abfa9.chunk.css.map",
+    "static/css/2.39017165.chunk.css.map": "/static/css/2.39017165.chunk.css.map",
+    "static/css/main.47d07bbc.chunk.css.map": "/static/css/main.47d07bbc.chunk.css.map",
     "static/media/airtellogo.png": "/static/media/airtellogo.09dde59b.png"
   }
 }

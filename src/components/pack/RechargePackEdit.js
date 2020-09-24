@@ -64,7 +64,9 @@ class RechargePackAdd extends React.Component {
             selectedZone:[],
             zone:'',
             showFileSize: "", 
-            selectAllzone:'Select All'
+            selectAllzone:'Select All',
+            showFileBrowser:false
+            
             
         }
         this.savePack = this.savePack.bind(this);
@@ -151,13 +153,21 @@ class RechargePackAdd extends React.Component {
         const id = localStorage.getItem('selectedProductId');
         this.setState({loading:true})
         const packRes = await  this.props.getPackById(id);
-        console.log("packRes:", packRes); 
+       
         if(packRes.payload && packRes.payload.data && packRes.payload.data.result){
             this.setState(packRes.payload.data.result);
         }
         this.setState({selectedZone: this.state.zones});
         this.setState({loading:false})
         this.setState({activationStatus:this.state.active})
+
+        if(this.state.displayType =='detailsWithImage' ){
+          this.setState({showFileBrowser:true})
+        }
+       
+        if(this.state.displayType == "details"){
+          this.setState({imageURL:'imageURL'})
+        }
 
         this.addPackTpe(this.state.pack); 
     }
@@ -196,7 +206,7 @@ class RechargePackAdd extends React.Component {
       }
       console.log("dateparam",dateParam);
       if(this.state.loading){
-          return <div>Laoding</div>
+          return <div>Loading</div>
       }
        return(
         
@@ -569,7 +579,7 @@ class RechargePackAdd extends React.Component {
               >
                 <Grid item xs={12} sm={6}>
                   <FormControl style={styles.multiselect}>
-                    <InputLabel htmlFor="display-type" required={true}>
+                    <InputLabel htmlFor="display-type" >
                       Display Type
                     </InputLabel>
                     <Select
@@ -586,6 +596,7 @@ class RechargePackAdd extends React.Component {
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
+                {this.state.showFileBrowser ? 
                   <FormControl style={styles.multiselect}>
                     <input
                       style={{
@@ -594,17 +605,31 @@ class RechargePackAdd extends React.Component {
                       }}
                       type="file"
                       name="file"
-                    //  onChange={this.onChangeHandler}
                     onChange={this.onChangeFileUpload}
-                    
                     />
                   </FormControl>
-                  
+                  :""}
                 </Grid>
-                <Grid item xs={12} sm={5}>
-                <img style={{width:"100px", height:"50px"}} src={this.state.imageURL} />
-               </Grid>
+
+             
+
               </Grid>
+              {this.state.showFileBrowser ? 
+                 <Grid  container spacing={24} container
+                    direction="row"
+                    justify="center">
+                      
+                      <Grid item xs={12} sm={6}>
+                            Selected File Size: {this.state.showFileSize}
+                            <br />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <img title="Preview Banner"  style={{width:"200px", height:"100px"}} src={this.state.imageURL} />
+                      </Grid>
+                  </Grid>
+              :""}
+
               {/* <TextField
                 label="comment"
                 type=""
@@ -629,6 +654,7 @@ class RechargePackAdd extends React.Component {
                        <Button
                         variant="contained"
                         color="primary"
+                        disabled={!this.state.imageURL}
                         onClick={this.savePack}
                       >
                         Save
@@ -718,6 +744,11 @@ class RechargePackAdd extends React.Component {
         return;
       }
 
+      // if(this.state.displayType==="detailsWithImage"){
+      //   Notify.showError("Select the file.");
+      //   return;
+      // }
+
       const formData = new FormData();
 
       if(this.state.displayType==="detailsWithImage" && this.state.file){
@@ -746,9 +777,12 @@ class RechargePackAdd extends React.Component {
       formData.append('description', this.state.description);
       formData.append('activationStatus', this.state.activationStatus);
       formData.append('comment', this.state.comment);
-      formData.append('isFtr', this.state.ftr);
-      formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
-
+     // formData.append('isFtr', this.state.ftr);
+     
+      if(this.state.selectedZone.length){
+        formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
+      }
+     
 
     // console.log(packs, "PACKS");
       pack.addPack(formData).then(res => {
@@ -807,8 +841,19 @@ class RechargePackAdd extends React.Component {
       }
 
 
-    onChange = (e) =>
+      onChange = e =>{
+
         this.setState({ [e.target.name]: e.target.value });
+    
+        if(e.target.name == 'displayType' && e.target.value =="detailsWithImage"){      
+          this.setState({showFileBrowser: true});
+        }
+    
+        if(e.target.name == 'displayType' && e.target.value =="details"){      
+          this.setState({showFileBrowser: false,  imageURL: 'currentImage'});
+
+        }
+      } 
 
 }
 

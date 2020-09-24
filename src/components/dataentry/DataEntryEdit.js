@@ -82,7 +82,8 @@ class DataEntryEdit extends React.Component {
                 customerImageUrl:"",
                 presentAddress:"",
                 pefImageUrl:'',
-                comment:""
+                comment:"",
+                loading: true
                 
         }
         this.updateLocalActList = this.updateLocalActList.bind(this);
@@ -112,7 +113,8 @@ class DataEntryEdit extends React.Component {
          
          if(dataEntryId == null) {
             // alert("Please select a product to edit.");
-             this.props.history.push('/dataentry');
+            // this.props.history.push('/dataentry');
+             this.cancel();
          }else {
  
              ActivationService.getOneDataEntry(dataEntryId).then(res => {
@@ -120,7 +122,7 @@ class DataEntryEdit extends React.Component {
                  const selectedProduct = data.result;
  
                  var genderSelect=''; 
-                 if(selectedProduct && selectedProduct.title == "Ms" || selectedProduct.title == 'Mrs'){
+                 if(selectedProduct && (selectedProduct.title == "Ms" || selectedProduct.title == 'Mrs')){
                      genderSelect = "F"; 
                  }
                  if(selectedProduct && selectedProduct.title == "Mr"){
@@ -162,7 +164,7 @@ class DataEntryEdit extends React.Component {
                     //    console.log("getonedata",this.state); 
                  }
 
-                
+                this.setState({loading:false}) 
              })
  
              const userDetails = JSON.parse(localStorage.getItem("userDetails")); 
@@ -200,7 +202,6 @@ class DataEntryEdit extends React.Component {
         if(document.getElementById("rejectedReasons")){
             document.getElementById("rejectedReasons").style.fontSize = "12px";
         }
-
     }
 
 
@@ -264,8 +265,14 @@ class DataEntryEdit extends React.Component {
 
         }
 
-        
-
+        if(this.state.loading){
+            return (  
+                 <React.Fragment>
+                    <PostLoginNavBar/><br />
+                    <Typography variant="h6" >Loading...please wait.</Typography>
+                </React.Fragment> 
+                )   
+        }
 
 
         return(
@@ -418,12 +425,9 @@ class DataEntryEdit extends React.Component {
 
                         </Grid>
 
-                        
-
 
                         <Grid spacing={1} container direction="row">
-                            
-
+                        
                             <Grid item xs={12} sm={6}>
                             <TextField id="addresstwo"  label="Address 2"  value={this.state.address2}  fullWidth name="address2" onChange={this.onChange}/>
 
@@ -600,25 +604,15 @@ class DataEntryEdit extends React.Component {
            // To call the method you can use the slide's ref attribute and then call the method. 
               this.slideRef.current.goTo(0);
 
-
-            
               this.setState({ approveLoader: false});
               this.setState({ approveDone: false});
               this.setState({ approveButton: true});
 
-            //  this.history.pushState(this.state, '/data-edit');
-
-
-            //  this.props.history.push('/data-edit');
-            
-           //  this.props.history.push('/data-edit');
-             // this.render(); 
-              //this.forceUpdate(); 
-            //  console.log("push to data-edit",nextid);   
 
           }else{
              // Notify.showError("No item available");
-              this.props.history.push('/dataentry');
+             // this.props.history.push('/dataentry');
+              this.cancel();
           }
       };
 
@@ -711,26 +705,36 @@ class DataEntryEdit extends React.Component {
         ActivationService.updateProduct(product)
             .then(res => {
                 resolveResponse(res, "Updated successfully.");
-                this.props.history.push('/dataentry');
+                //this.props.history.push('/dataentry');
+                this.cancel();
             });
     };
 
     cancel = (e) => {
-        this.props.history.push('/dataentry');
+        if(localStorage.getItem('fromSubmit') == 'yes'){
+            this.props.history.push('/resubmit-dataentry');
+        }else{
+            this.props.history.push('/dataentry');
+        }
     };
 
     onChange = (e) => {
-     //   console.log(e.target.name, e.target.value);
 
-
-        //this.setState({[e.target.name]: e.target.value});
         var data =  e.target.value.trim();
         var test = !data.includes("@") && !data.includes("$") && !data.includes("&") ; 
         if(test){
-            this.setState({[e.target.name]: e.target.value});
-        }
+           
+            if(e.target.name == "firstName" || e.target.name == "middleName" || e.target.name == "lastName" ){
+                if(/^[a-zA-Z ]+$/.test(e.target.value)){
+                    this.setState({[e.target.name]: e.target.value});
+                }
+            }else{
+                this.setState({[e.target.name]: e.target.value});
+            }
 
-       
+        //this.setState({[e.target.name]: e.target.value});
+
+        }
 
         if(e.target.name == "altContactNumber" && e.target.value.length > 10){
             this.setState({altContactNumber: e.target.value.substring(0, 10)});   
@@ -743,6 +747,9 @@ class DataEntryEdit extends React.Component {
             this.setState({gender: "M"});   
         }
 
+        if(e.target.value.length == 0){
+            this.setState({firstName: "", middleName: "", lastName: ""});
+        }
 
 
     }
