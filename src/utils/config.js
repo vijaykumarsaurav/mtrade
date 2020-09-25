@@ -44,7 +44,7 @@ export const RETAILER_SLRetailerA = RETAILER_API_BASE_URL+ 'reports/';
 
 //login
 export const SL_AD_LOGIN_URL = RETAILER_API_BASE_URL + 'auth/portaLogin';
-export const SL_AD_LOGOUT_URL = RETAILER_API_BASE_URL + 'user/logout'; 
+export const SL_AD_LOGOUT_URL = RETAILER_API_BASE_URL + 'auth/logout'; 
 
 export const VERIFY_DOCS_LISTING = RETAILER_API_BASE_URL + 'avde/prepaidAcquisitions';
 export const VERIFY_DOCS_LISTING_RESUBMIT = RETAILER_API_BASE_URL + 'avde/prepaidResubmits';
