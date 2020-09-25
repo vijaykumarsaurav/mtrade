@@ -173,6 +173,12 @@ export const DISTMenuList = (
       <ListItemText primary="Reports" />
     </ListItem>
 
+    <ListItem button component='a' href={"#/msisdn-status"} >  
+      <ListItemIcon>
+        <FileCopyIcon />
+      </ListItemIcon>
+      <ListItemText primary="Document View" />
+    </ListItem>
   </div>
 );
 
