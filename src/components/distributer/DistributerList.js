@@ -126,6 +126,7 @@ class DataEntryList extends React.Component{
 
             const data = {
                 "mobileNumber" : this.state.mobile,
+                "simNumber" : this.state.sim,
             }; 
 
            ActivationService.searchDistributer(data)

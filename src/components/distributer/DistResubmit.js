@@ -129,7 +129,8 @@ class DataEntryList extends React.Component{
 
             const data = {
                 "mobileNumber" : this.state.mobile
-            }; 
+            };  
+            
 
            ActivationService.searchDistributerResubmit(data)
             .then((res) => {
