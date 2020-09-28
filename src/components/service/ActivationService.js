@@ -60,8 +60,10 @@ class ActivationService {
         return axios.post(apiConstant.DISTRIBUTER_UPLOAD, formData, AuthService.getHeader());
     } 
     
-    searchDistributerResubmit(object){
-        return axios.get(apiConstant.DISTRIBUTER_SEARCH_RESUBMIT+'?mobileNumber='+object.mobileNumber, AuthService.getHeader());
+    searchDistributerResubmit(data){
+       // return axios.get(apiConstant.DISTRIBUTER_SEARCH_RESUBMIT+'?mobileNumber='+object.mobileNumber, AuthService.getHeader());
+       return axios.post(apiConstant.DISTRIBUTER_SEARCH_RESUBMIT , data, AuthService.getHeader());
+
     } 
 
     uploadDistrubuterResubmit(formData){

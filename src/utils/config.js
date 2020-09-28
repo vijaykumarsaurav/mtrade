@@ -25,8 +25,8 @@ if(window.location.hostname == "tstretailer.airtel.lk"){
 }
 
 if(window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1"){
-   // RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
-   RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
+   RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
+   //RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
 }
 
 //reports 
