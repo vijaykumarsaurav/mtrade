@@ -84,9 +84,11 @@ export default function MaterialUIPickers(props) {
     selectedStartDate = d;
   }
 
-  if(d1DateRangeFlag && selectedEndDate.getDate() == new Date().getDate()){
+  if(d1DateRangeFlag && new Date(selectedEndDate).getDate() == new Date().getDate()){
     selectedEndDate = d;
   }
+  window.localStorage.setItem('startDate',selectedStartDate.getTime() );
+  window.localStorage.setItem('endDate',selectedEndDate.getTime() );
 
  $('.MuiInputBase-inputAdornedEnd').prop('readonly', true);
 

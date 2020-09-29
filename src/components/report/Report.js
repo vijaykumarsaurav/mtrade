@@ -126,12 +126,16 @@ class Report extends React.Component {
 
     onChange = e => {
 
-        this.setState({ [e.target.name]: e.target.value, retrieveTypeAll: false,  retrieveType:"BY_SUBMIT_DATE", startDate : '', endDate:''  });
+
+
+        this.setState({ [e.target.name]: e.target.value, retrieveTypeAll: false,  retrieveType:"BY_SUBMIT_DATE", startDate : localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,  endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null  });
         if(e.target.value == 'zoneWiseDetailedReport'){
             this.setState({ showZoneSelection: true });
         }else{
             this.setState({ showZoneSelection: false });
         }
+        console.log("onchnage",'\n', " START DATE " +  new Date( parseInt(localStorage.getItem('startDate'))), '\n'," END DATE "+ new Date( parseInt(localStorage.getItem('endDate'))));
+
 
         
         if(e.target.value == 'disconnectionReport' || e.target.value == 'reconnectionReport'||  e.target.value == 'dailyActiveRetailers'){
@@ -158,6 +162,9 @@ class Report extends React.Component {
 
         this.setState({responseFlag : false, dataEntryData :false, generateReportLoader : false,  responseFlagMsg : "", resetCalander:true });
 
+     
+
+
     } 
 
     onChangeRetriveBy = e => {
@@ -168,87 +175,106 @@ class Report extends React.Component {
     getReportDetails() {
         this.setState({verficationname:"", filenameToGo : this.state.reporttype});
 
-        if(!this.state.startDate){
-            var startd = new Date(); 
-            startd.setHours(0,0,0,0);
-            if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype =='dailyActiveRetailers' || this.state.reporttype  == 'simSwapCount' || this.state.reporttype =='mpinResetCount' || this.state.reporttype =='reloadAndBillPayCount' || this.state.reporttype == 'idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
-                startd.setDate(startd.getDate() - 1);
-            }
-            this.state.startDate = startd.getTime();
-            this.setState({ startDate : startd.getTime() }, () => {
-                console.log("startDate : setting", this.state.startDate);
-            }); 
+        // if(!this.state.startDate){
+        //     var startd = new Date(); 
+        //     startd.setHours(0,0,0,0);
+        //     if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype =='dailyActiveRetailers' || this.state.reporttype  == 'simSwapCount' || this.state.reporttype =='mpinResetCount' || this.state.reporttype =='reloadAndBillPayCount' || this.state.reporttype == 'idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
+        //         startd.setDate(startd.getDate() - 1);
+        //     }
+        //     this.state.startDate = startd.getTime();
+        //     this.setState({ startDate : startd.getTime() }, () => {
+        //         console.log("startDate : setting",  startd);
+        //     }); 
 
-        }else{
-            var startd = new Date(this.state.startDate); 
-            startd.setHours(0,0,0,0);
-            this.setState({ startDate : startd.getTime() }); 
-        }
+        // }else{
+        //     var startd = new Date(this.state.startDate); 
+        //     startd.setHours(0,0,0,0);
+        //     this.setState({ startDate : startd.getTime() }); 
+        //     console.log("startDate null setting:", startd);
+        // }
       
-        if(!this.state.endDate){
-            var endd = new Date(); 
-            endd.setHours(23,59,59,59);   
-            if(this.state.reporttype  == 'simSwapCount' || this.state.reporttype =='mpinResetCount' || this.state.reporttype =='reloadAndBillPayCount' || this.state.reporttype == 'idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
-                endd.setDate(endd.getDate() - 1);
-            } 
-            this.state.endDate = endd.getTime();
-            this.setState({ endDate : endd.getTime()  }, () => {
-                console.log("endDate : setting", this.state.endDate);
-            }); 
-        }else{
-            var endd = new Date(this.state.endDate); 
-            endd.setHours(23,59,59,59);
-            this.state.endDate = endd.getTime();
-        }
+        // if(!this.state.endDate){
+        //     var endd = new Date(); 
+        //     endd.setHours(23,59,59,59);   
+        //     if(this.state.reporttype  == 'simSwapCount' || this.state.reporttype =='mpinResetCount' || this.state.reporttype =='reloadAndBillPayCount' || this.state.reporttype == 'idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
+        //         endd.setDate(endd.getDate() - 1);
+        //     } 
+        //     this.state.endDate = endd.getTime();
+        //     this.setState({ endDate : endd.getTime()  }, () => {
+        //         console.log("endDate : setting", endd);
+        //     }); 
+        // }else{
+        //     var endd = new Date(this.state.endDate); 
+        //     endd.setHours(23,59,59,59);
+        //     this.state.endDate = endd.getTime();
+        // }
 
+        
+       
           
         if(!this.state.reporttype){
             Notify.showError("First select report type");
             return;
         }
 
-        console.log("year",this.state.year , "month", this.state.month); 
+   //     console.log("year",this.state.year , "month", this.state.month); 
 
+        if(this.state.reporttype == 'retailerOnboardedReport'  && !this.state.day){
+            Notify.showError("Select no. of days");
+            return;
+        }
 
         if(this.state.reporttype == 'monthlyActiveRetailers'){
-         
+
+            if(!this.state.year){
+                Notify.showError("Select a Year");
+                return;
+            }
+            if(!this.state.month){
+                Notify.showError("Select a Month");
+                return;
+            }
             var firstDate = new Date("1 " + this.state.month + ' ' + this.state.year);
             firstDate.setHours(0,0,0,0);
             var startDate =  new  Date(firstDate.getDate()+ ' '+ this.state.month+ ' '+ this.state.year);
             var endd = new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0);
             endd.setHours(23,59,59,59);  
             this.state.startDate = startDate.getTime();
+
             this.setState({ startDate : startDate.getTime() }, () => {
               //  console.log("startDate : setting", this.state.startDate);
             }); 
+            
+            window.localStorage.setItem('startDate',startDate.getTime() );
+
          //   console.log("startDate", new Date( this.state.startDate ));   
             this.state.endDate = endd.getTime();
             this.setState({ endDate : endd.getTime() }, () => {
                // console.log("endDate : setting", this.state.endDate);
             }); 
+            window.localStorage.setItem('endDate',endd.getTime());
+
           //  console.log("endDate", new Date( this.state.endDate ) );   
         }
 
        
         var data = {
                retrieveType: this.state.retrieveType,
-               startDate: this.state.startDate,
-               endDate: this.state.endDate,
+               startDate: localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,
+               endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null,
                zones: this.state.selectedZone.length ? this.state.selectedZone : null
            } 
-           console.log("param data" ,data)
 
         if(this.state.reporttype == 'reloadAndBillPayCount' || this.state.reporttype == 'simSwapCount' || this.state.reporttype == 'mpinResetCount' || this.state.reporttype == 'monthlyActiveRetailers' || this.state.reporttype =='idleRetailers' || this.state.reporttype =='acquisitionCountReport'){
             data = {
-                startDate: this.state.startDate,
-                endDate: this.state.endDate,
+                startDate: localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,
+                endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null,
             }
-           
         }
        
         if(this.state.reporttype == 'disconnectionReport' || this.state.reporttype == 'reconnectionReport' || this.state.reporttype == 'dailyActiveRetailers'){
             data = {
-                date: this.state.startDate,
+                date: localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,
             }
         }
 
@@ -257,12 +283,14 @@ class Report extends React.Component {
                 range: this.state.day || 0
             }
         }
-       
-        
+    
+        this.setState({  startDate : localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,  endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null  });
 
+      console.log("Param data", data, '\n', " START DATE " +  new Date( parseInt(localStorage.getItem('startDate'))) , '\n'," END DATE "+ new Date( parseInt(localStorage.getItem('endDate'))));
+
+    
       this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report", generateReportLoader : true,generateReportMsg : "Generating report please wait..." });
 
-        
         AdminService.sentReportToEmail(data,this.state.reporttype)
             .then((res) => {
 
@@ -337,15 +365,12 @@ class Report extends React.Component {
     
 
 
-
-
-
     render() {
 
         const dateParam = {
             myCallback: this.myCallback,
-            startDate: '',
-            endDate: '', 
+            startDate: null,
+            endDate: null, 
             showSingleDate: this.state.showSingleDate,
             resetCalander : this.state.resetCalander,
             generateReportLoader: this.state.generateReportLoader,
@@ -475,7 +500,7 @@ class Report extends React.Component {
                                     value={this.state.retrieveType}
                                     onChange={this.onChangeRetriveBy}
                                     >
-                                     {this.state.reporttype != 'simSwapReport' ?  
+                                    {this.state.reporttype != 'simSwapReport' ?  
                                         <MenuItem key={'BY_FTA_DATE'} value={'BY_FTA_DATE'} >
                                         By FTA Date
                                     </MenuItem>
@@ -500,7 +525,7 @@ class Report extends React.Component {
                                 {this.state.reporttype =='retailerOnboardedReport' ? 
                                     <Grid item xs={12} sm={3}>
                                     <FormControl style={styles.selectStyle}>
-                                        <InputLabel id="demo-mutiple-name-label">Select No. of Days</InputLabel>
+                                        <InputLabel id="demo-mutiple-name-label">Select no. of days</InputLabel>
                                         <Select 
                                         disabled={this.state.generateReportLoader}
                                         labelId="demo-mutiple-name-label"
@@ -527,7 +552,7 @@ class Report extends React.Component {
                             {this.state.reporttype != 'monthlyActiveRetailers' && this.state.reporttype != 'retailerOnboardedReport' ? 
                             <Grid item xs={12} sm={3} >
                                 <MaterialUIPickers  callbackFromParent={dateParam} /> 
-
+                                                
                                 </Grid>
                             : ""}
 
