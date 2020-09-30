@@ -30,12 +30,17 @@ export default function MaterialUIPickers(props) {
   var [selectedStartDate, setSelectedStartDate] = React.useState(startd);
   var [selectedEndDate, setSelectedEndDate] = React.useState(endd);
   const handleStartDateChange = date => {
+    date.setHours(0,0,0,0);
     setSelectedStartDate(date);
     props.callbackFromParent.myCallback(date,"START_DATE");
+    window.localStorage.setItem('startDate',date.getTime() );
   };
   const handleEndDateChange = date => {
+     date.setHours(23,59,59,59);
     setSelectedEndDate(date);
     props.callbackFromParent.myCallback(date,"END_DATE");
+    window.localStorage.setItem('endDate',date.getTime() );
+
   };
 
   const showSingleDate =  props.callbackFromParent && props.callbackFromParent.showSingleDate; 
@@ -66,28 +71,34 @@ export default function MaterialUIPickers(props) {
   }
 
 
-  var d = new Date();
+  var today = new Date();
+  today.setHours(0,0,0,0);
   if(showSingleDate){
-    maxAllowedDate = d.setDate(d.getDate()-1);
+    maxAllowedDate = today.setDate(today.getDate()-1);
+
   }
 
   if(d1DateRangeFlag){
-    maxAllowedDate = d.setDate(d.getDate()-1);
+    maxAllowedDate = today.setDate(today.getDate()-1);
   }
 
   if(showSingleDate && selectedStartDate.getDate() == new Date().getDate()){
-    selectedStartDate = d;
+    selectedStartDate = today;
   }
 
 
   if(d1DateRangeFlag && selectedStartDate.getDate() == new Date().getDate()){
-    selectedStartDate = d;
+    selectedStartDate = today;
   }
 
+ 
   if(d1DateRangeFlag && new Date(selectedEndDate).getDate() == new Date().getDate()){
-    selectedEndDate = d;
+    selectedEndDate = today;
   }
+
   window.localStorage.setItem('startDate',selectedStartDate.getTime() );
+
+  selectedEndDate.setHours(23,59,59,59);
   window.localStorage.setItem('endDate',selectedEndDate.getTime() );
 
  $('.MuiInputBase-inputAdornedEnd').prop('readonly', true);
@@ -102,7 +113,7 @@ export default function MaterialUIPickers(props) {
           //readOnly="true"
           // disabled="true"
           disableFuture="true"
-          allowKeyboardControl="true"
+          allowKeyboardControl={true}
           minDate={back18Month}
           minDateMessage="Only 18 months back report can be fatch."
           maxDate={maxAllowedDate}

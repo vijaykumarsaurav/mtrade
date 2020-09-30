@@ -87,12 +87,12 @@ class VerifyList extends React.Component{
 
     searchOnDB(mobileNumber) {
 
-        var verifyListingTxn = localStorage.getItem("verifyListingTxn");
-        verifyListingTxn =  verifyListingTxn && verifyListingTxn.split(',');
+        // var verifyListingTxn = localStorage.getItem("verifyListingTxn");
+        // verifyListingTxn =  verifyListingTxn && verifyListingTxn.split(',');
 
-        if(verifyListingTxn.length >= 1){
-            this.onlockTransectionOnSkip(verifyListingTxn); 
-        }
+        // if(verifyListingTxn.length >= 1){
+        //     this.onlockTransectionOnSkip(verifyListingTxn); 
+        // }
        
 
         this.loadProductList(mobileNumber) ;

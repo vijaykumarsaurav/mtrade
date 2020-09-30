@@ -401,7 +401,7 @@ class VerifyEdit extends React.Component {
                         {this.state.rejectDone ?  <Button variant="outlined" color="primary" style={{marginLeft: "20px"}}> <DoneSharpIcon color="primary"/> Rejected and Loading Next</Button> : ""}
                         {this.state.rejectButton ? <Button variant="contained" color="secondary" style={{marginLeft: '20px'}} onClick={this.rejectEV}>Reject</Button>: ""}
 
-                        <Button variant="contained" color="secondary" style={{marginLeft: '20px', backgroundColor:"#33691e"}} onClick={this.skipThisVerify}> SKIP </Button>
+                        <Button variant="contained" color="secondary" style={{marginLeft: '20px', backgroundColor:"#33691e"}} onClick={() => this.skipThisVerify("skip")}> SKIP </Button>
                         <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
             </Grid></div>: ""}
 
@@ -452,7 +452,7 @@ class VerifyEdit extends React.Component {
     }
 
 
-    skipThisVerify = (e) => {
+    skipThisVerify = (eventType) => {
         this.setState({ comments : ""});
 
 
@@ -470,10 +470,11 @@ class VerifyEdit extends React.Component {
         }
 
        // this.updateLocalActList(selectedProductId);
+       if(eventType === "skip"){
         this.onlockTransectionOnSkip(selectedProductId);
+       }
         console.log("next id",nextid );
         
-
         if(nextid){
             localStorage.setItem("selectedProductId", nextid);
            // Notify.showSuccess("Acquisition skipped successfully and Lodding next...");
@@ -554,7 +555,7 @@ class VerifyEdit extends React.Component {
 
           // this.skipThisVerify();
             setTimeout(() => {
-                this.skipThisVerify();
+                this.skipThisVerify("loadnext");
             }, 2000);
         });
     };
@@ -626,7 +627,7 @@ class VerifyEdit extends React.Component {
          
 
             setTimeout(() => {
-                this.skipThisVerify();
+                this.skipThisVerify("loadnext");
             }, 2000);
         });
 

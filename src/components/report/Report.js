@@ -134,10 +134,7 @@ class Report extends React.Component {
         }else{
             this.setState({ showZoneSelection: false });
         }
-        console.log("onchnage",'\n', " START DATE " +  new Date( parseInt(localStorage.getItem('startDate'))), '\n'," END DATE "+ new Date( parseInt(localStorage.getItem('endDate'))));
 
-
-        
         if(e.target.value == 'disconnectionReport' || e.target.value == 'reconnectionReport'||  e.target.value == 'dailyActiveRetailers'){
             this.setState({ showSingleDate: true , retrieveType: '', });
         }else{
@@ -162,7 +159,8 @@ class Report extends React.Component {
 
         this.setState({responseFlag : false, dataEntryData :false, generateReportLoader : false,  responseFlagMsg : "", resetCalander:true });
 
-     
+        console.log("Report change",'\n', 'report: '+ this.state.reporttype, "\n START DATE " +  new Date( parseInt(localStorage.getItem('startDate'))), '\n'," END DATE "+ new Date( parseInt(localStorage.getItem('endDate'))));
+
 
 
     } 
@@ -347,7 +345,6 @@ class Report extends React.Component {
                  endD.setHours(23,59,59,59);
             }
 
-            console.log("start: " +date +" | start+6month "+ dateObj,   "  | end date: "+ new Date(endD), endD > dateObj.getTime() )
           
             if(endD > dateObj.getTime()){
                 this.setState({ disabledGenButton: true  });
@@ -359,6 +356,9 @@ class Report extends React.Component {
             this.setState({ endDate: new Date(date).getTime(), generateReportLoader: false, responseFlag:false, responseFlagMsg : "",dataEntryData:"" });
             this.setState({ disabledGenButton: false  });
         }
+
+        console.log("calender change",'\n', 'report: '+ this.state.reporttype, "\n START DATE " +  new Date( parseInt(localStorage.getItem('startDate'))), '\n'," END DATE "+ new Date( parseInt(localStorage.getItem('endDate'))));
+
 
     };
 
