@@ -204,7 +204,7 @@ function logoutPortal(){
 
 export const LogoutMenu = (
   <div>
-    <Link style={{textDecoration: "none"}} onClick={logoutPortal}>
+    <Link to={''} style={{textDecoration: "none"}} onClick={logoutPortal}>
       <ListItem button>
           <ListItemIcon><PowerSettingsNewIcon/></ListItemIcon><ListItemText primary="Logout" />
       </ListItem>

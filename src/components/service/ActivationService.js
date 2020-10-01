@@ -55,9 +55,12 @@ class ActivationService {
     searchDistributer(object){
         return axios.get(apiConstant.DISTRIBUTER_SEARCH+'?mobileNumber='+object.mobileNumber, AuthService.getHeader());
     }
+    getOneVerify(txnId){
+        return axios.get(apiConstant.VERIFY_DETAILS + '?txnId=' + txnId, AuthService.getHeader());
+    }
 
-    uploadDistrubuter(formData){
-        return axios.post(apiConstant.DISTRIBUTER_UPLOAD, formData, AuthService.getHeader());
+    msisdnDocsView(formData){
+        return axios.get(apiConstant.MSISDNDOCS_VIEW+ '?txnId=' + formData.txnId, AuthService.getHeader());
     } 
     
     searchDistributerResubmit(data){

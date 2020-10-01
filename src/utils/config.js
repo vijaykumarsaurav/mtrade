@@ -86,6 +86,8 @@ export const SAVE_DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'avde/saveDataEntr
 
 //createCAF/validatePreActivation createCAF/submitPreActivationForPortal
 export const DISTRIBUTER_SEARCH = RETAILER_API_BASE_URL + 'preactivation/validate';
+export const MSISDNDOCS_VIEW = RETAILER_API_BASE_URL + 'acquisition/msisdn/acqData';
+
 export const DISTRIBUTER_SUBMIT = RETAILER_API_BASE_URL + 'createCAF/submitPreActivation';
 export const DISTRIBUTER_UPLOAD = RETAILER_API_BASE_URL + 'preactivation/portal';
 

@@ -17,7 +17,7 @@ import SlideShowGalary from "../../utils/SlideShowGalary";
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import "./Verify.css";
+import "./DocsView.css";
 import ReactPanZoom from "react-image-pan-zoom-rotate";
 
 
@@ -70,7 +70,7 @@ class VerifyEdit extends React.Component {
                 presentAddress:'',
                 comments:"",
                 bothReasons:'',
-                loading: true
+                loading: false
 
             }
         this.onChange = this.onChange.bind(this);
@@ -84,86 +84,145 @@ class VerifyEdit extends React.Component {
 
     loadOneTransection(){
 
-
-
-        const selectedProductId = localStorage.getItem("selectedProductId");
+        var data ={
+            txnId : localStorage.getItem("selectedrefNumber")
+        }
        // console.log( "selectedProductId",  selectedProductId);
 
-        if(selectedProductId == null) {
-           // alert("Please select a product to edit.");
-         //   this.props.history.push('/verify');
-            this.cancel();
-        }else {
-            ActivationService.getOneVerify(selectedProductId).then(res => {
-                let data = resolveResponse(res);
-                const selectedProduct = data.result;
-                console.log("selectedProduct",selectedProduct);
-                var objectReason = '';
-                if(selectedProduct && selectedProduct.rejectedReasons){
-                    var listReasons = selectedProduct.rejectedReasons && selectedProduct.rejectedReasons.split("|");
-                    objectReason = listReasons.reduce(function(result, item, index, array) {
-                        result[item] = true;
-                        return result;
-                      }, {}) ;
-                }
+       var resdata = {"status":200,"message":"ok","result":{"simNumber":"12356","mobileNumber":"759899865","poiNumber":"123456789V","poiType":"NIC","submittedBy":"RETAILER","transactionId":8805,"poiFrontImageUrl":"http://125.16.74.160:30601/store/retailerdev/prepaid-acquisition/759899865/759899865_1599222152447_poi_front_image.jpeg","poiBackImageUrl":"http://125.16.74.160:30601/store/retailerdev/prepaid-acquisition/759899865/759899865_1599222152691_poi_back_image.jpeg","customerSignatureUrl":"http://125.16.74.160:30601/store/retailerdev/prepaid-acquisition/759899865/759899865_1599222153584_user_signature.jpeg","customerImageUrl":null,"retailerSignatureUrl":"http://125.16.74.160:30601/store/retailerdev/prepaid-acquisition/759899865/759899865_1599222154348_retailer_signature.jpeg","pefImageUrl":null,"title":"Mr","gender":"M","emailid":null,"presentAddress":null,"alternateNumber":null,"submittedDate":"04-09-2020 17:52:29","resubmittedDate":null,"ftaDate":"04-09-2020 17:52:29","showPersonalDetails":true}}
+       const selectedProduct = resdata.result;
+       console.log("selectedProduct",selectedProduct);
+       var objectReason = '';
+       if(selectedProduct && selectedProduct.rejectedReasons){
+           var listReasons = selectedProduct.rejectedReasons && selectedProduct.rejectedReasons.split("|");
+           objectReason = listReasons.reduce(function(result, item, index, array) {
+               result[item] = true;
+               return result;
+             }, {}) ;
+       }
 
 
-                if(selectedProduct){
-                    this.setState({
-                        address1: selectedProduct.address1,
-                        address2: selectedProduct.address2,
-                        address3: selectedProduct.address3,
-                        presentAddress:selectedProduct.presentAddress,
-                        altContactNumber: selectedProduct.altContactNumber,
-                        comments: selectedProduct.comments,
-                        customerImageUrl: selectedProduct.customerImageUrl,
-                        customerSignatureUrl: selectedProduct.customerSignatureUrl,
-                        deDateTime: selectedProduct.deDateTime,
-                        deUser: selectedProduct.deUser,
-                        emailid: selectedProduct.emailid,
-                        alternateNumber:selectedProduct.alternateNumber,
-                        firstName: selectedProduct.firstName,
-                        gender: selectedProduct.gender,
-                        lastName: selectedProduct.lastName,
-                        middleName: selectedProduct.middleName,
-                        mobileNumber: selectedProduct.mobileNumber,
-                        pefImageUrl: selectedProduct.pefImageUrl,
-                        poiBackImageUrl: selectedProduct.poiBackImageUrl,
-                        poiFrontImageUrl: selectedProduct.poiFrontImageUrl,
-                        retailerSignatureUrl : selectedProduct.retailerSignatureUrl,
-                        poiNumber: selectedProduct.poiNumber,
-                        poiType: selectedProduct.poiType,
-                        status: selectedProduct.status,
-                        submittedBy:  selectedProduct.submittedBy,
-                        showPersonalDetails: selectedProduct.showPersonalDetails,
-                        title: selectedProduct.title,
-                        transactionId: selectedProduct.transactionId,
-                        selectedReasons: objectReason,   //{"One":true, Two: true}
-                        sim : selectedProduct.simNumber,
-                        submittedDate: selectedProduct.submittedDate,
-                        resubmittedDate : selectedProduct.resubmittedDate,
-                        ftaDate : selectedProduct.ftaDate,
-                        prevRejectedImgs : selectedProduct.prevData
-                        });
+       if(selectedProduct){
+           this.setState({
+               address1: selectedProduct.address1,
+               address2: selectedProduct.address2,
+               address3: selectedProduct.address3,
+               presentAddress:selectedProduct.presentAddress,
+               altContactNumber: selectedProduct.altContactNumber,
+               comments: selectedProduct.comments,
+               customerImageUrl: selectedProduct.customerImageUrl,
+               customerSignatureUrl: selectedProduct.customerSignatureUrl,
+               deDateTime: selectedProduct.deDateTime,
+               deUser: selectedProduct.deUser,
+               emailid: selectedProduct.emailid,
+               alternateNumber:selectedProduct.alternateNumber,
+               firstName: selectedProduct.firstName,
+               gender: selectedProduct.gender,
+               lastName: selectedProduct.lastName,
+               middleName: selectedProduct.middleName,
+               mobileNumber: selectedProduct.mobileNumber,
+               pefImageUrl: selectedProduct.pefImageUrl,
+               poiBackImageUrl: selectedProduct.poiBackImageUrl,
+               poiFrontImageUrl: selectedProduct.poiFrontImageUrl,
+               retailerSignatureUrl : selectedProduct.retailerSignatureUrl,
+               poiNumber: selectedProduct.poiNumber,
+               poiType: selectedProduct.poiType,
+               status: selectedProduct.status,
+               submittedBy:  selectedProduct.submittedBy,
+               showPersonalDetails: selectedProduct.showPersonalDetails,
+               title: selectedProduct.title,
+               transactionId: selectedProduct.transactionId,
+               selectedReasons: objectReason,   //{"One":true, Two: true}
+               sim : selectedProduct.simNumber,
+               submittedDate: selectedProduct.submittedDate,
+               resubmittedDate : selectedProduct.resubmittedDate,
+               ftaDate : selectedProduct.ftaDate,
+               prevRejectedImgs : selectedProduct.prevData
+               });
 
-                    
-                        if(this.state.showPersonalDetails){
-                            this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
-                        }else {
-                            this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
-                        }
+           
+               if(this.state.showPersonalDetails){
+                   this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
+               }else {
+                   this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
+               }
 
-                }else{
-                    Notify.showError(JSON.stringify(data));
-                }
-
-                this.setState({loading:false})
-
-            })
+       }else{
+           Notify.showError(JSON.stringify(data));
+       }
 
 
 
-        }
+
+
+    //    ActivationService.msisdnDocsView(data).then(res => {
+    //     let data = resolveResponse(res);
+
+    //     const selectedProduct = data.result;
+    //     console.log("selectedProduct",selectedProduct);
+    //     var objectReason = '';
+    //     if(selectedProduct && selectedProduct.rejectedReasons){
+    //         var listReasons = selectedProduct.rejectedReasons && selectedProduct.rejectedReasons.split("|");
+    //         objectReason = listReasons.reduce(function(result, item, index, array) {
+    //             result[item] = true;
+    //             return result;
+    //           }, {}) ;
+    //     }
+
+    //     if(selectedProduct){
+    //         this.setState({
+    //             address1: selectedProduct.address1,
+    //             address2: selectedProduct.address2,
+    //             address3: selectedProduct.address3,
+    //             presentAddress:selectedProduct.presentAddress,
+    //             altContactNumber: selectedProduct.altContactNumber,
+    //             comments: selectedProduct.comments,
+    //             customerImageUrl: selectedProduct.customerImageUrl,
+    //             customerSignatureUrl: selectedProduct.customerSignatureUrl,
+    //             deDateTime: selectedProduct.deDateTime,
+    //             deUser: selectedProduct.deUser,
+    //             emailid: selectedProduct.emailid,
+    //             alternateNumber:selectedProduct.alternateNumber,
+    //             firstName: selectedProduct.firstName,
+    //             gender: selectedProduct.gender,
+    //             lastName: selectedProduct.lastName,
+    //             middleName: selectedProduct.middleName,
+    //             mobileNumber: selectedProduct.mobileNumber,
+    //             pefImageUrl: selectedProduct.pefImageUrl,
+    //             poiBackImageUrl: selectedProduct.poiBackImageUrl,
+    //             poiFrontImageUrl: selectedProduct.poiFrontImageUrl,
+    //             retailerSignatureUrl : selectedProduct.retailerSignatureUrl,
+    //             poiNumber: selectedProduct.poiNumber,
+    //             poiType: selectedProduct.poiType,
+    //             status: selectedProduct.status,
+    //             submittedBy:  selectedProduct.submittedBy,
+    //             showPersonalDetails: selectedProduct.showPersonalDetails,
+    //             title: selectedProduct.title,
+    //             transactionId: selectedProduct.transactionId,
+    //             selectedReasons: objectReason,   //{"One":true, Two: true}
+    //             sim : selectedProduct.simNumber,
+    //             submittedDate: selectedProduct.submittedDate,
+    //             resubmittedDate : selectedProduct.resubmittedDate,
+    //             ftaDate : selectedProduct.ftaDate,
+    //             prevRejectedImgs : selectedProduct.prevData
+    //             });
+
+            
+    //             if(this.state.showPersonalDetails){
+    //                 this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
+    //             }else {
+    //                 this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
+    //             }
+
+    //     }else{
+    //         Notify.showError(JSON.stringify(data));
+    //     }
+
+    //     this.setState({loading:false})
+
+    // })
+
+
 
      
     }
@@ -171,22 +230,8 @@ class VerifyEdit extends React.Component {
     componentDidMount() {
         this.loadOneTransection();
         localStorage.setItem("lastUrl","verify-edit");
-        const userDetails = JSON.parse(localStorage.getItem("userDetails"));
-        var roleCode = userDetails && userDetails.roleCode; 
-        this.setState({ loader: true,  loginId : userDetails.loginId });
-        if(roleCode){
-            ActivationService.getStaticData(roleCode).then(res => {
-                console.log("reason:", res);
-                let data = resolveResponse(res);
-                var rejectedReasons = '';
-
-                if(data.result){
-                    this.setState({ bothReasons: data.result});
-                }
-             
-
-            })
-        }
+  
+        
     }
     render() {
 
@@ -315,12 +360,6 @@ class VerifyEdit extends React.Component {
 
           console.log("prevRejectedImgs",prevImageDetails)
 
-        var pefcontainer = 2, doccontaiter = 7, datacontainer=3;
-        if(!this.state.showPersonalDetails) {
-            pefcontainer = 5; 
-            doccontaiter = 5;
-            datacontainer = 2
-        }
         if(this.state.loading){
             return (  
                  <React.Fragment>
@@ -330,25 +369,71 @@ class VerifyEdit extends React.Component {
                 )   
         }
         
+        console.log("test", this.state)
         return(
+
+           
 
 
             <React.Fragment>
             <PostLoginNavBar/>
             {/* <h2  style={styles.textStyle}> View and Verify Document </h2> */}
            
-            <Typography variant="h6" style={styles.textStyleHeading} >View and Verify Document</Typography>
 
             <Grid  direction="row" container className="flexGrow" spacing={1}  style={{paddingLeft:"10px",paddingRight:"10px"}}>
 
-                <Grid item xs={12} sm={pefcontainer}>
-                    <Paper style={{overflow:"scroll", height:"78vh"}}>
-                     {this.state.loader ?  this.state.showPersonalDetails ?    <SubmitedByRetailer cafdetails={this.state} /> : <SubmitedByDistributer pefImageUrl={{pefImage: this.state.pefImageUrl, prevPefImage: this.state.prevRejectedImgs && this.state.prevRejectedImgs.pefImageUrl }} /> : ""}
+                <Grid item xs={12} sm={3}>
+                    <Paper>
+                      <div className="mainDivAdjustment">
+
+
+                      <List component="nav" aria-label="main mailbox folders">
+                           
+                             <Typography variant="h6" style={styles.textStyle}> Acquisition Details</Typography>
+                             <div style={{padding:"10px"}}> 
+         
+                            <Typography variant="subtitle1"> <b> Mobile No  </b>  : {this.state.mobileNumber}   </Typography>
+                            <Typography variant="subtitle1"> <b> {this.state.poiType}  </b>  : {this.state.poiNumber}  </Typography>
+
+                            <Typography variant="subtitle1"> <b> SIM  </b>  : {this.state.sim}   </Typography>
+
+                            <Typography variant="subtitle1"> <b> Title  </b>  :  {this.state.title} {this.state.firstName} {this.state.middleName} {this.state.lastName}  </Typography>
+
+                            <Typography variant="subtitle1"> <b> Gender  </b>  : {this.state.gender}   </Typography>
+
+                            <Typography variant="subtitle1"> <b> Alternate  No.  </b>  : {this.state.alternateNumber}   </Typography>
+
+                            <Typography variant="subtitle1"> <b> Gender  </b>  : {this.state.gender}   </Typography>
+
+                            <Typography variant="subtitle1"> <b> Email  </b>  : {this.state.emailid}   </Typography>
+                            <Typography variant="subtitle1"> <b> Present Address  </b>  : {this.state.presentAddress}   </Typography>
+
+                            <Typography variant="subtitle1"> <b> Submitted By  </b>  : {this.state.submittedBy}   </Typography>
+
+                            <Typography variant="subtitle1"> <b> Submit Date   </b>  : {this.state.submittedDate ? this.state.submittedDate.substring(0, 10) : "none"}  </Typography>
+
+                            <Typography variant="subtitle1"> <b> Resubmit Date   </b>  : {this.state.resubmittedDate ? this.state.resubmittedDate.substring(0, 10) : "Not yet resubmitted"}   </Typography>
+
+                            <Typography variant="subtitle1"> <b> FTA Date  </b>  :  {this.state.ftaDate ? this.state.ftaDate.substring(0, 10) : "none"} </Typography>
+                            <Typography variant="subtitle1"> <b> Transaction Id  </b>  : {this.state.transactionId}   </Typography>
+          
+                             </div>
+         
+                          
+         
+                     </List>
+                     </div>
+                  
+                    
                     </Paper>
                 </Grid>
 
-                <Grid item xs={12} sm={doccontaiter}>
+                <Grid item xs={12} sm={9}>
+
                      <Paper style={{overflow:"scroll", height:"78vh"}}>
+                     <Typography variant="h6" style={styles.textStyleHeading}> Document View </Typography>
+                            <br />
+
                            {this.state.status=="image_uploading"? <Typography variant="h6" style={{color:"gray",textAlign:"center"}} ><br /><br /> <br /> <br /> <br /> <br /> <br />No documents are uploaded yet</Typography> : null}
 
                            {/* {this.state.status=="av_pending"? <ImageGalary imageDetails={imageDetails} /> : null} */}
@@ -362,11 +447,10 @@ class VerifyEdit extends React.Component {
                     </Paper>
                 </Grid>
 
-                <Grid item xs={12} sm={datacontainer}>
+                {/* <Grid item xs={12} sm={datacontainer}>
                     <Paper style={{padding:"10px"}}>
                     <Typography variant="h6" style={styles.textStyle}>Verify or Reject</Typography>
                     <form style={styles.formContainer}>
-                        {/* <Typography variant="h6" component="h3">Mobile : {this.state.mobileNumber}   </Typography> */}
                         <TextField label="Mobile No" required={true} fullWidth name="productName" value={this.state.mobileNumber} />
                         <TextField label={this.state.poiType} required={true} fullWidth name="displayName" value={this.state.poiNumber} />
                         <TextField label="SIM" required={true} fullWidth name="displayName" value={this.state.sim} />
@@ -380,28 +464,23 @@ class VerifyEdit extends React.Component {
                         <TextField multiline rows={2} label="Comments" fullWidth margin="none" name="comments" value={this.state.comments} onChange={this.onChange}/>
                     </form>
                     </Paper>
-                </Grid>
+                </Grid> */}
 
             </Grid>
 
             <br />
 
-            {this.state.loader ?
-            <div style={styles.footerButton}><Grid container spacing={2} container
+            <div style={styles.footerButton}>
+                <Grid container spacing={2} container
                 direction="row"
                 justify="center"
                 alignItems="center">
-                        {this.state.approveLoader ? <CircularProgress />: ""}
-                        {this.state.approveDone ? <Button variant="outlined" color="primary" style={{marginLeft: "20px"}}> <DoneSharpIcon color="primary"/> Approved and Loading Next</Button> : ""}
-                        {this.state.approveButton ? (this.state.status=="image_uploading" ?  <Button disabled variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.approveEV}>Approve</Button>: <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.approveEV}>Approve</Button>): ""}
+                     
+                     <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
 
-                        {this.state.rejectLoader ? <CircularProgress />: ""}
-                        {this.state.rejectDone ?  <Button variant="outlined" color="primary" style={{marginLeft: "20px"}}> <DoneSharpIcon color="primary"/> Rejected and Loading Next</Button> : ""}
-                        {this.state.rejectButton ? <Button variant="contained" color="secondary" style={{marginLeft: '20px'}} onClick={this.rejectEV}>Reject</Button>: ""}
-
-                        <Button variant="contained" color="secondary" style={{marginLeft: '20px', backgroundColor:"#33691e"}} onClick={() => this.skipThisVerify("skip")}> SKIP </Button>
-                        <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
-            </Grid></div>: ""}
+                           </Grid>
+                           
+            </div>
 
 
 
@@ -633,11 +712,7 @@ class VerifyEdit extends React.Component {
 
     cancel = (e) => {
 
-        if(localStorage.getItem('fromSubmit') == 'yes'){
-            this.props.history.push('/resubmit-verify');
-        }else{
-            this.props.history.push('/verify');
-        }
+        this.props.history.push('/msisdn-status');
         
     };
 
@@ -693,74 +768,7 @@ const styles ={
 
 
 
-class SubmitedByRetailer extends React.Component {
 
-
-    render() {
-        return(
-            <div className="mainDivAdjustment">
-
-
-             <List component="nav" aria-label="main mailbox folders">
-                  
-                    <Typography variant="h6" style={styles.textStyle}> Acquisition Details</Typography>
-                    <div style={{padding:"10px"}}> 
-                        <b> Title : </b> {this.props.cafdetails.title} {this.props.cafdetails.firstName} {this.props.cafdetails.middleName} {this.props.cafdetails.lastName} 
-                        <br /> 
-                       <b> Gender : </b>  {this.props.cafdetails.gender} 
-                        <br /> 
-                       <b> Address : </b>   {this.props.cafdetails.presentAddress}   
-                        <br /> 
-                      <b> Alternate  No. :</b>   {this.props.cafdetails.alternateNumber}   
-                        <br /> 
-                      <b>  Email : </b> {this.props.cafdetails.emailid} 
-                        <br /> 
-                       <b> FTA Date :</b>  {this.props.cafdetails.ftaDate ? this.props.cafdetails.ftaDate.substring(0, 10) : "none"} 
-                        <br /> 
-                       <b>Submit Date :  </b> {this.props.cafdetails.submittedDate ? this.props.cafdetails.submittedDate.substring(0, 10) : "none"}
-                        <br /> 
-                       <b>Resubmit Date :  </b> {this.props.cafdetails.resubmittedDate ? this.props.cafdetails.resubmittedDate.substring(0, 10) : "Not yet resubmitted"} 
-
-
-                    </div>
-
-                    {/* <ListItem divider button>
-                        <Typography variant="body1" style={styles.textStyle}>Name :  {this.props.cafdetails.title} {this.props.cafdetails.firstName} {this.props.cafdetails.middleName} {this.props.cafdetails.lastName}  </Typography>
-
-                    </ListItem>
-                    <ListItem divider button>
-                        <Typography variant="body1" component="h3">Gender : {this.props.cafdetails.gender}   </Typography>
-                    </ListItem>
-                    <ListItem divider button>
-
-                        <Typography  variant="body1" component="h3">Address :  {this.props.cafdetails.address1} {this.props.cafdetails.address2} {this.props.cafdetails.address3}     </Typography>
-                   </ListItem>
-                    <ListItem divider button>
-                        <Typography  variant="body1" component="h3">Alternet  No. : {this.props.cafdetails.altContactNumber}   </Typography>
-                    </ListItem>
-                    <ListItem  divider button>
-                        <Typography variant="body1" component="h3">DOB : {this.props.cafdetails.dob} </Typography>
-                    </ListItem>
-
-                    <ListItem divider button>
-                     <Typography variant="body1" component="h3">FTA Date : {this.props.cafdetails.ftaDate ? this.props.cafdetails.ftaDate.substring(0, 10) : "none"}  </Typography>
-                    </ListItem>
-
-
-                     <ListItem divider button>
-                     <Typography variant="body1" component="h3">Submit Date : {this.props.cafdetails.submittedDate ? this.props.cafdetails.submittedDate.substring(0, 10) : "none"}  </Typography>
-                    </ListItem>
-
-                    <ListItem  divider button>
-                    <Typography variant="body1" component="h3">Resubmit Date : {this.props.cafdetails.resubmittedDate ? this.props.cafdetails.resubmittedDate.substring(0, 10) : "Not yet resubmitted"}  </Typography>
-                    </ListItem> */}
-
-
-            </List>
-            </div>
-        )
-    }
-}
 
 class SubmitedByDistributer extends React.Component {
     render() {

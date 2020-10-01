@@ -11,6 +11,7 @@ import Notify from "../../utils/Notify";
 
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -46,9 +47,24 @@ class CurrentMSISDNStatus extends React.Component {
         };
        
         this.searchRetailer = this.searchRetailer.bind(this);
+        this.viewDocs = this.viewDocs.bind(this);
+
     }
 
   
+
+    viewDocs = (refNumber) => {
+        console.log("productid, row.sim",refNumber  )
+        
+        window.localStorage.setItem("selectedrefNumber", refNumber);
+        this.props.history.push('/view-docs');
+
+        // this.props.history.push({
+        //     pathname: '/edit-doc',
+        //     search: '?query=abc',
+        //     state: { rowdata: productId }
+        //   })
+    }
 
 
 
@@ -105,28 +121,13 @@ class CurrentMSISDNStatus extends React.Component {
     }
 
    
-
-
-
-
-
-
     render() {
 
         return (
 
             <React.Fragment >
                 <PostLoginNavBar />
-
-
-                
-
-
-
             <div style={{ padding: "20px" }} >
-
-
-                  
                 <Paper style={{padding:"15px", position:"fixed", width:"97%"}} >
                 
                     <Grid syt  container spacing={24} container
@@ -155,6 +156,11 @@ class CurrentMSISDNStatus extends React.Component {
                 <Table style={{marginTop: '100px'}}  aria-label="sticky table">
                         <TableHead >
                             <TableRow style={{width:"170px",whiteSpace: "nowrap"}}>
+                                <TableCell align="">View</TableCell>
+                                <TableCell align="">Image Count</TableCell>
+
+
+                                
                                 <TableCell align="">Zone </TableCell>
                                 <TableCell align="">MSISDN</TableCell>
                                 <TableCell align="">NIC No.</TableCell>
@@ -182,8 +188,12 @@ class CurrentMSISDNStatus extends React.Component {
 
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
                             {this.state.msisdnDetails ? this.state.msisdnDetails.map(row => (
-                                <TableRow hover   key={row.txnId} >
+                                <TableRow hover   key={row.refNumber} >
+                                    <TableCell  align="center" onClick={() => this.viewDocs(row.refNumber)}><VisibilityIcon style={{cursor:"hand"}} /></TableCell>
+                                    <TableCell align="center">{row.imageCount}</TableCell> 
+
                                     <TableCell align="center">{row.zone}</TableCell> 
+                                    
                                     <TableCell align="center" >{row.msisdnNumber}</TableCell>
                                     <TableCell align="center">{row.nicNumber}</TableCell>
                                     <TableCell align="center">{row.simNumber}</TableCell>
