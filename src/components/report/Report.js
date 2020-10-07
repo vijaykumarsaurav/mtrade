@@ -379,33 +379,43 @@ class Report extends React.Component {
 
         }
 
-        var adminReports = []; 
 
+        var distReports = []; 
+        distReports.push(<MenuItem value="detailedPendingReport">Distributor Detail Report</MenuItem>); 
+        distReports.push(<MenuItem value="rejectReport"> Distributor Reject Data Report</MenuItem>); 
+        distReports.push(<MenuItem value="summaryReportForDistributor">Distributor Summary Report</MenuItem>); 
+        distReports.push(<MenuItem value="distributorLastUploadedData">Distributor Uploaded Data Status</MenuItem>); 
+        distReports.push(<MenuItem value="ftaDeviationReport">FTA Deviation Report</MenuItem>); 
+        
 
-
-        //POST /reports/ftaDeviationReportCsv
+        var adminReports = [];
+        adminReports.push(<MenuItem value="agentAuditReport">Agent Audit Report</MenuItem>); 
         adminReports.push(<MenuItem value="agentStatusReport">Agent Status Report</MenuItem>); 
+        adminReports.push(<MenuItem value="agentWisePerformanceLog">Agent Wise Performance Report</MenuItem>); 
         adminReports.push(<MenuItem value="backOfficeReceptionReport">Back Office Reception Report</MenuItem>); 
         adminReports.push(<MenuItem value="backOfficeReceptionReportWithDetails">Back Office Reception Report with Details</MenuItem>); 
-        adminReports.push(<MenuItem value="agentWisePerformanceLog">Agent Wise Performance Report</MenuItem>); 
-        adminReports.push(<MenuItem value="agentAuditReport">Agent Audit Report</MenuItem>); 
+        adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
+        adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="mpinResetCount">D-1 Mpin Reset Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
+        adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
+        adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="detailedPendingReport">Distributor Detail Report</MenuItem>); 
+        adminReports.push(<MenuItem value="rejectReport"> Distributor Reject Data Report</MenuItem>); 
+        adminReports.push(<MenuItem value="summaryReportForDistributor">Distributor Summary Report</MenuItem>); 
+        adminReports.push(<MenuItem value="distributorLastUploadedData">Distributor Uploaded Data Status</MenuItem>); 
+        adminReports.push(<MenuItem value="ftaDeviationReport">FTA Deviation Report</MenuItem>); 
         adminReports.push(<MenuItem value="ipacsReadyReport">IPACS Ready Report</MenuItem>); 
         adminReports.push(<MenuItem value="noneComplainceReport">None Compliance Report</MenuItem>); 
         adminReports.push(<MenuItem value="omniTransferReport">OMNI Transfer Report</MenuItem>);
-        adminReports.push(<MenuItem value="zoneWiseDetailedReport">Zone Wise Detailed Report </MenuItem>);
         adminReports.push(<MenuItem value="simSwapReport">SIM Swap Report</MenuItem>);
-        adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
-        adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
+        adminReports.push(<MenuItem value="zoneWiseDetailedReport">Zone Wise Detailed Report </MenuItem>);
 
         //sprint 8 changes
-        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="mpinResetCount">D-1 Mpin Reset Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
 
         // BY_VERIFICATION_DATE,
         // BY_DATA_ENTRY_DATE
@@ -441,6 +451,8 @@ class Report extends React.Component {
                         Report Download
                         </Typography>
              
+                      
+
                         <Grid syt container spacing={2} container
                             direction="row"
                             justify="right"
@@ -450,12 +462,9 @@ class Report extends React.Component {
                                 {/* ftaDeviationReport */}
                                     <InputLabel htmlFor="Active" required={true}>Select type of report</InputLabel>
                                     <Select name="reporttype" disabled={this.state.generateReportLoader} value={this.state.reporttype} onChange={this.onChange}>
-                                    <MenuItem value="distributorLastUploadedData">Distributor Uploaded Data Status</MenuItem>
-                                    <MenuItem value="detailedPendingReport">Distributor Detail Report</MenuItem>
-                                    <MenuItem value="rejectReport"> Distributor Reject Data Report</MenuItem>
-                                    <MenuItem value="summaryReportForDistributor">Distributor Summary Report</MenuItem>
-                                    <MenuItem value="ftaDeviationReport">FTA Deviation Report</MenuItem>
-                                    
+                                
+                                    {this.state.roleCode==="DIST" ? distReports : ""}
+
                                     {this.state.roleCode==="ADMIN" ? adminReports : ""}
                                     </Select>
                                 </FormControl>
