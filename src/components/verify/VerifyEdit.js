@@ -141,9 +141,7 @@ class VerifyEdit extends React.Component {
                         selectedReasons: objectReason,   //{"One":true, Two: true}
                         sim : selectedProduct.simNumber,
                         submittedDate: selectedProduct.submittedDate,
-                        submittedDateStr: selectedProduct.submittedDateStr,
                         resubmittedDate : selectedProduct.resubmittedDate,
-                        resubmittedDateStr : selectedProduct.resubmittedDateStr,
                         ftaDate : selectedProduct.ftaDate,
                         prevRejectedImgs : selectedProduct.prevData
                         });
@@ -401,7 +399,7 @@ class VerifyEdit extends React.Component {
                         {this.state.rejectDone ?  <Button variant="outlined" color="primary" style={{marginLeft: "20px"}}> <DoneSharpIcon color="primary"/> Rejected and Loading Next</Button> : ""}
                         {this.state.rejectButton ? <Button variant="contained" color="secondary" style={{marginLeft: '20px'}} onClick={this.rejectEV}>Reject</Button>: ""}
 
-                        <Button variant="contained" color="secondary" style={{marginLeft: '20px', backgroundColor:"#33691e"}} onClick={this.skipThisVerify}> SKIP </Button>
+                        <Button variant="contained" color="secondary" style={{marginLeft: '20px', backgroundColor:"#33691e"}} onClick={() => this.skipThisVerify("skip")}> SKIP </Button>
                         <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
             </Grid></div>: ""}
 
@@ -452,7 +450,7 @@ class VerifyEdit extends React.Component {
     }
 
 
-    skipThisVerify = (e) => {
+    skipThisVerify = (eventType) => {
         this.setState({ comments : ""});
 
 
@@ -470,10 +468,11 @@ class VerifyEdit extends React.Component {
         }
 
        // this.updateLocalActList(selectedProductId);
+       if(eventType === "skip"){
         this.onlockTransectionOnSkip(selectedProductId);
+       }
         console.log("next id",nextid );
         
-
         if(nextid){
             localStorage.setItem("selectedProductId", nextid);
            // Notify.showSuccess("Acquisition skipped successfully and Lodding next...");
@@ -554,7 +553,7 @@ class VerifyEdit extends React.Component {
 
           // this.skipThisVerify();
             setTimeout(() => {
-                this.skipThisVerify();
+                this.skipThisVerify("loadnext");
             }, 2000);
         });
     };
@@ -626,7 +625,7 @@ class VerifyEdit extends React.Component {
          
 
             setTimeout(() => {
-                this.skipThisVerify();
+                this.skipThisVerify("loadnext");
             }, 2000);
         });
 
@@ -718,9 +717,9 @@ class SubmitedByRetailer extends React.Component {
                         <br /> 
                        <b> FTA Date :</b>  {this.props.cafdetails.ftaDate ? this.props.cafdetails.ftaDate.substring(0, 10) : "none"} 
                         <br /> 
-                       <b>Submit Date :  </b> {this.props.cafdetails.submittedDateStr ? this.props.cafdetails.submittedDateStr.substring(0, 10) : "none"}
+                       <b>Submit Date :  </b> {this.props.cafdetails.submittedDate ? this.props.cafdetails.submittedDate.substring(0, 10) : "none"}
                         <br /> 
-                       <b>Resubmit Date :  </b> {this.props.cafdetails.resubmittedDateStr ? this.props.cafdetails.resubmittedDateStr.substring(0, 10) : "Not yet resubmitted"} 
+                       <b>Resubmit Date :  </b> {this.props.cafdetails.resubmittedDate ? this.props.cafdetails.resubmittedDate.substring(0, 10) : "Not yet resubmitted"} 
 
 
                     </div>

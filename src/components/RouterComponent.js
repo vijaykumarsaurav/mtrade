@@ -35,6 +35,7 @@ import AdminWelcome from './login/AdminWelcome';
 import RoleManagement from './login/RoleManagement';
 
 import CurrentMSISDNStatus from './backoffice/CurrentMSISDNStatus';
+import MSISDNDocsView from './backoffice/MSISDNDocsView';
 
 
 
@@ -79,6 +80,8 @@ const AppRouter = () => {
                     <Route path="/role" component={RoleManagement} />
 
                     <Route path="/msisdn-status" component={CurrentMSISDNStatus} />
+                    <Route path="/view-docs" component={MSISDNDocsView} />
+
                     
                     {/* <Route path="/testreport" component={TestReport} /> */}
 

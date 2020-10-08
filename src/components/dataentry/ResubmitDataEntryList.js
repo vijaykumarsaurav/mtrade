@@ -176,12 +176,12 @@ class DataEntryList extends React.Component{
     searchOnDB(mobileNumber) {
         
 
-        var dataentryListingTxn = localStorage.getItem("dataentryListingTxn");
-        dataentryListingTxn =  dataentryListingTxn && dataentryListingTxn.split(',');
+        // var dataentryListingTxn = localStorage.getItem("dataentryListingTxn");
+        // dataentryListingTxn =  dataentryListingTxn && dataentryListingTxn.split(',');
        
-        if(dataentryListingTxn.length >= 1){
-            this.onlockTransectionOnSkip(dataentryListingTxn); 
-        }
+        // if(dataentryListingTxn.length >= 1){
+        //     this.onlockTransectionOnSkip(dataentryListingTxn); 
+        // }
 
         this.loadProductList(mobileNumber) ;
 

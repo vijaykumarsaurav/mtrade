@@ -490,7 +490,7 @@ class DataEntryEdit extends React.Component {
                                     {this.state.approveButton ? <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.submitDataEntry}>Submit</Button>: ""} 
 
 
-                                <Button variant="contained" color="secondary" style={{marginLeft: '20px', backgroundColor:"#33691e"}} onClick={this.skipThisVerify}> SKIP </Button>
+                                <Button variant="contained" color="secondary" style={{marginLeft: '20px', backgroundColor:"#33691e"}} onClick={() => this.skipThisVerify('skip') }> SKIP </Button>
                                 <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
                             
                         </Grid></div>
@@ -549,7 +549,7 @@ class DataEntryEdit extends React.Component {
     }
 
 
-    skipThisVerify = (e) => {
+    skipThisVerify = (eventType) => {
 
          //reset 
          this.setState({
@@ -593,7 +593,9 @@ class DataEntryEdit extends React.Component {
           }
   
          // this.updateLocalActList(dataEntryId); 
-          this.onlockTransectionOnSkip(dataEntryId); 
+         if(eventType === "skip"){
+            this.onlockTransectionOnSkip(dataEntryId); 
+         }
         //  console.log("nextid",nextid); 
           if(nextid){
 //            Notify.showSuccess("Acquisition skipped successfully and Lodding next...");
@@ -684,7 +686,7 @@ class DataEntryEdit extends React.Component {
            
 
             setTimeout(() => {
-                this.skipThisVerify(); 
+                this.skipThisVerify("loadnext"); 
             }, 2000);
 
             });
