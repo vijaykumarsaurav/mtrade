@@ -671,7 +671,7 @@ class RechargePackAdd extends React.Component {
     formData.append('description', this.state.description);
     formData.append('activationStatus', this.state.activationStatus);
     formData.append('comment', this.state.comment);
-  //  formData.append('isFtr', this.state.isFtr);
+    formData.append('isFtr', this.state.isFtr);
 
     if(this.state.selectedZone.length){
       formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
