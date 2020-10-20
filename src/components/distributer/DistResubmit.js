@@ -128,8 +128,9 @@ class DataEntryList extends React.Component{
             // document.getElementById('poi_back_image_file').innerHTML = ''; 
 
             const data = {
-                "mobileNumber" : this.state.mobile
-            };  
+                "mobileNumber" : this.state.mobile,
+                "paperResubmit":true
+            }; 
             
 
            ActivationService.searchDistributerResubmit(data)
