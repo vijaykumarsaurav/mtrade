@@ -317,7 +317,7 @@ class DataEntryEdit extends React.Component {
                             </Grid>
 
                             <Grid item xs={12} sm={6}>
-                                <TextField type="number" label="Alternate Contact No" value={this.state.altContactNumber} fullWidth name="altContactNumber"  onChange={this.onChange}/>
+                                <TextField  label="Alternate Contact No" value={this.state.altContactNumber} fullWidth name="altContactNumber"  onChange={this.onChangeAlternateNo}/>
                             </Grid>
                         </Grid>
 
@@ -660,6 +660,12 @@ class DataEntryEdit extends React.Component {
             return;
         }
 
+        if(this.state.altContactNumber && this.state.altContactNumber.length < 9){
+            Notify.showError("Alternate contact number not valid");
+            return;
+        }
+
+
             this.setState({ approveLoader: true});
             this.setState({ approveButton: false});
             
@@ -704,25 +710,6 @@ class DataEntryEdit extends React.Component {
             });
     };
 
-    reject = (e) => {
-        e.preventDefault();
-       // alert("Reject"); 
-       Notify.showSuccess("Rejected");
-
-        if(!this.state.productName || !this.state.displayName || !this.state.servingTimeInMins || !this.state.priority
-            || !this.state.iconUrl ){
-            Notify.showError("Missing required fields");
-            return;
-        }
-        const product = {id:this.state.id, active: this.state.active, onlineBooking: this.state.onlineBooking, showRecent: this.state.showRecent, productName: this.state.productName,
-            displayName: this.state.displayName,servingTimeInMins: this.state.servingTimeInMins, priority: this.state.priority,iconUrl: this.state.iconUrl, tagUrl: this.state.tagUrl, helpTextImage: this.state.helpTextImage, helpText: this.state.helpText};
-        ActivationService.updateProduct(product)
-            .then(res => {
-                resolveResponse(res, "Updated successfully.");
-                //this.props.history.push('/dataentry');
-                this.cancel();
-            });
-    };
 
     cancel = (e) => {
         if(localStorage.getItem('fromSubmit') == 'yes'){
@@ -732,8 +719,16 @@ class DataEntryEdit extends React.Component {
         }
     };
 
-    onChange = (e) => {
+    onChangeAlternateNo = (e) => {
+        const re = /^[0-9\b]+$/;
+        if (e.target.value === '' || re.test(e.target.value) && e.target.value.length <= 10) {
+            this.setState({altContactNumber: e.target.value})
+        }else{
+            this.setState({altContactNumber: e.target.value.replace(/[^0-9]/g, '').substring(0, 10)})  
+        }  
+    }
 
+    onChange = (e) => {
         var data =  e.target.value.trim();
         var test = !data.includes("$") && !data.includes("&") ; 
         if(test){
@@ -745,13 +740,7 @@ class DataEntryEdit extends React.Component {
             }else{
                 this.setState({[e.target.name]: e.target.value});
             }
-
         //this.setState({[e.target.name]: e.target.value});
-
-        }
-
-        if(e.target.name == "altContactNumber" && e.target.value.length > 10){
-            this.setState({altContactNumber: e.target.value.substring(0, 10)});   
         }
 
         if(e.target.name == "title" &&  e.target.value == "Ms" || e.target.value == 'Mrs'){
@@ -764,6 +753,8 @@ class DataEntryEdit extends React.Component {
         if(e.target.value.length == 0){
             this.setState({firstName: "", middleName: "", lastName: ""});
         }
+
+
 
 
     }

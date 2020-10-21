@@ -119,7 +119,7 @@ class DataEntryList extends React.Component{
 
     searchOnDB() {       
            window.localStorage.setItem("deviceId",new Date().getTime().toString())
-
+           this.setState({errorMsg:  ''})
            document.getElementById("uploadform").reset();
            this.setState({uploadResponse: "",pef_image : null, poi_front_image:null , poi_back_image : null })
 
@@ -132,8 +132,14 @@ class DataEntryList extends React.Component{
            ActivationService.searchDistributerResubmit(data)
             .then((res) => {
               
-                let data = resolveResponse(res);
+               // let data = resolveResponse(res);
+                var data = res.data; 
+                if(res.data && res.data.message){
+                    this.setState({errorMsg:  res.data.message})
+                }
+
                 if(data.message == "ok" && data.status == 200){
+                    this.setState({errorMsg:  ''})
                     this.setState({nic:data.result.nic, numberFound : true, ftaDate : data.result.ftaDate, uploadFlag: true})
                     this.setState({txnId:data.result.transactionId })
                     this.setState({sim: data.result.simNumber})
@@ -167,7 +173,7 @@ class DataEntryList extends React.Component{
     
         if(file.type == "image/png" || file.type == "image/jpeg"){
             var fileSize = file.size / 1000; //in kb
-            if(fileSize >= 100 && fileSize <= 2048){
+            if(fileSize >= 100 && fileSize <= 3072){
               const fileext =  filename.split('.').pop(); 
               Object.defineProperty(file, 'name', {
                 writable: true,
@@ -175,7 +181,7 @@ class DataEntryList extends React.Component{
               });
               return file;
             }else{
-              Notify.showError("File size should be grater than 100KB and less than 2MB")
+              Notify.showError("File size should be grater than 100KB and less than 3MB")
             }
         }else {
           Notify.showError("Only png and jpeg file allowd.")
@@ -184,7 +190,6 @@ class DataEntryList extends React.Component{
       }
 
     onChangeFileUpload = e => {
-        console.log(e.target.files[0]);
         const filetoupload = this.validateUploadFile(e.target.files[0]); 
         if (filetoupload) {
             this.setState({ [e.target.name]: e.target.files[0]});
@@ -296,6 +301,14 @@ class DataEntryList extends React.Component{
                         </form>
 
                     <br /> 
+
+                    {this.state.errorMsg ? 
+                    <Paper style={{padding:"20px"}}>
+                            <Typography variant="body1" style={{color:"#f44336"}} >
+                              {this.state.errorMsg}	
+                            </Typography> 
+                    </Paper>
+                    :""}
 
                     {this.state.numberFound ? 
                        

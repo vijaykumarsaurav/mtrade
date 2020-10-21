@@ -169,7 +169,6 @@ class VerifyEdit extends React.Component {
     }
 
     componentDidMount() {
-        this.loadOneTransection();
         localStorage.setItem("lastUrl","verify-edit");
         const userDetails = JSON.parse(localStorage.getItem("userDetails"));
         var roleCode = userDetails && userDetails.roleCode; 
@@ -179,14 +178,12 @@ class VerifyEdit extends React.Component {
                 console.log("reason:", res);
                 let data = resolveResponse(res);
                 var rejectedReasons = '';
-
                 if(data.result){
                     this.setState({ bothReasons: data.result});
                 }
-             
-
             })
         }
+        this.loadOneTransection();
     }
     render() {
 

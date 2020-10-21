@@ -192,7 +192,7 @@ class DataEntryList extends React.Component{
     
         if(file.type == "image/png" || file.type == "image/jpeg"){
             var fileSize = file.size / 1000; //in kb
-            if(fileSize >= 100 && fileSize <= 2048){
+            if(fileSize >= 100 && fileSize <= 3072){
               const fileext =  filename.split('.').pop(); 
               Object.defineProperty(file, 'name', {
                 writable: true,
@@ -200,7 +200,7 @@ class DataEntryList extends React.Component{
               });
               return file;
             }else{
-              Notify.showError("File size should be grater than 100KB and less than 2MB")
+              Notify.showError("File size should be grater than 100KB and less than 3MB")
             }
         }else {
           Notify.showError("Only png and jpeg file allowd.")
