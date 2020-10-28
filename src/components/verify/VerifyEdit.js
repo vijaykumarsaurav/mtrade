@@ -415,9 +415,8 @@ class VerifyEdit extends React.Component {
 
     handleChange = name => event => {
 
-    
         this.setState({ ...this.state, selectedReasons: {...this.state.selectedReasons, [name]: event.target.checked } });
-       // console.log("name name", onlycode); 
+        console.log("name this.state.selectedReasons", this.state.selectedReasons); 
 
     };
 
@@ -584,7 +583,10 @@ class VerifyEdit extends React.Component {
         var onlyCode = []; 
         for(var i=0; i < keys.length; i++){
             var key = keys[i] && keys[i].split('-')[0].trim();
-            onlyCode.push(key);
+            if(this.state.selectedReasons[keys[i]]) {
+                onlyCode.push(key);
+            }
+          
         }
         console.log("selectd onlyCode", onlyCode); 
 

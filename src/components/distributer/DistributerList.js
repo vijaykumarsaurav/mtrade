@@ -277,13 +277,9 @@ class DataEntryList extends React.Component{
             let data = resolveResponse(res);
             this.setState({uploadResponse: data.message, uploadLoader:false }); 
 
-            // if(data.status == 200){
-            //     this.setState({uploadResponse: data.message, uploadLoader:false }); 
-
-            // }else {
-            //     Notify.showError(data.message);
-            //     return;
-            // }
+            setTimeout(() => {
+                window.location.reload();
+             }, 5000);
         });
    
   };

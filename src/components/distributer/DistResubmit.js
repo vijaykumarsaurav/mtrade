@@ -123,10 +123,6 @@ class DataEntryList extends React.Component{
            document.getElementById("uploadform").reset();
            this.setState({uploadResponse: "",pef_image : null, poi_front_image:null , poi_back_image : null })
 
-            // document.getElementById('pef_image_file').innerHTML = ''; 
-            // document.getElementById('poi_front_image_file').innerHTML = ''; 
-            // document.getElementById('poi_back_image_file').innerHTML = ''; 
-
             const data = {
                 "mobileNumber" : this.state.mobile,
                 "paperResubmit":true
@@ -141,44 +137,17 @@ class DataEntryList extends React.Component{
                     this.setState({nic:data.result.nic, numberFound : true, ftaDate : data.result.ftaDate, uploadFlag: true})
                     this.setState({txnId:data.result.transactionId })
                     this.setState({sim: data.result.simNumber})
-                    this.setState({poiType: data.result.poiType, poiNumber: data.result.poiNumber })
-
-                    
-                    // this.setState({ user_image_upload: true, user_signature_upload :true});
-                    // this.setState({ poi_front_image_upload:data.result.poiFrontPending, poi_back_image_upload : data.result.poiBackPending,pef_image_upload : data.result.pefFPending});
-
-                    // if(!data.result.pefFPending){
-                    //     this.setState({pef_image_response: true })
-                    // }
-
-                    // if(!data.result.poiFrontPending){
-                    //     this.setState({poi_front_image_response: true})
-                    // }
-                    // if(!data.result.poiBackPending){
-                    //     this.setState({poi_back_image_response: true})
-                    // }
-
-
+                    this.setState({poiType: data.result.poiType, poiNumber: data.result.poiNumber });
+              
                 }else {
-                    
-                  //  this.setState({pef_image_response: false, poi_front_image_response: false,poi_back_image_response: false })
-                   
+                                       
                     this.setState({numberFound:false})
-
-                 //   this.props.history.push('/');
                 }
             });
 
             document.getElementById("uploadform").reset();
 
-            // document.getElementById('user_image_response').innerHTML = ''; 
-            // document.getElementById('user_signature_response').innerHTML = ''; 
-            // document.getElementById('retailer_signature_response').innerHTML = ''; 
-
-            // document.getElementById('poi_front_image_response').innerHTML = ''; 
-            // document.getElementById('poi_back_image_response').innerHTML = ''; 
-            // document.getElementById('pef_image_response').innerHTML = ''; 
-
+         
             
             this.setState({ user_image_upload: false, user_signature_upload :false,  uploadFlag: false});
             this.setState({ poi_front_image_upload:false, poi_back_image_upload : false,pef_image_upload:false});
@@ -223,16 +192,6 @@ class DataEntryList extends React.Component{
         else{
             e.target.value = null;
         }
-        // if(e.target.name == "poi_front_image" && e.target.files[0].name != "poi_front_image.png" ){
-        //     document.getElementById(e.target.name+'_file').value = "";
-        //     Notify.showError("Image name to be 'poi_front_image.png'");
-        //     return;
-        // }
-        // if(e.target.name == "poi_back_image" && e.target.files[0].name != "poi_back_image.png" ){
-        //     document.getElementById(e.target.name+'_file').value = "";
-        //     Notify.showError("Image name to be 'poi_back_image.png'");
-        //     return;
-        // }
     }; 
 
 
@@ -283,13 +242,9 @@ class DataEntryList extends React.Component{
             let data = resolveResponse(res);
             this.setState({uploadResponse: data.message, uploadLoader:false }); 
 
-            // if(data.status == 200){
-            //     this.setState({uploadResponse: data.message, uploadLoader:false }); 
-
-            // }else {
-            //     Notify.showError(data.message);
-            //     return;
-            // }
+            setTimeout(() => {
+                window.location.reload();
+             }, 5000);
         });
    
   };

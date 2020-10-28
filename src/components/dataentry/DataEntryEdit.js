@@ -83,7 +83,8 @@ class DataEntryEdit extends React.Component {
                 presentAddress:"",
                 pefImageUrl:'',
                 comment:"",
-                loading: true
+                loading: true,
+                isValidEmail:true
                 
         }
         this.updateLocalActList = this.updateLocalActList.bind(this);
@@ -91,6 +92,8 @@ class DataEntryEdit extends React.Component {
         this.skipThisVerify = this.skipThisVerify.bind(this);
         this.loadOneTransection = this.loadOneTransection.bind(this);
         this.myCallback = this.myCallback.bind(this);
+        this.onChangeEmail = this.onChangeEmail.bind(this);
+        this.onChangeAlternateNo = this.onChangeAlternateNo.bind(this);
         this.slideRef = React.createRef(); 
 
     }
@@ -321,7 +324,7 @@ class DataEntryEdit extends React.Component {
                         <Grid spacing={1} container direction="row">
                             <Grid item xs={12} sm={12}>
                             {/* placeholder="Email id"  */}
-                                <TextField label="Email id"  fullWidth  name="emailid" value={this.state.emailid} onChange={this.onChange}/>
+                                <TextField label="Email id" fullWidth  name="emailid" value={this.state.emailid} onChange={this.onChangeEmail}/>
                             </Grid>
 
                           
@@ -632,6 +635,15 @@ class DataEntryEdit extends React.Component {
     //    console.log("data entry post data",this.state)
 
         //!this.state.gender || !this.state.title || !this.state.poiNumber || !this.state.dob || !this.state.firstName || !this.state.lastName || !this.state.address1 
+        
+        var pattern = new RegExp(/^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i);
+        if(this.state.emailid){
+            if(!pattern.test(this.state.emailid)){
+                Notify.showError("Email id is not valid");
+                return;
+            }
+        }
+
         if(!this.state.firstName){
             Notify.showError("Missing First Name");
             return;
@@ -723,7 +735,7 @@ class DataEntryEdit extends React.Component {
     onChange = (e) => {
 
         var data =  e.target.value.trim();
-        var test = !data.includes("@") && !data.includes("$") && !data.includes("&") ; 
+        var test = !data.includes("$") && !data.includes("&") ; 
         if(test){
            
             if(e.target.name == "firstName" || e.target.name == "middleName" || e.target.name == "lastName" ){
@@ -754,6 +766,11 @@ class DataEntryEdit extends React.Component {
         }
 
 
+    }
+
+    onChangeEmail = (e) => {
+
+        this.setState({[e.target.name]: e.target.value});
     }
 
     onChangeDob = (e) => {
