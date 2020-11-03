@@ -3,6 +3,8 @@ import React from "react";
 import LoginComponent from "./login/LoginComponent";
 
 import Report from "./report/Report";
+import ReportPOC from "./report/ReportPOC";
+
 import TestReport from "./report/TestReport";
 
 //Baneer 
@@ -75,6 +77,7 @@ const AppRouter = () => {
                     <Route path="/offerupload" component={OfferUpload} />
 
                     <Route path="/report" component={Report} />
+                    <Route path="/reportpoc" component={ReportPOC} />
                     <Route path="/welcome" component={AdminWelcome} />
 
                     <Route path="/role" component={RoleManagement} />
