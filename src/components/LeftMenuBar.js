@@ -93,6 +93,14 @@ export const AdminMenuList = (
       <ListItemText primary="Reports" />
     </ListItem>
 
+    <ListItem button component='a' href={"#/reportpoc"}>
+      <ListItemIcon>
+        <BarChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Reports POC" />
+    </ListItem>
+
+
 
   </div>
 );

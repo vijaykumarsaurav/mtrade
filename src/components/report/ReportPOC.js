@@ -23,6 +23,8 @@ import Paper from '@material-ui/core/Paper';
 import MenuItem from "@material-ui/core/MenuItem";
 import MaterialUIPickers from "./MaterialUIPickers";
 
+import LinearProgress from "./LinearBuffer";
+
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
 import { CSVLink } from "react-csv";
 import * as moment from 'moment';
@@ -142,7 +144,9 @@ class Report extends React.Component {
             this.setState({allReport: data.result}) ; 
             //console.log("tabke", data); 
             if(data.result[0].status === 'COMPLETED'){
+                this.setState({ generateReportMsg: ""});
                 clearInterval(this.state.stopGettingReport);
+               
             }
          });
     }
@@ -281,7 +285,7 @@ class Report extends React.Component {
                 let data = resolveResponse(res);
 
                 if(data.status == 200 && data.message === 'ok'){
-                    this.setState({ generateReportMsg:  data.result});
+                    this.setState({ generateReportMsg:  'Report in Progress'});
                     this.listTheReport();
                 }
 
@@ -625,7 +629,7 @@ class Report extends React.Component {
                                 {!this.state.generateReportLoader ? 
                                 <Button disabled={this.state.disabledGenButton} variant="contained" color="Primary" style={{ marginLeft: '20px' }} onClick={this.getReportDetails} >Generate Report</Button>
                                 :""}
-                                
+
                                 {this.state.generateReportLoader ? 
                                 <Typography  component="h5" color="primary" gutterBottom>
                                     {this.state.generateReportMsg}
@@ -726,10 +730,12 @@ class Report extends React.Component {
                                 <TableCell align="">Retrieve Type</TableCell>
                                 <TableCell align="">Start Date</TableCell>
                                 <TableCell align="">End Date</TableCell>
-                                <TableCell align="">Generate Status</TableCell>
-                                <TableCell align="">Description</TableCell>
-                                <TableCell align="">Download</TableCell>
+                                <TableCell align="center">Generate Status</TableCell>
                                
+                                <TableCell align="">Download</TableCell>
+                                <TableCell align="">Time Taken</TableCell>
+                                <TableCell align="">Requested Date</TableCell>
+                                <TableCell align="">Description</TableCell>
 
                             </TableRow>
                         </TableHead>
@@ -741,10 +747,12 @@ class Report extends React.Component {
                                     <TableCell >{row.retrieveType}</TableCell>
                                     <TableCell >{row.startDate}</TableCell>
                                     <TableCell>{row.endDate}</TableCell>
-                                    <TableCell >{row.status}</TableCell>
+                                    <TableCell align="center" > {row.status === 'PENDING' ? <img src="/pswait.svg" /> : row.status}</TableCell>
+
+                                    <TableCell >{row.status === 'COMPLETED' ? <a target="_blank" href={row.reportUrl}> Report Download </a> : <LinearProgress  />}</TableCell>
+                                    <TableCell >{row.timeTaken}</TableCell>
+                                    <TableCell >{row.requestedTime}</TableCell>
                                     <TableCell >{row.descr}</TableCell>
-                                    <TableCell >{row.status === 'COMPLETED' ? <a target="_blank" href={row.reportUrl}> Report Download </a> : ""}</TableCell>
-                              
                                 </TableRow>
                             )):  ""}
                         </TableBody>
