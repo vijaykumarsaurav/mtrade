@@ -33,16 +33,11 @@ class OfferUpload extends React.Component {
         super(props);
         this.state = {
             products: [],
-            retailerOnboardExcelTemplatePath: "",
-            retailerDeleteExcelTemplatePath: "",
             deletefile:'', 
             searchby:'',
             retailerDetails: '',
             allOfferData:""
-
-
         };
-        this.getAdmminStaticData = this.getAdmminStaticData.bind(this);
         this.uploadOffer = this.uploadOffer.bind(this);
         this.relailerDelete = this.relailerDelete.bind(this);
         this.searchRetailer = this.searchRetailer.bind(this);
@@ -106,8 +101,6 @@ class OfferUpload extends React.Component {
 
 
     componentDidMount() {
-        this.getAdmminStaticData();
-
         AdminService.downlaodAllOfferData()
         .then((res) => {
             let data = resolveResponse(res);
@@ -115,16 +108,6 @@ class OfferUpload extends React.Component {
                 this.setState({ allOfferData: data.result })
             });
 
-    }
-
-    getAdmminStaticData() {
-
-            AdminService.getStaticData("ADMIN")
-            .then((res) => {
-                let data = resolveResponse(res);
-                if (data.result && data.result)
-                    this.setState({ retailerOnboardExcelTemplatePath: data.result.retailerOnboardExcelTemplatePath, retailerDeleteExcelTemplatePath: data.result.retailerDeleteExcelTemplatePath })
-                });
     }
 
 

@@ -133,11 +133,9 @@ class BannerEdit extends React.Component {
 
     });
 
-
-    ActivationService.getStaticData('ADMIN').then(res => {
-      let data = resolveResponse(res);
-      this.setState({listofzones: data.result && data.result.zones}) 
-  })
+    if(JSON.parse(localStorage.getItem('cmsStaticData'))){
+      this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
+    }
 
   }
     componentDidMount() {

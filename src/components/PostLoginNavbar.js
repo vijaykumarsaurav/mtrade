@@ -125,15 +125,21 @@ export default function PostLoginNavBar(props) {
     userDetails = userDetails && JSON.parse(userDetails);
      
     var roleCode = userDetails && userDetails.roleCode; 
-
-
-    var acquisitionCountText='', resubmitCountText=''; 
     if(roleCode == "DE" || roleCode == "BOA"){
-        acquisitionCountText = "Acquisition records to be processed: " ; // ACQUISITION RECORDS TO BE PROCESSED:
-        resubmitCountText =  "Resubmit records to be processed:  "; //'RESUBMIT RECORDS TO BE PROCESSED: ';
+        if(localStorage.getItem("recordToProccedFirstTime") === 'yes'){
+            ActivationService.getTotalToBeProcessed().then(res => {
+                let data = resolveResponse(res);
+               // localStorage.setItem("acquisitionCount",data.result && data.result.acquisitionCount ); 
+               // localStorage.setItem("resubmitCount",data.result && data.result.resubmitCount ); 
+             
+               if(data.result && data.result.acquisitionCount && data.result.resubmitCount){
+                    setValues({ ...values, ['acquisitionCount']: "Acquisition records to be processed: " + data.result.acquisitionCount, ['resubmitCount']: "Resubmit records to be processed: "+ data.result.resubmitCount });
+                    window.localStorage.setItem("recordToProccedFirstTime",'no');
+                }
+            })
+        }
     }
 
-  //  console.log("propsss", props)
     return (
 
         <div className={classes.root}>
@@ -193,7 +199,7 @@ export default function PostLoginNavBar(props) {
 
                             <Grid item >
                                 <Typography style={{ color: "white" }} >
-                                {acquisitionCountText} {localStorage.getItem("acquisitionCount") || ''}
+                                <span id='acqRecordId'>{values.acquisitionCount}</span>
                                 </Typography> 
                             </Grid>
                                 <Grid item >
@@ -202,7 +208,7 @@ export default function PostLoginNavBar(props) {
 
                             <Grid item >
                                 <Typography style={{ color: "white" }} noWrap>
-                                {resubmitCountText} {localStorage.getItem("resubmitCount") || ''}
+                                <span id='resubmitRecordId'>{values.resubmitCount}</span>
                                 </Typography> 
                             </Grid>
                              <Grid item >
@@ -212,7 +218,7 @@ export default function PostLoginNavBar(props) {
                            
 
                             <Grid item>
-                                <Typography variant="p" style={{ color: "white" }} noWrap>
+                                <Typography style={{ color: "white" }} noWrap>
                                 {userDetails && userDetails.loginName ? userDetails.loginName.toUpperCase() : null}
                                 </Typography> 
                             </Grid>

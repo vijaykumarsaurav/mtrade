@@ -106,13 +106,9 @@ class Report extends React.Component {
         this.setState({roleCode: userDetails.roleCode}) ; 
         var roleCode = userDetails && userDetails.roleCode; 
     
-        if(roleCode == "ADMIN"){
-            ActivationService.getStaticData(roleCode).then(res => {
-                let data = resolveResponse(res);
-                this.setState({listofzones: data.result && data.result.zones}) 
-            })  
+        if(JSON.parse(localStorage.getItem('cmsStaticData'))){
+            this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
         }
-
         
         for(var i = 2018; i <= new Date().getFullYear(); i++){
            this.state.listofYear.push(i); 

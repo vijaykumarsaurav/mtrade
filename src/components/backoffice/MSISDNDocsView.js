@@ -73,11 +73,8 @@ class VerifyEdit extends React.Component {
                 loading: false
 
             }
-        this.onChange = this.onChange.bind(this);
-        this.approveEV = this.approveEV.bind(this);
-        this.rejectEV = this.rejectEV.bind(this);
+    
         this.loadOneTransection = this.loadOneTransection.bind(this);
-        this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
         this.slideRef = React.createRef(); 
 
     }
@@ -87,171 +84,83 @@ class VerifyEdit extends React.Component {
         var data ={
             txnId : localStorage.getItem("selectedrefNumber")
         }
-       // console.log( "selectedProductId",  selectedProductId);
 
-       var resdata = {"status":200,"message":"ok","result":{"simNumber":"12356","mobileNumber":"759899865","poiNumber":"123456789V","poiType":"NIC","submittedBy":"RETAILER","transactionId":8805,"poiFrontImageUrl":"http://125.16.74.160:30601/store/retailerdev/prepaid-acquisition/759899865/759899865_1599222152447_poi_front_image.jpeg","poiBackImageUrl":"http://125.16.74.160:30601/store/retailerdev/prepaid-acquisition/759899865/759899865_1599222152691_poi_back_image.jpeg","customerSignatureUrl":"http://125.16.74.160:30601/store/retailerdev/prepaid-acquisition/759899865/759899865_1599222153584_user_signature.jpeg","customerImageUrl":null,"retailerSignatureUrl":"http://125.16.74.160:30601/store/retailerdev/prepaid-acquisition/759899865/759899865_1599222154348_retailer_signature.jpeg","pefImageUrl":null,"title":"Mr","gender":"M","emailid":null,"presentAddress":null,"alternateNumber":null,"submittedDate":"04-09-2020 17:52:29","resubmittedDate":null,"ftaDate":"04-09-2020 17:52:29","showPersonalDetails":true}}
-       const selectedProduct = resdata.result;
-       console.log("selectedProduct",selectedProduct);
-       var objectReason = '';
-       if(selectedProduct && selectedProduct.rejectedReasons){
-           var listReasons = selectedProduct.rejectedReasons && selectedProduct.rejectedReasons.split("|");
-           objectReason = listReasons.reduce(function(result, item, index, array) {
-               result[item] = true;
-               return result;
-             }, {}) ;
-       }
+       ActivationService.msisdnDocsView(data).then(res => {
+        let data = resolveResponse(res);
 
+        const selectedProduct = data.result;
+        console.log("selectedProduct",selectedProduct);
+        var objectReason = '';
+        if(selectedProduct && selectedProduct.rejectedReasons){
+            var listReasons = selectedProduct.rejectedReasons && selectedProduct.rejectedReasons.split("|");
+            objectReason = listReasons.reduce(function(result, item, index, array) {
+                result[item] = true;
+                return result;
+              }, {}) ;
+        }
 
-       if(selectedProduct){
-           this.setState({
-               address1: selectedProduct.address1,
-               address2: selectedProduct.address2,
-               address3: selectedProduct.address3,
-               presentAddress:selectedProduct.presentAddress,
-               altContactNumber: selectedProduct.altContactNumber,
-               comments: selectedProduct.comments,
-               customerImageUrl: selectedProduct.customerImageUrl,
-               customerSignatureUrl: selectedProduct.customerSignatureUrl,
-               deDateTime: selectedProduct.deDateTime,
-               deUser: selectedProduct.deUser,
-               emailid: selectedProduct.emailid,
-               alternateNumber:selectedProduct.alternateNumber,
-               firstName: selectedProduct.firstName,
-               gender: selectedProduct.gender,
-               lastName: selectedProduct.lastName,
-               middleName: selectedProduct.middleName,
-               mobileNumber: selectedProduct.mobileNumber,
-               pefImageUrl: selectedProduct.pefImageUrl,
-               poiBackImageUrl: selectedProduct.poiBackImageUrl,
-               poiFrontImageUrl: selectedProduct.poiFrontImageUrl,
-               retailerSignatureUrl : selectedProduct.retailerSignatureUrl,
-               poiNumber: selectedProduct.poiNumber,
-               poiType: selectedProduct.poiType,
-               status: selectedProduct.status,
-               submittedBy:  selectedProduct.submittedBy,
-               showPersonalDetails: selectedProduct.showPersonalDetails,
-               title: selectedProduct.title,
-               transactionId: selectedProduct.transactionId,
-               selectedReasons: objectReason,   //{"One":true, Two: true}
-               sim : selectedProduct.simNumber,
-               submittedDate: selectedProduct.submittedDate,
-               resubmittedDate : selectedProduct.resubmittedDate,
-               ftaDate : selectedProduct.ftaDate,
-               prevRejectedImgs : selectedProduct.prevData
-               });
-
-           
-               if(this.state.showPersonalDetails){
-                   this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
-               }else {
-                   this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
-               }
-
-       }else{
-           Notify.showError(JSON.stringify(data));
-       }
-
-
-
-
-
-    //    ActivationService.msisdnDocsView(data).then(res => {
-    //     let data = resolveResponse(res);
-
-    //     const selectedProduct = data.result;
-    //     console.log("selectedProduct",selectedProduct);
-    //     var objectReason = '';
-    //     if(selectedProduct && selectedProduct.rejectedReasons){
-    //         var listReasons = selectedProduct.rejectedReasons && selectedProduct.rejectedReasons.split("|");
-    //         objectReason = listReasons.reduce(function(result, item, index, array) {
-    //             result[item] = true;
-    //             return result;
-    //           }, {}) ;
-    //     }
-
-    //     if(selectedProduct){
-    //         this.setState({
-    //             address1: selectedProduct.address1,
-    //             address2: selectedProduct.address2,
-    //             address3: selectedProduct.address3,
-    //             presentAddress:selectedProduct.presentAddress,
-    //             altContactNumber: selectedProduct.altContactNumber,
-    //             comments: selectedProduct.comments,
-    //             customerImageUrl: selectedProduct.customerImageUrl,
-    //             customerSignatureUrl: selectedProduct.customerSignatureUrl,
-    //             deDateTime: selectedProduct.deDateTime,
-    //             deUser: selectedProduct.deUser,
-    //             emailid: selectedProduct.emailid,
-    //             alternateNumber:selectedProduct.alternateNumber,
-    //             firstName: selectedProduct.firstName,
-    //             gender: selectedProduct.gender,
-    //             lastName: selectedProduct.lastName,
-    //             middleName: selectedProduct.middleName,
-    //             mobileNumber: selectedProduct.mobileNumber,
-    //             pefImageUrl: selectedProduct.pefImageUrl,
-    //             poiBackImageUrl: selectedProduct.poiBackImageUrl,
-    //             poiFrontImageUrl: selectedProduct.poiFrontImageUrl,
-    //             retailerSignatureUrl : selectedProduct.retailerSignatureUrl,
-    //             poiNumber: selectedProduct.poiNumber,
-    //             poiType: selectedProduct.poiType,
-    //             status: selectedProduct.status,
-    //             submittedBy:  selectedProduct.submittedBy,
-    //             showPersonalDetails: selectedProduct.showPersonalDetails,
-    //             title: selectedProduct.title,
-    //             transactionId: selectedProduct.transactionId,
-    //             selectedReasons: objectReason,   //{"One":true, Two: true}
-    //             sim : selectedProduct.simNumber,
-    //             submittedDate: selectedProduct.submittedDate,
-    //             resubmittedDate : selectedProduct.resubmittedDate,
-    //             ftaDate : selectedProduct.ftaDate,
-    //             prevRejectedImgs : selectedProduct.prevData
-    //             });
+        if(selectedProduct){
+            this.setState({
+                address1: selectedProduct.address1,
+                address2: selectedProduct.address2,
+                address3: selectedProduct.address3,
+                presentAddress:selectedProduct.presentAddress,
+                altContactNumber: selectedProduct.altContactNumber,
+                comments: selectedProduct.comments,
+                customerImageUrl: selectedProduct.customerImageUrl,
+                customerSignatureUrl: selectedProduct.customerSignatureUrl,
+                deDateTime: selectedProduct.deDateTime,
+                deUser: selectedProduct.deUser,
+                emailid: selectedProduct.emailid,
+                alternateNumber:selectedProduct.alternateNumber,
+                firstName: selectedProduct.firstName,
+                gender: selectedProduct.gender,
+                lastName: selectedProduct.lastName,
+                middleName: selectedProduct.middleName,
+                mobileNumber: selectedProduct.mobileNumber,
+                pefImageUrl: selectedProduct.pefImageUrl,
+                poiBackImageUrl: selectedProduct.poiBackImageUrl,
+                poiFrontImageUrl: selectedProduct.poiFrontImageUrl,
+                retailerSignatureUrl : selectedProduct.retailerSignatureUrl,
+                poiNumber: selectedProduct.poiNumber,
+                poiType: selectedProduct.poiType,
+                status: selectedProduct.status,
+                submittedBy:  selectedProduct.submittedBy,
+                showPersonalDetails: selectedProduct.showPersonalDetails,
+                title: selectedProduct.title,
+                transactionId: selectedProduct.transactionId,
+                selectedReasons: objectReason,   //{"One":true, Two: true}
+                sim : selectedProduct.simNumber,
+                submittedDate: selectedProduct.submittedDate,
+                resubmittedDate : selectedProduct.resubmittedDate,
+                ftaDate : selectedProduct.ftaDate,
+                prevRejectedImgs : selectedProduct.prevData
+                });
 
             
-    //             if(this.state.showPersonalDetails){
-    //                 this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
-    //             }else {
-    //                 this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
-    //             }
+                if(this.state.showPersonalDetails){
+                    this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
+                }else {
+                    this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
+                }
 
-    //     }else{
-    //         Notify.showError(JSON.stringify(data));
-    //     }
+        }else{
+            Notify.showError(JSON.stringify(data));
+        }
 
-    //     this.setState({loading:false})
+        this.setState({loading:false})
+    })
 
-    // })
-
-
-
-     
     }
 
     componentDidMount() {
         this.loadOneTransection();
         localStorage.setItem("lastUrl","verify-edit");
-  
-        
     }
+
     render() {
 
-        // reasonList.push(<div style={{color:"red"}}> <FormControlLabel  color="primary"  control={<Checkbox  onChange={this.handleChange(rejectedReasons[i].exemptReason)} checked={this.state.selectedReasons[rejectedReasons[i].exemptReason] ? true: false} /> } label={rejectedReasons[i].exemptReason} /> </div>)
-        // reasonList.push(<div> <FormControlLabel  control={<Checkbox   onChange={this.handleChange(rejectedReasons[i].exemptReason)} checked={this.state.selectedReasons[rejectedReasons[i].exemptReason] ? true: false} color="primary"/> } label={rejectedReasons[i].exemptReason} /> </div>)
-        console.log('this.state',this.state)
-
-
-        var rejectedReasons =  this.state.rejectedReasons;
-        var reasonList = [];
-        if(rejectedReasons){
-            for(var i=0; i < rejectedReasons.length; i++){
-                if(rejectedReasons[i].isMandatory == 1)
-                    reasonList.push(<div> <label style={{color:"red"}}><input type="checkbox"  onChange={this.handleChange(rejectedReasons[i].exemptReason)} checked={this.state.selectedReasons[rejectedReasons[i].exemptReason] ? true: false} /> {rejectedReasons[i].exemptReason} </label></div>)
-                else
-                     reasonList.push(<div> <label> <input type="checkbox"  onChange={this.handleChange(rejectedReasons[i].exemptReason)} checked={this.state.selectedReasons[rejectedReasons[i].exemptReason] ? true: false} /> {rejectedReasons[i].exemptReason} </label></div>)
-
-            }
-        }
-
+    
           var imageDetails = []; var baseUrl= ''; //'https://retailer.airtel.lk';
           if(this.state.poiFrontImageUrl){
             imageDetails.push({
@@ -372,9 +281,7 @@ class VerifyEdit extends React.Component {
         console.log("test", this.state)
         return(
 
-           
-
-
+        
             <React.Fragment>
             <PostLoginNavBar/>
             {/* <h2  style={styles.textStyle}> View and Verify Document </h2> */}
@@ -435,9 +342,6 @@ class VerifyEdit extends React.Component {
                             <br />
 
                            {this.state.status=="image_uploading"? <Typography variant="h6" style={{color:"gray",textAlign:"center"}} ><br /><br /> <br /> <br /> <br /> <br /> <br />No documents are uploaded yet</Typography> : null}
-
-                           {/* {this.state.status=="av_pending"? <ImageGalary imageDetails={imageDetails} /> : null} */}
-                           {/* {imageDetails.length ? <Typography variant="h6">Customer Documents</Typography> : null } */}
                            {imageDetails.length? <SlideShowGalary imageDetails={{imageDetails: imageDetails, slideRef : this.slideRef}} /> : null}
                             <br />
                            {prevImageDetails.length ? <Typography variant="h6">Previous Rejected Documents</Typography> : null }
@@ -446,26 +350,6 @@ class VerifyEdit extends React.Component {
 
                     </Paper>
                 </Grid>
-
-                {/* <Grid item xs={12} sm={datacontainer}>
-                    <Paper style={{padding:"10px"}}>
-                    <Typography variant="h6" style={styles.textStyle}>Verify or Reject</Typography>
-                    <form style={styles.formContainer}>
-                        <TextField label="Mobile No" required={true} fullWidth name="productName" value={this.state.mobileNumber} />
-                        <TextField label={this.state.poiType} required={true} fullWidth name="displayName" value={this.state.poiNumber} />
-                        <TextField label="SIM" required={true} fullWidth name="displayName" value={this.state.sim} />
-
-                         <Grid item xs={12} sm={12}  >
-                            <Typography variant="p">Select Reasons</Typography>
-                         </Grid>
-                        <div>
-                            {reasonList}
-                        </div>
-                        <TextField multiline rows={2} label="Comments" fullWidth margin="none" name="comments" value={this.state.comments} onChange={this.onChange}/>
-                    </form>
-                    </Paper>
-                </Grid> */}
-
             </Grid>
 
             <br />
@@ -476,14 +360,11 @@ class VerifyEdit extends React.Component {
                 justify="center"
                 alignItems="center">
                      
-                     <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
+                     <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Search</Button>
 
-                           </Grid>
+                 </Grid>
                            
             </div>
-
-
-
 
             <div>
         </div>
@@ -492,239 +373,10 @@ class VerifyEdit extends React.Component {
         )
     }
 
-    handleChange = name => event => {
-
-    
-        this.setState({ ...this.state, selectedReasons: {...this.state.selectedReasons, [name]: event.target.checked } });
-       // console.log("name name", onlycode); 
-
-    };
-
-
-    updateLocalActList = (txn) =>{
-        var activationList = localStorage.getItem("activationList") && JSON.parse(localStorage.getItem("activationList"));
-            var index = -1;
-            for(var i=0; i < activationList.length; i++ ){
-                if(activationList[i].txnId == txn){
-                    index =i;
-                    break;
-                }
-            }
-            if (index > -1) {
-                activationList.splice(index, 1);
-            }
-        localStorage.setItem("activationList",JSON.stringify(activationList));
-    }
-
-    onlockTransectionOnSkip = (txn) =>{
-        var transactionsIds = {
-            transactionsIds : [txn]
-        }
-        ActivationService.unlockTransectionsSkip( transactionsIds ).then(res => {
-            let data = resolveResponse(res);
-            if(data.message != 'ok'){
-                Notify.showError("Server Error"+data.message);
-            }
-       });
-    }
-
-
-    skipThisVerify = (eventType) => {
-        this.setState({ comments : ""});
-
-
-        console.log("here")
-      //  e.preventDefault();
-        var selectedProductId = localStorage.getItem("selectedProductId");
-        var verifyListingTxn = localStorage.getItem("verifyListingTxn");
-        verifyListingTxn =  verifyListingTxn && verifyListingTxn.split(',');
-        var nextid = '';
-        for(var i=0; i < verifyListingTxn.length; i++ ){
-            if(selectedProductId == parseInt(verifyListingTxn[i])){
-                nextid =  parseInt(verifyListingTxn[i+1]);
-                break;
-            }
-        }
-
-       // this.updateLocalActList(selectedProductId);
-       if(eventType === "skip"){
-        this.onlockTransectionOnSkip(selectedProductId);
-       }
-        console.log("next id",nextid );
-        
-        if(nextid){
-            localStorage.setItem("selectedProductId", nextid);
-           // Notify.showSuccess("Acquisition skipped successfully and Lodding next...");
-
-            this.loadOneTransection();
-            this.setState({ approveLoader: false});
-            this.setState({ approveDone: false});
-            this.setState({ approveButton: true});
-
-            this.setState({ rejectDone: false});
-            this.setState({ rejectButton: true, comments : ""});
-  
-           // To call the method you can use the slide's ref attribute and then call the method. 
-           this.slideRef && this.slideRef.current && this.slideRef.current.goTo(0);
-
-
-
-
-        }else{
-        //    Notify.showError("No item available");
-           // this.props.history.push('/verify');
-           this.cancel();
-        }
-    };
-
-    approveEV = (e) => {
-        e.preventDefault();
-
-       
-
-        console.log("approve data",this.state);
-        var selectVal =  Object.values(this.state.selectedReasons)
-        var isselelctedAny = selectVal.find(function(val){
-                                return val == true;
-                            });
-
-        if(isselelctedAny){
-            Notify.showError("Remove reason selections to approve");
-            return;
-        }
-
-        this.setState({ approveLoader: true});
-        this.setState({ approveButton: false});
-        
-        const product =  {
-            "rejectedReasons":null,
-            "comments": this.state.comments,
-            "isPOIRejected": this.state.isPOIRejected,
-            "isCumtomerPhotoRejected":0,
-            "verificationDateTime": new Date(),
-            "verificationUser": this.state.loginId,
-            "isRejected": 0,
-            "transactionId":this.state.transactionId
-        }
-
-
-        ActivationService.approveDocs(product)
-        .then(res => {
-          var data =  resolveResponse(res, "Acquisition Verified successfully and Lodding next acquisition to verify...");
-        //this.props.history.push('/verify');
-        this.setState({ approveLoader: false});
-        this.setState({ approveDone: true});
-
-
-        console.log(data);
-
-        //    var second = 5 ;
-        //    var showSeconds = setInterval(function(){
-        //         Notify.showSuccess("Wait for "+second+" Second");
-        //         second--;
-        //         if(second == 0)
-        //         clearInterval(showSeconds);
-        //     }, 1000)
-
-        //   Notify.showSuccess("Lodding next acquisition to verify...");
-
-         //   this.updateLocalActList(this.state.transactionId);
-
-          // this.skipThisVerify();
-            setTimeout(() => {
-                this.skipThisVerify("loadnext");
-            }, 2000);
-        });
-    };
-
-    rejectEV = (e) => {
-
-
-       //alert("this.state.selectedReasons[i].includes");
-
-        console.log("Reject Data",this.state);
-
-        var selectVal =  Object.values(this.state.selectedReasons)
-        var isselelctedAny = selectVal.find(  function(val){
-                                return val == true;
-                            });
-
-        if(!isselelctedAny){
-            Notify.showError("Select reason(s) to reject!");
-            return;
-        }
-
-        this.setState({ rejectLoader: true});
-        this.setState({ rejectButton: false});
-
-
-        var keys = Object.keys(this.state.selectedReasons); 
-
-        var onlyCode = []; 
-        for(var i=0; i < keys.length; i++){
-            var key = keys[i] && keys[i].split('-')[0].trim();
-            onlyCode.push(key);
-        }
-        console.log("selectd onlyCode", onlyCode); 
-
-
-
-        //const selectedReasons =  Object.keys(this.state.selectedReasons).join("|");
-
-        var keyList = Object.keys(this.state.selectedReasons);
-
-        var isPOIRejected = 0;
-        for(var i=0; i < keyList.length; i++){
-            if(keyList[i].includes("POI")){
-                isPOIRejected =1;
-                break;
-            }
-
-        }
-
-
-        const rejectData =  {
-            "rejectedReasons":onlyCode.join(","),
-            "comments": this.state.comments,
-            "isPOIRejected": isPOIRejected,
-            "isCumtomerPhotoRejected":0,
-            "verificationDateTime": new Date(),
-            "verificationUser":this.state.loginId,
-            "isRejected": 1,
-            "transactionId":this.state.transactionId
-        }
-
-        ActivationService.approveDocs(rejectData)
-        .then(res => {
-           var resdata =  resolveResponse(res, "Acquisition Rejected successfully and Lodding next acquisition to verify...");
-            //this.props.history.push('/verify');
-          //  this.updateLocalActList(this.state.transactionId);
-          this.setState({ rejectLoader: false});
-          this.setState({ rejectDone: true});
-         
-
-            setTimeout(() => {
-                this.skipThisVerify("loadnext");
-            }, 2000);
-        });
-
-    };
 
     cancel = (e) => {
-
         this.props.history.push('/msisdn-status');
-        
     };
-
-    onChange = (e) => {
-        var data =  e.target.value.trim();
-        var test = !data.includes("@") && !data.includes("$") && !data.includes("&") ; 
-        if(test){
-            this.setState({[e.target.name]: e.target.value});
-        }
-      //  this.setState({[e.target.name]: e.target.value});
-
-    }
 
 }
 

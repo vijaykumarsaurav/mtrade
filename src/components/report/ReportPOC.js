@@ -115,11 +115,9 @@ class Report extends React.Component {
         this.setState({roleCode: userDetails.roleCode}) ; 
         var roleCode = userDetails && userDetails.roleCode; 
     
-        if(roleCode == "ADMIN"){
-            ActivationService.getStaticData(roleCode).then(res => {
-                let data = resolveResponse(res);
-                this.setState({listofzones: data.result && data.result.zones}) 
-            })  
+       
+        if(JSON.parse(localStorage.getItem('cmsStaticData'))){
+            this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
         }
 
         
@@ -143,7 +141,7 @@ class Report extends React.Component {
             let data = resolveResponse(res);
             this.setState({allReport: data.result}) ; 
             //console.log("tabke", data); 
-            if(data.result[0].status === 'COMPLETED'){
+            if(data.result.length && data.result[0].status === 'COMPLETED'){
                 this.setState({ generateReportMsg: ""});
                 clearInterval(this.state.stopGettingReport);
                
@@ -381,28 +379,28 @@ class Report extends React.Component {
 
 
         //POST /reports/ftaDeviationReportCsv
-        adminReports.push(<MenuItem value="agentStatusReport">Agent Status Report</MenuItem>); 
+        // adminReports.push(<MenuItem value="agentStatusReport">Agent Status Report</MenuItem>); 
         adminReports.push(<MenuItem value="backOfficeReceptionReportPOC">Back Office Reception Report</MenuItem>); 
-        adminReports.push(<MenuItem value="backOfficeReceptionReportWithDetails">Back Office Reception Report with Details</MenuItem>); 
-        adminReports.push(<MenuItem value="agentWisePerformanceLog">Agent Wise Performance Report</MenuItem>); 
-        adminReports.push(<MenuItem value="agentAuditReport">Agent Audit Report</MenuItem>); 
-        adminReports.push(<MenuItem value="ipacsReadyReport">IPACS Ready Report</MenuItem>); 
-        adminReports.push(<MenuItem value="noneComplainceReport">None Compliance Report</MenuItem>); 
-        adminReports.push(<MenuItem value="omniTransferReport">OMNI Transfer Report</MenuItem>);
-        adminReports.push(<MenuItem value="zoneWiseDetailedReport">Zone Wise Detailed Report </MenuItem>);
-        adminReports.push(<MenuItem value="simSwapReport">SIM Swap Report</MenuItem>);
-        adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
-        adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
+        // adminReports.push(<MenuItem value="backOfficeReceptionReportWithDetails">Back Office Reception Report with Details</MenuItem>); 
+        // adminReports.push(<MenuItem value="agentWisePerformanceLog">Agent Wise Performance Report</MenuItem>); 
+        // adminReports.push(<MenuItem value="agentAuditReport">Agent Audit Report</MenuItem>); 
+        // adminReports.push(<MenuItem value="ipacsReadyReport">IPACS Ready Report</MenuItem>); 
+        // adminReports.push(<MenuItem value="noneComplainceReport">None Compliance Report</MenuItem>); 
+        // adminReports.push(<MenuItem value="omniTransferReport">OMNI Transfer Report</MenuItem>);
+        // adminReports.push(<MenuItem value="zoneWiseDetailedReport">Zone Wise Detailed Report </MenuItem>);
+        // adminReports.push(<MenuItem value="simSwapReport">SIM Swap Report</MenuItem>);
+        // adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
+        // adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
 
         //sprint 8 changes
-        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="mpinResetCount">D-1 Mpin Reset Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
+        // adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
+        // adminReports.push(<MenuItem value="mpinResetCount">D-1 Mpin Reset Count Report</MenuItem>);
+        // adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
+        // adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
+        // adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
+        // adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
+        // adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
+        // adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
 
         // BY_VERIFICATION_DATE,
         // BY_DATA_ENTRY_DATE
@@ -447,12 +445,12 @@ class Report extends React.Component {
                                 {/* ftaDeviationReport */}
                                     <InputLabel htmlFor="Active" required={true}>Select type of report</InputLabel>
                                     <Select name="reporttype" disabled={this.state.generateReportLoader} value={this.state.reporttype} onChange={this.onChange}>
-                                    <MenuItem value="distributorLastUploadedData">Distributor Uploaded Data Status</MenuItem>
+                                    {/* <MenuItem value="distributorLastUploadedData">Distributor Uploaded Data Status</MenuItem>
                                     <MenuItem value="detailedPendingReport">Distributor Detail Report</MenuItem>
                                     <MenuItem value="rejectReport"> Distributor Reject Data Report</MenuItem>
                                     <MenuItem value="summaryReportForDistributor">Distributor Summary Report</MenuItem>
                                     <MenuItem value="ftaDeviationReport">FTA Deviation Report</MenuItem>
-                                    
+                                     */}
                                     {this.state.roleCode==="ADMIN" ? adminReports : ""}
                                     </Select>
                                 </FormControl>
@@ -748,8 +746,9 @@ class Report extends React.Component {
                                     <TableCell >{row.startDate}</TableCell>
                                     <TableCell>{row.endDate}</TableCell>
                                     <TableCell align="center" > {row.status === 'PENDING' ? <img src="/pswait.svg" /> : row.status}</TableCell>
+                                    {/* <TableCell >{row.status === 'COMPLETED' ? <a target="_blank" href={row.reportUrl}> Report Download </a> : <LinearProgress  />}</TableCell> */}
 
-                                    <TableCell >{row.status === 'COMPLETED' ? <a target="_blank" href={row.reportUrl}> Report Download </a> : <LinearProgress  />}</TableCell>
+                                    <TableCell >{row.status === 'COMPLETED' ? <a target="_blank" href={row.reportUrl}> Report Download </a> : ''}</TableCell>
                                     <TableCell >{row.timeTaken}</TableCell>
                                     <TableCell >{row.requestedTime}</TableCell>
                                     <TableCell >{row.descr}</TableCell>

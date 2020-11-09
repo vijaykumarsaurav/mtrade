@@ -25,8 +25,8 @@ if(window.location.hostname == "tstretailer.airtel.lk"){
 }
 
 if(window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1"){
-    RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
-  // RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
+  //  RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
+   RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
 }
 
 //reports 
@@ -111,6 +111,9 @@ export const ROLE_DETAILS_BY_ID = RETAILER_API_BASE_URL + 'roles/';
 
 //search msisnd
 export const SEARCH_BY_MSISDN = RETAILER_API_BASE_URL + 'acquisition/msisdnAcquisitionHistory';
+
+export const CHECK_SESSION_API = RETAILER_API_BASE_URL + 'commomService/checkSession';
+
 
 // for dev environment:   '/retailer'    otherwise ''
 export const DEV_PROTJECT_PATH =  '';  

@@ -68,7 +68,7 @@ class VerifyEdit extends React.Component {
         this.loadOneTransection = this.loadOneTransection.bind(this);
         this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
         this.slideRef = React.createRef(); 
-
+        this.getNextTxnDetails = this.getNextTxnDetails.bind(this);   
     }
 
     loadOneTransection(){
@@ -142,7 +142,8 @@ class VerifyEdit extends React.Component {
                         }else {
                             this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
                         }
-                }else{
+                        this.getNextTxnDetails();
+                    }else{
                     Notify.showError(JSON.stringify(data));
                 }
                 this.setState({loading:false})
@@ -404,7 +405,31 @@ class VerifyEdit extends React.Component {
             }
        });
     }
+    
+    getNextTxnDetails = () =>{
 
+        var selectedProductId = localStorage.getItem("selectedProductId");
+        var verifyListingTxn = localStorage.getItem("verifyListingTxn");
+        verifyListingTxn =  verifyListingTxn && verifyListingTxn.split(',');
+        var nextid = '';
+        for(var i=0; i < verifyListingTxn.length; i++ ){
+            if(selectedProductId == parseInt(verifyListingTxn[i])){
+                nextid =  parseInt(verifyListingTxn[i+1]);
+                break;
+            }
+        }
+
+        if(nextid){
+            ActivationService.getOneVerify(nextid).then(res => {
+                let data = resolveResponse(res);
+                const selectedProduct = data.result;
+                console.log("selectedProduct",selectedProduct);
+          
+                this.setState({loading:false})
+            })
+        }
+
+    }
 
     skipThisVerify = (eventType) => {
         this.setState({ comments : ""});

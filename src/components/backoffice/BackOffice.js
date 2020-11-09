@@ -107,10 +107,7 @@ class Retailer extends React.Component {
 
     componentDidMount() {
        // this.getAdmminStaticData();
-       ActivationService.getStaticData('ADMIN').then(res => {
-        let data = resolveResponse(res);
-        this.setState({listofzones: data.result && data.result.zones}) 
-    })
+       
     }
 
     relailerOnboard() {

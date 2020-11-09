@@ -49,12 +49,10 @@ class LoginComponent extends React.Component{
     //     const lastUrl = localStorage.getItem("lastUrl"); 
     //     this.props.history.push('/'+lastUrl);
     //   }
-    ActivationService.getStaticData('ADMIN').then(res => {
+    ActivationService.checkSession().then(res => {
         let data = resolveResponse(res);
-        this.setState({listofzones: data.result && data.result.zones}) 
     })
 
-        
     }
 
     onChange = (e) => {
