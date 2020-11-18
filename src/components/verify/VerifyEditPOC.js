@@ -175,11 +175,11 @@ class VerifyEdit extends React.Component {
 
             }
         }
-
           var imageDetails = []; var baseUrl= ''; //'https://retailer.airtel.lk';
           if(this.state.poiFrontImageUrl){
             imageDetails.push({
                 img: baseUrl+ this.state.poiFrontImageUrl,
+              //  img:  localStorage.getItem('pocimgstring'),
                 title: 'POI Front Image',
                 author: 'Front Image',
                 featured: true,
@@ -221,12 +221,7 @@ class VerifyEdit extends React.Component {
               });
           }
          
-         
           console.log("imageDetails",imageDetails);
-
-
-          
-
           var prevImageDetails = [];
           if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.poiFrontImageUrl){
             prevImageDetails.push({
@@ -305,6 +300,9 @@ class VerifyEdit extends React.Component {
             <React.Fragment>
                 <PostLoginNavBar/>           
                 <Typography variant="h6" style={styles.textStyleHeading} >View and Verify Document</Typography>
+
+               
+
                 <Grid  direction="row" container className="flexGrow" spacing={1}  style={{paddingLeft:"10px",paddingRight:"10px"}}>
                     <Grid item xs={12} sm={pefcontainer}>
                         <Paper style={{overflow:"scroll", height:"78vh"}}>
@@ -368,6 +366,20 @@ class VerifyEdit extends React.Component {
                             <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
                 </Grid></div>: ""}
 
+                <img style={{  width: "1px",display:"none"}} src={this.state.poiFrontImageUrlNext} />
+                <img style={{  width: "1px", display:"none"  }} src={this.state.customerImageUrlNext} />
+                <img style={{  width: "1px", display:"none"  }} src={this.state.poiBackImageUrlNext} />
+                <img style={{  width: "1px", display:"none"  }} src={this.state.customerSignatureUrlNext} />
+                <img style={{  width: "1px", display:"none"  }} src={this.state.retailerSignatureUrlNext} />
+                <img style={{  width: "1px", display:"none"  }} src={this.state.pefImageUrlNext} />
+
+                <img style={{  width: "1px" , display:"none" }} src={this.state.poiFrontImageUrlNextP} />
+                <img style={{  width: "1px" , display:"none" }} src={this.state.customerImageUrlNextP} />
+                <img style={{  width: "1px" , display:"none" }} src={this.state.poiBackImageUrlNextP} />
+                <img style={{  width: "1px" , display:"none" }} src={this.state.customerSignatureUrlNextP} />
+                <img style={{  width: "1px" , display:"none" }} src={this.state.retailerSignatureUrlNextP} />
+                <img style={{  width: "1px" , display:"none" }} src={this.state.pefImageUrlNextP} />
+                
             </React.Fragment>
         )
     }
@@ -378,21 +390,6 @@ class VerifyEdit extends React.Component {
         console.log("name this.state.selectedReasons", this.state.selectedReasons); 
 
     };
-
-    updateLocalActList = (txn) =>{
-        var activationList = localStorage.getItem("activationList") && JSON.parse(localStorage.getItem("activationList"));
-            var index = -1;
-            for(var i=0; i < activationList.length; i++ ){
-                if(activationList[i].txnId == txn){
-                    index =i;
-                    break;
-                }
-            }
-            if (index > -1) {
-                activationList.splice(index, 1);
-            }
-        localStorage.setItem("activationList",JSON.stringify(activationList));
-    }
 
     onlockTransectionOnSkip = (txn) =>{
         var transactionsIds = {
@@ -405,6 +402,27 @@ class VerifyEdit extends React.Component {
             }
        });
     }
+
+    toDataURL = (src, callback, outputFormat) => {
+        var img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = function() {
+          var canvas = document.createElement('CANVAS');
+          var ctx = canvas.getContext('2d');
+          var dataURL;
+          canvas.height = this.naturalHeight;
+          canvas.width = this.naturalWidth;
+          ctx.drawImage(this, 0, 0);
+          dataURL = canvas.toDataURL(outputFormat);
+          callback(dataURL);
+        };
+        img.src = src;
+        if (img.complete || img.complete === undefined) {
+          img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+          img.src = src;
+        }
+      }
+    
     
     getNextTxnDetails = () =>{
 
@@ -422,10 +440,32 @@ class VerifyEdit extends React.Component {
         if(nextid){
             ActivationService.getOneVerify(nextid).then(res => {
                 let data = resolveResponse(res);
-                const selectedProduct = data.result;
-                console.log("selectedProduct",selectedProduct);
-          
-                this.setState({loading:false})
+                if(data.result){
+
+                    localStorage.setItem("VerifyNextTxtDetails", JSON.stringify(data.result));
+                   
+                    this.setState({ poiFrontImageUrlNext : data.result.poiFrontImageUrl});
+                    this.setState({ customerImageUrlNext : data.result.customerImageUrl});
+                    this.setState({ poiBackImageUrlNext : data.result.poiBackImageUrl});
+                    this.setState({ customerSignatureUrlNext : data.result.customerSignatureUrl});
+                    this.setState({ retailerSignatureUrlNext : data.result.retailerSignatureUrl});
+                    this.setState({ pefImageUrlNext : data.result.pefImageUrl});
+
+                    if(data.result.prevData){
+                        this.setState({ poiFrontImageUrlNextP : data.result.prevData.poiFrontImageUrl});
+                        this.setState({ customerImageUrlNextP : data.result.prevData.customerImageUrl});
+                        this.setState({ poiBackImageUrlNextP : data.result.prevData.poiBackImageUrl});
+                        this.setState({ customerSignatureUrlNextP : data.result.prevData.customerSignatureUrl});
+                        this.setState({ retailerSignatureUrlNextP : data.result.prevData.retailerSignatureUrl});
+                        this.setState({ pefImageUrlNextP : data.result.prevData.pefImageUrl});    
+                    }
+                  
+                    // this.toDataURL('http://125.17.6.6/retailer/static/media/airtellogo.09dde59b.png', function(dataUrl) {
+                    //   window.localStorage.setItem('pocimgstring',dataUrl );
+                    //   console.log('data.result.customerSignatureUrl:', dataUrl);
+                    // })
+                   
+                }
             })
         }
 
@@ -448,8 +488,7 @@ class VerifyEdit extends React.Component {
             }
         }
 
-       // this.updateLocalActList(selectedProductId);
-       if(eventType === "skip"){
+        if(eventType === "skip"){
         this.onlockTransectionOnSkip(selectedProductId);
        }
         console.log("next id",nextid );
@@ -576,7 +615,6 @@ class VerifyEdit extends React.Component {
         .then(res => {
            var resdata =  resolveResponse(res, "Acquisition Rejected successfully and Lodding next acquisition to verify...");
             //this.props.history.push('/verify');
-          //  this.updateLocalActList(this.state.transactionId);
           this.setState({ rejectLoader: false});
           this.setState({ rejectDone: true});
          

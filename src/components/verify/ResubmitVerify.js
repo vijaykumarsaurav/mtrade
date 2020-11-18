@@ -217,7 +217,7 @@ class VerifyList extends React.Component{
         window.localStorage.setItem("selectedSim", sim);
         window.localStorage.setItem("fromSubmit", 'yes');
 
-        this.props.history.push('/verify-edit-poc');
+        this.props.history.push('/verify-edit');
 
         // this.props.history.push({
         //     pathname: '/edit-doc',

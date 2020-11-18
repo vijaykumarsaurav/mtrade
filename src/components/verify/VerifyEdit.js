@@ -274,8 +274,8 @@ class VerifyEdit extends React.Component {
           if(this.state.showPersonalDetails && this.state.prevRejectedImgs && this.state.prevRejectedImgs.pefImageUrl){
             prevImageDetails.push({
                 img:  baseUrl+  this.state.prevRejectedImgs.pefImageUrl,
-                title: 'CAF Image',
-                author: 'CAF Image',
+                title: 'PEF Image',
+                author: 'PEF Image',
                 featured: true,
               });
           }
@@ -668,14 +668,14 @@ class SubmitedByDistributer extends React.Component {
         //this.state.customerImageUrl
         var pefdetails = {
             img: this.props.pefImageUrl.pefImage,
-            title: 'CAF Image',
-            author: 'CAF Image',
+            title: 'PEF Image',
+            author: 'PEF Image',
             featured: true,
           };
         var prevPefdetails = {
             img: this.props.pefImageUrl.prevPefImage,
-            title: 'Previous CAF Image',
-            author: 'Previous CAF Image',
+            title: 'Previous PEF Image',
+            author: 'Previous PEF Image',
             featured: true,
           };
 
@@ -695,12 +695,12 @@ class SubmitedByDistributer extends React.Component {
          
                 <div className="image-container"  style={{height:'70vh'}}> 
 
-                <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp; CAF Image &nbsp;&nbsp;</div> 
+                <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp; PEF Image &nbsp;&nbsp;</div> 
                 <ReactPanZoom  image={pefdetails.img} alt={pefdetails.title}/>
         
                 {prevPefdetails.img ? <> 
                 <div  style={{textAlign:"center", position: "relative"}}><br />
-                <span className="titleOverlayPEF"> &nbsp;&nbsp; Previous CAF Image &nbsp;&nbsp; </span>   </div> 
+                <span className="titleOverlayPEF"> &nbsp;&nbsp; Previous PEF Image &nbsp;&nbsp; </span>   </div> 
              
               
                 <ReactPanZoom  image={prevPefdetails.img} alt={prevPefdetails.title}/>  
