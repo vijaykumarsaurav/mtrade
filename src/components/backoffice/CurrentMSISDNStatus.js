@@ -21,14 +21,8 @@ class CurrentMSISDNStatus extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            products: [],
-            retailerOnboardExcelTemplatePath: "",
-            retailerDeleteExcelTemplatePath: "",
-            deletefile:'', 
             searchby:'',
             msisdnDetails: '',
-            uploadResponse: '', // [{laId: "b0208057", reason : "Given Laid already created"},{laId: "b0208058", reason : "Given Laid already created"}],
-            deleteResponse:""
         };
         this.searchRetailer = this.searchRetailer.bind(this);
         this.viewDocs = this.viewDocs.bind(this);
