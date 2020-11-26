@@ -73,13 +73,16 @@ class VerifyEdit extends React.Component {
 
     loadOneTransection(){
         ActivationService.getTotalToBeProcessed().then(res => {
-            let data = resolveResponse(res);         
-            if(document.getElementById('acqRecordId')){
-                document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
-            }
-            if(document.getElementById('resubmitRecordId')){
-                document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-            }
+            let data = resolveResponse(res);  
+            if(data.result){
+                if(document.getElementById('acqRecordId')){
+                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
+                }
+                if(document.getElementById('resubmitRecordId')){
+                    document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
+                }
+            }       
+           
         });
 
         const selectedProductId = localStorage.getItem("selectedProductId");
@@ -153,9 +156,9 @@ class VerifyEdit extends React.Component {
     componentDidMount() {
         localStorage.setItem("lastUrl","verify-edit");
         const userDetails = JSON.parse(localStorage.getItem("userDetails"));
-        var roleCode = userDetails && userDetails.roleCode; 
-        this.setState({ loader: true,  loginId : userDetails.loginId });
-       
+        if(userDetails){
+            this.setState({ loader: true,  loginId : userDetails.loginId });
+        }
         if(JSON.parse(localStorage.getItem('cmsStaticData')) ){
             this.setState({bothReasons:  JSON.parse(localStorage.getItem('cmsStaticData'))});
         }
@@ -359,7 +362,7 @@ class VerifyEdit extends React.Component {
                             {this.state.approveDone ? <Button variant="outlined" color="primary" style={{marginLeft: "20px"}}> <DoneSharpIcon color="primary"/> Approved and Loading Next</Button> : ""}
                             {this.state.approveButton ? (this.state.status=="image_uploading" ?  <Button disabled variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.approveEV}>Approve</Button>: <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.approveEV}>Approve</Button>): ""}
 
-                            {this.state.rejectLoader ? <CircularProgress />: ""}
+                            {this.state.rejectLoader ? <>&nbsp;&nbsp;&nbsp;<CircularProgress /></>: ""}
                             {this.state.rejectDone ?  <Button variant="outlined" color="primary" style={{marginLeft: "20px"}}> <DoneSharpIcon color="primary"/> Rejected and Loading Next</Button> : ""}
                             {this.state.rejectButton ? <Button variant="contained" color="secondary" style={{marginLeft: '20px'}} onClick={this.rejectEV}>Reject</Button>: ""}
 

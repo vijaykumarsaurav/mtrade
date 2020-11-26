@@ -131,18 +131,17 @@ class LoginComponent extends React.Component{
                     window.localStorage.setItem("userDetails",JSON.stringify(data.result));
                     window.localStorage.setItem("token",data.result.token);
                     window.localStorage.setItem("recordToProccedFirstTime",'yes');
+                    
+                    ActivationService.getStaticData(data.result.roleCode).then(res => {
+                        let cmsStaticData = resolveResponse(res);
+                        window.localStorage.setItem("cmsStaticData",JSON.stringify(cmsStaticData.result));
+                    })
                 }
                
                 // BO agent : BOA
                 // Data Entry : DE
                 // Admin : ADMIN
                 // Distributor : DIST
-
-                ActivationService.getStaticData(data.result.roleCode).then(res => {
-                    let cmsStaticData = resolveResponse(res);
-                    window.localStorage.setItem("cmsStaticData",JSON.stringify(cmsStaticData.result));
-                })
-
 
                 console.log(this.props.history);
                 if(data.result && data.result.roleCode == "BOA"){

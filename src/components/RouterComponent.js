@@ -85,8 +85,8 @@ const AppRouter = () => {
                     <Route path="/view-docs" component={MSISDNDocsView} />
 
                     
-                    <Route path="/reportpoc" component={ReportPOC} />
-                    <Route path="/verify-edit-poc" component={VerifyEditPOC} />
+                    {/* <Route path="/reportpoc" component={ReportPOC} />
+                    <Route path="/verify-edit-poc" component={VerifyEditPOC} /> */}
 
 
                     {/* <Route path="/testreport" component={TestReport} /> */}

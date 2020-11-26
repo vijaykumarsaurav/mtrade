@@ -14,6 +14,7 @@ import PostLoginNavBar from "../PostLoginNavbar";
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
+import ActivationService from "../service/ActivationService";
 import {resolveResponse} from "../../utils/ResponseHandler";
 
 class CurrentMSISDNStatus extends React.Component {
@@ -43,12 +44,16 @@ class CurrentMSISDNStatus extends React.Component {
     }
 
     componentDidMount() {
+        ActivationService.checkSession().then(res => {
+            let data = resolveResponse(res);
+        })
         var searchedMobileHistory = localStorage.getItem("searchedMobileHistory"); 
         console.log("searchedMobileHistory", searchedMobileHistory);
         if(searchedMobileHistory){
             this.searchRetailer(searchedMobileHistory); 
             this.setState({searchby: searchedMobileHistory})
         }
+      
     }
 
     searchRetailer(searchedMobileHistory){

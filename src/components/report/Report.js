@@ -101,10 +101,15 @@ class Report extends React.Component {
 
     componentDidMount() {
 
+        ActivationService.checkSession().then(res => {
+            let data = resolveResponse(res);
+        })
+        
         var userDetails = localStorage.getItem("userDetails")
         userDetails = userDetails && JSON.parse(userDetails);
-        this.setState({roleCode: userDetails.roleCode}) ; 
-        var roleCode = userDetails && userDetails.roleCode; 
+        if(userDetails){
+            this.setState({roleCode: userDetails.roleCode}) ; 
+        }
     
         if(JSON.parse(localStorage.getItem('cmsStaticData'))){
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});

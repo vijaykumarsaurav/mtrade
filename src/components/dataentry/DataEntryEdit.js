@@ -80,13 +80,16 @@ class DataEntryEdit extends React.Component {
     loadOneTransection(){
 
         ActivationService.getTotalToBeProcessed().then(res => {
-            let data = resolveResponse(res);         
-            if(document.getElementById('acqRecordId')){
-                document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
-            }
-            if(document.getElementById('resubmitRecordId')){
-                document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-            }
+            let data = resolveResponse(res);   
+            if(data && data.result){
+                if(document.getElementById('acqRecordId')){
+                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
+                }
+                if(document.getElementById('resubmitRecordId')){
+                    document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
+                }
+            }      
+           
         });
         
         const dataEntryId = localStorage.getItem("dataEntryId");
@@ -466,10 +469,18 @@ class DataEntryEdit extends React.Component {
                 return;
             }
         }
-        if(!this.state.firstName){
+
+        if(this.state.firstName){
+            console.log("First name", this.state.firstName.trim(),  this.state.firstName.trim().length ); 
+            if(this.state.firstName.trim().length == 0){
+                Notify.showError("Missing First Name");
+                return;
+            }
+        }else{
             Notify.showError("Missing First Name");
             return;
         }
+
         if(this.state.dob.toLocaleLowerCase() == "invalid/date"){
             Notify.showError("Invalid Date of Birth Format");
             return;  
@@ -494,14 +505,14 @@ class DataEntryEdit extends React.Component {
             "title": this.state.title,
             "gender":this.state.gender ,
             "dob": this.state.dob,
-            "firstName": this.state.firstName,
-            "middleName": this.state.middleName,
-            "lastName": this.state.lastName,
-            "address1": this.state.address1,
-            "address2": this.state.address2,
-            "address3": this.state.address3,
+            "firstName": this.state.firstName ? this.state.firstName.trim() : "",
+            "middleName": this.state.middleName ? this.state.middleName.trim() : "",
+            "lastName": this.state.lastName ? this.state.lastName.trim() : "",
+            "address1": this.state.address1 ? this.state.address1.trim() : "",
+            "address2": this.state.address2 ? this.state.address2.trim() : "",
+            "address3": this.state.address3 ? this.state.address3.trim() : "",
             "altContactNumber": this.state.altContactNumber,
-            "comments": this.state.comment,
+            "comments": this.state.comment ? this.state.comment.trim() : "",
             "deDateTime": new Date(),
             "deUser": this.state.loginId,
             "emailid":this.state.emailid
@@ -565,7 +576,7 @@ class DataEntryEdit extends React.Component {
     }
 
     onChangeEmail = (e) => {
-        this.setState({[e.target.name]: e.target.value});
+        this.setState({[e.target.name]: e.target.value.trim()});
     }
 
     onChangeDob = (e) => {

@@ -107,6 +107,9 @@ class Retailer extends React.Component {
 
     componentDidMount() {
        // this.getAdmminStaticData();
+       ActivationService.checkSession().then(res => {
+        let data = resolveResponse(res);
+       })
        
     }
 

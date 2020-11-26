@@ -78,6 +78,9 @@ class DataEntryList extends React.Component{
 
     componentDidMount() {
         // this.loadProductList();
+        ActivationService.checkSession().then(res => {
+            let data = resolveResponse(res);
+        });
     }
  
 

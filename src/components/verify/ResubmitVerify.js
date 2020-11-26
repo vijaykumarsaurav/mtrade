@@ -76,13 +76,16 @@ class VerifyList extends React.Component{
         localStorage.setItem("lastUrl","verify");
 
         ActivationService.getTotalToBeProcessed().then(res => {
-            let data = resolveResponse(res);         
-            if(document.getElementById('acqRecordId')){
-                document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
+            let data = resolveResponse(res);       
+            if(data && data.result){
+                if(document.getElementById('acqRecordId')){
+                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
+                }
+                if(document.getElementById('resubmitRecordId')){
+                    document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
+                }
             }
-            if(document.getElementById('resubmitRecordId')){
-                document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-            }
+            
         });
     }
 

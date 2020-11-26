@@ -59,12 +59,15 @@ class DataEntryList extends React.Component{
         localStorage.setItem("lastUrl","dataentry");
         ActivationService.getTotalToBeProcessed().then(res => {
             let data = resolveResponse(res);         
-            if(document.getElementById('acqRecordId')){
-                document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
+            if(data && data.result){
+                if(document.getElementById('acqRecordId')){
+                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
+                }
+                if(document.getElementById('resubmitRecordId')){
+                    document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
+                }
             }
-            if(document.getElementById('resubmitRecordId')){
-                document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-            }
+           
         });
 
     }
@@ -99,8 +102,9 @@ class DataEntryList extends React.Component{
                         localStorage.setItem("dataentryListingTxn",""); 
                     }
                   
-                    document.getElementById('showMessage').innerHTML = "";
+                    
                     if(document.getElementById('showMessage')){
+                        document.getElementById('showMessage').innerHTML = "";
                         if(activationList == null){
                             document.getElementById('showMessage').innerHTML = "No new documents for verification";
                         }  
