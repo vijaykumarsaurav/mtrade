@@ -3,6 +3,7 @@ import React from "react";
 import LoginComponent from "./login/LoginComponent";
 
 import Report from "./report/Report";
+
 import TestReport from "./report/TestReport";
 
 //Baneer 
@@ -37,7 +38,8 @@ import RoleManagement from './login/RoleManagement';
 import CurrentMSISDNStatus from './backoffice/CurrentMSISDNStatus';
 import MSISDNDocsView from './backoffice/MSISDNDocsView';
 
-
+import ReportPOC from "./report/ReportPOC";
+import VerifyEditPOC from './verify/VerifyEditPOC';
 
 const AppRouter = () => {
 
@@ -46,10 +48,10 @@ const AppRouter = () => {
             <Router>
                 <Switch>
                     <Route path="/" exact component={LoginComponent}/>
-                    <Route path="/login" component={LoginComponent} />
+                    <Route path="/login" component={LoginComponent}/>
 
-                    <Route path="/verify" component={VerifyList} />
-                    <Route path="/resubmit-verify" component={ResubmitVerify} />
+                    <Route path="/verify" component={VerifyList}/>
+                    <Route path="/resubmit-verify" component={ResubmitVerify}/>
                     <Route path="/verify-edit" component={VerifyEdit} />
 
                     <Route path="/dataentry" component={DataEntryList} />
@@ -83,6 +85,10 @@ const AppRouter = () => {
                     <Route path="/view-docs" component={MSISDNDocsView} />
 
                     
+                    {/* <Route path="/reportpoc" component={ReportPOC} />
+                    <Route path="/verify-edit-poc" component={VerifyEditPOC} /> */}
+
+
                     {/* <Route path="/testreport" component={TestReport} /> */}
 
                     <Route path="*" component={LoginComponent} />

@@ -45,7 +45,7 @@ export const AdminMenuList = (
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="MSISDN History" />
+      <ListItemText primary="Document View" />
     </ListItem>
 
     <ListItem button component='a' href={"#/packs"} >  
@@ -74,7 +74,7 @@ export const AdminMenuList = (
       <ListItemIcon>
         <PeopleIcon />
       </ListItemIcon>
-      <ListItemText primary="BO Agent" />
+      <ListItemText primary="User Creations" />
     </ListItem>
 
 
@@ -92,6 +92,14 @@ export const AdminMenuList = (
       </ListItemIcon>
       <ListItemText primary="Reports" />
     </ListItem>
+
+    {/* <ListItem button component='a' href={"#/reportpoc"}>
+      <ListItemIcon>
+        <BarChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Reports POC" />
+    </ListItem> */}
+
 
 
   </div>

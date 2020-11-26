@@ -75,6 +75,9 @@ class DataEntryList extends React.Component{
 
     componentDidMount() {
         // this.loadProductList();
+        ActivationService.checkSession().then(res => {
+            let data = resolveResponse(res);
+        })
     }
  
 
@@ -192,7 +195,7 @@ class DataEntryList extends React.Component{
     
         if(file.type == "image/png" || file.type == "image/jpeg"){
             var fileSize = file.size / 1000; //in kb
-            if(fileSize >= 100 && fileSize <= 2048){
+            if(fileSize >= 100 && fileSize <= 3072){
               const fileext =  filename.split('.').pop(); 
               Object.defineProperty(file, 'name', {
                 writable: true,
@@ -200,7 +203,7 @@ class DataEntryList extends React.Component{
               });
               return file;
             }else{
-              Notify.showError("File size should be grater than 100KB and less than 2MB")
+              Notify.showError("File size should be grater than 100KB and less than 3MB")
             }
         }else {
           Notify.showError("Only png and jpeg file allowd.")
@@ -277,13 +280,9 @@ class DataEntryList extends React.Component{
             let data = resolveResponse(res);
             this.setState({uploadResponse: data.message, uploadLoader:false }); 
 
-            // if(data.status == 200){
-            //     this.setState({uploadResponse: data.message, uploadLoader:false }); 
-
-            // }else {
-            //     Notify.showError(data.message);
-            //     return;
-            // }
+            setTimeout(() => {
+                window.location.reload();
+             }, 5000);
         });
    
   };

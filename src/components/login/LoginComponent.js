@@ -9,6 +9,7 @@ import { resolveResponse } from '../../utils/ResponseHandler';
 import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
+import ActivationService from "../service/ActivationService";
 
 import CryptoJS  from 'crypto-js'; 
 
@@ -128,7 +129,13 @@ class LoginComponent extends React.Component{
 
                 if(data.result){
                     window.localStorage.setItem("userDetails",JSON.stringify(data.result));
-                    window.localStorage.setItem("token",data.result.token)
+                    window.localStorage.setItem("token",data.result.token);
+                    window.localStorage.setItem("recordToProccedFirstTime",'yes');
+                    
+                    ActivationService.getStaticData(data.result.roleCode).then(res => {
+                        let cmsStaticData = resolveResponse(res);
+                        window.localStorage.setItem("cmsStaticData",JSON.stringify(cmsStaticData.result));
+                    })
                 }
                
                 // BO agent : BOA

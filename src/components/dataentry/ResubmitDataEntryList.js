@@ -81,11 +81,14 @@ class DataEntryList extends React.Component{
         this.loadProductList();
         localStorage.setItem("lastUrl","dataentry");
         ActivationService.getTotalToBeProcessed().then(res => {
-            let data = resolveResponse(res);
-            console.log(data.result)
-            localStorage.setItem("acquisitionCount",data.result && data.result.acquisitionCount ); 
-            localStorage.setItem("resubmitCount",data.result && data.result.resubmitCount ); 
-        })
+            let data = resolveResponse(res);         
+            if(document.getElementById('acqRecordId')){
+                document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
+            }
+            if(document.getElementById('resubmitRecordId')){
+                document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
+            }
+        });
     }
 
     zoneChange = (e) =>{
@@ -148,10 +151,9 @@ class DataEntryList extends React.Component{
                 }
             }, 7000);
 
-            ActivationService.getStaticData('DE').then(res => {
-                let data = resolveResponse(res);
-                this.setState({listofzones: data && data.result && data.result.zones}) 
-            })
+            if(JSON.parse(localStorage.getItem('cmsStaticData'))){
+                this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
+            }
 
     }
 

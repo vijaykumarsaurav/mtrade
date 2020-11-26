@@ -107,10 +107,10 @@ class Retailer extends React.Component {
 
     componentDidMount() {
        // this.getAdmminStaticData();
-       ActivationService.getStaticData('ADMIN').then(res => {
+       ActivationService.checkSession().then(res => {
         let data = resolveResponse(res);
-        this.setState({listofzones: data.result && data.result.zones}) 
-    })
+       })
+       
     }
 
     relailerOnboard() {
@@ -236,7 +236,7 @@ class Retailer extends React.Component {
                     alignItems="center">
                         <Grid item xs={12} sm={7} >
                         <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                            Back Office User Search 
+                            Back office Agent Search
                         </Typography> 
                         </Grid>
 
@@ -299,7 +299,7 @@ class Retailer extends React.Component {
 
             <br /><br /> 
                 <Paper style={{ padding: "15px" }}>
-                    <Title>Back Office On-Boarding </Title>
+                    <Title>Back office Agent On-Boarding</Title>
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                         <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
@@ -353,7 +353,7 @@ class Retailer extends React.Component {
 
                 <br /><br />
                 <Paper style={{ padding: "15px" }}>
-                    <Title>Back Office Delete </Title>
+                    <Title>Back office Agent Deletion</Title>
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
 
 

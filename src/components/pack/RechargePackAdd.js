@@ -146,10 +146,9 @@ class RechargePackAdd extends React.Component {
 
   componentDidMount() {
     localStorage.setItem("lastUrl","packadd");
-    ActivationService.getStaticData('ADMIN').then(res => {
-      let data = resolveResponse(res);
-      this.setState({listofzones: data.result && data.result.zones}) 
-    })
+    if(JSON.parse(localStorage.getItem('cmsStaticData'))){
+      this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
+    }
 
   }
 
@@ -671,7 +670,7 @@ class RechargePackAdd extends React.Component {
     formData.append('description', this.state.description);
     formData.append('activationStatus', this.state.activationStatus);
     formData.append('comment', this.state.comment);
-  //  formData.append('isFtr', this.state.isFtr);
+    formData.append('isFtr', this.state.isFtr);
 
     if(this.state.selectedZone.length){
       formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
