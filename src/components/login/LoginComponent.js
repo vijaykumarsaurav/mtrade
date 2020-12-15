@@ -85,14 +85,18 @@ class LoginComponent extends React.Component{
 
 
         e.preventDefault();
-        if(!this.state.userName || !this.state.password){
-            this.setState({ isError: "Olms Id and password is required." });
 
-            // setTimeout(() => {
-            //     this.setState({ isError: "" });
-            // }, 3000);
+        if(!this.state.userName && !this.state.password){
+            this.setState({ isError: "Olms Id and Password are required." });
+            return;
+        }
 
-          //  Notify.showError("Olms Id and password is required.");
+        if(!this.state.userName){
+            this.setState({ isError: "Olms Id is required." });
+            return;
+        }
+        if(!this.state.password){
+            this.setState({ isError: "Password is required." });
             return;
         }
          
@@ -118,9 +122,9 @@ class LoginComponent extends React.Component{
               //  Notify.showError("Olms Id and password is required.");
             //  alert(JSON.stringify(res));
 
-              
-              this.setState({ isError: res.data.message });
-
+              if(res.data && res.data.message !== 'Success'){
+                this.setState({ isError: res.data.message });
+              }
                 var data = resolveResponse(res);
                 console.log("resolveResponse",data.result && data.result.roleCode); 
               
@@ -135,30 +139,23 @@ class LoginComponent extends React.Component{
                     ActivationService.getStaticData(data.result.roleCode).then(res => {
                         let cmsStaticData = resolveResponse(res);
                         window.localStorage.setItem("cmsStaticData",JSON.stringify(cmsStaticData.result));
-                    })
+                        if(data.result && data.result.roleCode == "BOA"){
+                            this.props.history.push('/verify');
+                            return;
+                        }
+                        if(data.result && data.result.roleCode == "DE")
+                        this.props.history.push('/dataentry');
+        
+                        if(data.result && data.result.roleCode == "ADMIN")
+                        this.props.history.push('/welcome');
+        
+                        if(data.result && data.result.roleCode == "QVA")
+                        this.props.history.push('/qva');
+        
+                        if((data.result && data.result.roleCode== "DIST") || (data.result &&  data.result.roleCode== "FSE"))
+                        this.props.history.push('/distributor');
+                    }); 
                 }
-               
-                // BO agent : BOA
-                // Data Entry : DE
-                // Admin : ADMIN
-                // Distributor : DIST
-
-                console.log(this.props.history);
-                if(data.result && data.result.roleCode == "BOA"){
-                    this.props.history.push('/verify');
-                    return;
-                }
-              //  window.location.replace( "#/verify");  
-
-                if(data.result && data.result.roleCode == "DE")
-                this.props.history.push('/dataentry');
-
-                if(data.result && data.result.roleCode == "ADMIN")
-                this.props.history.push('/welcome');
-
-                if((data.result && data.result.roleCode== "DIST") || (data.result &&  data.result.roleCode== "FSE"))
-                this.props.history.push('/distributor');
-                
             });
           
             // setTimeout(() => {

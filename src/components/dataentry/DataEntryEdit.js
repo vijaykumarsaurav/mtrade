@@ -61,6 +61,8 @@ class DataEntryEdit extends React.Component {
         this.myCallback = this.myCallback.bind(this);
         this.onChangeEmail = this.onChangeEmail.bind(this);
         this.onChangeAlternateNo = this.onChangeAlternateNo.bind(this);
+        this.getNextTxnDetails = this.getNextTxnDetails.bind(this);   
+
         this.slideRef = React.createRef(); 
 
     }
@@ -129,6 +131,8 @@ class DataEntryEdit extends React.Component {
                          emailid:selectedProduct.emailid,
                          presentAddress: selectedProduct.presentAddress,
                         });
+                        this.getNextTxnDetails();
+                        console.log("after next call"); 
                  }
 
                 this.setState({loading:false}) 
@@ -137,6 +141,45 @@ class DataEntryEdit extends React.Component {
              const userDetails = JSON.parse(localStorage.getItem("userDetails")); 
              this.setState({  loginId : userDetails.loginId });
          }
+    }
+
+    getNextTxnDetails = () =>{
+
+        var dataEntryId = localStorage.getItem("dataEntryId");
+        var dataentryListingTxn = localStorage.getItem("dataentryListingTxn");
+        dataentryListingTxn =  dataentryListingTxn && dataentryListingTxn.split(',');
+        var nextid = '';
+        for(var i=0; i < dataentryListingTxn.length; i++ ){
+            if(dataEntryId == parseInt(dataentryListingTxn[i])){
+                nextid =  parseInt(dataentryListingTxn[i+1]);
+                break;
+            }
+        }
+        console.log("next id in next fuction", nextid); 
+
+        if(nextid){
+            ActivationService.getOneDataEntry(nextid).then(res => {
+                let data = resolveResponse(res);
+                if(data.result){
+                    console.log("next getOneDataEntry", data)
+
+                    localStorage.setItem("DataentryNextTxtDetails", JSON.stringify(data.result));
+                   
+                    this.setState({ poiFrontImageUrlNext : data.result.poiFrontImageUrl});
+                    this.setState({ customerImageUrlNext : data.result.customerImageUrl});
+                    this.setState({ poiBackImageUrlNext : data.result.poiBackImageUrl});
+                    this.setState({ customerSignatureUrlNext : data.result.customerSignatureUrl});
+                    this.setState({ retailerSignatureUrlNext : data.result.retailerSignatureUrl});
+                    this.setState({ pefImageUrlNext : data.result.pefImageUrl});  
+                    // this.toDataURL('http://125.17.6.6/retailer/static/media/airtellogo.09dde59b.png', function(dataUrl) {
+                    //   window.localStorage.setItem('pocimgstring',dataUrl );
+                    //   console.log('data.result.customerSignatureUrl:', dataUrl);
+                    // })
+                   
+                }
+            })
+        }
+
     }
 
     componentDidMount() {
@@ -273,7 +316,7 @@ class DataEntryEdit extends React.Component {
                             </Grid>
 
                             <Grid item xs={12} sm={6}>
-                                <TextField label="POI Number" fullWidth name="poiNumber" value={this.state.poiNumber} onChange={this.onChange}/>
+                                <TextField label="POI Number" required={true} fullWidth name="poiNumber" value={this.state.poiNumber} onChange={this.onChange}/>
                             </Grid>
                         </Grid>
                         <Grid spacing={1} container direction="row">
@@ -358,10 +401,18 @@ class DataEntryEdit extends React.Component {
                         </Grid></div>
                     </form>
                     </Paper>
+                    
                 </Grid>
                 </Grid>
             <div>
         </div>
+
+                    <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNext} />
+                    <img style={{  width: "1px"}} src={this.state.customerImageUrlNext} />
+                    <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNext} />
+                    <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNext} />
+                    <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNext} />
+                    <img style={{  width: "1px"}} src={this.state.pefImageUrlNext} />
 
             </React.Fragment>
         )
@@ -439,6 +490,8 @@ class DataEntryEdit extends React.Component {
                   break; 
               }
           }
+
+         
   
          if(eventType === "skip"){
             this.onlockTransectionOnSkip(dataEntryId); 
@@ -446,6 +499,7 @@ class DataEntryEdit extends React.Component {
           if(nextid){
               localStorage.setItem("dataEntryId", nextid); 
               this.loadOneTransection();
+              console.log("next id is", nextid); 
            // To call the method you can use the slide's ref attribute and then call the method. 
               this.slideRef.current.goTo(0);
               this.setState({ approveLoader: false});
@@ -470,8 +524,17 @@ class DataEntryEdit extends React.Component {
             }
         }
 
+        if(this.state.poiNumber){
+            if(this.state.poiNumber.trim().length == 0){
+                Notify.showError("POI Number Missing");
+                return;
+            }
+        }else{
+            Notify.showError("POI Number Missing");
+            return;
+        }
+
         if(this.state.firstName){
-            console.log("First name", this.state.firstName.trim(),  this.state.firstName.trim().length ); 
             if(this.state.firstName.trim().length == 0){
                 Notify.showError("Missing First Name");
                 return;

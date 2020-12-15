@@ -45,7 +45,7 @@ export const AdminMenuList = (
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="Document View" />
+      <ListItemText primary="MSISDN History" />
     </ListItem>
 
     <ListItem button component='a' href={"#/packs"} >  
@@ -129,6 +129,18 @@ export const  BOAMenuList  = (
   </div>
 );
 
+export const  QVAMenuList  = (
+
+  <div>
+    <ListItem component='a' href={"#/qva"} button>
+      <ListItemIcon>
+        <VerifiedUserIcon />
+      </ListItemIcon>
+      <ListItemText primary="Quick Verifications" />
+    </ListItem>
+    
+  </div>
+);
 
 export const DEMenuList = (
   <div>

@@ -10,7 +10,7 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import SlideShowGalary from "../../utils/SlideShowGalary";
 import List from '@material-ui/core/List';
-import "./Verify.css";
+import "./Qva.css";
 import ReactPanZoom from "react-image-pan-zoom-rotate";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
@@ -67,19 +67,22 @@ class VerifyEdit extends React.Component {
         this.rejectEV = this.rejectEV.bind(this);
         this.loadOneTransection = this.loadOneTransection.bind(this);
         this.onlockTransectionOnSkip = this.onlockTransectionOnSkip.bind(this);
-        this.slideRef = React.createRef(); 
         this.getNextTxnDetails = this.getNextTxnDetails.bind(this);   
+        this.slideRef = React.createRef(); 
     }
 
     loadOneTransection(){
         ActivationService.getTotalToBeProcessed().then(res => {
-            let data = resolveResponse(res);         
-            if(document.getElementById('acqRecordId')){
-                document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
-            }
-            if(document.getElementById('resubmitRecordId')){
-                document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-            }
+            let data = resolveResponse(res);  
+            if(data.result){
+                if(document.getElementById('acqRecordId')){
+                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.acquisitionCount; 
+                }
+                if(document.getElementById('resubmitRecordId')){
+                    document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
+                }
+            }       
+           
         });
 
         const selectedProductId = localStorage.getItem("selectedProductId");
@@ -138,12 +141,10 @@ class VerifyEdit extends React.Component {
                         });
                     
                         if(this.state.showPersonalDetails){
-                            this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
-                        }else {
-                            this.setState({ rejectedReasons: this.state.bothReasons.preActivatedRejectionReasons});
+                            this.setState({ rejectedReasons: this.state.bothReasons.qvaRejectionReasons});
                         }
                         this.getNextTxnDetails();
-                    }else{
+                }else{
                     Notify.showError(JSON.stringify(data));
                 }
                 this.setState({loading:false})
@@ -151,12 +152,59 @@ class VerifyEdit extends React.Component {
         }
     }
 
+    getNextTxnDetails = () =>{
+
+        var selectedProductId = localStorage.getItem("selectedProductId");
+        var verifyListingTxn = localStorage.getItem("verifyListingTxn");
+        verifyListingTxn =  verifyListingTxn && verifyListingTxn.split(',');
+        var nextid = '';
+        for(var i=0; i < verifyListingTxn.length; i++ ){
+            if(selectedProductId == parseInt(verifyListingTxn[i])){
+                nextid =  parseInt(verifyListingTxn[i+1]);
+                break;
+            }
+        }
+
+        if(nextid){
+            ActivationService.getOneVerify(nextid).then(res => {
+                let data = resolveResponse(res);
+                if(data.result){
+
+                    localStorage.setItem("VerifyNextTxtDetails", JSON.stringify(data.result));
+                   
+                    this.setState({ poiFrontImageUrlNext : data.result.poiFrontImageUrl});
+                    this.setState({ customerImageUrlNext : data.result.customerImageUrl});
+                    this.setState({ poiBackImageUrlNext : data.result.poiBackImageUrl});
+                    this.setState({ customerSignatureUrlNext : data.result.customerSignatureUrl});
+                    this.setState({ retailerSignatureUrlNext : data.result.retailerSignatureUrl});
+                    this.setState({ pefImageUrlNext : data.result.pefImageUrl});
+
+                    if(data.result.prevData){
+                        this.setState({ poiFrontImageUrlNextP : data.result.prevData.poiFrontImageUrl});
+                        this.setState({ customerImageUrlNextP : data.result.prevData.customerImageUrl});
+                        this.setState({ poiBackImageUrlNextP : data.result.prevData.poiBackImageUrl});
+                        this.setState({ customerSignatureUrlNextP : data.result.prevData.customerSignatureUrl});
+                        this.setState({ retailerSignatureUrlNextP : data.result.prevData.retailerSignatureUrl});
+                        this.setState({ pefImageUrlNextP : data.result.prevData.pefImageUrl});    
+                    }
+                  
+                    // this.toDataURL('http://125.17.6.6/retailer/static/media/airtellogo.09dde59b.png', function(dataUrl) {
+                    //   window.localStorage.setItem('pocimgstring',dataUrl );
+                    //   console.log('data.result.customerSignatureUrl:', dataUrl);
+                    // })
+                   
+                }
+            })
+        }
+
+    }
+
     componentDidMount() {
         localStorage.setItem("lastUrl","verify-edit");
         const userDetails = JSON.parse(localStorage.getItem("userDetails"));
-        var roleCode = userDetails && userDetails.roleCode; 
-        this.setState({ loader: true,  loginId : userDetails.loginId });
-       
+        if(userDetails){
+            this.setState({ loader: true,  loginId : userDetails.loginId });
+        }
         if(JSON.parse(localStorage.getItem('cmsStaticData')) ){
             this.setState({bothReasons:  JSON.parse(localStorage.getItem('cmsStaticData'))});
         }
@@ -175,11 +223,11 @@ class VerifyEdit extends React.Component {
 
             }
         }
+
           var imageDetails = []; var baseUrl= ''; //'https://retailer.airtel.lk';
           if(this.state.poiFrontImageUrl){
             imageDetails.push({
                 img: baseUrl+ this.state.poiFrontImageUrl,
-              //  img:  localStorage.getItem('pocimgstring'),
                 title: 'POI Front Image',
                 author: 'Front Image',
                 featured: true,
@@ -221,7 +269,12 @@ class VerifyEdit extends React.Component {
               });
           }
          
+         
           console.log("imageDetails",imageDetails);
+
+
+          
+
           var prevImageDetails = [];
           if(this.state.prevRejectedImgs && this.state.prevRejectedImgs.poiFrontImageUrl){
             prevImageDetails.push({
@@ -270,8 +323,8 @@ class VerifyEdit extends React.Component {
           if(this.state.showPersonalDetails && this.state.prevRejectedImgs && this.state.prevRejectedImgs.pefImageUrl){
             prevImageDetails.push({
                 img:  baseUrl+  this.state.prevRejectedImgs.pefImageUrl,
-                title: 'CAF Image',
-                author: 'CAF Image',
+                title: 'PEF Image',
+                author: 'PEF Image',
                 featured: true,
               });
           }
@@ -300,9 +353,6 @@ class VerifyEdit extends React.Component {
             <React.Fragment>
                 <PostLoginNavBar/>           
                 <Typography variant="h6" style={styles.textStyleHeading} >View and Verify Document</Typography>
-
-               
-
                 <Grid  direction="row" container className="flexGrow" spacing={1}  style={{paddingLeft:"10px",paddingRight:"10px"}}>
                     <Grid item xs={12} sm={pefcontainer}>
                         <Paper style={{overflow:"scroll", height:"78vh"}}>
@@ -354,11 +404,11 @@ class VerifyEdit extends React.Component {
                     direction="row"
                     justify="center"
                     alignItems="center">
-                            {this.state.approveLoader ? <CircularProgress />: ""}
+                            {/* {this.state.approveLoader ? <CircularProgress />: ""}
                             {this.state.approveDone ? <Button variant="outlined" color="primary" style={{marginLeft: "20px"}}> <DoneSharpIcon color="primary"/> Approved and Loading Next</Button> : ""}
-                            {this.state.approveButton ? (this.state.status=="image_uploading" ?  <Button disabled variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.approveEV}>Approve</Button>: <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.approveEV}>Approve</Button>): ""}
+                            {this.state.approveButton ? (this.state.status=="image_uploading" ?  <Button disabled variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.approveEV}>Approve</Button>: <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={this.approveEV}>Approve</Button>): ""} */}
 
-                            {this.state.rejectLoader ? <CircularProgress />: ""}
+                            {this.state.rejectLoader ? <>&nbsp;&nbsp;&nbsp;<CircularProgress /></>: ""}
                             {this.state.rejectDone ?  <Button variant="outlined" color="primary" style={{marginLeft: "20px"}}> <DoneSharpIcon color="primary"/> Rejected and Loading Next</Button> : ""}
                             {this.state.rejectButton ? <Button variant="contained" color="secondary" style={{marginLeft: '20px'}} onClick={this.rejectEV}>Reject</Button>: ""}
 
@@ -366,20 +416,19 @@ class VerifyEdit extends React.Component {
                             <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
                 </Grid></div>: ""}
 
-                <img style={{  width: "1px",display:"none"}} src={this.state.poiFrontImageUrlNext} />
-                <img style={{  width: "1px", display:"none"  }} src={this.state.customerImageUrlNext} />
-                <img style={{  width: "1px", display:"none"  }} src={this.state.poiBackImageUrlNext} />
-                <img style={{  width: "1px", display:"none"  }} src={this.state.customerSignatureUrlNext} />
-                <img style={{  width: "1px", display:"none"  }} src={this.state.retailerSignatureUrlNext} />
-                <img style={{  width: "1px", display:"none"  }} src={this.state.pefImageUrlNext} />
+                            <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNext} />
+                            <img style={{  width: "1px"}} src={this.state.customerImageUrlNext} />
+                            <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNext} />
+                            <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNext} />
+                            <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNext} />
+                            <img style={{  width: "1px"}} src={this.state.pefImageUrlNext} />
 
-                <img style={{  width: "1px" , display:"none" }} src={this.state.poiFrontImageUrlNextP} />
-                <img style={{  width: "1px" , display:"none" }} src={this.state.customerImageUrlNextP} />
-                <img style={{  width: "1px" , display:"none" }} src={this.state.poiBackImageUrlNextP} />
-                <img style={{  width: "1px" , display:"none" }} src={this.state.customerSignatureUrlNextP} />
-                <img style={{  width: "1px" , display:"none" }} src={this.state.retailerSignatureUrlNextP} />
-                <img style={{  width: "1px" , display:"none" }} src={this.state.pefImageUrlNextP} />
-                
+                            <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNextP} />
+                            <img style={{  width: "1px"}} src={this.state.customerImageUrlNextP} />
+                            <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNextP} />
+                            <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNextP} />
+                            <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNextP} />
+                            <img style={{  width: "1px"}} src={this.state.pefImageUrlNextP} />
             </React.Fragment>
         )
     }
@@ -391,11 +440,26 @@ class VerifyEdit extends React.Component {
 
     };
 
+    updateLocalActList = (txn) =>{
+        var activationList = localStorage.getItem("activationList") && JSON.parse(localStorage.getItem("activationList"));
+            var index = -1;
+            for(var i=0; i < activationList.length; i++ ){
+                if(activationList[i].txnId == txn){
+                    index =i;
+                    break;
+                }
+            }
+            if (index > -1) {
+                activationList.splice(index, 1);
+            }
+        localStorage.setItem("activationList",JSON.stringify(activationList));
+    }
+
     onlockTransectionOnSkip = (txn) =>{
         var transactionsIds = {
-            transactionsIds : [txn]
+            txnId :  parseInt(txn)
         }
-        ActivationService.unlockTransectionsSkip( transactionsIds ).then(res => {
+        ActivationService.unlockQVATransectionsSkip( transactionsIds ).then(res => {
             let data = resolveResponse(res);
             if(data.message != 'ok'){
                 Notify.showError("Server Error"+data.message);
@@ -403,73 +467,6 @@ class VerifyEdit extends React.Component {
        });
     }
 
-    toDataURL = (src, callback, outputFormat) => {
-        var img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.onload = function() {
-          var canvas = document.createElement('CANVAS');
-          var ctx = canvas.getContext('2d');
-          var dataURL;
-          canvas.height = this.naturalHeight;
-          canvas.width = this.naturalWidth;
-          ctx.drawImage(this, 0, 0);
-          dataURL = canvas.toDataURL(outputFormat);
-          callback(dataURL);
-        };
-        img.src = src;
-        if (img.complete || img.complete === undefined) {
-          img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-          img.src = src;
-        }
-      }
-    
-    
-    getNextTxnDetails = () =>{
-
-        var selectedProductId = localStorage.getItem("selectedProductId");
-        var verifyListingTxn = localStorage.getItem("verifyListingTxn");
-        verifyListingTxn =  verifyListingTxn && verifyListingTxn.split(',');
-        var nextid = '';
-        for(var i=0; i < verifyListingTxn.length; i++ ){
-            if(selectedProductId == parseInt(verifyListingTxn[i])){
-                nextid =  parseInt(verifyListingTxn[i+1]);
-                break;
-            }
-        }
-
-        if(nextid){
-            ActivationService.getOneVerify(nextid).then(res => {
-                let data = resolveResponse(res);
-                if(data.result){
-
-                    localStorage.setItem("VerifyNextTxtDetails", JSON.stringify(data.result));
-                   
-                    this.setState({ poiFrontImageUrlNext : data.result.poiFrontImageUrl});
-                    this.setState({ customerImageUrlNext : data.result.customerImageUrl});
-                    this.setState({ poiBackImageUrlNext : data.result.poiBackImageUrl});
-                    this.setState({ customerSignatureUrlNext : data.result.customerSignatureUrl});
-                    this.setState({ retailerSignatureUrlNext : data.result.retailerSignatureUrl});
-                    this.setState({ pefImageUrlNext : data.result.pefImageUrl});
-
-                    if(data.result.prevData){
-                        this.setState({ poiFrontImageUrlNextP : data.result.prevData.poiFrontImageUrl});
-                        this.setState({ customerImageUrlNextP : data.result.prevData.customerImageUrl});
-                        this.setState({ poiBackImageUrlNextP : data.result.prevData.poiBackImageUrl});
-                        this.setState({ customerSignatureUrlNextP : data.result.prevData.customerSignatureUrl});
-                        this.setState({ retailerSignatureUrlNextP : data.result.prevData.retailerSignatureUrl});
-                        this.setState({ pefImageUrlNextP : data.result.prevData.pefImageUrl});    
-                    }
-                  
-                    // this.toDataURL('http://125.17.6.6/retailer/static/media/airtellogo.09dde59b.png', function(dataUrl) {
-                    //   window.localStorage.setItem('pocimgstring',dataUrl );
-                    //   console.log('data.result.customerSignatureUrl:', dataUrl);
-                    // })
-                   
-                }
-            })
-        }
-
-    }
 
     skipThisVerify = (eventType) => {
         this.setState({ comments : ""});
@@ -488,7 +485,8 @@ class VerifyEdit extends React.Component {
             }
         }
 
-        if(eventType === "skip"){
+       // this.updateLocalActList(selectedProductId);
+       if(eventType === "skip"){
         this.onlockTransectionOnSkip(selectedProductId);
        }
         console.log("next id",nextid );
@@ -544,6 +542,7 @@ class VerifyEdit extends React.Component {
         .then(res => {
           var data =  resolveResponse(res, "Acquisition Verified successfully and Lodding next acquisition to verify...");
         //this.props.history.push('/verify');
+
         this.setState({ approveLoader: false});
         this.setState({ approveDone: true});
 
@@ -615,24 +614,26 @@ class VerifyEdit extends React.Component {
         .then(res => {
            var resdata =  resolveResponse(res, "Acquisition Rejected successfully and Lodding next acquisition to verify...");
             //this.props.history.push('/verify');
-          this.setState({ rejectLoader: false});
-          this.setState({ rejectDone: true});
-         
+          //  this.updateLocalActList(this.state.transactionId);
+        
+          if(resdata.status == 200){
+            this.setState({ rejectDone: true});
+            this.setState({ rejectLoader: false});
+              setTimeout(() => {
+                  this.skipThisVerify("loadnext");
+              }, 2000);
+          }else{
+            this.setState({ rejectButton: true});
+          }
 
-            setTimeout(() => {
-                this.skipThisVerify("loadnext");
-            }, 2000);
+         
         });
 
     };
 
     cancel = (e) => {
 
-        if(localStorage.getItem('fromSubmit') == 'yes'){
-            this.props.history.push('/resubmit-verify');
-        }else{
-            this.props.history.push('/verify');
-        }
+        this.props.history.push('/qva');
         
     };
 
@@ -731,14 +732,14 @@ class SubmitedByDistributer extends React.Component {
         //this.state.customerImageUrl
         var pefdetails = {
             img: this.props.pefImageUrl.pefImage,
-            title: 'CAF Image',
-            author: 'CAF Image',
+            title: 'PEF Image',
+            author: 'PEF Image',
             featured: true,
           };
         var prevPefdetails = {
             img: this.props.pefImageUrl.prevPefImage,
-            title: 'Previous CAF Image',
-            author: 'Previous CAF Image',
+            title: 'Previous PEF Image',
+            author: 'Previous PEF Image',
             featured: true,
           };
 
@@ -758,12 +759,12 @@ class SubmitedByDistributer extends React.Component {
          
                 <div className="image-container"  style={{height:'70vh'}}> 
 
-                <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp; CAF Image &nbsp;&nbsp;</div> 
+                <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp; PEF Image &nbsp;&nbsp;</div> 
                 <ReactPanZoom  image={pefdetails.img} alt={pefdetails.title}/>
         
                 {prevPefdetails.img ? <> 
                 <div  style={{textAlign:"center", position: "relative"}}><br />
-                <span className="titleOverlayPEF"> &nbsp;&nbsp; Previous CAF Image &nbsp;&nbsp; </span>   </div> 
+                <span className="titleOverlayPEF"> &nbsp;&nbsp; Previous PEF Image &nbsp;&nbsp; </span>   </div> 
              
               
                 <ReactPanZoom  image={prevPefdetails.img} alt={prevPefdetails.title}/>  

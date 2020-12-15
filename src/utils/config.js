@@ -15,9 +15,10 @@ if(window.location.hostname == "125.16.74.160"){
     RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; 
 }
 
+var templatePath = ''; 
 if(window.location.hostname == "125.17.6.6"){
     RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/';
-//    RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; 
+    templatePath =  '/retailer';  
 }
 
 if(window.location.hostname == "tstretailer.airtel.lk"){
@@ -25,11 +26,10 @@ if(window.location.hostname == "tstretailer.airtel.lk"){
 }
 
 if(window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1"){
-    RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
-   //RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
+  //RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
+   RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
  
 }
-
 //reports 
 export const RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'reports/';
 // export const RETAILER_RECHAGE_REPORT_BASEAPI = STAGING_IP_PORT + 'SLRetailerA/' + 'recharges/';
@@ -50,6 +50,12 @@ export const SL_AD_LOGOUT_URL = RETAILER_API_BASE_URL + 'auth/logout';
 export const VERIFY_DOCS_LISTING = RETAILER_API_BASE_URL + 'avde/prepaidAcquisitions';
 export const VERIFY_DOCS_LISTING_RESUBMIT = RETAILER_API_BASE_URL + 'avde/prepaidResubmits';
 export const RECORD_TOBE_PROCESSED =  RETAILER_API_BASE_URL + "avde/pendingCount";
+
+export const QVA_DOCS_LISTING = RETAILER_API_BASE_URL + 'avde/prepaidAcquisitionsResubmits';
+
+export const UNLOCK_QVA_SKIP_VERIFICATION = RETAILER_API_BASE_URL + 'avde/skipQva';
+
+
 
 // export const VERIFY_DOCS_LISTING = STAGING_IP_PORT + 'SLRetailerA/' + 'avde/prepaidAcquisitions';
 // export const VERIFY_DOCS_LISTING_RESUBMIT = STAGING_IP_PORT + 'SLRetailerA/'  + 'avde/prepaidResubmits';
@@ -114,7 +120,4 @@ export const ROLE_DETAILS_BY_ID = RETAILER_API_BASE_URL + 'roles/';
 export const SEARCH_BY_MSISDN = RETAILER_API_BASE_URL + 'acquisition/msisdnAcquisitionHistory';
 
 export const CHECK_SESSION_API = RETAILER_API_BASE_URL + 'commomService/checkSession';
-
-
-// for dev environment:   '/retailer'    otherwise ''
-export const DEV_PROTJECT_PATH =  '';  
+export const DEV_PROTJECT_PATH  = templatePath;

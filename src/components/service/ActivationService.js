@@ -8,6 +8,10 @@ class ActivationService {
         //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
       return axios.post(apiConstant.VERIFY_DOCS_LISTING,data, AuthService.getHeader() );
     }
+    listQVADocs(data){
+        //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
+      return axios.post(apiConstant.QVA_DOCS_LISTING,data, AuthService.getHeader() );
+    }
     listDocsResubmit(data){
         //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
       return axios.post(apiConstant.VERIFY_DOCS_LISTING_RESUBMIT,data, AuthService.getHeader() );
@@ -34,6 +38,9 @@ class ActivationService {
 
     unlockTransectionsSkip(postdata){
         return axios.post(apiConstant.UNLOCK_SKIP_VERIFICATION, postdata, AuthService.getHeader());
+    }
+    unlockQVATransectionsSkip(postdata){
+        return axios.post(apiConstant.UNLOCK_QVA_SKIP_VERIFICATION, postdata, AuthService.getHeader());
     }
     
     getStaticData(role){

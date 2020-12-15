@@ -260,6 +260,7 @@ export default function PostLoginNavBar(props) {
                 {roleCode == "BOA" ? <List>{Menu.BOAMenuList}</List> : null}
                 {roleCode == "DE" ? <List>{Menu.DEMenuList}</List> : null}
                 {roleCode == "DIST" ? <List>{Menu.DISTMenuList}</List> : null}
+                {roleCode == "QVA" ? <List>{Menu.QVAMenuList}</List> : null}
 
                 <Divider />
                 <List>{Menu.LogoutMenu}</List>

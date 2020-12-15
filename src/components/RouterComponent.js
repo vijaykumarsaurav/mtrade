@@ -10,10 +10,15 @@ import TestReport from "./report/TestReport";
 import BannerAdd from "./banner/BannerAdd";
 import BannerEdit from "./banner/BannerEdit";
 
+//VA
 import VerifyList from './verify/VerifyList';
 import ResubmitVerify from './verify/ResubmitVerify';
-
 import VerifyEdit from './verify/VerifyEdit';
+
+//QVA
+import QvaList from './qva/QvaList';
+import QvaEdit from './qva/QvaEdit';
+
 //data entry
 import DataEntryList from './dataentry/DataEntryList';
 import ResubmitDataEntryList from './dataentry/ResubmitDataEntryList';
@@ -39,7 +44,6 @@ import CurrentMSISDNStatus from './backoffice/CurrentMSISDNStatus';
 import MSISDNDocsView from './backoffice/MSISDNDocsView';
 
 import ReportPOC from "./report/ReportPOC";
-import VerifyEditPOC from './verify/VerifyEditPOC';
 
 const AppRouter = () => {
 
@@ -54,6 +58,9 @@ const AppRouter = () => {
                     <Route path="/resubmit-verify" component={ResubmitVerify}/>
                     <Route path="/verify-edit" component={VerifyEdit} />
 
+                    <Route path="/qva" component={QvaList}/>
+                    <Route path="/qva-edit" component={QvaEdit}/>
+
                     <Route path="/dataentry" component={DataEntryList} />
                     <Route path="/resubmit-dataentry" component={ResubmitDataEntryList} />
 
@@ -61,8 +68,6 @@ const AppRouter = () => {
 
                     <Route path="/distributor" component={DistributerList} />
                     <Route path="/dist-resubmit" component={DistResubmit} />
-
-                    
 
                     {/* admin dashboard */}
                     <Route path="/banners" component={BaneerList} />
@@ -85,9 +90,7 @@ const AppRouter = () => {
                     <Route path="/view-docs" component={MSISDNDocsView} />
 
                     
-                    {/* <Route path="/reportpoc" component={ReportPOC} />
-                    <Route path="/verify-edit-poc" component={VerifyEditPOC} /> */}
-
+                    <Route path="/reportpoc" component={ReportPOC} />
 
                     {/* <Route path="/testreport" component={TestReport} /> */}
 
