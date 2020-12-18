@@ -137,7 +137,7 @@ class AdminService {
         }
 
         if(api === 'backOfficeReceptionReportPOC'){
-            fullapiurl = 'http://125.16.74.160:30611/SLRetailer/backOfficeReceptionReport/save'; 
+            fullapiurl = 'http://125.17.6.6/retailer/SLRetailer/backOfficeReceptionReport/save'; 
         }
         
 
@@ -200,7 +200,7 @@ class AdminService {
     }
 
     getReportPOC() {
-        return axios.get('http://125.16.74.160:30611/SLRetailer/backOfficeReceptionReport/getData', AuthService.getHeader());
+        return axios.get('http://125.17.6.6/retailer/SLRetailer/backOfficeReceptionReport/getData', AuthService.getHeader());
     }
 
 }
