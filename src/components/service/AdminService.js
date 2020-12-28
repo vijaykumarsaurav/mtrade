@@ -140,6 +140,9 @@ class AdminService {
             fullapiurl = 'http://125.17.6.6/retailer/SLRetailer/backOfficeReceptionReport/save'; 
         }
         
+        if(api === 'barReport' || api === 'unBarReport'){
+            fullapiurl = apiConstant.RETAILER_REPORT_BASEAPI+'barUnbarReport' ; 
+        }
 
         return instance.post(fullapiurl, formData, AuthService.getHeader());
     
