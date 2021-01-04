@@ -7,8 +7,8 @@ all: build
 build:
 	@echo "Building/Compiling application"
 	rm -rf build
-	docker run npm run build
-
+	docker run -i --rm -v $(ROOT_DIR):/app -w /app node: npm run build
+	@echo "Building Completed"
 
 clean:
 	@echo "Cleaning up..."
