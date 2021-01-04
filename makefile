@@ -7,10 +7,9 @@ all: build
 build:
 	@echo "Building/Compiling application"
 	rm -rf build
-	RUN npm run build
-	@echo "Building Completed!!!"
+	docker run -i --rm -v $(ROOT_DIR):/app -w /app node:lts-stretch npm run docker-build-ui
 
 
 clean:
 	@echo "Cleaning up..."
-	#rm -rf build
+	rm -rf build
