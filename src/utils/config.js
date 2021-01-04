@@ -18,7 +18,7 @@ if(window.location.hostname == "125.16.74.160"){
 var templatePath = ''; 
 if(window.location.hostname == "125.17.6.6"){
     RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/';
-    templatePath =  '/retailer';  
+    templatePath =  '/retailerdev';  
 }
 
 if(window.location.hostname == "tstretailer.airtel.lk"){
@@ -111,6 +111,11 @@ export const RETAILER_SEARCH = RETAILER_API_BASE_URL + 'agent/retrieve';
 //Offer Uplaod  
 export const RETAILER_API_OFFER_UPLOAD = RETAILER_API_BASE_URL + 'bestoffers/upload';
 export const RETAILER_API_OFFER_DOWNLOAD = RETAILER_API_BASE_URL + 'bestoffers/download';
+//fsc
+//export const RETAILER_API_FSC_UPLOAD = RETAILER_API_BASE_URL + 'fse/camps/upload';
+//export const RETAILER_API_FSC_DOWNLOAD = RETAILER_API_BASE_URL + 'fse/view';
+export const RETAILER_API_FSC_UPLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
+export const RETAILER_API_FSC_DOWNLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/view';
 
 //role Management 
 export const LIST_OF_ROLES = RETAILER_API_BASE_URL + 'roles/all';

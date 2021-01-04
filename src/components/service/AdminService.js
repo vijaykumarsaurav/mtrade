@@ -20,12 +20,20 @@ class AdminService {
         return axios.get(apiConstant.RETAILER_API_OFFER_DOWNLOAD, AuthService.getHeader());
     }
 
+    downlaodFSCData(){
+        return axios.get(apiConstant.RETAILER_API_FSC_DOWNLOAD, AuthService.getHeader());
+    }
+
     uploadRetailer(formData){
         return axios.post(apiConstant.RETAILER_ONBOARD, formData, AuthService.getHeader());
     }
 
     uploadOffer(formData){
         return axios.post(apiConstant.RETAILER_API_OFFER_UPLOAD, formData, AuthService.getHeader());
+    }
+
+    uploadFSCCampin(formData){
+        return axios.post(apiConstant.RETAILER_API_FSC_UPLOAD, formData, AuthService.getHeader());
     }
 
     deleteRetailer(formData){

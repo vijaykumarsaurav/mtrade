@@ -37,7 +37,9 @@ import RechargePackEdit from "./pack/RechargePackEdit";
 import BaneerList from './banner/BannerList';
 import BackOffice from './backoffice/BackOffice';
 import OfferUpload from './backoffice/OfferUpload';
+import FSEUpload from './backoffice/FSEUpload';
 import AdminWelcome from './login/AdminWelcome';
+import ImageTest from './login/ImageTest';
 import RoleManagement from './login/RoleManagement';
 
 import CurrentMSISDNStatus from './backoffice/CurrentMSISDNStatus';
@@ -80,6 +82,7 @@ const AppRouter = () => {
                     
                     <Route path="/backoffice" component={BackOffice} />
                     <Route path="/offerupload" component={OfferUpload} />
+                    <Route path="/fse" component={FSEUpload} />
 
                     <Route path="/report" component={Report} />
                     <Route path="/welcome" component={AdminWelcome} />
@@ -93,6 +96,8 @@ const AppRouter = () => {
                     <Route path="/reportpoc" component={ReportPOC} />
 
                     {/* <Route path="/testreport" component={TestReport} /> */}
+
+                    <Route path="/imageTest" component={ImageTest} />
 
                     <Route path="*" component={LoginComponent} />
 

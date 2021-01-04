@@ -5,6 +5,7 @@ import Button from "@material-ui/core/Button";
 import Notify from "../../utils/Notify";
 import Input from "@material-ui/core/Input";
 import ActivationService from "../service/ActivationService";
+import  {DEV_PROTJECT_PATH} from "../../utils/config";
 
 import TextField from '@material-ui/core/TextField';
 import Table from "@material-ui/core/Table";
@@ -144,7 +145,9 @@ class Report extends React.Component {
             if(data.result.length && data.result[0].status === 'COMPLETED'){
                 this.setState({ generateReportMsg: ""});
                 clearInterval(this.state.stopGettingReport);
-               
+              //  window.location.reload();
+              this.setState({ responseFlag : false,  dataEntryData :false,  generateReportLoader : false });
+
             }
          });
     }
@@ -283,36 +286,13 @@ class Report extends React.Component {
                 let data = resolveResponse(res);
 
                 if(data.status == 200 && data.message === 'ok'){
-                    this.setState({ generateReportMsg:  'Report in Progress'});
+                    this.setState({ generateReportMsg:  'Report in Progress...'});
                     this.listTheReport();
                 }
 
                 this.setState({ stopGettingReport:  setInterval( this.listTheReport , 10000)});
             
-                // if(this.state.reporttype == "agentStatusReport" && data.result){
-
-                //     if(data.result && data.result.verifications)
-                //     this.setState({ products: data.result.verifications, responseFlag : true, reportName:"Verification Report" });
-                //     if(data.result && data.result.dataEntry)
-                //     this.setState({ dataEntryData: data.result.dataEntry});
-                //     this.setState({ generateReportMsg:  "Ready to Download", verficationname:"VerificationReport_of_"});
-
-                //     this.setState({  generateReportLoader: false});
-
-                // }else if(data.result && data.result.data && data.result.data.length ){
-                //     this.setState({ generateReportMsg:  "Ready to Download"});
-                //     this.setState({ products: data.result.data, responseFlag : true});
-
-                //     if(this.state.reporttype == "detailedPendingReport"){
-                //         this.setState({ filenameToGo: "distributorDetailReport"});
-                //     }
-                //     this.setState({  generateReportLoader: false});
-
-                // }else{
-                //     this.setState({ generateReportMsg:  "",  generateReportLoader: false});
-                //     this.setState({ responseFlagMsg : "No Records Found" });
-                // }
-                
+            
             });
     }
 
@@ -745,7 +725,7 @@ class Report extends React.Component {
                                     <TableCell >{row.retrieveType}</TableCell>
                                     <TableCell >{row.startDate}</TableCell>
                                     <TableCell>{row.endDate}</TableCell>
-                                    <TableCell align="center" > {row.status === 'PENDING' ? <img src="/pswait.svg" /> : row.status}</TableCell>
+                                    <TableCell align="center" > {row.status === 'PENDING' || row.status === 'PROGRESS' ? <img src= {DEV_PROTJECT_PATH + "/pswait.svg"} /> : row.status}</TableCell>
                                     {/* <TableCell >{row.status === 'COMPLETED' ? <a target="_blank" href={row.reportUrl}> Report Download </a> : <LinearProgress  />}</TableCell> */}
 
                                     <TableCell >{row.status === 'COMPLETED' ? <a target="_blank" href={row.reportUrl}> Report Download </a> : ''}</TableCell>

@@ -110,7 +110,7 @@ class LoginComponent extends React.Component{
         atualkey =  atualkey.substring(0, 15);
 
        var encryptedPass = CryptoJS.AES.encrypt( this.state.password, atualkey).toString();
-        // console.log( keynum , encryptedPass);
+        //console.log( keynum , encryptedPass);
 
         const loginPayload = {
             userName:  this.state.userName,
