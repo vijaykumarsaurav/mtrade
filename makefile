@@ -8,7 +8,7 @@ build:
 	@echo "Building/Compiling application"
 	rm -rf build
 	RUN npm run build
-	@echo "Building Completed"
+	@echo "Building Completed!!!"
 
 
 clean:
