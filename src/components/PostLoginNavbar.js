@@ -20,6 +20,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import { textAlign } from '@material-ui/system';
 import * as Menu from './LeftMenuBar';
 import AirtellLogo from './airtellogo.png';
+import  {IMAGE_VALIDATION_TOKEN} from "../utils/config";
 
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import Badge from '@material-ui/core/Badge';
@@ -244,7 +245,7 @@ export default function PostLoginNavBar(props) {
                 }}
             >
                 <div className={classes.drawerHeader}>
-                    <img style={{ marginRight: "73px", width: "100px" }} src={AirtellLogo} />
+                    <img style={{ marginRight: "73px", width: "100px" }} src={AirtellLogo+"?token="+IMAGE_VALIDATION_TOKEN} />
 
                     {/* <img width="40" style={{ color: "red", marginRight:"130px"}} src={ 'https://www.pinclipart.com/picdir/middle/498-4988102_36-53k-airtel-logos-of-indian-companies-quiz.png'} /> */}
 

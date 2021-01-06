@@ -1,7 +1,7 @@
 import React from 'react';
 //import AdminWelcome from '../adminwelcome.png';
 import CryptoJS  from 'crypto-js'; 
-
+import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
 import PostLoginNavBar from "../PostLoginNavbar";
 
 
@@ -30,9 +30,7 @@ class ImageTest extends React.Component{
        // var encryptedPass = CryptoJS.AES.encrypt( this.state.password, atualkey);
   
        
-       var keynum = new Date( new Date().getTime() + 60000 ).getTime() / 1000; 
-
-       //  console.log( keynum , encryptedPass);
+       var keynum = new Date( new Date().getTime() + 60000 * 2 ).getTime() / 1000; 
        var token =   btoa("5dbc98dcc983a70728bd082d1a47546e@"+parseInt( keynum )); 
       //atob("dmlqYXk=")
        // this.setState({ encryptedPass : token,  keynum:  parseInt( keynum ) });
@@ -46,7 +44,12 @@ class ImageTest extends React.Component{
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
-                 <img style={styles.imagestyle} src={"http://localhost/two.png?token="+this.state.encryptedPass} />
+
+                 <img title="vijay" src onerror="fetch('https://picsum.photos/200',{headers: {hello:'World!'}}).then(r=>r.blob()).then(d=> this.src=window.URL.createObjectURL(d));" />
+
+                 <img style={styles.imagestyle} src={"http://125.17.6.6/apk/retailer/prepaid-acquisition/750046464/750046464_1608811631058_poi_front_image.jpeg?token="+IMAGE_VALIDATION_TOKEN} />
+                 
+                 {/* <img style={styles.imagestyle} src={"http://localhost/one.png?token="+this.state.encryptedPass} /> */}
             </React.Fragment>
         )
 

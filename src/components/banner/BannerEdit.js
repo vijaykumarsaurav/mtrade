@@ -21,6 +21,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import  * as amsConstant from "../../utils/config";
 import Input from "@material-ui/core/Input";
 import md5  from 'md5'; 
+import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
 
 import ActivationService from "../service/ActivationService";
 
@@ -122,7 +123,7 @@ class BannerEdit extends React.Component {
          publishDate:selectedData.publishDate,
          expireDate: selectedData.expireDate,
          updateTime:selectedData.updateTime,
-         imageURL:selectedData.imageURL, 
+         imageURL:selectedData.imageURL+"?token="+IMAGE_VALIDATION_TOKEN, 
          bannerId : selectedData.id, 
          link:selectedData.link, 
          selectedZone : selectedData.zones ? selectedData.zones.split(",") : [] 

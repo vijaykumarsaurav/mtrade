@@ -22,6 +22,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from "@material-ui/core/Input";
+import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
 
 
 
@@ -205,7 +206,7 @@ class BaneerList extends React.Component{
                     {this.state.products && this.state.products ? this.state.products.map(row => (
                         <TableRow key={row.productId} onClick={() => this.editProduct( row.id)}>
 
-                            <TableCell align="center"> <img style={{width:"100px", height:"50px"}} src={row.imageURL} /> </TableCell>
+                            <TableCell align="center"> <img style={{width:"100px", height:"50px"}} src={row.imageURL+"?token="+IMAGE_VALIDATION_TOKEN} /> </TableCell>
                             <TableCell align="center">{row.title}</TableCell>
                             <TableCell align="center">{row.bannerType}</TableCell>
                             <TableCell align="center">{row.active ? 'Active' : "Inactive"}</TableCell>

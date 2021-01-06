@@ -10,6 +10,7 @@ import MaterialUIPickers from "../../utils/MaterialUIPickers";
 import pack from "../service/AdminService";
 import { resolveResponse } from "../../utils/ResponseHandler";
 
+import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
 
 import MenuItem from "@material-ui/core/MenuItem";
 import Grid from "@material-ui/core/Grid";
@@ -162,7 +163,8 @@ class RechargePackAdd extends React.Component {
         this.setState({activationStatus:this.state.active})
 
         if(this.state.displayType =='detailsWithImage' ){
-          this.setState({showFileBrowser:true})
+          this.setState({showFileBrowser:true ,imageURL :  this.state.imageURL+"?token="+IMAGE_VALIDATION_TOKEN})
+         
         }
        
         if(this.state.displayType == "details"){

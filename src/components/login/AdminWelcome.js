@@ -13,8 +13,7 @@ import PostLoginNavBar from "../PostLoginNavbar";
 import ActivationService from "../service/ActivationService";
 import {resolveResponse} from "../../utils/ResponseHandler";
 
-import  {DEV_PROTJECT_PATH} from "../../utils/config";
-
+import  {DEV_PROTJECT_PATH, IMAGE_VALIDATION_TOKEN} from "../../utils/config";
 
 class LoginComponent extends React.Component{
     constructor(props) {
@@ -36,7 +35,7 @@ class LoginComponent extends React.Component{
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
-                 <img style={styles.imagestyle} src={DEV_PROTJECT_PATH+"/webdata/adminwelcome.png"} />
+                 <img style={styles.imagestyle} src={DEV_PROTJECT_PATH+"/webdata/adminwelcome.png?token="+IMAGE_VALIDATION_TOKEN} />
             </React.Fragment>
         )
 
