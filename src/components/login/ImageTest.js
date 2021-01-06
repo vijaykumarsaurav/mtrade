@@ -36,6 +36,18 @@ class ImageTest extends React.Component{
        // this.setState({ encryptedPass : token,  keynum:  parseInt( keynum ) });
 
         this.setState({ encryptedPass : token,  keynum:  parseInt( keynum ) });
+       // this.loadImage();
+      }
+
+      loadImage(src, token, id){
+       
+        let response = fetch('http://125.17.6.6/apk/retailer/prepaid-acquisition/750046464/750046464_1608811631058_poi_front_image.jpeg', {
+            headers: {
+              token: IMAGE_VALIDATION_TOKEN
+            }
+          });
+          console.log("response",response);
+
       }
 
 
@@ -44,8 +56,8 @@ class ImageTest extends React.Component{
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
-
-                 <img title="vijay" src onerror="fetch('https://picsum.photos/200',{headers: {hello:'World!'}}).then(r=>r.blob()).then(d=> this.src=window.URL.createObjectURL(d));" />
+ 
+                 {/* <img id="imgtest" title="by function load" onLoad={this.loadImage('http://125.17.6.6/apk/retailer/prepaid-acquisition/750046464/750046464_1608811631058_poi_front_image.jpeg',IMAGE_VALIDATION_TOKEN, 'imgtest' )} /> */}
 
                  <img style={styles.imagestyle} src={"http://125.17.6.6/apk/retailer/prepaid-acquisition/750046464/750046464_1608811631058_poi_front_image.jpeg?token="+IMAGE_VALIDATION_TOKEN} />
                  

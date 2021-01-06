@@ -3,6 +3,7 @@ import { Fade,Slide,Zoom } from 'react-slideshow-image';
 import Grid from '@material-ui/core/Grid';
 import $ from 'jquery';
 import ReactPanZoom from "react-image-pan-zoom-rotate";
+import  {IMAGE_VALIDATION_TOKEN} from "../utils/config";
 
 
 const fadeProperties = {
@@ -139,7 +140,7 @@ class SlideSlowGalary extends Component {
                         <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp; {data.title} &nbsp;&nbsp;</div> 
 
                           {/* <img  id="imageCon" src={data.img} /> */}
-                          <ReactPanZoom image={data.img} alt={data.title}/>
+                          <ReactPanZoom image={data.img+'?token='+IMAGE_VALIDATION_TOKEN} alt={data.title}/>
                         </div>
                         
                       </div>

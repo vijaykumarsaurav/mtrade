@@ -14,6 +14,7 @@ import "./Verify.css";
 import ReactPanZoom from "react-image-pan-zoom-rotate";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
+import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
 
 class VerifyEdit extends React.Component {
 
@@ -372,19 +373,19 @@ class VerifyEdit extends React.Component {
                             <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
                 </Grid></div>: ""}
 
-                <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNext} />
-                <img style={{  width: "1px"}} src={this.state.customerImageUrlNext} />
-                <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNext} />
-                <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNext} />
-                <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNext} />
-                <img style={{  width: "1px"}} src={this.state.pefImageUrlNext} />
+                <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.customerImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.pefImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
 
-                <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNextP} />
-                <img style={{  width: "1px"}} src={this.state.customerImageUrlNextP} />
-                <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNextP} />
-                <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNextP} />
-                <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNextP} />
-                <img style={{  width: "1px"}} src={this.state.pefImageUrlNextP} />
+                <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.customerImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                <img style={{  width: "1px"}} src={this.state.pefImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
                 
             </React.Fragment>
         )

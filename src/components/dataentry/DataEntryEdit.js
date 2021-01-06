@@ -19,6 +19,7 @@ import "./DataEntry.css";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
+import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
 
 class DataEntryEdit extends React.Component {
 
@@ -407,12 +408,12 @@ class DataEntryEdit extends React.Component {
             <div>
         </div>
 
-                    <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNext} />
-                    <img style={{  width: "1px"}} src={this.state.customerImageUrlNext} />
-                    <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNext} />
-                    <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNext} />
-                    <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNext} />
-                    <img style={{  width: "1px"}} src={this.state.pefImageUrlNext} />
+                    <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                    <img style={{  width: "1px"}} src={this.state.customerImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                    <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                    <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                    <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                    <img style={{  width: "1px"}} src={this.state.pefImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
 
             </React.Fragment>
         )
