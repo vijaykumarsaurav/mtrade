@@ -36,6 +36,10 @@ class AdminService {
         return axios.post(apiConstant.RETAILER_API_FSC_UPLOAD, formData, AuthService.getHeader());
     }
 
+    uploadReRegistration(formData){
+        return axios.post(apiConstant.RETAILER_API_RE_RESISTRATION_UPLOAD, formData, AuthService.getHeader());
+    }
+
     deleteRetailer(formData){
         return axios.post(apiConstant.RETAILER_DELETE, formData, AuthService.getHeader());
     }

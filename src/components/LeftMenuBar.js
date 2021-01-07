@@ -69,6 +69,13 @@ export const AdminMenuList = (
       <ListItemText primary="FSE Upload" />
     </ListItem>
 
+    <ListItem button component='a' href={"#/re-registration"} >
+      <ListItemIcon>
+        <LocalOfferIcon />
+      </ListItemIcon>
+      <ListItemText primary="KYC Re-Registration" />
+    </ListItem>
+
     <ListItem button component='a' href={"#/banners"} >
       <ListItemIcon>
         <AssignmentIcon />

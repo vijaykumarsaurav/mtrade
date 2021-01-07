@@ -38,6 +38,7 @@ import BaneerList from './banner/BannerList';
 import BackOffice from './backoffice/BackOffice';
 import OfferUpload from './backoffice/OfferUpload';
 import FSEUpload from './backoffice/FSEUpload';
+import ReRegistration from './backoffice/ReRegistration';
 import AdminWelcome from './login/AdminWelcome';
 import ImageTest from './login/ImageTest';
 import RoleManagement from './login/RoleManagement';
@@ -83,6 +84,8 @@ const AppRouter = () => {
                     <Route path="/backoffice" component={BackOffice} />
                     <Route path="/offerupload" component={OfferUpload} />
                     <Route path="/fse" component={FSEUpload} />
+                    <Route path="/re-registration" component={ReRegistration} />
+
 
                     <Route path="/report" component={Report} />
                     <Route path="/welcome" component={AdminWelcome} />

@@ -21,6 +21,12 @@ if(window.location.hostname == "125.17.6.6"){
     templatePath =  '/retailerdev';  
 }
 
+//dev private url
+if(window.location.hostname == "10.92.210.103" || window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
+    RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
+    templatePath =  '/retailerdev';  
+}
+
 if(window.location.hostname == "tstretailer.airtel.lk"){
     RETAILER_API_BASE_URL = 'https://tstretailer.airtel.lk/SLRetailer/';
 }
@@ -114,8 +120,10 @@ export const RETAILER_API_OFFER_DOWNLOAD = RETAILER_API_BASE_URL + 'bestoffers/d
 //fsc
 //export const RETAILER_API_FSC_UPLOAD = RETAILER_API_BASE_URL + 'fse/camps/upload';
 //export const RETAILER_API_FSC_DOWNLOAD = RETAILER_API_BASE_URL + 'fse/view';
-export const RETAILER_API_FSC_UPLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
-export const RETAILER_API_FSC_DOWNLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/view';
+export const RETAILER_API_FSC_UPLOAD =  window.location.hostname + '/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
+export const RETAILER_API_FSC_DOWNLOAD =  window.location.hostname + '/retailer/SLRetailerFSECamping/' +  'fse/view';
+//KYC RE_RESISTRATION
+export const RETAILER_API_RE_RESISTRATION_UPLOAD =  RETAILER_API_BASE_URL + 'customer/kyc/upload';
 
 //role Management 
 export const LIST_OF_ROLES = RETAILER_API_BASE_URL + 'roles/all';
@@ -126,4 +134,4 @@ export const SEARCH_BY_MSISDN = RETAILER_API_BASE_URL + 'acquisition/msisdnAcqui
 
 export const CHECK_SESSION_API = RETAILER_API_BASE_URL + 'commomService/checkSession';
 export const DEV_PROTJECT_PATH  = templatePath;
-export const IMAGE_VALIDATION_TOKEN  = btoa("5dbc98dcc983a70728bd082d1a47546e@"+parseInt( new Date( new Date().getTime() + 60000 ).getTime() / 1000 ));
+export const IMAGE_VALIDATION_TOKEN  = btoa("5dbc98dcc983a70728bd082d1a47546e@"+parseInt( new Date( new Date().getTime() + 60000 * 10 ).getTime() / 1000 ));

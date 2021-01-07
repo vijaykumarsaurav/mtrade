@@ -22,7 +22,7 @@ import { CSVLink } from "react-csv";
 import md5  from 'md5'; 
 import  {DEV_PROTJECT_PATH} from "../../utils/config";
 
-class FSEUpload extends React.Component {
+class ReRegistration extends React.Component {
 
     constructor(props) {
         super(props);
@@ -125,7 +125,7 @@ class FSEUpload extends React.Component {
            // formData.append('email', '');
         
             
-            AdminService.uploadFSCCampin(formData).then(data => {
+            AdminService.uploadReRegistration(formData).then(data => {
 
            // var data = resolveResponse(res, "Offer Uploaded Successfully.");
             var data = data && data.data;
@@ -250,24 +250,23 @@ class FSEUpload extends React.Component {
             <div style={{ padding: "40px" }} >
                 <Paper style={{ padding: "15px" }}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                        FSE Camping  Upload
+                    Customer KYC Re-Registration Upload
                     </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                         <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/FSEUploadTemplate.xlsx"}>Download Sample</Link>
+                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/ReRegistrationExcel.xlsx"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
-                            <Typography variant="subtitle1">Upload FSE Camping</Typography>
+                            <Typography variant="subtitle1">Upload KYC Re-Registration Excel</Typography>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
                             <Typography variant="subtitle1">
-
                             <input
                                     type="file"
                                     name="uploadfile"
@@ -327,4 +326,4 @@ const styles = {
 }
 
 
-export default FSEUpload;
+export default ReRegistration;
