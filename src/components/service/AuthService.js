@@ -9,6 +9,11 @@ class AuthService {
         //return { 'headers': { 'X-Server-Key': '8786gfhy' } }
     }
 
+    getImageHeader() {
+        return { 'headers': {'token': localStorage.getItem("token")}}
+        //return { 'headers': { 'X-Server-Key': '8786gfhy' } }
+    }
+
     // logout() {
 
     //     if(window.localStorage.getItem("token")){

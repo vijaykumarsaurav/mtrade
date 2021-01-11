@@ -134,4 +134,4 @@ export const SEARCH_BY_MSISDN = RETAILER_API_BASE_URL + 'acquisition/msisdnAcqui
 
 export const CHECK_SESSION_API = RETAILER_API_BASE_URL + 'commomService/checkSession';
 export const DEV_PROTJECT_PATH  = templatePath;
-export const IMAGE_VALIDATION_TOKEN  = btoa("5dbc98dcc983a70728bd082d1a47546e@"+parseInt( new Date( new Date().getTime() + 60000 * 10 ).getTime() / 1000 ));
+export const IMAGE_VALIDATION_TOKEN  = btoa("5dbc98dcc983a70728bd082d1a47546e@"+parseInt( new Date( new Date().getTime() + 60000 * 30 ).getTime() / 1000 ));

@@ -23,6 +23,18 @@ class UserService {
           return axios.get(SL_AD_LOGOUT_URL, AuthService.getHeader());
     }
 
+    imageLoad(filename) {
+             return axios.get('http://localhost/'+ filename, AuthService.getImageHeader());
+             
+
+            // return axios.put('http://localhost/'+ filename, filename, {
+            //     headers: {
+            //       'Content-Type': 'image/png', 
+            //      'token': localStorage.getItem("token")
+            //     }
+            //   });
+    }
+
 } 
 
 export default new UserService();
