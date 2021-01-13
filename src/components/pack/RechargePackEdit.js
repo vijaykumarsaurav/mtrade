@@ -10,7 +10,7 @@ import MaterialUIPickers from "../../utils/MaterialUIPickers";
 import pack from "../service/AdminService";
 import { resolveResponse } from "../../utils/ResponseHandler";
 
-import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
+import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 
 import MenuItem from "@material-ui/core/MenuItem";
 import Grid from "@material-ui/core/Grid";
@@ -163,7 +163,7 @@ class RechargePackAdd extends React.Component {
         this.setState({activationStatus:this.state.active})
 
         if(this.state.displayType =='detailsWithImage' ){
-          this.setState({showFileBrowser:true ,imageURL :  this.state.imageURL+"?token="+IMAGE_VALIDATION_TOKEN})
+          this.setState({showFileBrowser:true ,imageURL :  this.state.imageURL})
          
         }
        
@@ -194,6 +194,11 @@ class RechargePackAdd extends React.Component {
        
     }
   render() {
+
+    var CookieExpireDate = new Date();
+    CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
+    document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
+    console.log("COOKIE", document.cookie ); 
 
    
     console.log("STAte", this.state);

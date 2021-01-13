@@ -21,7 +21,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import  * as amsConstant from "../../utils/config";
 import Input from "@material-ui/core/Input";
 import md5  from 'md5'; 
-import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
+import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 
 import ActivationService from "../service/ActivationService";
 
@@ -123,7 +123,7 @@ class BannerEdit extends React.Component {
          publishDate:selectedData.publishDate,
          expireDate: selectedData.expireDate,
          updateTime:selectedData.updateTime,
-         imageURL:selectedData.imageURL+"?token="+IMAGE_VALIDATION_TOKEN, 
+         imageURL:selectedData.imageURL, 
          bannerId : selectedData.id, 
          link:selectedData.link, 
          selectedZone : selectedData.zones ? selectedData.zones.split(",") : [] 
@@ -139,11 +139,7 @@ class BannerEdit extends React.Component {
     }
 
   }
-    componentDidMount() {
-      this.getInitialData();
-      localStorage.setItem("lastUrl","banner-edit");
-
-    }
+   
       
 
   render() {
@@ -155,7 +151,12 @@ class BannerEdit extends React.Component {
       firstLavel : "Publish Date", 
       secondLavel : "End Date"
     }
-    console.log(this.state, "STATE_MATTERS");
+    
+    var CookieExpireDate = new Date();
+    CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
+    document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
+    console.log("COOKIE", document.cookie ); 
+
     return (
       <React.Fragment>
         <PostLoginNavBar />
@@ -380,6 +381,13 @@ class BannerEdit extends React.Component {
 
       </React.Fragment>
     );
+  }
+
+  componentDidMount() {
+    document.cookie = "token="+IMAGE_VALIDATION_TOKEN;
+    this.getInitialData();
+    localStorage.setItem("lastUrl","banner-edit");
+
   }
 
   savePack = e => {

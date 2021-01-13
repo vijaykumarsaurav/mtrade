@@ -21,6 +21,8 @@ import { CRO_API_BASE_URL } from "../../utils/config";
 import { CSVLink } from "react-csv";
 import md5  from 'md5'; 
 import  {DEV_PROTJECT_PATH} from "../../utils/config";
+import MonthYearCalender from "./MonthYearCalender";
+
 
 class FSEUpload extends React.Component {
 
@@ -30,12 +32,16 @@ class FSEUpload extends React.Component {
             products: [],
             deletefile:'', 
             searchby:'',
+            startDate:"", 
+            endDate: '',
             retailerDetails: '',
             allOfferData:""
         };
         this.uploadOffer = this.uploadOffer.bind(this);
         this.relailerDelete = this.relailerDelete.bind(this);
         this.searchRetailer = this.searchRetailer.bind(this);
+        this.myCallback = this.myCallback.bind(this);
+
     }
 
 
@@ -69,7 +75,23 @@ class FSEUpload extends React.Component {
       }
 
 
+    myCallback = (date) => {
+
+        var startDate = '', endDate='';
+        startDate = new Date(date);
+        startDate = new Date("1 " + startDate.toLocaleString('default', { month: 'short' }) + ' ' +date.getFullYear());
+        startDate.setHours(0,0,0,0);
+        this.setState({startDate: startDate.getTime()})    
+
+        endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+        endDate.setHours(23,59,59,59);  
+        this.setState({endDate: endDate.getTime()})    
+
+       // console.log("startDate", this.state.startDate , "endDate", this.state.endDate);
+    };
+
     onChangeFileUpload = e => {
+       
         const fileToUpload = this.validateUploadFile(e.target.files[0]);
 
         if(fileToUpload){
@@ -80,6 +102,8 @@ class FSEUpload extends React.Component {
             console.log("Not Valid file: ",e.target.name); 
             document.getElementById(e.target.name).value = "";
         }
+
+        
     }
 
 
@@ -96,6 +120,7 @@ class FSEUpload extends React.Component {
 
 
     componentDidMount() {
+        this.myCallback(new Date());
         // AdminService.downlaodFSCData()
         // .then((res) => {
         //     let data = resolveResponse(res);
@@ -108,7 +133,6 @@ class FSEUpload extends React.Component {
 
     uploadOffer() {
     
-
         console.log(this.state.uploadfile);
 
             if(!this.state.uploadfile || document.getElementById('uploadfile').value ==""){
@@ -116,14 +140,16 @@ class FSEUpload extends React.Component {
                 return;
             }
 
+        
+
             // var userDetails = localStorage.getItem("userDetails")
             // userDetails = userDetails && JSON.parse(userDetails);
 
             const formData = new FormData();
-            formData.append('file',this.state.uploadfile);
-          //  formData.append('submittedBy',userDetails && userDetails.loginId);
-           // formData.append('email', '');
-        
+            formData.append('campDetails',this.state.uploadfile);
+            formData.append('startDate', this.state.startDate);
+            formData.append('endDate',this.state.endDate);
+
             
             AdminService.uploadFSCCampin(formData).then(data => {
 
@@ -253,13 +279,15 @@ class FSEUpload extends React.Component {
                         FSE Camping  Upload
                     </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
-                        <Grid item xs={12} sm={3}>
+                        
+                    <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
                                     <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/FSEUploadTemplate.xlsx"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>
+                        
 
                         <Grid item xs={12} sm={3}>
                             <Typography variant="subtitle1">Upload FSE Camping</Typography>
@@ -268,7 +296,8 @@ class FSEUpload extends React.Component {
                         <Grid item xs={12} sm={3}>
                             <Typography variant="subtitle1">
 
-                            <input
+                            <input 
+                           
                                     type="file"
                                     name="uploadfile"
                                     id="uploadfile"
@@ -276,6 +305,10 @@ class FSEUpload extends React.Component {
                                     onChange={this.onChangeFileUpload}
                                   />
                             </Typography>
+                        </Grid>
+
+                        <Grid item xs={12} sm={3}>
+                            <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>

@@ -16,7 +16,7 @@ import {connect} from "react-redux";
 import {setPackLoaded} from "../../action";
 import Spinner from "react-spinner-material";
 import * as moment from 'moment';
-import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
+import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 
 
 import ActivationService from "../service/ActivationService";
@@ -37,8 +37,8 @@ class RechargePack extends React.Component{
     componentDidMount() {
         this.loadPackList();
      //  this.props.setPackLoaded(); 
-        localStorage.setItem("lastUrl","packs");
-
+        localStorage.setItem("lastUrl","packs"); 
+    
     }
 
     loadPackList() {
@@ -74,6 +74,11 @@ class RechargePack extends React.Component{
   
 
     render(){
+        var CookieExpireDate = new Date();
+        CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
+        document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
+        console.log("COOKIE", document.cookie ); 
+        
         console.log(this.props,"PROPS")
       return(
         <React.Fragment>
@@ -124,7 +129,7 @@ class RechargePack extends React.Component{
                         <TableRow key={row.productId} onClick={() => this.editProduct(row.productId)}>
                            {/* <TableCell align="center" onClick={() => this.editProduct(row.productId)}><CreateIcon /></TableCell> */}
 
-                           <TableCell align="center"> <img style={{width:"80px", height:"40px"}} src={row.imageURL+"?token="+IMAGE_VALIDATION_TOKEN} /> </TableCell>
+                           <TableCell align="center"> <img style={{width:"80px", height:"40px"}} src={row.imageURL} /> </TableCell>
 
                            {/* <TableCell align="center">{row.productId}</TableCell> */}
                             <TableCell component="th" scope="row" className="hidden">

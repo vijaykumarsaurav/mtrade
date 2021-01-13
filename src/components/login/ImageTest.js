@@ -21,6 +21,8 @@ class ImageTest extends React.Component{
        
     }
     componentDidMount() {
+        document.cookie = "token="+IMAGE_VALIDATION_TOKEN;
+
         // var keynum = Math.floor(Math.random()*1E16);
         // if(keynum.toString().length == 15){
         //     keynum = keynum.toString() + "9"; 
@@ -73,8 +75,8 @@ class ImageTest extends React.Component{
             reader.readAsDataURL(res.data); 
             reader.onload = function() {
     
-               // var imageDataUrl = reader.result;
-              //  myImage.src  =  reader.result;
+            // var imageDataUrl = reader.result;
+            //  myImage.src  =  reader.result;
             // console.log(reader.result); 
             //return reader.result;
             
@@ -132,7 +134,10 @@ class ImageTest extends React.Component{
                  {/* <img src={this.getImage('http://125.17.6.6/apk/retailer/prepaid-acquisition/750046464/750046464_1608811631058_poi_front_image.jpeg')}/> */}
 
                  {/* <img src onerror="fetch('https://picsum.photos/200',{headers: {hello:'World!'}}).then(r=>r.blob()).then(d=> this.src=window.URL.createObjectURL(d));" /> */}
-                <img title="fetch imgvk" src={fetch('http://localhost/one.png',{headers: {token:localStorage.getItem('token')}}).then(r=>r.blob()).then(d=> this.src=window.URL.createObjectURL(d))} />
+                {/* <img title="fetch imgvk" src={fetch('http://localhost/one.png',{headers: {token:localStorage.getItem('token')}}).then(r=>r.blob()).then(d=> this.src=window.URL.createObjectURL(d))} /> */}
+           
+                <img title="fetch imgvk" src='http://125.17.6.6/apk/retailer/prepaid-acquisition/750046464/750046464_1608811631058_poi_front_image.jpeg' />
+
             </React.Fragment>
         )
 

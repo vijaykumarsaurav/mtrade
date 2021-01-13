@@ -13,7 +13,7 @@ import PostLoginNavBar from "../PostLoginNavbar";
 import ActivationService from "../service/ActivationService";
 import {resolveResponse} from "../../utils/ResponseHandler";
 
-import  {DEV_PROTJECT_PATH, IMAGE_VALIDATION_TOKEN} from "../../utils/config";
+import  {DEV_PROTJECT_PATH, IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 
 class LoginComponent extends React.Component{
     constructor(props) {
@@ -30,12 +30,15 @@ class LoginComponent extends React.Component{
 
 
     render() {
-        var password = "U*0elFh:"; 
+        var CookieExpireDate = new Date();
+        CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
+        document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
+        console.log("COOKIE", document.cookie ); 
 
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
-                 <img style={styles.imagestyle} src={DEV_PROTJECT_PATH+"/webdata/adminwelcome.png?token="+IMAGE_VALIDATION_TOKEN} />
+                 <img style={styles.imagestyle} src={DEV_PROTJECT_PATH+"/webdata/adminwelcome.png"} />
             </React.Fragment>
         )
 
@@ -43,7 +46,6 @@ class LoginComponent extends React.Component{
 
     componentDidMount() {
       const token =   window.localStorage.getItem("token"); 
-
     //   if(token){
     //     const lastUrl = localStorage.getItem("lastUrl"); 
     //     this.props.history.push('/'+lastUrl);

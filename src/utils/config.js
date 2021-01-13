@@ -1,3 +1,5 @@
+import { domain } from "process";
+
 var RETAILER_API_BASE_URL = 'https://retailer.airtel.lk/SLRetailer/';
 var STAGING_IP_PORT = 'http://125.16.74.160:30611/';
 var DEV_IP_PORT = 'http://125.17.6.6/retailer/';
@@ -15,26 +17,29 @@ if(window.location.hostname == "125.16.74.160"){
     RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; 
 }
 
-var templatePath = ''; 
+var templatePath = '',domainIpName=''; 
 if(window.location.hostname == "125.17.6.6"){
     RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/';
     templatePath =  '/retailerdev';  
+    domainIpName = '125.17.6.6'; 
 }
 
 //dev private url
 if(window.location.hostname == "10.92.210.103" || window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
     RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
     templatePath =  '/retailerdev';  
+    domainIpName = 'slretailer-web-ui-service.development.slmitra.airtelworld.in'; 
 }
 
 if(window.location.hostname == "tstretailer.airtel.lk"){
     RETAILER_API_BASE_URL = 'https://tstretailer.airtel.lk/SLRetailer/';
+    domainIpName = 'tstretailer.airtel.lk'; 
 }
 
 if(window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1"){
   //RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
    RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
- 
+   domainIpName = '125.17.6.6'; 
 }
 //reports 
 export const RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'reports/';
@@ -120,8 +125,8 @@ export const RETAILER_API_OFFER_DOWNLOAD = RETAILER_API_BASE_URL + 'bestoffers/d
 //fsc
 //export const RETAILER_API_FSC_UPLOAD = RETAILER_API_BASE_URL + 'fse/camps/upload';
 //export const RETAILER_API_FSC_DOWNLOAD = RETAILER_API_BASE_URL + 'fse/view';
-export const RETAILER_API_FSC_UPLOAD =  window.location.hostname + '/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
-export const RETAILER_API_FSC_DOWNLOAD =  window.location.hostname + '/retailer/SLRetailerFSECamping/' +  'fse/view';
+export const RETAILER_API_FSC_UPLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
+export const RETAILER_API_FSC_DOWNLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/view';
 //KYC RE_RESISTRATION
 export const RETAILER_API_RE_RESISTRATION_UPLOAD =  RETAILER_API_BASE_URL + 'customer/kyc/upload';
 
@@ -135,3 +140,4 @@ export const SEARCH_BY_MSISDN = RETAILER_API_BASE_URL + 'acquisition/msisdnAcqui
 export const CHECK_SESSION_API = RETAILER_API_BASE_URL + 'commomService/checkSession';
 export const DEV_PROTJECT_PATH  = templatePath;
 export const IMAGE_VALIDATION_TOKEN  = btoa("5dbc98dcc983a70728bd082d1a47546e@"+parseInt( new Date( new Date().getTime() + 60000 * 30 ).getTime() / 1000 ));
+export const COOKIE_DOMAIN = domainIpName; 

@@ -22,7 +22,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from "@material-ui/core/Input";
-import  {IMAGE_VALIDATION_TOKEN} from "../../utils/config";
+import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 
 
 
@@ -71,13 +71,7 @@ class BaneerList extends React.Component{
 
     }
 
-    componentDidMount() {
-        this.loadBannerList();
-        localStorage.setItem("lastUrl","banners");
-        if(JSON.parse(localStorage.getItem('cmsStaticData'))){
-            this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
-          }
-    }
+   
 
     loadBannerList() {
 
@@ -122,9 +116,12 @@ class BaneerList extends React.Component{
     
 
     render(){
-        console.log(this.props,"PROPS")
+        var CookieExpireDate = new Date();
+        CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
+        document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
+        console.log("COOKIE", document.cookie ); 
 
-       
+        console.log(this.props,"PROPS")
       return(
         <React.Fragment>
             <PostLoginNavBar/>
@@ -206,7 +203,7 @@ class BaneerList extends React.Component{
                     {this.state.products && this.state.products ? this.state.products.map(row => (
                         <TableRow key={row.productId} onClick={() => this.editProduct( row.id)}>
 
-                            <TableCell align="center"> <img style={{width:"100px", height:"50px"}} src={row.imageURL+"?token="+IMAGE_VALIDATION_TOKEN} /> </TableCell>
+                            <TableCell align="center"> <img style={{width:"100px", height:"50px"}} src={row.imageURL} /> </TableCell>
                             <TableCell align="center">{row.title}</TableCell>
                             <TableCell align="center">{row.bannerType}</TableCell>
                             <TableCell align="center">{row.active ? 'Active' : "Inactive"}</TableCell>
@@ -226,6 +223,13 @@ class BaneerList extends React.Component{
             </Paper>
             </React.Fragment> 
         )
+    }
+    componentDidMount() {
+        this.loadBannerList();
+        localStorage.setItem("lastUrl","banners");
+        if(JSON.parse(localStorage.getItem('cmsStaticData'))){
+            this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
+          }
     }
 }
 

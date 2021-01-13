@@ -3,7 +3,7 @@ import { Fade,Slide,Zoom } from 'react-slideshow-image';
 import Grid from '@material-ui/core/Grid';
 import $ from 'jquery';
 import ReactPanZoom from "react-image-pan-zoom-rotate";
-import  {IMAGE_VALIDATION_TOKEN} from "../utils/config";
+import  {IMAGE_VALIDATION_TOKEN, COOKIE_DOMAIN} from "../utils/config";
 
 
 const fadeProperties = {
@@ -122,6 +122,11 @@ class SlideSlowGalary extends Component {
 
   };
 
+  var CookieExpireDate = new Date();
+  CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
+  document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
+  console.log("COOKIE", document.cookie ); 
+
     const { photoIndex, isOpen } = this.state;
     var  topImg = this.props.imageDetails.imageDetails;
     
@@ -140,7 +145,7 @@ class SlideSlowGalary extends Component {
                         <div className="titleOverlay" style={{textAlign:"center"}}>&nbsp;&nbsp; {data.title} &nbsp;&nbsp;</div> 
 
                           {/* <img  id="imageCon" src={data.img} /> */}
-                          <ReactPanZoom image={data.img+'?token='+IMAGE_VALIDATION_TOKEN} alt={data.title}/>
+                          <ReactPanZoom image={data.img} alt={data.title}/>
                         </div>
                         
                       </div>
