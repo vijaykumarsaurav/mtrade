@@ -153,13 +153,19 @@ class FSEUpload extends React.Component {
             
             AdminService.uploadFSCCampin(formData).then(data => {
 
-           // var data = resolveResponse(res, "Offer Uploaded Successfully.");
+           // var data = resolveResponse(data, "FSE Uploaded Successfully.");
             var data = data && data.data;
             if(data.status == 200){
                 Notify.showSuccess("FSC Camping Uploaded Successfully.");
             }else{
                 Notify.showError(data.message);
+                if(data.status === 1010 ){
+                    localStorage.clear();
+                    //return window.location.replace("/#/login");
+                    return Promise.reject(window.location.replace("#/login"));
+                }
             }
+
           
             document.getElementById('uploadfile').value = "";
         
