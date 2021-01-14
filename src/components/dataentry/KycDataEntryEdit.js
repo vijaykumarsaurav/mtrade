@@ -274,7 +274,7 @@ class KycDataEntryEdit extends React.Component {
         return(
             <React.Fragment>
             <PostLoginNavBar/>
-            <Typography variant="h6" style={styles.textStyle} >Data Entry Details</Typography>
+            <Typography variant="h6" style={styles.textStyle} >KYC Re-Registration Data Entry Details</Typography>
             <Grid container className="flexGrow" spacing={1}>
                <Grid item  xs={12} sm={8} style={{overflow:"scroll"}}>
                     <Paper style={{paddingLeft:"5px", paddingRight:"5px", height:"80vh", width: "135vh" }}>
@@ -578,7 +578,8 @@ class KycDataEntryEdit extends React.Component {
             "comments": this.state.comment ? this.state.comment.trim() : "",
             "deDateTime": new Date(),
             "deUser": this.state.loginId,
-            "emailid":this.state.emailid
+            "emailid":this.state.emailid,
+            "processType": "PROCESS_CUSTOMER_KYC"
         }
     
         ActivationService.saveKycDataEntry(product)
