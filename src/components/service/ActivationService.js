@@ -8,6 +8,16 @@ class ActivationService {
         //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
       return axios.post(apiConstant.VERIFY_DOCS_LISTING,data, AuthService.getHeader() );
     }
+    KycListDocs(data){
+        //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
+      return axios.post(apiConstant.KYC_VERIFY_DOCS_LISTING,data, AuthService.getHeader() );
+    }
+
+    KycDataEntryListDocs(data){
+        //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
+      return axios.post(apiConstant.KYC_VERIFY_DOCS_LISTING,data, AuthService.getHeader() );
+    }
+
     listQVADocs(data){
         //return axios.post(apiConstant.VERIFY_DOCS_LISTING, data, { 'headers': { 'ContentType': 'application/json' } });
       return axios.post(apiConstant.QVA_DOCS_LISTING,data, AuthService.getHeader() );
@@ -26,18 +36,31 @@ class ActivationService {
         return axios.get(apiConstant.VERIFY_DETAILS + '?txnId=' + productId, AuthService.getHeader());
     }
 
+    getOneKycVerify(productId){
+        //return axios.get(apiConstant.VERIFY_DOCS_BY_ID + '&txnId=' + productId, AuthService.getHeader());
+        return axios.get(apiConstant.KYC_VERIFY_DETAILS + '?txnId=' + productId+"&processType=PROCESS_CUSTOMER_KYC", AuthService.getHeader());
+    }
+
     getOneDataEntry(productId){
-        
         return axios.get(apiConstant.DATAENTRY_DETAILS + '?txnId=' + productId, AuthService.getHeader());
     }
 
-
+    getOneKycDataEntry(productId){
+        return axios.get(apiConstant.KYC_DATAENTRY_DETAILS + '?txnId=' + productId+"&processType=PROCESS_CUSTOMER_KYC", AuthService.getHeader());
+    }
+  
     saveDataEntry(postdata){
         return axios.post(apiConstant.SAVE_DATAENTRY_DETAILS, postdata, AuthService.getHeader());
+    }
+    saveKycDataEntry(postdata){
+        return axios.post(apiConstant.KYC_SAVE_DATAENTRY_DETAILS, postdata, AuthService.getHeader());
     }
 
     unlockTransectionsSkip(postdata){
         return axios.post(apiConstant.UNLOCK_SKIP_VERIFICATION, postdata, AuthService.getHeader());
+    }
+    kycUnlockTransectionsSkip(postdata){
+        return axios.post(apiConstant.KYC_UNLOCK_SKIP_VERIFICATION, postdata, AuthService.getHeader());
     }
     unlockQVATransectionsSkip(postdata){
         return axios.post(apiConstant.UNLOCK_QVA_SKIP_VERIFICATION, postdata, AuthService.getHeader());
@@ -51,8 +74,16 @@ class ActivationService {
         return axios.get(apiConstant.RECORD_TOBE_PROCESSED, AuthService.getHeader());
     }
 
+    getKycTotalToBeProcessed(){
+        return axios.get(apiConstant.KYC_RECORD_TOBE_PROCESSED, AuthService.getHeader());
+    }
+
     approveDocs(product) {
         return axios.post(apiConstant.VERIFY_DOCS_APPROVE, product, AuthService.getHeader());
+    }
+
+    kycApproveDocs(product) {
+        return axios.post(apiConstant.KYC_VERIFY_DOCS_APPROVE, product, AuthService.getHeader());
     }
 
     searchMobileNo(mobile) {

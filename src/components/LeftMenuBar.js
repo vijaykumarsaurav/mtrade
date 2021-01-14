@@ -139,6 +139,13 @@ export const  BOAMenuList  = (
       </ListItemIcon>
       <ListItemText primary="Resubmit Verification" />
     </ListItem>   
+
+    <ListItem component='a' href={"#/kyc"} button>
+     <ListItemIcon>
+        <HistoryIcon />
+      </ListItemIcon>
+      <ListItemText primary="KYC Re-Registration" />
+    </ListItem>   
     
   </div>
 );
@@ -178,6 +185,12 @@ export const DEMenuList = (
       <ListItemText primary="Resubmit Data Entry" />
     </ListItem>   
 
+    <ListItem component='a' href={"#/kyc-dataentry"} button>
+     <ListItemIcon>
+        <HistoryIcon />
+      </ListItemIcon>
+      <ListItemText primary="KYC Re-Registration" />
+    </ListItem>   
   </div>
 );
 

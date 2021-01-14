@@ -59,8 +59,12 @@ export const SL_AD_LOGIN_URL = RETAILER_API_BASE_URL + 'auth/portaLogin';
 export const SL_AD_LOGOUT_URL = RETAILER_API_BASE_URL + 'auth/logout'; 
 
 export const VERIFY_DOCS_LISTING = RETAILER_API_BASE_URL + 'avde/prepaidAcquisitions';
+export const KYC_VERIFY_DOCS_LISTING = RETAILER_API_BASE_URL + 'cs/avde/pendingRecords';
+
 export const VERIFY_DOCS_LISTING_RESUBMIT = RETAILER_API_BASE_URL + 'avde/prepaidResubmits';
 export const RECORD_TOBE_PROCESSED =  RETAILER_API_BASE_URL + "avde/pendingCount";
+
+export const KYC_RECORD_TOBE_PROCESSED =  RETAILER_API_BASE_URL + "cs/avde/pendingCount?processType=PROCESS_CUSTOMER_KYC";
 
 export const QVA_DOCS_LISTING = RETAILER_API_BASE_URL + 'avde/prepaidAcquisitionsResubmits';
 
@@ -95,6 +99,15 @@ export const VERIFICATION_STATIC_DATA = RETAILER_API_BASE_URL + 'cms/data';
 
 export const VERIFY_DETAILS = RETAILER_API_BASE_URL + 'avde/acqDataForVerification';
 export const VERIFY_DOCS_APPROVE = RETAILER_API_BASE_URL + 'avde/saveVerificationDetails';
+
+//KYC 
+export const KYC_VERIFY_DETAILS = RETAILER_API_BASE_URL + 'cs/avde/dataForVerification';
+export const KYC_VERIFY_DOCS_APPROVE = RETAILER_API_BASE_URL + 'cs/avde/saveVerificationDetails';
+export const KYC_UNLOCK_SKIP_VERIFICATION = RETAILER_API_BASE_URL + 'cs/avde/unlockSelection';
+
+//kyc data entry
+export const KYC_DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'cs/avde/dataForDataEntry';
+export const KYC_SAVE_DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'cs/avde/saveDataEntryDetails';
 
 export const DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'avde/acqDataForDataEntry';
 export const SAVE_DATAENTRY_DETAILS = RETAILER_API_BASE_URL + 'avde/saveDataEntryDetails';

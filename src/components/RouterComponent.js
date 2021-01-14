@@ -15,6 +15,10 @@ import VerifyList from './verify/VerifyList';
 import ResubmitVerify from './verify/ResubmitVerify';
 import VerifyEdit from './verify/VerifyEdit';
 
+//kyc 
+import Kyc from './verify/Kyc';
+import KycEdit from './verify/KycEdit';
+
 //QVA
 import QvaList from './qva/QvaList';
 import QvaEdit from './qva/QvaEdit';
@@ -23,6 +27,9 @@ import QvaEdit from './qva/QvaEdit';
 import DataEntryList from './dataentry/DataEntryList';
 import ResubmitDataEntryList from './dataentry/ResubmitDataEntryList';
 
+//kyc-dataentry
+import KycDataEntryList from './dataentry/KycDataEntryList';
+import KycDataEntryEdit from './dataentry/KycDataEntryEdit';
 
 import DataEntryEdit from './dataentry/DataEntryEdit';
 //Distributer
@@ -48,6 +55,7 @@ import MSISDNDocsView from './backoffice/MSISDNDocsView';
 
 import ReportPOC from "./report/ReportPOC";
 
+
 const AppRouter = () => {
 
     return(
@@ -61,12 +69,18 @@ const AppRouter = () => {
                     <Route path="/resubmit-verify" component={ResubmitVerify}/>
                     <Route path="/verify-edit" component={VerifyEdit} />
 
+                   
+                    <Route path="/kyc" component={Kyc}/>
+                    <Route path="/kyc-edit" component={KycEdit} />
+
+                    <Route path="/kyc-dataentry" component={KycDataEntryList}/>
+                    <Route path="/kyc-dataentry-edit" component={KycDataEntryEdit}/>
+
                     <Route path="/qva" component={QvaList}/>
                     <Route path="/qva-edit" component={QvaEdit}/>
 
                     <Route path="/dataentry" component={DataEntryList} />
                     <Route path="/resubmit-dataentry" component={ResubmitDataEntryList} />
-
                     <Route path="/data-edit" replace component={DataEntryEdit} />
 
                     <Route path="/distributor" component={DistributerList} />

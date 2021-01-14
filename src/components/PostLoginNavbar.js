@@ -169,22 +169,6 @@ export default function PostLoginNavBar(props) {
                         <MenuIcon />
                     </IconButton>
 
-                    {/* <div style={{ width: "250px" }}>
-                        <Typography variant="h6" noWrap>
-                            SL MITRA Retailer Portal
-                    </Typography>
-                    </div>
-                    <Grid direction="row" container  justify="space-between"   spacing={10} style={{ paddingLeft: "10px", paddingRight: "10px"}}>
-                        <Grid item xs={12} sm={1}></Grid>
-                        <Grid item xs={12} sm={3} style={{textAlign:"right"}}>
-                            <Typography variant="p" style={{ color: "white" }} noWrap>
-                              {userDetails && userDetails.loginName ? userDetails.loginName.toUpperCase() : null}
-                            </Typography> 
-                        </Grid>
-                    </Grid> */}
-
-
-                        {/* sprint 8 changes */}
                         <Grid
                                 justify="space-between"
                                 container
@@ -198,7 +182,6 @@ export default function PostLoginNavBar(props) {
                         <Grid item >
 
                         <Grid
-                           
                             container
                             direction="row"
                         >
