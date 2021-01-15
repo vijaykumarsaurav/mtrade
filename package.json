@@ -34,7 +34,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "docker-build-ui": "npm install && npm run build --target=production"
+    "docker-build-ui": "npm run build --target=production"
   },
   "eslintConfig": {
     "extends": "react-app"
