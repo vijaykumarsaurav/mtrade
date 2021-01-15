@@ -28,7 +28,7 @@ if(window.location.hostname == "125.17.6.6"){
 if(window.location.hostname == "10.92.210.103" || window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
     RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
     templatePath =  '/retailerdev';  
-    domainIpName = 'slretailer-web-ui-service.development.slmitra.airtelworld.in'; 
+    domainIpName = '10.92.210.103'; 
 }
 
 if(window.location.hostname == "tstretailer.airtel.lk"){
