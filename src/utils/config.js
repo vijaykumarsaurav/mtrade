@@ -32,7 +32,7 @@ if(window.location.hostname == "10.92.210.103" || window.location.hostname == "s
 }
 
 if(window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
-    domainIpName = 'slretailer-web-ui-service.development.slmitra.airtelworld.in'; 
+    domainIpName = window.location.hostname; 
 }
 
 if(window.location.hostname == "tstretailer.airtel.lk"){
