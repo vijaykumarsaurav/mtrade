@@ -25,14 +25,15 @@ if(window.location.hostname == "125.17.6.6"){
 }
 
 //dev private url
-if(window.location.hostname == "10.92.210.103" || window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
-    RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
+if(window.location.hostname == "10.92.210.103"){
     templatePath =  '/retailerdev';  
     domainIpName = '10.92.210.103'; 
 }
 
 if(window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
     domainIpName = window.location.hostname; 
+    RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
+    templatePath =  '';  
 }
 
 if(window.location.hostname == "tstretailer.airtel.lk"){
