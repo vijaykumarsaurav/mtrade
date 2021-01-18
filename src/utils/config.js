@@ -31,6 +31,10 @@ if(window.location.hostname == "10.92.210.103" || window.location.hostname == "s
     domainIpName = '10.92.210.103'; 
 }
 
+if(window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
+    domainIpName = 'slretailer-web-ui-service.development.slmitra.airtelworld.in'; 
+}
+
 if(window.location.hostname == "tstretailer.airtel.lk"){
     RETAILER_API_BASE_URL = 'https://tstretailer.airtel.lk/SLRetailer/';
     domainIpName = 'tstretailer.airtel.lk'; 
@@ -64,7 +68,7 @@ export const KYC_VERIFY_DOCS_LISTING = RETAILER_API_BASE_URL + 'cs/avde/pendingR
 export const VERIFY_DOCS_LISTING_RESUBMIT = RETAILER_API_BASE_URL + 'avde/prepaidResubmits';
 export const RECORD_TOBE_PROCESSED =  RETAILER_API_BASE_URL + "avde/pendingCount";
 
-export const KYC_RECORD_TOBE_PROCESSED =  RETAILER_API_BASE_URL + "cs/avde/pendingCount?processType=PROCESS_CUSTOMER_KYC";
+export const KYC_RECORD_TOBE_PROCESSED =  RETAILER_API_BASE_URL + "cs/avde/pendingCount";
 
 export const QVA_DOCS_LISTING = RETAILER_API_BASE_URL + 'avde/prepaidAcquisitionsResubmits';
 

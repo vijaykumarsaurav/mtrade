@@ -36,9 +36,10 @@ class ActivationService {
         return axios.get(apiConstant.VERIFY_DETAILS + '?txnId=' + productId, AuthService.getHeader());
     }
 
-    getOneKycVerify(productId){
+    getOneKycVerify( data ){
+        console.log("data",data);
         //return axios.get(apiConstant.VERIFY_DOCS_BY_ID + '&txnId=' + productId, AuthService.getHeader());
-        return axios.get(apiConstant.KYC_VERIFY_DETAILS + '?txnId=' + productId+"&processType=PROCESS_CUSTOMER_KYC", AuthService.getHeader());
+        return axios.get(apiConstant.KYC_VERIFY_DETAILS + '?txnId=' + data.selectedProductId+"&processType=" + data.processType, AuthService.getHeader());
     }
 
     getOneDataEntry(productId){
@@ -74,8 +75,8 @@ class ActivationService {
         return axios.get(apiConstant.RECORD_TOBE_PROCESSED, AuthService.getHeader());
     }
 
-    getKycTotalToBeProcessed(){
-        return axios.get(apiConstant.KYC_RECORD_TOBE_PROCESSED, AuthService.getHeader());
+    getKycTotalToBeProcessed(processType){
+        return axios.get(apiConstant.KYC_RECORD_TOBE_PROCESSED+"?processType="+processType, AuthService.getHeader());
     }
 
     approveDocs(product) {

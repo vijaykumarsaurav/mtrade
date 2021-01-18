@@ -16,7 +16,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
 import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 
-class KycEdit extends React.Component {
+class DisconnectionEdit extends React.Component {
 
     constructor(props) {
         super(props);
@@ -73,7 +73,7 @@ class KycEdit extends React.Component {
     }
 
     loadOneTransection(){
-        ActivationService.getKycTotalToBeProcessed().then(res => {
+        ActivationService.getKycTotalToBeProcessed("PROCESS_TYPE_DISCONNECTION").then(res => {
             let data = resolveResponse(res);  
             if(data.result){
                 if(document.getElementById('acqRecordId')){
@@ -90,7 +90,7 @@ class KycEdit extends React.Component {
         if(selectedProductId == null) {
             this.cancel();
         }else {
-            ActivationService.getOneKycVerify(selectedProductId).then(res => {
+            ActivationService.getOneKycVerify({selectedProductId : selectedProductId,processType:"PROCESS_TYPE_DISCONNECTION" }).then(res => {
                 let data = resolveResponse(res);
                 const selectedProduct = data.result;
                 console.log("selectedProduct",selectedProduct);
@@ -398,7 +398,7 @@ class KycEdit extends React.Component {
     onlockTransectionOnSkip = (txn) =>{
         var transactionsIds = {
             transactionsIds : [txn],
-            "processType": "PROCESS_CUSTOMER_KYC"
+            "processType": "PROCESS_TYPE_DISCONNECTION"
         }
         ActivationService.kycUnlockTransectionsSkip( transactionsIds ).then(res => {
             let data = resolveResponse(res);
@@ -443,7 +443,7 @@ class KycEdit extends React.Component {
         }
 
         if(nextid){
-            ActivationService.kycApproveDocs(nextid).then(res => {
+            ActivationService.getOneKycVerify({selectedProductId : nextid,processType:"PROCESS_TYPE_DISCONNECTION" }).then(res => {
                 let data = resolveResponse(res);
                 if(data.result){
 
@@ -543,7 +543,7 @@ class KycEdit extends React.Component {
             "verificationDateTime": new Date(),
             "verificationUser": this.state.loginId,
             "isRejected": 0,
-            "processType": "PROCESS_CUSTOMER_KYC",
+            "processType": "PROCESS_TYPE_DISCONNECTION",
             "transactionId":this.state.transactionId
         }
 
@@ -616,7 +616,7 @@ class KycEdit extends React.Component {
             "verificationDateTime": new Date(),
             "verificationUser":this.state.loginId,
             "isRejected": 1,
-            "processType": "PROCESS_CUSTOMER_KYC",
+            "processType": "PROCESS_TYPE_DISCONNECTION",
             "transactionId":this.state.transactionId
         }
 
@@ -636,7 +636,7 @@ class KycEdit extends React.Component {
     };
 
     cancel = (e) => {
-        this.props.history.push('/kyc');
+        this.props.history.push('/disconnection');
     };
 
     onChange = (e) => {
@@ -786,4 +786,4 @@ class SubmitedByDistributer extends React.Component {
 
 
 
-export default KycEdit;
+export default DisconnectionEdit;

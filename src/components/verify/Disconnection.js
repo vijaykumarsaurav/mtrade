@@ -33,7 +33,7 @@ const MenuProps = {
   },
 };
 
-class Kyc extends React.Component{
+class Disconnection extends React.Component{
 
     constructor(props) {
         super(props);
@@ -59,7 +59,7 @@ class Kyc extends React.Component{
         }
 
         localStorage.setItem("lastUrl","verify");
-        ActivationService.getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC").then(res => {
+        ActivationService.getKycTotalToBeProcessed("PROCESS_TYPE_DISCONNECTION").then(res => {
             let data = resolveResponse(res);     
             if(data && data.result){
                 // if(document.getElementById('acqRecordId')){
@@ -89,14 +89,14 @@ class Kyc extends React.Component{
         var  data =  {
             "mobileNumber": mobileNumber ? mobileNumber : null,
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null, 
-            "processType": "PROCESS_CUSTOMER_KYC"
+            "processType": "PROCESS_TYPE_DISCONNECTION"
           }
         document.getElementById('showMessage').innerHTML = "Please Wait Loading...";
 
         ActivationService.KycListDocs(data)
             .then((res) => {
                 let data = resolveResponse(res);
-                var activationList = data && data.result && data.result.kycAvDataList; 
+                var activationList = data && data.result && data.result.disconnectionAvDataList; 
                 this.setState({products: activationList})
                 this.setState({searchedproducts: activationList})
                 var listingIds = activationList && activationList.map(function(val, index){
@@ -150,7 +150,7 @@ class Kyc extends React.Component{
         window.localStorage.setItem("selectedProductId", productId);
         window.localStorage.setItem("selectedSim", sim);
         window.localStorage.setItem("fromSubmit", '');
-        this.props.history.push('/kyc-edit');
+        this.props.history.push('/disconnection-edit');
     }
 
     render(){
@@ -163,7 +163,7 @@ class Kyc extends React.Component{
                     <Grid container spacing={3}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                KYC Re-Registration Verification
+                                Disconnection Verification  vk
                                 </Typography> 
                             </Grid>
                             <Grid item xs={10} sm={3}> 
@@ -209,7 +209,7 @@ class Kyc extends React.Component{
                                 <TableCell>NIC Count</TableCell>
                                 <TableCell>Distributor</TableCell>
                                 <TableCell>Zone</TableCell>
-                                <TableCell>FTA Date</TableCell>
+                                {/* <TableCell>FTA Date</TableCell> */}
                                 <TableCell>Submit Date</TableCell>
                             </TableRow>
                         </TableHead>
@@ -227,7 +227,7 @@ class Kyc extends React.Component{
                                     <TableCell>{row.nicCount}</TableCell>
                                     <TableCell>{row.distributer}</TableCell>
                                     <TableCell>{row.zone}</TableCell>
-                                    <TableCell>{row.ftaDate.substring(0, 10)}</TableCell>
+                                    {/* <TableCell>{row.ftaDate.substring(0, 10)}</TableCell> */}
                                     <TableCell>{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
                                 </TableRow>
                             )):  ""}
@@ -261,4 +261,4 @@ const styles = {
     }
 }
 
-export default Kyc;
+export default Disconnection;

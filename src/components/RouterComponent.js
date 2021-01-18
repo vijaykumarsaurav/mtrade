@@ -19,6 +19,10 @@ import VerifyEdit from './verify/VerifyEdit';
 import Kyc from './verify/Kyc';
 import KycEdit from './verify/KycEdit';
 
+//disconnection
+import Disconnection from './verify/Disconnection';
+import DisconnectionEdit from './verify/DisconnectionEdit';
+
 //QVA
 import QvaList from './qva/QvaList';
 import QvaEdit from './qva/QvaEdit';
@@ -72,6 +76,9 @@ const AppRouter = () => {
                    
                     <Route path="/kyc" component={Kyc}/>
                     <Route path="/kyc-edit" component={KycEdit} />
+
+                    <Route path="/disconnection" component={Disconnection}/>
+                    <Route path="/disconnection-edit" component={DisconnectionEdit} />
 
                     <Route path="/kyc-dataentry" component={KycDataEntryList}/>
                     <Route path="/kyc-dataentry-edit" component={KycDataEntryEdit}/>
