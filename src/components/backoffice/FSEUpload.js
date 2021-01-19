@@ -22,7 +22,18 @@ import { CSVLink } from "react-csv";
 import md5  from 'md5'; 
 import  {DEV_PROTJECT_PATH} from "../../utils/config";
 import MonthYearCalender from "./MonthYearCalender";
+import Table from "@material-ui/core/Table";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import TableCell from "@material-ui/core/TableCell";
+import TableBody from "@material-ui/core/TableBody";
 
+import Checkbox from '@material-ui/core/Checkbox';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
+import $ from 'jquery'; 
 
 class FSEUpload extends React.Component {
 
@@ -35,12 +46,18 @@ class FSEUpload extends React.Component {
             startDate:"", 
             endDate: '',
             retailerDetails: '',
-            allOfferData:""
+            allOfferData:"",
+            selectedIds:[],
+            fscDetails: [{"id" : 1, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"id" : 2, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"id" : 3, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"id" : 4, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", }]
         };
         this.uploadOffer = this.uploadOffer.bind(this);
         this.relailerDelete = this.relailerDelete.bind(this);
         this.searchRetailer = this.searchRetailer.bind(this);
         this.myCallback = this.myCallback.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.selectAll = this.selectAll.bind(this);
+
+        
 
     }
 
@@ -121,6 +138,7 @@ class FSEUpload extends React.Component {
 
     componentDidMount() {
         this.myCallback(new Date());
+        
         // AdminService.downlaodFSCData()
         // .then((res) => {
         //     let data = resolveResponse(res);
@@ -175,9 +193,9 @@ class FSEUpload extends React.Component {
 
     relailerDelete() {
     
-        if(!this.state.deletefile || document.getElementById('deletefile').value ==""){
-        Notify.showError("Missing required file to upload");
-        return;
+        if(this.state.selectedIds.length <1){
+            Notify.showError("Select row(s) to delete");
+            return;
         }
 
         var userDetails = localStorage.getItem("userDetails")
@@ -264,15 +282,47 @@ class FSEUpload extends React.Component {
         this.props.history.push('/edit-doc');
     }
 
-    convertBool(flag) {
-        return flag ? 'Yes' : 'No';
+    selectAll = name => event =>{
+       
+      //  console.log("fscDetails",  this.state.fscDetails) 
+        $('.fseItems').prop('checked', event.target.checked);  
+
+        if(event.target.checked){
+            var ids = this.state.fscDetails && this.state.fscDetails.map(row => row.id); 
+            this.setState({ selectedIds :  ids })
+        }else{
+            this.setState({ selectedIds :  [] })
+        }
+
+
+        console.log( this.state.selectedIds);
+        
+
+
+    }
+
+    handleChange = name => event => {
+         if(event.target.checked){
+            this.state.selectedIds.push(name); 
+         }else{
+            this.state.selectedIds.pop(name); 
+         }
+
+         console.log( this.state.selectedIds);
     }
 
 
-
-
-
     render() {
+
+
+
+        // $('#selectAll').click(function () {    
+        //     $('.fseItems').prop('checked', this.checked);     
+           
+        //   //  console.log(  this.state.selectedIds) 
+        //   //  this.state.fscDetails.map(function(row){ console.log( row.id ) } );
+            
+        // });
 
         return (
 
@@ -280,7 +330,7 @@ class FSEUpload extends React.Component {
                 <PostLoginNavBar />
 
             <div style={{ padding: "40px" }} >
-                <Paper style={{ padding: "15px" }}>
+                <Paper style={{padding:"15px",  position:"sticky", width:"98%"}}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
                         FSE Camping  Upload
                     </Typography> 
@@ -324,31 +374,105 @@ class FSEUpload extends React.Component {
                 </Paper>
 
                 <br />
+                <Paper style={{padding:"15px",  position:"sticky", width:"98%"}}>
+                <Grid syt  container spacing={1} container
+                    direction="row"
+                    justify="right"
+                    alignItems="center">
+                        <Grid item xs={12} sm={4} >
+                        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                            FSE Camping Search and Delete
+                        </Typography> 
+                        </Grid>
+                        <Grid item xs={12} sm={2} item > 
+                            <TextField type="text" value={this.state.searchby } label=" By Retailer Number  " style={{ width: "100%" }} name="RetailerNumber" onChange={this.onChange} />
+                        </Grid>
+                        <Grid item xs={12} sm={2} item > 
+                            <TextField type="text" value={this.state.searchby } label=" By FSE Number  " style={{ width: "100%" }} name="FSENumber" onChange={this.onChange} />
+                        </Grid>
+                        <Grid item xs={12} sm={2}>
+                            <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
+                        </Grid>
+                        <Grid item xs={12} sm={2} item style={{textAlign:"left"}} > 
+                            <Button startIcon={<SearchIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.searchRetailer}>Search</Button>
+                        </Grid>
+                </Grid>
+                </Paper>
 
-                {/* <Paper style={{ padding: "15px" }}>
-                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                         Download FSC Details
-                    </Typography> 
 
-                    <Typography variant="subtitle1" gutterBottom>
-                        Total FSC Details:{this.state.allOfferData.length}
-                    </Typography>
-
-                    {this.state.allOfferData ? 
+                <Paper style={{padding:"15px", position:"sticky", width:"98%", overflowX:"auto"}} >
+                <FormControl component="fieldset">
                         
-                        <CSVLink data={this.state.allOfferData}
-                        filename={"offers-details.csv"}
-                        className="btn btn-primary"
-                        target="_blank"
-                        >
-                        <Typography variant="subtitle1"  gutterBottom>
-                            Download FSC
-                        </Typography>
+                        <FormGroup aria-label="position" row>
+                    <Table aria-label="sticky table">
+                        <TableHead >
+                            <TableRow style={{width:"170px",whiteSpace: "nowrap"}}>
+                                <TableCell align=""> 
+                            
+                                
+                                <FormControlLabel
+                                value="All"
+                                control={<Checkbox onChange={this.selectAll()} color="primary"  />}
+                                label="Select All"
+                                labelPlacement="right"
+                                />
+                           
 
-                        </CSVLink> 
+                                </TableCell>
+                                <TableCell align="">Date Of Camp</TableCell>
+                                <TableCell align="">FSE ID(Lapu no)</TableCell>
+                                <TableCell align="">Retailer Number</TableCell>
+                                <TableCell align="">Retailer Name</TableCell>
+                                <TableCell align="">Retailer Address</TableCell>
+                                <TableCell align="">Retailer Lat Long</TableCell>
+                                <TableCell align="">Target Acquisition</TableCell>
+                                <TableCell align="">Target Recharge Count</TableCell>
+                                <TableCell align="">Target Recharge Amount</TableCell>
+                                <TableCell align="">Target SIM Swap </TableCell>
+                            </TableRow>
+                        </TableHead>
+
                         
-                    :""}
-                </Paper> */}
+                        <TableBody style={{width:"",whiteSpace: "nowrap"}}>
+                            {this.state.fscDetails ? this.state.fscDetails.map(row => (
+                                <TableRow hover   key={row.refNumber} > 
+                            
+                                <TableCell><div> <label> <input type="checkbox" className="fseItems" onChange={this.handleChange(row.id)} /></label></div></TableCell>
+                                {/* <TableCell>  <Checkbox color="primary" className="fseItems"  onChange={this.handleChange(row.id)}   /></TableCell> */}
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.one}</TableCell>
+                                    
+                                </TableRow>
+                            )):  ""}
+                        </TableBody>
+
+                       
+                    </Table>  
+
+
+                    {this.state.fscDetails.length > 0 ? 
+                    <Grid syt  container spacing={1} container
+                    direction="row"
+                    alignItems="left">
+                        <Grid item xs={12} sm={2} item style={{textAlign:"left"}} > 
+                             <br />
+                            <Button startIcon={<DeleteIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.relailerDelete}>Delete Selected</Button>
+                        </Grid>
+                    </Grid>
+                    :"" }
+
+                    </FormGroup>
+                            </FormControl>
+
+                 </Paper>      
 
         </div>
 

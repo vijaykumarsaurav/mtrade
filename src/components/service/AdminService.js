@@ -156,20 +156,11 @@ class AdminService {
             fullapiurl = apiConstant.RETAILER_REPORT_BASEAPI+'barUnbarReport' ; 
         }
 
+        if(api == 'disconnectionAgentAuditReport' || api == 'disconnectionReceptionReport' || api == 'disconnectionIpacReadyReport'){
+            fullapiurl = apiConstant.RETAILER_DISCONNECTION_REPORT + api; 
+        }
+
         return instance.post(fullapiurl, formData, AuthService.getHeader());
-    
-    //    return axios.get('http://localhost:8080/report',
-    //             {responseType: 'blob'})
-    //                 .then((response) => {
-    //                     console.log("sas");
-    //                 console.log(response);
-    //                 const url = window.URL.createObjectURL(new Blob([response.data], { type: response.headers['content-type'], encoding: 'UTF-8' }));
-    //                 const link = document.createElement('a');
-    //                 link.href = url;
-    //                 link.setAttribute('download', 'file.csv');
-    //                 document.body.appendChild(link);
-    //                 //link.click();
-    //                 });
     
     }
 

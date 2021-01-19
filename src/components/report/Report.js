@@ -241,7 +241,16 @@ class Report extends React.Component {
                 endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null,
                 retrieveType : this.state.reporttype == 'barReport' ? "BY_BARRING_DATE" : "BY_UNBARRING_DATE"
             }
-        }    
+        } 
+
+        if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport'){
+            data = {
+                startDate: localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,
+                endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null,
+                retrieveType : this.state.retrieveType
+            }
+        }      
+        
         this.setState({  startDate : localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,  endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null  });
       this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report", generateReportLoader : true,generateReportMsg : "Generating report please wait..." });
 
@@ -258,6 +267,16 @@ class Report extends React.Component {
                     this.setState({ dataEntryData: data.result.dataEntry});
                     this.setState({ generateReportMsg:  "Ready to Download", verficationname:"VerificationReport_of_"});
 
+                    this.setState({  generateReportLoader: false});
+
+                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport'){
+
+                    this.setState({ generateReportMsg:  "Ready to Download"});
+                    this.setState({ products: data.result, responseFlag : true});
+
+                    if(this.state.reporttype == "detailedPendingReport"){
+                        this.setState({ filenameToGo: "distributorDetailReport"});
+                    }
                     this.setState({  generateReportLoader: false});
 
                 }else if(data.result && data.result.data && data.result.data.length ){
@@ -373,6 +392,10 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="barReport">Bar Report</MenuItem>);
         adminReports.push(<MenuItem value="unBarReport">Unbar Report</MenuItem>);
 
+        adminReports.push(<MenuItem value="disconnectionReceptionReport">Disconnection Reception Report</MenuItem>);
+        adminReports.push(<MenuItem value="disconnectionAgentAuditReport">Disconnection Agent Audit Report</MenuItem>);
+        adminReports.push(<MenuItem value="disconnectionIpacReadyReport">Disconnection Ipac Ready Report</MenuItem>);
+
         //sprint 8 changes
 
         // BY_VERIFICATION_DATE,
@@ -473,15 +496,22 @@ class Report extends React.Component {
                                     value={this.state.retrieveType}
                                     onChange={this.onChangeRetriveBy}
                                     >
-                                    {this.state.reporttype != 'simSwapReport' ?  
+                                    {this.state.reporttype != 'simSwapReport' && this.state.reporttype != 'disconnectionReceptionReport' && this.state.reporttype != 'disconnectionAgentAuditReport' && this.state.reporttype != 'disconnectionIpacReadyReport'  ?  
                                         <MenuItem key={'BY_FTA_DATE'} value={'BY_FTA_DATE'} >
                                         By FTA Date
                                     </MenuItem>
                                     : ""} 
+                                   
                                     <MenuItem key={'BY_SUBMIT_DATE'} value={'BY_SUBMIT_DATE'} >
                                         By Submit Date
                                     </MenuItem>
 
+                                    {this.state.reporttype === 'disconnectionAgentAuditReport' || this.state.reporttype === 'disconnectionIpacReadyReport' ?  
+                                        <MenuItem key={'BY_VERIFICATION_DATE'} value={'BY_VERIFICATION_DATE'} >
+                                            By Verification Date
+                                        </MenuItem>
+                                    : ""} 
+                                   
                                     
                                     {this.state.retrieveTypeDataEntry ?  
                                         <MenuItem key={'BY_DATA_ENTRY_DATE'} value={'BY_DATA_ENTRY_DATE'} >

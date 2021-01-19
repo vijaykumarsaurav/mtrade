@@ -58,6 +58,9 @@ export const RETAILER_RECHAGE_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'recharge
 export const RETAILER_SIMSWAP_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'simswap/';
 export const RETAILER_RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'retailer/';
 export const RETAILER_SLRetailerA = RETAILER_API_BASE_URL+ 'reports/';
+//disconnetion reports bashpath
+export const RETAILER_DISCONNECTION_REPORT = RETAILER_API_BASE_URL+ 'cs/reports/';
+
 
 //login
 export const SL_AD_LOGIN_URL = RETAILER_API_BASE_URL + 'auth/portaLogin';
