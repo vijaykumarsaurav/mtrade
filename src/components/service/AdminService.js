@@ -20,10 +20,6 @@ class AdminService {
         return axios.get(apiConstant.RETAILER_API_OFFER_DOWNLOAD, AuthService.getHeader());
     }
 
-    downlaodFSCData(){
-        return axios.get(apiConstant.RETAILER_API_FSC_DOWNLOAD, AuthService.getHeader());
-    }
-
     uploadRetailer(formData){
         return axios.post(apiConstant.RETAILER_ONBOARD, formData, AuthService.getHeader());
     }
@@ -44,10 +40,17 @@ class AdminService {
         return axios.post(apiConstant.RETAILER_DELETE, formData, AuthService.getHeader());
     }
 
+    deleteFse(formData){
+        return axios.post(apiConstant.FSE_DELETE, formData, AuthService.getHeader());
+    }
+
     searchRetailer(lapuNumber){
         return axios.get(apiConstant.RETAILER_SEARCH+"?laId=" +lapuNumber , AuthService.getHeader());
     }
 
+    searchFse(data){
+        return axios.get(apiConstant.FSE_SEARCH+ "?fseNumber="+data.fseNumber+"&retailerNumber="+data.retailerNumber+"&monthOfCamp="+data.monthOfCamp, AuthService.getHeader());
+    }
     
 
     reportDirectDownload(formData,api){

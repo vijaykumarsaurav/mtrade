@@ -42,17 +42,18 @@ class FSEUpload extends React.Component {
         this.state = {
             products: [],
             deletefile:'', 
-            searchby:'',
+            RetailerNumber:'',
+            FSENumber:"",
             startDate:"", 
             endDate: '',
             retailerDetails: '',
             allOfferData:"",
             selectedIds:[],
-            fscDetails: [{"id" : 1, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"id" : 2, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"id" : 3, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"id" : 4, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", }]
+            fscDetails: [{"fseNumber" : 1, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 2, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 3, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 4, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", }]
         };
         this.uploadOffer = this.uploadOffer.bind(this);
-        this.relailerDelete = this.relailerDelete.bind(this);
-        this.searchRetailer = this.searchRetailer.bind(this);
+        this.fseDelete = this.fseDelete.bind(this);
+        this.searchFse = this.searchFse.bind(this);
         this.myCallback = this.myCallback.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.selectAll = this.selectAll.bind(this);
@@ -98,11 +99,11 @@ class FSEUpload extends React.Component {
         startDate = new Date(date);
         startDate = new Date("1 " + startDate.toLocaleString('default', { month: 'short' }) + ' ' +date.getFullYear());
         startDate.setHours(0,0,0,0);
-        this.setState({startDate: startDate.getTime()})    
+        this.setState({startDate: startDate.getTime(), monthOfCamp:   ('0' + (startDate.getMonth()+1)).slice(-2)  + '/' + startDate.getFullYear()})    
 
         endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
         endDate.setHours(23,59,59,59);  
-        this.setState({endDate: endDate.getTime()})    
+        this.setState({endDate: endDate.getTime()});    
 
        // console.log("startDate", this.state.startDate , "endDate", this.state.endDate);
     };
@@ -129,36 +130,28 @@ class FSEUpload extends React.Component {
 
         const re = /^[0-9\b]+$/;
         if (e.target.value === '' || re.test(e.target.value) && e.target.value.length <= 10) {
-            this.setState({searchby: e.target.value})
+            this.setState({ [e.target.name] : e.target.value})
         }
 
     }
 
 
-
     componentDidMount() {
         this.myCallback(new Date());
         
-        // AdminService.downlaodFSCData()
-        // .then((res) => {
-        //     let data = resolveResponse(res);
-        //     if (data.result)
-        //         this.setState({ allOfferData: data.result })
-        //     });
+       
 
     }
 
 
     uploadOffer() {
     
-        console.log(this.state.uploadfile);
+           console.log(this.state.uploadfile);
 
             if(!this.state.uploadfile || document.getElementById('uploadfile').value ==""){
                 Notify.showError("Missing required file to upload");
                 return;
             }
-
-        
 
             // var userDetails = localStorage.getItem("userDetails")
             // userDetails = userDetails && JSON.parse(userDetails);
@@ -191,75 +184,45 @@ class FSEUpload extends React.Component {
     }
 
 
-    relailerDelete() {
+     fseDelete() {
     
         if(this.state.selectedIds.length <1){
             Notify.showError("Select row(s) to delete");
             return;
         }
 
-        var userDetails = localStorage.getItem("userDetails")
-        userDetails = userDetails && JSON.parse(userDetails);
-
-        const formData = new FormData();
-        formData.append('file',this.state.deletefile);
-        formData.append('submittedBy', userDetails && userDetails.loginId);
-        formData.append('email', '');
-    
+       const data = {
+        campIdList : this.state.selectedIds
+       }
         
-        AdminService.deleteRetailer(formData).then(res => {
+        AdminService.deleteFse(data).then(res => {
         resolveResponse(res,'');
-        Notify.showSuccess("Attached retailer info deleted successfully.");
-        document.getElementById('deletefile').value = ""; 
+        Notify.showSuccess("Deleted successfully.");
 
         });
     }
 
-    searchRetailer(){
+    searchFse(){
        
-            if(!this.state.searchby){
-                Notify.showError("Type by lapu number or Retailer AirtelId Id ");
-                return;
-            }
+            // if(!this.state.RetailerNumber && !this.state.FSENumber){
+            //     Notify.showError("Type Retailer number and FSE number");
+            //     return;
+            // }
     
             var userDetails = localStorage.getItem("userDetails")
             userDetails = userDetails && JSON.parse(userDetails);
-    
+           
             const param = {
-                lapuNumber : this.state.searchby, 
-                retailerAirtelId: this.state.searchby, 
+                    fseNumber : this.state.FSENumber.toString(), 
+                    retailerNumber: this.state.RetailerNumber.toString(), 
+                    monthOfCamp: this.state.monthOfCamp.toString()
             }
         
-            AdminService.searchRetailer(param).then(res => {
+            AdminService.searchFse(param).then(res => {
             var data = resolveResponse(res,'');
-           
-                var staticdata = {
-                    "message": "string",
-                    "result": {
-                    "distributerId": "string",
-                    "distributerMsisdn": "string",
-                    "distributerName": "string",
-                    "district": "string",
-                    "fseId": "string",
-                    "fseMsisdn": "string",
-                    "fseName": "string",
-                    "retailerAirtelId": "string",
-                    "retailerName": "string",
-                    "retailerVLNumber": "string",
-                    "territory": "string",
-                    "tmId": "string",
-                    "tmMsisdn": "string",
-                    "tmName": "string",
-                    "zbmId": "string",
-                    "zbmMsisdn": "string",
-                    "zbmName": "string",
-                    "zone": "string"
-                    },
-                    "status": 0
-                }
                 
                 if(data.result){
-                    this.setState({ retailerDetails :  [data.result] })
+                    this.setState({ fscDetails :  data.result })
                 }else{
                    // this.setState({ retailerDetails :  [staticdata.result] })
                 }
@@ -286,22 +249,17 @@ class FSEUpload extends React.Component {
        
       //  console.log("fscDetails",  this.state.fscDetails) 
         $('.fseItems').prop('checked', event.target.checked);  
-
         if(event.target.checked){
-            var ids = this.state.fscDetails && this.state.fscDetails.map(row => row.id); 
+            var ids = this.state.fscDetails && this.state.fscDetails.map(row => row.fseNumber); 
             this.setState({ selectedIds :  ids })
         }else{
             this.setState({ selectedIds :  [] })
         }
-
-
         console.log( this.state.selectedIds);
-        
-
-
     }
 
     handleChange = name => event => {
+        console.log( name );
          if(event.target.checked){
             this.state.selectedIds.push(name); 
          }else{
@@ -313,16 +271,6 @@ class FSEUpload extends React.Component {
 
 
     render() {
-
-
-
-        // $('#selectAll').click(function () {    
-        //     $('.fseItems').prop('checked', this.checked);     
-           
-        //   //  console.log(  this.state.selectedIds) 
-        //   //  this.state.fscDetails.map(function(row){ console.log( row.id ) } );
-            
-        // });
 
         return (
 
@@ -385,16 +333,16 @@ class FSEUpload extends React.Component {
                         </Typography> 
                         </Grid>
                         <Grid item xs={12} sm={2} item > 
-                            <TextField type="text" value={this.state.searchby } label=" By Retailer Number  " style={{ width: "100%" }} name="RetailerNumber" onChange={this.onChange} />
+                            <TextField type="text" value={this.state.RetailerNumber } label=" By Retailer Number  " style={{ width: "100%" }} name="RetailerNumber" onChange={this.onChange} />
                         </Grid>
                         <Grid item xs={12} sm={2} item > 
-                            <TextField type="text" value={this.state.searchby } label=" By FSE Number  " style={{ width: "100%" }} name="FSENumber" onChange={this.onChange} />
+                            <TextField type="text" value={this.state.FSENumber } label=" By FSE Number  " style={{ width: "100%" }} name="FSENumber" onChange={this.onChange} />
                         </Grid>
                         <Grid item xs={12} sm={2}>
                             <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
                         </Grid>
                         <Grid item xs={12} sm={2} item style={{textAlign:"left"}} > 
-                            <Button startIcon={<SearchIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.searchRetailer}>Search</Button>
+                            <Button startIcon={<SearchIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.searchFse}>Search</Button>
                         </Grid>
                 </Grid>
                 </Paper>
@@ -435,20 +383,20 @@ class FSEUpload extends React.Component {
                         
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
                             {this.state.fscDetails ? this.state.fscDetails.map(row => (
-                                <TableRow hover   key={row.refNumber} > 
-                            
-                                <TableCell><div> <label> <input type="checkbox" className="fseItems" onChange={this.handleChange(row.id)} /></label></div></TableCell>
+                                <TableRow hover   key={row.fseNumber} > 
+                    
+                                <TableCell><div> <label> <input type="checkbox" className="fseItems" onChange={this.handleChange(row.fseNumber)} /></label></div></TableCell>
                                 {/* <TableCell>  <Checkbox color="primary" className="fseItems"  onChange={this.handleChange(row.id)}   /></TableCell> */}
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
-                                <TableCell align="">{row.one}</TableCell>
+                                <TableCell align="">{row.campDate}</TableCell>
+                                <TableCell align="">{row.fseNumber}</TableCell>
+                                <TableCell align="">{row.retailerNumber}</TableCell>
+                                <TableCell align="">{row.retailerName}</TableCell>
+                                <TableCell align="">{row.retailerAddress}</TableCell>
+                                <TableCell align="">{row.latlong}</TableCell>
+                                <TableCell align="">{row.targetAcqCount}</TableCell>
+                                <TableCell align="">{row.targetRechargeCount}</TableCell>
+                                <TableCell align="">{row.targetRechargeAmount}</TableCell>
+                                <TableCell align="">{row.targetSimSwapCount}</TableCell>
                                     
                                 </TableRow>
                             )):  ""}
@@ -464,7 +412,7 @@ class FSEUpload extends React.Component {
                     alignItems="left">
                         <Grid item xs={12} sm={2} item style={{textAlign:"left"}} > 
                              <br />
-                            <Button startIcon={<DeleteIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.relailerDelete}>Delete Selected</Button>
+                            <Button startIcon={<DeleteIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.fseDelete}>Delete Selected</Button>
                         </Grid>
                     </Grid>
                     :"" }

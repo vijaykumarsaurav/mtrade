@@ -139,7 +139,6 @@ export const UNLOCK_SKIP_VERIFICATION = RETAILER_API_BASE_URL + 'cms/unlockSelec
 export const RETAILER_ONBOARD = RETAILER_API_BASE_URL + 'agent/add';
 export const RETAILER_DELETE  = RETAILER_API_BASE_URL + 'agent/delete';
 export const RETAILER_SEARCH = RETAILER_API_BASE_URL + 'agent/retrieve';
-
 //Offer Uplaod  
 export const RETAILER_API_OFFER_UPLOAD = RETAILER_API_BASE_URL + 'bestoffers/upload';
 export const RETAILER_API_OFFER_DOWNLOAD = RETAILER_API_BASE_URL + 'bestoffers/download';
@@ -147,7 +146,9 @@ export const RETAILER_API_OFFER_DOWNLOAD = RETAILER_API_BASE_URL + 'bestoffers/d
 //export const RETAILER_API_FSC_UPLOAD = RETAILER_API_BASE_URL + 'fse/camps/upload';
 //export const RETAILER_API_FSC_DOWNLOAD = RETAILER_API_BASE_URL + 'fse/view';
 export const RETAILER_API_FSC_UPLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
-export const RETAILER_API_FSC_DOWNLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/view';
+export const FSE_SEARCH =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/camps/view';
+export const FSE_DELETE =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/camps/delete';
+
 //KYC RE_RESISTRATION
 export const RETAILER_API_RE_RESISTRATION_UPLOAD =  RETAILER_API_BASE_URL + 'customer/kyc/upload';
 
