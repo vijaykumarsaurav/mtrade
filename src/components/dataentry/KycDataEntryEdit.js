@@ -19,6 +19,7 @@ import "./DataEntry.css";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
+import getKycTotalToBeProcessed from "../../utils/CommonApi";
 
 class KycDataEntryEdit extends React.Component {
 
@@ -80,19 +81,8 @@ class KycDataEntryEdit extends React.Component {
     };
 
     loadOneTransection(){
-
-        ActivationService.getKycTotalToBeProcessed().then(res => {
-            let data = resolveResponse(res);   
-            if(data && data.result){
-                if(document.getElementById('acqRecordId')){
-                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.pendingCount; 
-                }
-                // if(document.getElementById('resubmitRecordId')){
-                //     document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-                // }
-            }        
-        });
-        
+        getKycTotalToBeProcessed();
+             
         const dataEntryId = localStorage.getItem("dataEntryId");
          if(dataEntryId == null) {
              this.cancel();

@@ -37,7 +37,6 @@ class ActivationService {
     }
 
     getOneKycVerify( data ){
-        console.log("data",data);
         //return axios.get(apiConstant.VERIFY_DOCS_BY_ID + '&txnId=' + productId, AuthService.getHeader());
         return axios.get(apiConstant.KYC_VERIFY_DETAILS + '?txnId=' + data.selectedProductId+"&processType=" + data.processType, AuthService.getHeader());
     }

@@ -20,6 +20,8 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {resolveResponse} from "../../utils/ResponseHandler";
 import "./DataEntry.css";
+import getKycTotalToBeProcessed from "../../utils/CommonApi";
+
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -54,21 +56,11 @@ class KycDataEntryList extends React.Component{
         this.onChange = this.onChange.bind(this);
     }
 
-    componentDidMount() {      
+    componentDidMount() {   
+        getKycTotalToBeProcessed();   
         this.listTxn();
         localStorage.setItem("lastUrl","dataentry");
-        ActivationService.getKycTotalToBeProcessed().then(res => {
-            let data = resolveResponse(res);         
-            if(data && data.result){
-                if(document.getElementById('acqRecordId')){
-                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.pendingCount; 
-                }
-                // if(document.getElementById('resubmitRecordId')){
-                //     document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-                // }
-            }
-           
-        });
+      
 
     }
 

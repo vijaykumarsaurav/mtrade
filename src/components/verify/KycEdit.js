@@ -15,6 +15,8 @@ import ReactPanZoom from "react-image-pan-zoom-rotate";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
 import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
+import getKycTotalToBeProcessed from "../../utils/CommonApi";
+
 
 class KycEdit extends React.Component {
 
@@ -73,24 +75,18 @@ class KycEdit extends React.Component {
     }
 
     loadOneTransection(){
-        ActivationService.getKycTotalToBeProcessed().then(res => {
-            let data = resolveResponse(res);  
-            if(data.result){
-                if(document.getElementById('acqRecordId')){
-                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.pendingCount; 
-                }
-                // if(document.getElementById('resubmitRecordId')){
-                //     document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-                // }
-            }       
-           
-        });
-
+        getKycTotalToBeProcessed();
+    
         const selectedProductId = localStorage.getItem("selectedProductId");
+
+        const data = {
+            selectedProductId : selectedProductId, 
+            processType:  "PROCESS_CUSTOMER_KYC"
+        }
         if(selectedProductId == null) {
             this.cancel();
         }else {
-            ActivationService.getOneKycVerify(selectedProductId).then(res => {
+            ActivationService.getOneKycVerify(data).then(res => {
                 let data = resolveResponse(res);
                 const selectedProduct = data.result;
                 console.log("selectedProduct",selectedProduct);
@@ -443,7 +439,11 @@ class KycEdit extends React.Component {
         }
 
         if(nextid){
-            ActivationService.kycApproveDocs(nextid).then(res => {
+            const data = {
+                selectedProductId : nextid, 
+                processType:  "PROCESS_CUSTOMER_KYC"
+            }
+            ActivationService.getOneKycVerify(data).then(res => {
                 let data = resolveResponse(res);
                 if(data.result){
 

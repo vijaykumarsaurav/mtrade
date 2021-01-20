@@ -49,7 +49,7 @@ class FSEUpload extends React.Component {
             retailerDetails: '',
             allOfferData:"",
             selectedIds:[],
-            fscDetails: [{"fseNumber" : 1, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 2, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 3, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 4, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", }]
+            fscDetails:[]// [{"fseNumber" : 1, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 2, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 3, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 4, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", }]
         };
         this.uploadOffer = this.uploadOffer.bind(this);
         this.fseDelete = this.fseDelete.bind(this);

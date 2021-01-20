@@ -21,6 +21,8 @@ import PostLoginNavBar from "../PostLoginNavbar";
 import {Container} from "@material-ui/core";
 import {resolveResponse} from "../../utils/ResponseHandler";
 import "./Verify.css";
+import getKycTotalToBeProcessed from "../../utils/CommonApi";
+
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -53,23 +55,14 @@ class Kyc extends React.Component{
     }
 
     componentDidMount() {
+        getKycTotalToBeProcessed();
         this.listTxn("");
         if(JSON.parse(localStorage.getItem('cmsStaticData'))){
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
         }
 
         localStorage.setItem("lastUrl","verify");
-        ActivationService.getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC").then(res => {
-            let data = resolveResponse(res);     
-            if(data && data.result){
-                // if(document.getElementById('acqRecordId')){
-                //     document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.pendingCount; 
-                // }
-                if(document.getElementById('resubmitRecordId')){
-                    document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.pendingCount; 
-                }
-            }
-        });
+        
     }
 
     onlockTransectionOnSkip = (txn) =>{
