@@ -26,9 +26,6 @@ import UserService from "./service/UserService";
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 //import RouterComponent from '../RouterComponent'; 
 
-
-
-
 export const AdminMenuList = (
   <div>
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
@@ -62,12 +59,12 @@ export const AdminMenuList = (
       <ListItemText primary="Offer Upload" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/fse"} >
+    {/* <ListItem button component='a' href={"#/fse"} >
       <ListItemIcon>
         <LocalOfferIcon />
       </ListItemIcon>
       <ListItemText primary="FSE Upload" />
-    </ListItem>
+    </ListItem> */}
 
     <ListItem button component='a' href={"#/re-registration"} >
       <ListItemIcon>
@@ -152,6 +149,13 @@ export const  BOAMenuList  = (
         <HistoryIcon />
       </ListItemIcon>
       <ListItemText primary="Disconnection Verification" />
+    </ListItem> 
+
+     <ListItem component='a' href={"#/ownership"} button>
+     <ListItemIcon>
+        <HistoryIcon />
+      </ListItemIcon>
+      <ListItemText primary="Ownership Change Verification" />
     </ListItem>   
     
   </div>
@@ -197,7 +201,14 @@ export const DEMenuList = (
         <HistoryIcon />
       </ListItemIcon>
       <ListItemText primary="KYC Re-Registration" />
-    </ListItem>   
+    </ListItem>  
+
+    <ListItem component='a' href={"#/kyc-dataentry/kyc"} button>
+     <ListItemIcon>
+        <HistoryIcon />
+      </ListItemIcon>
+      <ListItemText primary="Ownership Change Dataentry" />
+    </ListItem>  
   </div>
 );
 

@@ -159,8 +159,8 @@ class AdminService {
             fullapiurl = apiConstant.RETAILER_REPORT_BASEAPI+'barUnbarReport' ; 
         }
 
-        if(api == 'disconnectionAgentAuditReport' || api == 'disconnectionReceptionReport' || api == 'disconnectionIpacReadyReport'){
-            fullapiurl = apiConstant.RETAILER_DISCONNECTION_REPORT + api; 
+        if(api == 'disconnectionAgentAuditReport' || api == 'disconnectionReceptionReport' || api == 'disconnectionIpacReadyReport'  || api == 'kycReceptionReport' || api == 'kycAgentAuditReport' ||  api == 'kycIpacReadyReport'){
+            fullapiurl = apiConstant.RETAILER_DISCONNECTION_KYC_REPORT + api; 
         }
 
         return instance.post(fullapiurl, formData, AuthService.getHeader());

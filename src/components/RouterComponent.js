@@ -19,6 +19,10 @@ import VerifyEdit from './verify/VerifyEdit';
 import Kyc from './verify/Kyc';
 import KycEdit from './verify/KycEdit';
 
+//ownership
+import Ownership from './verify/Ownership';
+import OwnershipEdit from './verify/OwnershipEdit';
+
 //disconnection
 import Disconnection from './verify/Disconnection';
 import DisconnectionEdit from './verify/DisconnectionEdit';
@@ -34,6 +38,10 @@ import ResubmitDataEntryList from './dataentry/ResubmitDataEntryList';
 //kyc-dataentry
 import KycDataEntryList from './dataentry/KycDataEntryList';
 import KycDataEntryEdit from './dataentry/KycDataEntryEdit';
+
+//ownership-dataentry
+import OwnershipDataentryList from './dataentry/OwnershipDataentryList';
+import OwnershipDataentryEdit from './dataentry/OwnershipDataentryEdit';
 
 import DataEntryEdit from './dataentry/DataEntryEdit';
 //Distributer
@@ -77,6 +85,12 @@ const AppRouter = () => {
                     <Route path="/kyc" component={Kyc}/>
                     <Route path="/kyc-edit" component={KycEdit} />
 
+                    <Route path="/ownership" component={Ownership}/>
+                    <Route path="/ownership-edit" component={OwnershipEdit} />
+
+                    <Route path="/ownership-dataentry" component={OwnershipDataentryList}/>
+                    <Route path="/ownership-dataentry-edit" component={OwnershipDataentryEdit} />
+
                     <Route path="/disconnection" component={Disconnection}/>
                     <Route path="/disconnection-edit" component={DisconnectionEdit} />
 
@@ -104,7 +118,7 @@ const AppRouter = () => {
                     
                     <Route path="/backoffice" component={BackOffice} />
                     <Route path="/offerupload" component={OfferUpload} />
-                    <Route path="/fse" component={FSEUpload} />
+                    {/* <Route path="/fse" component={FSEUpload} /> */}
                     <Route path="/re-registration" component={ReRegistration} />
 
 

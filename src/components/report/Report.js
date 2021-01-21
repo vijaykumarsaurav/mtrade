@@ -243,16 +243,16 @@ class Report extends React.Component {
             }
         } 
 
-        if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport'){
-            data = {
-                startDate: localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,
-                endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null,
-                retrieveType : this.state.retrieveType
-            }
-        }      
+        // if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport'){
+        //     data = {
+        //         startDate: localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,
+        //         endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null,
+        //         retrieveType : this.state.retrieveType
+        //     }
+        // }      
         
-        this.setState({  startDate : localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,  endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null  });
-      this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report", generateReportLoader : true,generateReportMsg : "Generating report please wait..." });
+       this.setState({  startDate : localStorage.getItem('startDate') ?  new Date( parseInt(localStorage.getItem('startDate'))).getTime() : null,  endDate: localStorage.getItem('endDate') ?  new Date( parseInt(localStorage.getItem('endDate'))).getTime() :null  });
+       this.setState({ responseFlag : false, responseFlagMsg : '', dataEntryData :false, reportName:"Download Report", generateReportLoader : true,generateReportMsg : "Generating report please wait..." });
 
         AdminService.sentReportToEmail(data,this.state.reporttype)
             .then((res) => {
@@ -269,11 +269,15 @@ class Report extends React.Component {
 
                     this.setState({  generateReportLoader: false});
 
-                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport'){
+                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport' || this.state.reporttype == 'kycReceptionReport' || this.state.reporttype == 'kycAgentAuditReport' || this.state.reporttype == 'kycIpacReadyReport'){
 
                     this.setState({ generateReportMsg:  "Ready to Download"});
-                    this.setState({ products: data.result, responseFlag : true});
-
+                    console.log("data.result.length",data.result.length)
+                    if(data.result && data.result.length>0){
+                        this.setState({ products: data.result , responseFlag : true});
+                    }else{
+                        this.setState({ responseFlagMsg : "No Records Found"});
+                    }
                     if(this.state.reporttype == "detailedPendingReport"){
                         this.setState({ filenameToGo: "distributorDetailReport"});
                     }
@@ -396,6 +400,9 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="disconnectionAgentAuditReport">Disconnection Agent Audit Report</MenuItem>);
         adminReports.push(<MenuItem value="disconnectionIpacReadyReport">Disconnection Ipac Ready Report</MenuItem>);
 
+        adminReports.push(<MenuItem value="kycReceptionReport">KYC Reception Report</MenuItem>);
+        adminReports.push(<MenuItem value="kycAgentAuditReport">KYC Agent Audit Report</MenuItem>);
+        adminReports.push(<MenuItem value="kycIpacReadyReport">KYC Ipac Ready Report</MenuItem>);
         //sprint 8 changes
 
         // BY_VERIFICATION_DATE,
@@ -496,7 +503,7 @@ class Report extends React.Component {
                                     value={this.state.retrieveType}
                                     onChange={this.onChangeRetriveBy}
                                     >
-                                    {this.state.reporttype != 'simSwapReport' && this.state.reporttype != 'disconnectionReceptionReport' && this.state.reporttype != 'disconnectionAgentAuditReport' && this.state.reporttype != 'disconnectionIpacReadyReport'  ?  
+                                    {this.state.reporttype != 'simSwapReport' && this.state.reporttype != 'disconnectionReceptionReport' && this.state.reporttype != 'disconnectionAgentAuditReport' && this.state.reporttype != 'disconnectionIpacReadyReport' && this.state.reporttype != 'kycReceptionReport' && this.state.reporttype != 'kycAgentAuditReport' && this.state.reporttype != 'kycIpacReadyReport' ?  
                                         <MenuItem key={'BY_FTA_DATE'} value={'BY_FTA_DATE'} >
                                         By FTA Date
                                     </MenuItem>
@@ -512,8 +519,7 @@ class Report extends React.Component {
                                         </MenuItem>
                                     : ""} 
                                    
-                                    
-                                    {this.state.retrieveTypeDataEntry ?  
+                                    {this.state.retrieveTypeDataEntry || this.state.reporttype === 'kycAgentAuditReport' || this.state.reporttype === 'kycIpacReadyReport'?  
                                         <MenuItem key={'BY_DATA_ENTRY_DATE'} value={'BY_DATA_ENTRY_DATE'} >
                                             By Data Entry Date
                                         </MenuItem>

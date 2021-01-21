@@ -18,7 +18,7 @@ import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 import getKycTotalToBeProcessed from "../../utils/CommonApi";
 
 
-class KycEdit extends React.Component {
+class OwnershipEdit extends React.Component {
 
     constructor(props) {
         super(props);
@@ -75,13 +75,13 @@ class KycEdit extends React.Component {
     }
 
     loadOneTransection(){
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST");
     
         const selectedProductId = localStorage.getItem("selectedProductId");
 
         const data = {
             selectedProductId : selectedProductId, 
-            processType:  "PROCESS_CUSTOMER_KYC"
+            processType:  "PROCESS_CUSTOMER_OST"
         }
         if(selectedProductId == null) {
             this.cancel();
@@ -302,7 +302,7 @@ class KycEdit extends React.Component {
 
             <React.Fragment>
                 <PostLoginNavBar/>           
-                <Typography variant="h6" style={styles.textStyleHeading}>KYC Re-Registration Verification View </Typography>
+                <Typography variant="h6" style={styles.textStyleHeading}>Ownership Change Verification View </Typography>
                 <Grid  direction="row" container className="flexGrow" spacing={1}  style={{paddingLeft:"10px",paddingRight:"10px"}}>
                     <Grid item xs={12} sm={pefcontainer}>
                         <Paper style={{overflow:"scroll", height:"78vh"}}>
@@ -394,7 +394,7 @@ class KycEdit extends React.Component {
     onlockTransectionOnSkip = (txn) =>{
         var transactionsIds = {
             transactionsIds : [txn],
-            "processType": "PROCESS_CUSTOMER_KYC"
+            "processType": "PROCESS_CUSTOMER_OST"
         }
         ActivationService.kycUnlockTransectionsSkip( transactionsIds ).then(res => {
             let data = resolveResponse(res);
@@ -441,7 +441,7 @@ class KycEdit extends React.Component {
         if(nextid){
             const data = {
                 selectedProductId : nextid, 
-                processType:  "PROCESS_CUSTOMER_KYC"
+                processType:  "PROCESS_CUSTOMER_OST"
             }
             ActivationService.getOneKycVerify(data).then(res => {
                 let data = resolveResponse(res);
@@ -543,7 +543,7 @@ class KycEdit extends React.Component {
             "verificationDateTime": new Date(),
             "verificationUser": this.state.loginId,
             "isRejected": 0,
-            "processType": "PROCESS_CUSTOMER_KYC",
+            "processType": "PROCESS_CUSTOMER_OST",
             "transactionId":this.state.transactionId
         }
 
@@ -616,7 +616,7 @@ class KycEdit extends React.Component {
             "verificationDateTime": new Date(),
             "verificationUser":this.state.loginId,
             "isRejected": 1,
-            "processType": "PROCESS_CUSTOMER_KYC",
+            "processType": "PROCESS_CUSTOMER_OST",
             "transactionId":this.state.transactionId
         }
 
@@ -786,4 +786,4 @@ class SubmitedByDistributer extends React.Component {
 
 
 
-export default KycEdit;
+export default OwnershipEdit;

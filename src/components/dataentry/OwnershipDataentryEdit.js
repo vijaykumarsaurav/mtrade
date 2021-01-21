@@ -21,7 +21,7 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
 import getKycTotalToBeProcessed from "../../utils/CommonApi";
 
-class KycDataEntryEdit extends React.Component {
+class OwnershipDataentryEdit extends React.Component {
 
     constructor(props) {
         super(props);
@@ -264,7 +264,7 @@ class KycDataEntryEdit extends React.Component {
         return(
             <React.Fragment>
             <PostLoginNavBar/>
-            <Typography variant="h6" style={styles.textStyle} >KYC Re-Registration Data Entry Details</Typography>
+            <Typography variant="h6" style={styles.textStyle} >Ownership Change Data Entry Details</Typography>
             <Grid container className="flexGrow" spacing={1}>
                <Grid item  xs={12} sm={8} style={{overflow:"scroll"}}>
                     <Paper style={{paddingLeft:"5px", paddingRight:"5px", height:"80vh", width: "135vh" }}>
@@ -676,4 +676,4 @@ const styles ={
 
 };
 
-export default KycDataEntryEdit;
+export default OwnershipDataentryEdit;

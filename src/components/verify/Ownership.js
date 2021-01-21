@@ -35,7 +35,7 @@ const MenuProps = {
   },
 };
 
-class Kyc extends React.Component{
+class Ownership extends React.Component{
 
     constructor(props) {
         super(props);
@@ -55,7 +55,7 @@ class Kyc extends React.Component{
     }
 
     componentDidMount() {
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST");
         this.listTxn("");
         if(JSON.parse(localStorage.getItem('cmsStaticData'))){
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
@@ -82,7 +82,7 @@ class Kyc extends React.Component{
         var  data =  {
             "mobileNumber": mobileNumber ? mobileNumber : null,
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null, 
-            "processType": "PROCESS_CUSTOMER_KYC"
+            "processType": "PROCESS_CUSTOMER_OST"
           }
         document.getElementById('showMessage').innerHTML = "Please Wait Loading...";
 
@@ -156,7 +156,7 @@ class Kyc extends React.Component{
                     <Grid container spacing={3}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                KYC Re-Registration Verification
+                                Ownership Change Verification
                                 </Typography> 
                             </Grid>
                             <Grid item xs={10} sm={3}> 
@@ -254,4 +254,4 @@ const styles = {
     }
 }
 
-export default Kyc;
+export default Ownership;

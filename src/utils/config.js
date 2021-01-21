@@ -59,7 +59,7 @@ export const RETAILER_SIMSWAP_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'simswap/
 export const RETAILER_RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'retailer/';
 export const RETAILER_SLRetailerA = RETAILER_API_BASE_URL+ 'reports/';
 //disconnetion reports bashpath
-export const RETAILER_DISCONNECTION_REPORT = RETAILER_API_BASE_URL+ 'cs/reports/';
+export const RETAILER_DISCONNECTION_KYC_REPORT = RETAILER_API_BASE_URL+ 'cs/reports/';
 
 
 //login

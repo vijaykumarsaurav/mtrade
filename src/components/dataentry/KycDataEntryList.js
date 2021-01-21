@@ -57,7 +57,7 @@ class KycDataEntryList extends React.Component{
     }
 
     componentDidMount() {   
-        getKycTotalToBeProcessed();   
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");   
         this.listTxn();
         localStorage.setItem("lastUrl","dataentry");
       
