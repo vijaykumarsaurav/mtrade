@@ -636,7 +636,7 @@ class OwnershipEdit extends React.Component {
     };
 
     cancel = (e) => {
-        this.props.history.push('/kyc');
+        this.props.history.push('/ownership-dataentry');
     };
 
     onChange = (e) => {

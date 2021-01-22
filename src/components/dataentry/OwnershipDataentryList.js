@@ -57,7 +57,7 @@ class OwnershipDataentryList extends React.Component{
     }
 
     componentDidMount() {   
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");   
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST");   
         this.listTxn();
         localStorage.setItem("lastUrl","dataentry");
       
@@ -75,14 +75,14 @@ class OwnershipDataentryList extends React.Component{
         var  data =  {
             "mobileNumber": mobileNumber ? mobileNumber : null,
             "zones": this.state.selectedZone.length ? this.state.selectedZone : null,
-            "processType": "PROCESS_CUSTOMER_KYC"
+            "processType": "PROCESS_CUSTOMER_OST"
         }
         document.getElementById('showMessage').innerHTML = "Please Wait Loading...";
         ActivationService.KycListDocs(data)
             .then((res) => {
               
                     let data = resolveResponse(res);
-                    var activationList = data.result && data.result.kycAvDataList; 
+                    var activationList = data.result && data.result.ostAvDataList; 
                     this.setState({products: activationList})
                     this.setState({searchedproducts:activationList})
                     var listingIds = activationList && activationList.map(function(val, index){
@@ -137,7 +137,7 @@ class OwnershipDataentryList extends React.Component{
         console.log("productid",productId )
         window.localStorage.setItem("dataEntryId", productId);
         window.localStorage.setItem("fromSubmit", '');
-        this.props.history.push('/kyc-dataentry-edit');
+        this.props.history.push('/ownership-dataentry-edit');
     }
 
     convertBool(flag) {
@@ -204,7 +204,7 @@ class OwnershipDataentryList extends React.Component{
                                 <TableCell>NIC Count</TableCell>
                                 <TableCell>Distributor</TableCell>
                                 <TableCell>Zone</TableCell>
-                                <TableCell>FTA Date</TableCell>
+                                {/* <TableCell>FTA Date</TableCell> */}
                                 <TableCell>Submit Date</TableCell>
                             </TableRow>
                         </TableHead>
@@ -221,7 +221,7 @@ class OwnershipDataentryList extends React.Component{
                                     <TableCell>{row.nicCount}</TableCell>
                                     <TableCell>{row.distributer}</TableCell>
                                     <TableCell>{row.zone}</TableCell>
-                                    <TableCell>{row.ftaDate.substring(0, 10)}</TableCell>
+                                    {/* <TableCell>{row.ftaDate.substring(0, 10)}</TableCell> */}
                                     <TableCell>{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
                                 </TableRow>
                             )): ""}

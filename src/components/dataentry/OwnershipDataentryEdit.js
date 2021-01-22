@@ -81,13 +81,17 @@ class OwnershipDataentryEdit extends React.Component {
     };
 
     loadOneTransection(){
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST");
              
         const dataEntryId = localStorage.getItem("dataEntryId");
+        const data = {
+            txnId:  dataEntryId, 
+            processType : "PROCESS_CUSTOMER_OST"
+        }
          if(dataEntryId == null) {
              this.cancel();
          }else {
-             ActivationService.getOneKycDataEntry(dataEntryId).then(res => {
+             ActivationService.getOneKycDataEntry(data).then(res => {
                  let data = resolveResponse(res);
                  const selectedProduct = data.result;
                  var genderSelect=''; 
@@ -146,7 +150,11 @@ class OwnershipDataentryEdit extends React.Component {
         console.log("next id in next fuction", nextid); 
 
         if(nextid){
-            ActivationService.getOneDataEntry(nextid).then(res => {
+            const data = {
+                txnId:  nextid, 
+                processType : "PROCESS_CUSTOMER_OST"
+            }
+            ActivationService.getOneDataEntry(data).then(res => {
                 let data = resolveResponse(res);
                 if(data.result){
                     console.log("next getOneDataEntry", data)
@@ -367,15 +375,13 @@ class OwnershipDataentryEdit extends React.Component {
                             <TextField id="addressthree"  label="Address 3" value={this.state.address3}   fullWidth name="address3" onChange={this.onChange}/>
                             </Grid>
                         </Grid>
+                       
                         <Grid spacing={1} container direction="row">
-                            {/* <Grid item xs={12} sm={6}>
-                                 <InputLabel style={{fontSize:"12px"}}>Rejected Reasons</InputLabel>
-                                 <div id="rejectedReasons"  style={styles.MuiTextField}>{this.state.rejectedReasons} </div>
-                            </Grid> */}
-                            <Grid item xs={12} sm={6}>
-                            <TextField multiline variyant rows={2} value={this.state.comment} label="Comments" fullWidth margin="none" name="comment" onChange={this.onChange}/>
+                            <Grid item sm={12}>
+                                <TextField multiline variyant rows={2} value={this.state.comment} label="Comments" fullWidth margin="none" name="comment" onChange={this.onChange}/>
                             </Grid>
                         </Grid>
+
                         <br />
                         <div><Grid  container spacing={24} style={{paddingTop:"4px"}} container
                             direction="row"
@@ -428,7 +434,7 @@ class OwnershipDataentryEdit extends React.Component {
 
         var transactionsIds = {
             transactionsIds : [txn],
-            "processType": "PROCESS_CUSTOMER_KYC"
+            "processType": "PROCESS_CUSTOMER_OST"
 
         }
         ActivationService.kycUnlockTransectionsSkip( transactionsIds ).then(res => {
@@ -569,7 +575,7 @@ class OwnershipDataentryEdit extends React.Component {
             "deDateTime": new Date(),
             "deUser": this.state.loginId,
             "emailid":this.state.emailid,
-            "processType": "PROCESS_CUSTOMER_KYC"
+            "processType": "PROCESS_CUSTOMER_OST"
         }
     
         ActivationService.saveKycDataEntry(product)

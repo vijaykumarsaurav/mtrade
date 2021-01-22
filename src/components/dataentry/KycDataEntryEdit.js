@@ -84,10 +84,15 @@ class KycDataEntryEdit extends React.Component {
         getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");
              
         const dataEntryId = localStorage.getItem("dataEntryId");
+        const data = {
+            txnId:  dataEntryId, 
+            processType : "PROCESS_CUSTOMER_KYC"
+        }
          if(dataEntryId == null) {
              this.cancel();
          }else {
-             ActivationService.getOneKycDataEntry(dataEntryId).then(res => {
+
+             ActivationService.getOneKycDataEntry(data).then(res => {
                  let data = resolveResponse(res);
                  const selectedProduct = data.result;
                  var genderSelect=''; 
@@ -146,7 +151,12 @@ class KycDataEntryEdit extends React.Component {
         console.log("next id in next fuction", nextid); 
 
         if(nextid){
-            ActivationService.getOneDataEntry(nextid).then(res => {
+
+            const data = {
+                txnId:  dataEntryId, 
+                processType : "PROCESS_CUSTOMER_KYC"
+            }
+            ActivationService.getOneKycDataEntry(nextid).then(res => {
                 let data = resolveResponse(res);
                 if(data.result){
                     console.log("next getOneDataEntry", data)

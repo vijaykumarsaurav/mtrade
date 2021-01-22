@@ -196,14 +196,14 @@ export const DEMenuList = (
       <ListItemText primary="Resubmit Data Entry" />
     </ListItem>   
 
-    <ListItem component='a' href={"#/kyc-dataentry/kyc"} button>
+    <ListItem component='a' href={"#/kyc-dataentry"} button>
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>
       <ListItemText primary="KYC Re-Registration" />
     </ListItem>  
 
-    <ListItem component='a' href={"#/kyc-dataentry/kyc"} button>
+    <ListItem component='a' href={"#/ownership-dataentry"} button>
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>

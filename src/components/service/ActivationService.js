@@ -45,8 +45,8 @@ class ActivationService {
         return axios.get(apiConstant.DATAENTRY_DETAILS + '?txnId=' + productId, AuthService.getHeader());
     }
 
-    getOneKycDataEntry(productId){
-        return axios.get(apiConstant.KYC_DATAENTRY_DETAILS + '?txnId=' + productId+"&processType=PROCESS_CUSTOMER_KYC", AuthService.getHeader());
+    getOneKycDataEntry(data){
+        return axios.get(apiConstant.KYC_DATAENTRY_DETAILS + '?txnId=' + data.txnId+"&processType="+data.processType, AuthService.getHeader());
     }
   
     saveDataEntry(postdata){

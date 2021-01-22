@@ -89,7 +89,7 @@ class Ownership extends React.Component{
         ActivationService.KycListDocs(data)
             .then((res) => {
                 let data = resolveResponse(res);
-                var activationList = data && data.result && data.result.kycAvDataList; 
+                var activationList = data && data.result && data.result.ostAvDataList; 
                 this.setState({products: activationList})
                 this.setState({searchedproducts: activationList})
                 var listingIds = activationList && activationList.map(function(val, index){
@@ -143,7 +143,7 @@ class Ownership extends React.Component{
         window.localStorage.setItem("selectedProductId", productId);
         window.localStorage.setItem("selectedSim", sim);
         window.localStorage.setItem("fromSubmit", '');
-        this.props.history.push('/kyc-edit');
+        this.props.history.push('/ownership-dataentry-edit');
     }
 
     render(){
@@ -202,7 +202,7 @@ class Ownership extends React.Component{
                                 <TableCell>NIC Count</TableCell>
                                 <TableCell>Distributor</TableCell>
                                 <TableCell>Zone</TableCell>
-                                <TableCell>FTA Date</TableCell>
+                                {/* <TableCell>FTA Date</TableCell> */}
                                 <TableCell>Submit Date</TableCell>
                             </TableRow>
                         </TableHead>
@@ -220,7 +220,7 @@ class Ownership extends React.Component{
                                     <TableCell>{row.nicCount}</TableCell>
                                     <TableCell>{row.distributer}</TableCell>
                                     <TableCell>{row.zone}</TableCell>
-                                    <TableCell>{row.ftaDate.substring(0, 10)}</TableCell>
+                                    {/* <TableCell>{row.ftaDate && row.ftaDate.substring(0, 10)}</TableCell> */}
                                     <TableCell>{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
                                 </TableRow>
                             )):  ""}
