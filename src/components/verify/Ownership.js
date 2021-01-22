@@ -61,7 +61,7 @@ class Ownership extends React.Component{
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
         }
 
-        localStorage.setItem("lastUrl","verify");
+        localStorage.setItem("lastUrl","ownership");
         
     }
 
@@ -143,7 +143,7 @@ class Ownership extends React.Component{
         window.localStorage.setItem("selectedProductId", productId);
         window.localStorage.setItem("selectedSim", sim);
         window.localStorage.setItem("fromSubmit", '');
-        this.props.history.push('/ownership-dataentry-edit');
+        this.props.history.push('/ownership-edit');
     }
 
     render(){

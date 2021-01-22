@@ -38,7 +38,7 @@ class LoginComponent extends React.Component{
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
-                 <img style={styles.imagestyle} src={DEV_PROTJECT_PATH+"/webdata/adminwelcome.png"} />
+                 <img style={styles.imagestyle} src={"/webdata/adminwelcome.png"} />
             </React.Fragment>
         )
 

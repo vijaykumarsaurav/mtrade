@@ -149,7 +149,7 @@ class KycEdit extends React.Component {
     }
 
     componentDidMount() {
-        localStorage.setItem("lastUrl","verify-edit");
+        localStorage.setItem("lastUrl","kyc-edit");
         const userDetails = JSON.parse(localStorage.getItem("userDetails"));
         if(userDetails){
             this.setState({ loader: true,  loginId : userDetails.loginId });

@@ -305,7 +305,7 @@ class Retailer extends React.Component {
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
                                     {/* <Link color="primary" href={this.state.retailerOnboardExcelTemplatePath}>Download Sample</Link> */}
-                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/AgentOnboardingTemplate.xlsx"}>Download Sample</Link>
+                                    <Link color="primary" href={"/webdata/AgentOnboardTemplate.xlsx"}>Download Sample</Link>
 
                                 </Typography>
                             </InputLabel>
@@ -362,7 +362,7 @@ class Retailer extends React.Component {
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
                                     {/* <Link color="primary" href={this.state.retailerDeleteExcelTemplatePath}>Download Delete Sample </Link> */}
-                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/AgentDeleteTemplate.xlsx"}>Download Delete Sample </Link> 
+                                    <Link color="primary" href={"/webdata/AgentDeleteTemplate.xlsx"}>Download Delete Sample </Link> 
                                 </Typography>
                             </InputLabel>
 

@@ -81,9 +81,11 @@ const AppRouter = () => {
                     <Route path="/resubmit-verify" component={ResubmitVerify}/>
                     <Route path="/verify-edit" component={VerifyEdit} />
 
-                   
                     <Route path="/kyc" component={Kyc}/>
                     <Route path="/kyc-edit" component={KycEdit} />
+
+                    <Route path="/kyc-dataentry" component={KycDataEntryList}/>
+                    <Route path="/kyc-dataentry-edit" component={KycDataEntryEdit}/>
 
                     <Route path="/ownership" component={Ownership}/>
                     <Route path="/ownership-edit" component={OwnershipEdit} />
@@ -93,10 +95,7 @@ const AppRouter = () => {
 
                     <Route path="/disconnection" component={Disconnection}/>
                     <Route path="/disconnection-edit" component={DisconnectionEdit} />
-
-                    <Route path="/kyc-dataentry" component={KycDataEntryList}/>
-                    <Route path="/kyc-dataentry-edit" component={KycDataEntryEdit}/>
-
+                   
                     <Route path="/qva" component={QvaList}/>
                     <Route path="/qva-edit" component={QvaEdit}/>
 

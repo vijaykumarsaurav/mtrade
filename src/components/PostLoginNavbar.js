@@ -126,20 +126,20 @@ export default function PostLoginNavBar(props) {
     userDetails = userDetails && JSON.parse(userDetails);
      
     var roleCode = userDetails && userDetails.roleCode; 
-    if(roleCode == "DE" || roleCode == "BOA"){
-        if(localStorage.getItem("recordToProccedFirstTime") === 'yes'){
-            ActivationService.getTotalToBeProcessed().then(res => {
-                let data = resolveResponse(res);
-               // localStorage.setItem("acquisitionCount",data.result && data.result.acquisitionCount ); 
-               // localStorage.setItem("resubmitCount",data.result && data.result.resubmitCount ); 
+    // if(roleCode == "DE" || roleCode == "BOA"){
+    //     if(localStorage.getItem("recordToProccedFirstTime") === 'yes'){
+    //         ActivationService.getTotalToBeProcessed().then(res => {
+    //             let data = resolveResponse(res);
+    //            // localStorage.setItem("acquisitionCount",data.result && data.result.acquisitionCount ); 
+    //            // localStorage.setItem("resubmitCount",data.result && data.result.resubmitCount ); 
              
-               if(data.result && data.result.acquisitionCount && data.result.resubmitCount){
-                    setValues({ ...values, ['acquisitionCount']: "Acquisition records to be processed: " + data.result.acquisitionCount, ['resubmitCount']: "Resubmit records to be processed: "+ data.result.resubmitCount });
-                    window.localStorage.setItem("recordToProccedFirstTime",'no');
-                }
-            })
-        }
-    }
+    //            if(data.result && data.result.acquisitionCount && data.result.resubmitCount){
+    //                 setValues({ ...values, ['acquisitionCount']: "Acquisition records to be processed: " + data.result.acquisitionCount, ['resubmitCount']: "Resubmit records to be processed: "+ data.result.resubmitCount });
+    //                 window.localStorage.setItem("recordToProccedFirstTime",'no');
+    //             }
+    //         })
+    //     }
+    // }
 
     var CookieExpireDate = new Date();
     CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);

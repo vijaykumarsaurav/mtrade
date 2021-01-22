@@ -262,7 +262,7 @@ class OfferUpload extends React.Component {
                         <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/Offers.xlsx"}>Download Sample</Link>
+                                    <Link color="primary" href={"/webdata/Offers.xlsx"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>

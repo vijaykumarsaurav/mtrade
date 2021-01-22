@@ -58,7 +58,7 @@ class Disconnection extends React.Component{
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
         }
 
-        localStorage.setItem("lastUrl","verify");
+        localStorage.setItem("lastUrl","disconnection");
         ActivationService.getKycTotalToBeProcessed("PROCESS_TYPE_DISCONNECTION").then(res => {
             let data = resolveResponse(res);     
             if(data && data.result){
@@ -163,7 +163,7 @@ class Disconnection extends React.Component{
                     <Grid container spacing={3}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                Disconnection Verification  vk
+                                Disconnection Verification
                                 </Typography> 
                             </Grid>
                             <Grid item xs={10} sm={3}> 

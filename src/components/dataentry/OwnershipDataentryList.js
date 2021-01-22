@@ -59,7 +59,7 @@ class OwnershipDataentryList extends React.Component{
     componentDidMount() {   
         getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST");   
         this.listTxn();
-        localStorage.setItem("lastUrl","dataentry");
+        localStorage.setItem("lastUrl","ownership-dataentry");
       
 
     }

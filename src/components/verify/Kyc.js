@@ -61,7 +61,7 @@ class Kyc extends React.Component{
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
         }
 
-        localStorage.setItem("lastUrl","verify");
+        localStorage.setItem("lastUrl","kyc");
         
     }
 

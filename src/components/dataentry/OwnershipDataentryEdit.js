@@ -180,7 +180,7 @@ class OwnershipDataentryEdit extends React.Component {
 
     componentDidMount() {
         this.loadOneTransection(); 
-        localStorage.setItem("lastUrl","data-edit");
+        localStorage.setItem("lastUrl","ownership-dataentry-edit");
         if(document.getElementById("addressone")){
             document.getElementById("addressone").style.fontSize = "12px";
         }
@@ -272,7 +272,7 @@ class OwnershipDataentryEdit extends React.Component {
         return(
             <React.Fragment>
             <PostLoginNavBar/>
-            <Typography variant="h6" style={styles.textStyle} >Ownership Change Data Entry Details</Typography>
+            <Typography variant="h6" style={styles.textStyle} >Ownership Change Data Entry View</Typography>
             <Grid container className="flexGrow" spacing={1}>
                <Grid item  xs={12} sm={8} style={{overflow:"scroll"}}>
                     <Paper style={{paddingLeft:"5px", paddingRight:"5px", height:"80vh", width: "135vh" }}>
@@ -592,7 +592,7 @@ class OwnershipDataentryEdit extends React.Component {
 
 
     cancel = (e) => {
-        this.props.history.push('/kyc-dataentry');
+        this.props.history.push('/ownership-dataentry');
     };
 
     onChangeAlternateNo = (e) => {
