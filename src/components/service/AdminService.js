@@ -159,7 +159,7 @@ class AdminService {
             fullapiurl = apiConstant.RETAILER_REPORT_BASEAPI+'barUnbarReport' ; 
         }
 
-        if(api == 'disconnectionAgentAuditReport' || api == 'disconnectionReceptionReport' || api == 'disconnectionIpacReadyReport'  || api == 'kycReceptionReport' || api == 'kycAgentAuditReport' ||  api == 'kycIpacReadyReport'){
+        if(api == 'disconnectionAgentAuditReport' || api == 'disconnectionReceptionReport' || api == 'disconnectionIpacReadyReport'  || api == 'kycReceptionReport' || api == 'kycAgentAuditReport' ||  api == 'kycIpacReadyReport' ||  api == 'ostReceptionReport'  ||  api == 'ostAgentAuditReport'  ||  api == 'ostIpacReadyReport'){
             fullapiurl = apiConstant.RETAILER_DISCONNECTION_KYC_REPORT + api; 
         }
 

@@ -138,7 +138,10 @@ class DisconnectionEdit extends React.Component {
                         submittedDate: selectedProduct.submittedDate,
                         resubmittedDate : selectedProduct.resubmittedDate,
                         ftaDate : selectedProduct.ftaDate,
-                        prevRejectedImgs : selectedProduct.prevData
+                        prevRejectedImgs : selectedProduct.prevData,
+                        latLong: selectedProduct.latLong,
+                        retailerLoginVLNumber : selectedProduct.retailerLoginVLNumber,
+                        requestedNumber : selectedProduct.requestedNumber
                         });
 
                         this.setState({ rejectedReasons: this.state.bothReasons.eactivatedRejectionReasons});
@@ -335,7 +338,7 @@ class DisconnectionEdit extends React.Component {
                         <form style={styles.formContainer}>
                             {/* <Typography variant="h6" component="h3">Mobile : {this.state.mobileNumber}   </Typography> */}
                             <TextField label="Mobile No" required={true} fullWidth name="productName" value={this.state.mobileNumber} />
-                            <TextField label={this.state.poiType} required={true} fullWidth name="displayName" value={this.state.poiNumber} />
+                            <TextField label={"POI Number"} required={true} fullWidth name="displayName" value={this.state.poiNumber} />
                             {/* <TextField label="SIM" required={true} fullWidth name="displayName" value={this.state.sim} /> */}
 
                             <Grid item xs={12} sm={12}  >
@@ -701,23 +704,37 @@ class SubmitedByRetailer extends React.Component {
 
              <List component="nav" aria-label="main mailbox folders">
                   
-                    <Typography variant="h6" style={styles.textStyle}> Acquisition Details</Typography>
+                    <Typography variant="h6" style={styles.textStyle}> Disconnection Details</Typography>
                     <div style={{padding:"10px"}}> 
-                        <b> Title : </b> {this.props.cafdetails.title} {this.props.cafdetails.firstName} {this.props.cafdetails.middleName} {this.props.cafdetails.lastName} 
+                        {/* <b> Title : </b> {this.props.cafdetails.title} {this.props.cafdetails.firstName} {this.props.cafdetails.middleName} {this.props.cafdetails.lastName} 
+                        <br />  */}
+                       {/* <b> Gender : </b>  {this.props.cafdetails.gender} 
+                        <br />  */}
+
+                        <b> Alternate  No. :</b>   {this.props.cafdetails.alternateNumber}   
                         <br /> 
-                       <b> Gender : </b>  {this.props.cafdetails.gender} 
-                        <br /> 
+
                        <b> Address : </b>   {this.props.cafdetails.presentAddress}   
                         <br /> 
-                      <b> Alternate  No. :</b>   {this.props.cafdetails.alternateNumber}   
-                        <br /> 
-                      <b>  Email : </b> {this.props.cafdetails.emailid} 
-                        <br /> 
-                       <b> FTA Date :</b>  {this.props.cafdetails.ftaDate ? this.props.cafdetails.ftaDate.substring(0, 10) : "none"} 
-                        <br /> 
-                       <b>Submit Date :  </b> {this.props.cafdetails.submittedDate ? this.props.cafdetails.submittedDate.substring(0, 10) : "none"}
-                        <br /> 
-                       <b>Resubmit Date :  </b> {this.props.cafdetails.resubmittedDate ? this.props.cafdetails.resubmittedDate.substring(0, 10) : "Not yet resubmitted"} 
+
+                        <b> Lat/Long : </b>   {this.props.cafdetails.latLong}   
+                     <br /> 
+
+                     <b> Retailer Login VL Number : </b>   {this.props.cafdetails.retailerLoginVLNumber}   
+                     <br /> 
+                      
+                     <b> Requested Number/s : </b>   {this.props.cafdetails.requestedNumber}   
+                     <br /> 
+                        
+                    
+
+                      {/* <b>  Email : </b> {this.props.cafdetails.emailid} 
+                        <br />  */}
+                       {/* <b> FTA Date :</b>  {this.props.cafdetails.ftaDate ? this.props.cafdetails.ftaDate.substring(0, 10) : "none"} 
+                        <br />  */}
+                       {/* <b>Submit Date :  </b> {this.props.cafdetails.submittedDate ? this.props.cafdetails.submittedDate.substring(0, 10) : "none"}
+                        <br />  */}
+                       {/* <b>Resubmit Date :  </b> {this.props.cafdetails.resubmittedDate ? this.props.cafdetails.resubmittedDate.substring(0, 10) : "Not yet resubmitted"}  */}
 
 
                     </div>

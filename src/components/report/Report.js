@@ -269,7 +269,7 @@ class Report extends React.Component {
 
                     this.setState({  generateReportLoader: false});
 
-                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport' || this.state.reporttype == 'kycReceptionReport' || this.state.reporttype == 'kycAgentAuditReport' || this.state.reporttype == 'kycIpacReadyReport'){
+                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport' || this.state.reporttype == 'kycReceptionReport'  || this.state.reporttype == 'kycAgentAuditReport' || this.state.reporttype == 'kycIpacReadyReport' ||  this.state.reporttype == 'ostReceptionReport'  ||  this.state.reporttype == 'ostAgentAuditReport'  ||  this.state.reporttype == 'ostIpacReadyReport' ){
 
                     this.setState({ generateReportMsg:  "Ready to Download"});
                     console.log("data.result.length",data.result.length)
@@ -396,6 +396,7 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="barReport">Bar Report</MenuItem>);
         adminReports.push(<MenuItem value="unBarReport">Unbar Report</MenuItem>);
 
+        //sprint 12
         adminReports.push(<MenuItem value="disconnectionReceptionReport">Disconnection Reception Report</MenuItem>);
         adminReports.push(<MenuItem value="disconnectionAgentAuditReport">Disconnection Agent Audit Report</MenuItem>);
         adminReports.push(<MenuItem value="disconnectionIpacReadyReport">Disconnection Ipac Ready Report</MenuItem>);
@@ -403,7 +404,10 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="kycReceptionReport">KYC Reception Report</MenuItem>);
         adminReports.push(<MenuItem value="kycAgentAuditReport">KYC Agent Audit Report</MenuItem>);
         adminReports.push(<MenuItem value="kycIpacReadyReport">KYC Ipac Ready Report</MenuItem>);
-        //sprint 8 changes
+     
+        adminReports.push(<MenuItem value="ostReceptionReport">Ownership Reception Report</MenuItem>);
+        adminReports.push(<MenuItem value="ostAgentAuditReport">Ownership Agent Audit Report</MenuItem>);
+        adminReports.push(<MenuItem value="ostIpacReadyReport">Ownership Ipacs Ready Report</MenuItem>);
 
         // BY_VERIFICATION_DATE,
         // BY_DATA_ENTRY_DATE
@@ -503,7 +507,7 @@ class Report extends React.Component {
                                     value={this.state.retrieveType}
                                     onChange={this.onChangeRetriveBy}
                                     >
-                                    {this.state.reporttype != 'simSwapReport' && this.state.reporttype != 'disconnectionReceptionReport' && this.state.reporttype != 'disconnectionAgentAuditReport' && this.state.reporttype != 'disconnectionIpacReadyReport' && this.state.reporttype != 'kycReceptionReport' && this.state.reporttype != 'kycAgentAuditReport' && this.state.reporttype != 'kycIpacReadyReport' ?  
+                                    {this.state.reporttype != 'simSwapReport' && this.state.reporttype != 'disconnectionReceptionReport' && this.state.reporttype != 'disconnectionAgentAuditReport' && this.state.reporttype != 'disconnectionIpacReadyReport' && this.state.reporttype != 'kycReceptionReport' && this.state.reporttype != 'kycAgentAuditReport' && this.state.reporttype != 'kycIpacReadyReport' && this.state.reporttype != 'ostReceptionReport'  && this.state.reporttype != 'ostAgentAuditReport'  && this.state.reporttype != 'ostIpacReadyReport' ?  
                                         <MenuItem key={'BY_FTA_DATE'} value={'BY_FTA_DATE'} >
                                         By FTA Date
                                     </MenuItem>
@@ -519,7 +523,9 @@ class Report extends React.Component {
                                         </MenuItem>
                                     : ""} 
                                    
-                                    {this.state.retrieveTypeDataEntry || this.state.reporttype === 'kycAgentAuditReport' || this.state.reporttype === 'kycIpacReadyReport'?  
+                                   
+
+                                    {this.state.retrieveTypeDataEntry || this.state.reporttype === 'kycAgentAuditReport' || this.state.reporttype === 'kycIpacReadyReport' || this.state.reporttype ==='ostAgentAuditReport'|| this.state.reporttype ==='ostIpacReadyReport' ?  
                                         <MenuItem key={'BY_DATA_ENTRY_DATE'} value={'BY_DATA_ENTRY_DATE'} >
                                             By Data Entry Date
                                         </MenuItem>

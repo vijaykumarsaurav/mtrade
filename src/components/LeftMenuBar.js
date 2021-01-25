@@ -200,14 +200,14 @@ export const DEMenuList = (
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>
-      <ListItemText primary="KYC Re-Registration" />
+      <ListItemText primary="Re-Registration" />
     </ListItem>  
 
     <ListItem component='a' href={"#/ownership-dataentry"} button>
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>
-      <ListItemText primary="Ownership Change Dataentry" />
+      <ListItemText primary="Ownership Data Entry" />
     </ListItem>  
   </div>
 );
