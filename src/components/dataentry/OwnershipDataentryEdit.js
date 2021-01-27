@@ -81,8 +81,7 @@ class OwnershipDataentryEdit extends React.Component {
     };
 
     loadOneTransection(){
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST");
-             
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST", "Ownership records to be processed:");             
         const dataEntryId = localStorage.getItem("dataEntryId");
         const data = {
             txnId:  dataEntryId, 
@@ -272,7 +271,7 @@ class OwnershipDataentryEdit extends React.Component {
         return(
             <React.Fragment>
             <PostLoginNavBar/>
-            <Typography variant="h6" style={styles.textStyle} >Ownership Change Data Entry View</Typography>
+            <Typography variant="h6" style={styles.textStyle} >Ownership Data Entry View</Typography>
             <Grid container className="flexGrow" spacing={1}>
                <Grid item  xs={12} sm={8} style={{overflow:"scroll"}}>
                     <Paper style={{paddingLeft:"5px", paddingRight:"5px", height:"80vh", width: "135vh" }}>

@@ -167,7 +167,7 @@ class FSEUpload extends React.Component {
            // var data = resolveResponse(data, "FSE Uploaded Successfully.");
             var data = data && data.data;
             if(data.status == 200){
-                Notify.showSuccess("FSC Camping Uploaded Successfully.");
+                Notify.showSuccess("FSE Camping Uploaded Successfully.");
             }else{
                 Notify.showError(data.message);
                 if(data.status === 1010 ){

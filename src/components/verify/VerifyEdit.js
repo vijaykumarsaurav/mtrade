@@ -60,7 +60,8 @@ class VerifyEdit extends React.Component {
                 presentAddress:'',
                 comments:"",
                 bothReasons:'',
-                loading: true
+                loading: true,
+                detailTitle:"Acquisition"
 
             }
         this.onChange = this.onChange.bind(this);
@@ -165,6 +166,12 @@ class VerifyEdit extends React.Component {
             this.setState({bothReasons:  JSON.parse(localStorage.getItem('cmsStaticData'))});
         }
         this.loadOneTransection();
+
+        
+        if(localStorage.getItem('fromSubmit') == 'yes'){
+            this.setState({ detailTitle: "Resubmit" });
+
+        }
     }
     render() {
 
@@ -309,7 +316,7 @@ class VerifyEdit extends React.Component {
 
             <React.Fragment>
                 <PostLoginNavBar/>           
-                <Typography variant="h6" style={styles.textStyleHeading} >View and Verify Document</Typography>
+                <Typography variant="h6" style={styles.textStyleHeading}>{this.state.detailTitle} View and Verify Document</Typography>
                 <Grid  direction="row" container className="flexGrow" spacing={1}  style={{paddingLeft:"10px",paddingRight:"10px"}}>
                     <Grid item xs={12} sm={pefcontainer}>
                         <Paper style={{overflow:"scroll", height:"78vh"}}>
@@ -700,13 +707,14 @@ class SubmitedByRetailer extends React.Component {
 
 
     render() {
+        
         return(
             <div className="mainDivAdjustment">
 
 
              <List component="nav" aria-label="main mailbox folders">
                   
-                    <Typography variant="h6" style={styles.textStyle}> Acquisition Details</Typography>
+                    <Typography variant="h6" style={styles.textStyle}>{this.props.cafdetails.detailTitle} Details</Typography>
                     <div style={{padding:"10px"}}> 
                         <b> Title : </b> {this.props.cafdetails.title} {this.props.cafdetails.firstName} {this.props.cafdetails.middleName} {this.props.cafdetails.lastName} 
                         <br /> 

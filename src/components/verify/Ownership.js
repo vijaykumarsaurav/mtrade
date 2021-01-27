@@ -55,7 +55,7 @@ class Ownership extends React.Component{
     }
 
     componentDidMount() {
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST");
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST", "Ownership records to be processed:");
         this.listTxn("");
         if(JSON.parse(localStorage.getItem('cmsStaticData'))){
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});

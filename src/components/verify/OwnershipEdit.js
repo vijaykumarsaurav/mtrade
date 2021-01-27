@@ -75,7 +75,7 @@ class OwnershipEdit extends React.Component {
     }
 
     loadOneTransection(){
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST");
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_OST", "Ownership records to be processed:");
     
         const selectedProductId = localStorage.getItem("selectedProductId");
 
@@ -302,7 +302,7 @@ class OwnershipEdit extends React.Component {
 
             <React.Fragment>
                 <PostLoginNavBar/>           
-                <Typography variant="h6" style={styles.textStyleHeading}>Ownership Change Verification View </Typography>
+                <Typography variant="h6" style={styles.textStyleHeading}>Ownership View and Verify Document </Typography>
                 <Grid  direction="row" container className="flexGrow" spacing={1}  style={{paddingLeft:"10px",paddingRight:"10px"}}>
                     <Grid item xs={12} sm={pefcontainer}>
                         <Paper style={{overflow:"scroll", height:"78vh"}}>
@@ -701,7 +701,7 @@ class SubmitedByRetailer extends React.Component {
 
              <List component="nav" aria-label="main mailbox folders">
                   
-                    <Typography variant="h6" style={styles.textStyle}> KYC Details</Typography>
+                    <Typography variant="h6" style={styles.textStyle}>Ownership Details</Typography>
                     <div style={{padding:"10px"}}> 
                         <b> Title : </b> {this.props.cafdetails.title} {this.props.cafdetails.firstName} {this.props.cafdetails.middleName} {this.props.cafdetails.lastName} 
                         <br /> 
@@ -713,8 +713,8 @@ class SubmitedByRetailer extends React.Component {
                         <br /> 
                       <b>  Email : </b> {this.props.cafdetails.emailid} 
                         <br /> 
-                       <b> FTA Date :</b>  {this.props.cafdetails.ftaDate ? this.props.cafdetails.ftaDate.substring(0, 10) : "none"} 
-                        <br /> 
+                       {/* <b> FTA Date :</b>  {this.props.cafdetails.ftaDate ? this.props.cafdetails.ftaDate.substring(0, 10) : "none"} 
+                        <br />  */}
                        <b>Submit Date :  </b> {this.props.cafdetails.submittedDate ? this.props.cafdetails.submittedDate.substring(0, 10) : "none"}
                         {/* <br /> 
                        <b>Resubmit Date :  </b> {this.props.cafdetails.resubmittedDate ? this.props.cafdetails.resubmittedDate.substring(0, 10) : "Not yet resubmitted"}  */}

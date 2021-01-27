@@ -21,6 +21,7 @@ import PostLoginNavBar from "../PostLoginNavbar";
 import {Container} from "@material-ui/core";
 import {resolveResponse} from "../../utils/ResponseHandler";
 import "./Verify.css";
+import getKycTotalToBeProcessed from "../../utils/CommonApi";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -58,18 +59,9 @@ class Disconnection extends React.Component{
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});
         }
 
+        getKycTotalToBeProcessed("PROCESS_TYPE_DISCONNECTION", "Disconnection records to be processed:");
+
         localStorage.setItem("lastUrl","disconnection");
-        ActivationService.getKycTotalToBeProcessed("PROCESS_TYPE_DISCONNECTION").then(res => {
-            let data = resolveResponse(res);     
-            if(data && data.result){
-                // if(document.getElementById('acqRecordId')){
-                //     document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.pendingCount; 
-                // }
-                if(document.getElementById('resubmitRecordId')){
-                    document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.pendingCount; 
-                }
-            }
-        });
     }
 
     onlockTransectionOnSkip = (txn) =>{

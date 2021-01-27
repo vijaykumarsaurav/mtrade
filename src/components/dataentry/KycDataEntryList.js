@@ -57,7 +57,7 @@ class KycDataEntryList extends React.Component{
     }
 
     componentDidMount() {   
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");   
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC", "Re-Registration records to be processed:");
         this.listTxn();
         localStorage.setItem("lastUrl","dataentry");
       
@@ -156,7 +156,7 @@ class KycDataEntryList extends React.Component{
                         alignItems="center">
                             <Grid item  xs={12} xs={6}>
                             <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                             KYC Re-Registration Verification
+                             Re-Registration Verification
                             </Typography> 
                             </Grid>
 

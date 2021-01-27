@@ -130,7 +130,7 @@ class ReRegistration extends React.Component {
            // var data = resolveResponse(res, "Offer Uploaded Successfully.");
             var data = data && data.data;
             if(data.status == 200){
-                Notify.showSuccess("FSC Camping Uploaded Successfully.");
+                Notify.showSuccess("KYC Data Uploaded Successfully.");
             }else{
                 Notify.showError(data.message);
             }

@@ -51,7 +51,8 @@ class DataEntryEdit extends React.Component {
                 pefImageUrl:'',
                 comment:"",
                 loading: true,
-                isValidEmail:true
+                isValidEmail:true,
+                detailTitle:"Acquisition"
                 
         }
         this.updateLocalActList = this.updateLocalActList.bind(this);
@@ -200,6 +201,11 @@ class DataEntryEdit extends React.Component {
         if(document.getElementById("rejectedReasons")){
             document.getElementById("rejectedReasons").style.fontSize = "12px";
         } 
+
+        if(localStorage.getItem('fromSubmit') == 'yes'){
+            this.setState({ detailTitle: "Resubmit" });
+
+        }
     }
 
 
@@ -276,7 +282,7 @@ class DataEntryEdit extends React.Component {
         return(
             <React.Fragment>
             <PostLoginNavBar/>
-            <Typography variant="h6" style={styles.textStyle} >Data Entry Details</Typography>
+            <Typography variant="h6" style={styles.textStyle} >{this.state.detailTitle} Data Entry Details</Typography>
             <Grid container className="flexGrow" spacing={1}>
                <Grid item  xs={12} sm={8} style={{overflow:"scroll"}}>
                     <Paper style={{paddingLeft:"5px", paddingRight:"5px", height:"80vh", width: "135vh" }}>

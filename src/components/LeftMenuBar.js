@@ -70,7 +70,7 @@ export const AdminMenuList = (
       <ListItemIcon>
         <LocalOfferIcon />
       </ListItemIcon>
-      <ListItemText primary="KYC Re-Registration" />
+      <ListItemText primary="Re-Registration Upload" />
     </ListItem>
 
     <ListItem button component='a' href={"#/banners"} >
@@ -141,7 +141,7 @@ export const  BOAMenuList  = (
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>
-      <ListItemText primary="KYC Re-Registration" />
+      <ListItemText primary="Re-Registration Verification" />
     </ListItem>   
 
     <ListItem component='a' href={"#/disconnection"} button>
@@ -155,7 +155,7 @@ export const  BOAMenuList  = (
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>
-      <ListItemText primary="Ownership Change Verification" />
+      <ListItemText primary="Ownership Verification" />
     </ListItem>   
     
   </div>
@@ -200,7 +200,7 @@ export const DEMenuList = (
      <ListItemIcon>
         <HistoryIcon />
       </ListItemIcon>
-      <ListItemText primary="Re-Registration" />
+      <ListItemText primary="Re-Registration Data Entry" />
     </ListItem>  
 
     <ListItem component='a' href={"#/ownership-dataentry"} button>

@@ -55,7 +55,7 @@ class Kyc extends React.Component{
     }
 
     componentDidMount() {
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC", "Re-Registration records to be processed:");
         this.listTxn("");
         if(JSON.parse(localStorage.getItem('cmsStaticData'))){
             this.setState({listofzones:  JSON.parse(localStorage.getItem('cmsStaticData')).zones});

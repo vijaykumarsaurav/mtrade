@@ -15,6 +15,7 @@ import ReactPanZoom from "react-image-pan-zoom-rotate";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
 import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
+import getKycTotalToBeProcessed from "../../utils/CommonApi";
 
 class DisconnectionEdit extends React.Component {
 
@@ -73,18 +74,7 @@ class DisconnectionEdit extends React.Component {
     }
 
     loadOneTransection(){
-        ActivationService.getKycTotalToBeProcessed("PROCESS_TYPE_DISCONNECTION").then(res => {
-            let data = resolveResponse(res);  
-            if(data.result){
-                if(document.getElementById('acqRecordId')){
-                    document.getElementById('acqRecordId').innerHTML = "Acquisition records to be processed: " + data.result.pendingCount; 
-                }
-                // if(document.getElementById('resubmitRecordId')){
-                //     document.getElementById('resubmitRecordId').innerHTML = "Resubmit records to be processed: " + data.result.resubmitCount; 
-                // }
-            }       
-           
-        });
+        getKycTotalToBeProcessed("PROCESS_TYPE_DISCONNECTION", "Disconnection records to be processed:");
 
         const selectedProductId = localStorage.getItem("selectedProductId");
         if(selectedProductId == null) {
@@ -309,7 +299,7 @@ class DisconnectionEdit extends React.Component {
 
             <React.Fragment>
                 <PostLoginNavBar/>           
-                <Typography variant="h6" style={styles.textStyleHeading}>Disconnection Verification View </Typography>
+                <Typography variant="h6" style={styles.textStyleHeading}>Disconnection View and Verify Document </Typography>
                 <Grid  direction="row" container className="flexGrow" spacing={1}  style={{paddingLeft:"10px",paddingRight:"10px"}}>
                     <Grid item xs={12} sm={pefcontainer}>
                         <Paper style={{overflow:"scroll", height:"78vh"}}>

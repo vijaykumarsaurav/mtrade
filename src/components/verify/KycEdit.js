@@ -75,8 +75,7 @@ class KycEdit extends React.Component {
     }
 
     loadOneTransection(){
-        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC");
-    
+        getKycTotalToBeProcessed("PROCESS_CUSTOMER_KYC", "Re-Registration records to be processed:");    
         const selectedProductId = localStorage.getItem("selectedProductId");
 
         const data = {
@@ -302,7 +301,7 @@ class KycEdit extends React.Component {
 
             <React.Fragment>
                 <PostLoginNavBar/>           
-                <Typography variant="h6" style={styles.textStyleHeading}>KYC Re-Registration Verification View </Typography>
+                <Typography variant="h6" style={styles.textStyleHeading}>KYC Re-Registration View and Verify Document</Typography>
                 <Grid  direction="row" container className="flexGrow" spacing={1}  style={{paddingLeft:"10px",paddingRight:"10px"}}>
                     <Grid item xs={12} sm={pefcontainer}>
                         <Paper style={{overflow:"scroll", height:"78vh"}}>
@@ -701,7 +700,7 @@ class SubmitedByRetailer extends React.Component {
 
              <List component="nav" aria-label="main mailbox folders">
                   
-                    <Typography variant="h6" style={styles.textStyle}> KYC Details</Typography>
+                    <Typography variant="h6" style={styles.textStyle}>Re-Registration Details</Typography>
                     <div style={{padding:"10px"}}> 
                         <b> Title : </b> {this.props.cafdetails.title} {this.props.cafdetails.firstName} {this.props.cafdetails.middleName} {this.props.cafdetails.lastName} 
                         <br /> 
