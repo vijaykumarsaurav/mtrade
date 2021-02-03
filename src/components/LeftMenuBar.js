@@ -38,6 +38,13 @@ export const AdminMenuList = (
       <ListItemText primary="Welcome" />
     </ListItem>
 
+    <ListItem button component='a' href={"#/dashboard"} >  
+      <ListItemIcon>
+        <EmojiEmotionsIcon />
+      </ListItemIcon>
+      <ListItemText primary="Dashboard Count" />
+    </ListItem>
+
     <ListItem button component='a' href={"#/msisdn-status"} >  
       <ListItemIcon>
         <FileCopyIcon />

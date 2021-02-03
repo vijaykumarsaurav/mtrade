@@ -153,7 +153,7 @@ class OwnershipDataentryEdit extends React.Component {
                 txnId:  nextid, 
                 processType : "PROCESS_CUSTOMER_OST"
             }
-            ActivationService.getOneDataEntry(data).then(res => {
+            ActivationService.getOneKycDataEntry(data).then(res => {
                 let data = resolveResponse(res);
                 if(data.result){
                     console.log("next getOneDataEntry", data)

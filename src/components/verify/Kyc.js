@@ -156,7 +156,7 @@ class Kyc extends React.Component{
                     <Grid container spacing={3}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                KYC Re-Registration Verification
+                                Re-Registration Verification
                                 </Typography> 
                             </Grid>
                             <Grid item xs={10} sm={3}> 

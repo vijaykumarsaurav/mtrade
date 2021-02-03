@@ -156,7 +156,7 @@ class KycDataEntryList extends React.Component{
                         alignItems="center">
                             <Grid item  xs={12} xs={6}>
                             <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                             Re-Registration Verification
+                             Re-Registration Data Entry
                             </Typography> 
                             </Grid>
 

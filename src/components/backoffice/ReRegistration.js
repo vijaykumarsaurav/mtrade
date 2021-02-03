@@ -20,6 +20,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import { CRO_API_BASE_URL } from "../../utils/config";
 import { CSVLink } from "react-csv";
 import md5  from 'md5'; 
+import CircularProgress from '@material-ui/core/CircularProgress';
 import  {DEV_PROTJECT_PATH} from "../../utils/config";
 
 class ReRegistration extends React.Component {
@@ -31,7 +32,9 @@ class ReRegistration extends React.Component {
             deletefile:'', 
             searchby:'',
             retailerDetails: '',
-            allOfferData:""
+            allOfferData:"", 
+            progressBar: false,
+            successMsg:""
         };
         this.uploadOffer = this.uploadOffer.bind(this);
         this.relailerDelete = this.relailerDelete.bind(this);
@@ -109,6 +112,7 @@ class ReRegistration extends React.Component {
     uploadOffer() {
     
 
+
         console.log(this.state.uploadfile);
 
             if(!this.state.uploadfile || document.getElementById('uploadfile').value ==""){
@@ -118,7 +122,7 @@ class ReRegistration extends React.Component {
 
             // var userDetails = localStorage.getItem("userDetails")
             // userDetails = userDetails && JSON.parse(userDetails);
-
+            this.setState({progressBar: true})
             const formData = new FormData();
             formData.append('file',this.state.uploadfile);
           //  formData.append('submittedBy',userDetails && userDetails.loginId);
@@ -129,8 +133,14 @@ class ReRegistration extends React.Component {
 
            // var data = resolveResponse(res, "Offer Uploaded Successfully.");
             var data = data && data.data;
+            this.setState({progressBar: false})
             if(data.status == 200){
-                Notify.showSuccess("KYC Data Uploaded Successfully.");
+                this.setState({successMsg: "Re-Registration Data Uploaded Successfully"})
+
+                setTimeout(() => {
+                    this.setState({successMsg: ""})
+                }, 10000);
+             //   Notify.showSuccess(" Data Uploaded Successfully.");
             }else{
                 Notify.showError(data.message);
             }
@@ -250,7 +260,7 @@ class ReRegistration extends React.Component {
             <div style={{ padding: "40px" }} >
                 <Paper style={{ padding: "15px" }}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                    Customer KYC Re-Registration Upload
+                    Customer  Re-Registration Upload
                     </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                         <Grid item xs={12} sm={3}>
@@ -262,7 +272,7 @@ class ReRegistration extends React.Component {
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
-                            <Typography variant="subtitle1">Upload KYC Re-Registration Excel</Typography>
+                            <Typography variant="subtitle1">Upload  Re-Registration Excel</Typography>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
@@ -278,7 +288,12 @@ class ReRegistration extends React.Component {
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
-                            <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={this.uploadOffer}>Upload</Button>
+                            { !this.state.progressBar ? <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={this.uploadOffer}>Upload</Button> : ""} 
+                            {this.state.progressBar ?  <>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <CircularProgress /> </>: ""}
+                        </Grid>
+
+                        <Grid item xs={12} sm={12} style={{textAlign:"center"}}>
+                           <Typography variant="subtitle1" style={{color: "green"}}>   <b> {this.state.successMsg}  </b></Typography>
                         </Grid>
                     </Grid>
                 </Paper>

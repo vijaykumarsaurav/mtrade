@@ -156,7 +156,7 @@ class KycDataEntryEdit extends React.Component {
                 txnId:  dataEntryId, 
                 processType : "PROCESS_CUSTOMER_KYC"
             }
-            ActivationService.getOneKycDataEntry(nextid).then(res => {
+            ActivationService.getOneKycDataEntry(data).then(res => {
                 let data = resolveResponse(res);
                 if(data.result){
                     console.log("next getOneDataEntry", data)

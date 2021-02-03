@@ -104,6 +104,7 @@ export const GET_ONE_BANNER = RETAILER_API_BASE_URL + 'banner/getById';
 export const SEARCH_BY_MOBILE_NO = RETAILER_API_BASE_URL + 'avde/acqDataForDataEntry';
 export const VERIFY_DOCS_BY_ID = RETAILER_API_BASE_URL + 'avde/acqDataForDataEntry?role=AV';
 export const VERIFICATION_STATIC_DATA = RETAILER_API_BASE_URL + 'cms/data';
+export const DASHBOARD_COUNT_API = RETAILER_API_BASE_URL + 'cms/dashboardCount';
 
 export const VERIFY_DETAILS = RETAILER_API_BASE_URL + 'avde/acqDataForVerification';
 export const VERIFY_DOCS_APPROVE = RETAILER_API_BASE_URL + 'avde/saveVerificationDetails';

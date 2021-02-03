@@ -55,6 +55,7 @@ import RechargePackAdd from "./pack/RechargePackAdd";
 import RechargePackEdit from "./pack/RechargePackEdit";
 import BaneerList from './banner/BannerList';
 import BackOffice from './backoffice/BackOffice';
+import Dashboard from './backoffice/Dashboard';
 import OfferUpload from './backoffice/OfferUpload';
 import FSEUpload from './backoffice/FSEUpload';
 import ReRegistration from './backoffice/ReRegistration';
@@ -116,6 +117,8 @@ const AppRouter = () => {
                     <Route path="/pack-edit" component={RechargePackEdit} />
                     
                     <Route path="/backoffice" component={BackOffice} />
+                    <Route path="/dashboard" component={Dashboard} />
+
                     <Route path="/offerupload" component={OfferUpload} />
                     {/* <Route path="/fse" component={FSEUpload} /> */}
                     <Route path="/re-registration" component={ReRegistration} />

@@ -52,6 +52,10 @@ class AdminService {
         return axios.get(apiConstant.FSE_SEARCH+ "?fseNumber="+data.fseNumber+"&retailerNumber="+data.retailerNumber+"&monthOfCamp="+data.monthOfCamp, AuthService.getHeader());
     }
     
+    getDashboardCount(){
+        return axios.get(apiConstant.DASHBOARD_COUNT_API, AuthService.getHeader());
+    }
+    
 
     reportDirectDownload(formData,api){
         
