@@ -22,6 +22,7 @@ import { CSVLink } from "react-csv";
 import md5  from 'md5'; 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import  {DEV_PROTJECT_PATH} from "../../utils/config";
+import ActivationService from "../service/ActivationService";
 
 class ReRegistration extends React.Component {
 
@@ -106,6 +107,10 @@ class ReRegistration extends React.Component {
         //         this.setState({ allOfferData: data.result })
         //     });
 
+        ActivationService.checkSession().then(res => {
+            resolveResponse(res);
+        })
+
     }
 
 
@@ -130,8 +135,8 @@ class ReRegistration extends React.Component {
         
             
             AdminService.uploadReRegistration(formData).then(data => {
-
-           // var data = resolveResponse(res, "Offer Uploaded Successfully.");
+            //  var dataddd = resolveResponse(data, "");
+           // console.log("data", dataddd); 
             var data = data && data.data;
             this.setState({progressBar: false})
             if(data.status == 200){
