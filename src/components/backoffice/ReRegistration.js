@@ -54,9 +54,9 @@ class ReRegistration extends React.Component {
         const fileext =  filename.split('.').pop(); 
         console.log("File Extension: ",fileext);
 
-        if(fileext == 'xlsx'){
+        if(fileext == 'csv'){
             var fileSize = file.size / 1000; //in kb
-            if(fileSize >= 5 && fileSize <= 2048){
+            if(fileSize >= 0 && fileSize <= 2048){
               Object.defineProperty(file, 'name', {
                 writable: true,
                 value:  md5(file.name) +"."+ fileext
@@ -67,7 +67,7 @@ class ReRegistration extends React.Component {
               Notify.showError("File size should be grater than 5KB and less than 2MB")
             }
         }else {
-          Notify.showError("Only xlsx file allow to upload")
+          Notify.showError("Only csv file allow to upload")
         }
         return false;
       }
@@ -129,7 +129,7 @@ class ReRegistration extends React.Component {
             // userDetails = userDetails && JSON.parse(userDetails);
             this.setState({progressBar: true})
             const formData = new FormData();
-            formData.append('file',this.state.uploadfile);
+            formData.append('customer_kyc_data',this.state.uploadfile);
           //  formData.append('submittedBy',userDetails && userDetails.loginId);
            // formData.append('email', '');
         
@@ -271,13 +271,13 @@ class ReRegistration extends React.Component {
                         <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={"/webdata/ReRegistrationExcel.xlsx"}>Download Sample</Link>
+                                    <Link color="primary" href={"/webdata/ReRegistrationExcel.csv"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
-                            <Typography variant="subtitle1">Upload  Re-Registration Excel</Typography>
+                            <Typography variant="subtitle1">Upload Re-Registration CSV File</Typography>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
