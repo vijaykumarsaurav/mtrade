@@ -35,15 +35,46 @@ class ReRegistration extends React.Component {
             retailerDetails: '',
             allOfferData:"", 
             progressBar: false,
-            successMsg:""
+            bulkProgressBar: false,
+            successMsg:"",
+            bulkSuccessMsg: ""
         };
         this.uploadOffer = this.uploadOffer.bind(this);
-        this.relailerDelete = this.relailerDelete.bind(this);
-        this.searchRetailer = this.searchRetailer.bind(this);
+        this.bulkUploadOffer = this.bulkUploadOffer.bind(this);
+
     }
 
 
     validateUploadFile = (file) => {
+        const filename = file.name.toString(); 
+    
+        if (/[^a-zA-Z0-9\.\-\_ ]/.test(filename)) {
+            Notify.showError("File name can contain only alphanumeric characters including space and dots")
+            return false;
+        }
+    
+        const fileext =  filename.split('.').pop(); 
+        console.log("File Extension: ",fileext);
+
+        if(fileext == 'xlsx'){
+            var fileSize = file.size / 1000; //in kb
+            if(fileSize >= 0 && fileSize <= 2048){
+              Object.defineProperty(file, 'name', {
+                writable: true,
+                value:  md5(file.name) +"."+ fileext
+              });
+              
+              return file;
+            }else{
+              Notify.showError("File size should be grater than 5KB and less than 2MB")
+            }
+        }else {
+          Notify.showError("Only csv file allow to upload")
+        }
+        return false;
+      }
+
+      validateBulkUploadFile = (file) => {
         const filename = file.name.toString(); 
     
         if (/[^a-zA-Z0-9\.\-\_ ]/.test(filename)) {
@@ -67,17 +98,18 @@ class ReRegistration extends React.Component {
               Notify.showError("File size should be grater than 5KB and less than 2MB")
             }
         }else {
-          Notify.showError("Only csv file allow to upload")
+          Notify.showError("Only  csv file allow to upload")
         }
         return false;
       }
 
 
     onChangeFileUpload = e => {
-        const fileToUpload = this.validateUploadFile(e.target.files[0]);
+        console.log(e.target.name);
+        var fileToUpload = this.validateUploadFile(e.target.files[0]);
 
         if(fileToUpload){
-            console.log(e.target.name);
+           
             this.setState({[e.target.name]: e.target.files[0]})
             return;
         }else{
@@ -86,6 +118,20 @@ class ReRegistration extends React.Component {
         }
     }
 
+
+    onChangeBulkFileUpload = e => {
+        console.log(e.target.name);
+        var fileToUpload = this.validateBulkUploadFile(e.target.files[0]);
+        
+        if(fileToUpload){
+           
+            this.setState({[e.target.name]: e.target.files[0]})
+            return;
+        }else{
+            console.log("Not Valid file: ",e.target.name); 
+            document.getElementById(e.target.name).value = "";
+        }
+    }
 
 
     onChange = (e) => {
@@ -113,10 +159,55 @@ class ReRegistration extends React.Component {
 
     }
 
+    
+    bulkUploadOffer() {
+    
+         console.log(this.state.customer_kyc_data);
+
+            if(!this.state.customer_kyc_data || document.getElementById('customer_kyc_data').value ==""){
+                Notify.showError("Missing required file to upload");
+                return;
+            }
+
+            // var userDetails = localStorage.getItem("userDetails")
+            // userDetails = userDetails && JSON.parse(userDetails);
+            this.setState({bulkProgressBar: true})
+            const formData = new FormData();
+            formData.append('customer_kyc_data',this.state.customer_kyc_data);
+          //  formData.append('submittedBy',userDetails && userDetails.loginId);
+           // formData.append('email', '');
+        
+            
+            AdminService.uploadBulkReRegistration(formData).then(res => {
+            //  var dataddd = resolveResponse(data, "");
+            var data = res.data;
+            console.log("data", data); 
+           
+            this.setState({bulkProgressBar: false})
+           // this.setState({bulkSuccessMsg: "Bulk Re-Registration Data Uploaded Successfully"})
+
+            if(data.status == 200){
+
+                this.setState({bulkSuccessMsg: "Bulk Re-Registration Data Uploaded Successfully"})
+
+                setTimeout(() => {
+                    this.setState({bulkSuccessMsg: ""})
+                }, 10000);
+             //   Notify.showSuccess(" Data Uploaded Successfully.");
+            }else{
+                Notify.showError(data.message);
+            }
+          
+            document.getElementById('customer_kyc_data').value = "";
+        
+            });
+    }
+
+
+
 
     uploadOffer() {
     
-
 
         console.log(this.state.uploadfile);
 
@@ -129,7 +220,7 @@ class ReRegistration extends React.Component {
             // userDetails = userDetails && JSON.parse(userDetails);
             this.setState({progressBar: true})
             const formData = new FormData();
-            formData.append('customer_kyc_data',this.state.uploadfile);
+            formData.append('file',this.state.uploadfile);
           //  formData.append('submittedBy',userDetails && userDetails.loginId);
            // formData.append('email', '');
         
@@ -154,82 +245,7 @@ class ReRegistration extends React.Component {
         
             });
     }
-
-
-    relailerDelete() {
     
-        if(!this.state.deletefile || document.getElementById('deletefile').value ==""){
-        Notify.showError("Missing required file to upload");
-        return;
-        }
-
-        var userDetails = localStorage.getItem("userDetails")
-        userDetails = userDetails && JSON.parse(userDetails);
-
-        const formData = new FormData();
-        formData.append('file',this.state.deletefile);
-        formData.append('submittedBy', userDetails && userDetails.loginId);
-        formData.append('email', '');
-    
-        
-        AdminService.deleteRetailer(formData).then(res => {
-        resolveResponse(res,'');
-        Notify.showSuccess("Attached retailer info deleted successfully.");
-        document.getElementById('deletefile').value = ""; 
-
-        });
-    }
-
-    searchRetailer(){
-       
-            if(!this.state.searchby){
-                Notify.showError("Type by lapu number or Retailer AirtelId Id ");
-                return;
-            }
-    
-            var userDetails = localStorage.getItem("userDetails")
-            userDetails = userDetails && JSON.parse(userDetails);
-    
-            const param = {
-                lapuNumber : this.state.searchby, 
-                retailerAirtelId: this.state.searchby, 
-            }
-        
-            AdminService.searchRetailer(param).then(res => {
-            var data = resolveResponse(res,'');
-           
-                var staticdata = {
-                    "message": "string",
-                    "result": {
-                    "distributerId": "string",
-                    "distributerMsisdn": "string",
-                    "distributerName": "string",
-                    "district": "string",
-                    "fseId": "string",
-                    "fseMsisdn": "string",
-                    "fseName": "string",
-                    "retailerAirtelId": "string",
-                    "retailerName": "string",
-                    "retailerVLNumber": "string",
-                    "territory": "string",
-                    "tmId": "string",
-                    "tmMsisdn": "string",
-                    "tmName": "string",
-                    "zbmId": "string",
-                    "zbmMsisdn": "string",
-                    "zbmName": "string",
-                    "zone": "string"
-                    },
-                    "status": 0
-                }
-                
-                if(data.result){
-                    this.setState({ retailerDetails :  [data.result] })
-                }else{
-                   // this.setState({ retailerDetails :  [staticdata.result] })
-                }
-        });
-    }
 
     addProduct() {
         this.props.history.push('/add-product');
@@ -265,19 +281,19 @@ class ReRegistration extends React.Component {
             <div style={{ padding: "40px" }} >
                 <Paper style={{ padding: "15px" }}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                    Customer  Re-Registration Upload
+                    Customer Re-Registration Upload
                     </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                         <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={"/webdata/ReRegistrationExcel.csv"}>Download Sample</Link>
+                                    <Link color="primary" href={"/webdata/ReRegistrationExcel.xlsx"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
-                            <Typography variant="subtitle1">Upload Re-Registration CSV File</Typography>
+                            <Typography variant="subtitle1">Upload Re-Registration excel file</Typography>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
@@ -305,30 +321,48 @@ class ReRegistration extends React.Component {
 
                 <br />
 
-                {/* <Paper style={{ padding: "15px" }}>
-                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                         Download FSC Details
+                <Paper style={{ padding: "15px" }}>
+                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                   Bulk Customer Re-Registration Upload
                     </Typography> 
+                    <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
+                        <Grid item xs={12} sm={3}>
+                            <InputLabel htmlFor="Connection Type" >
+                                <Typography variant="subtitle1">
+                                    <Link color="primary" href={"/webdata/ReRegistrationExcel.csv"}>Download Sample</Link>
+                                </Typography>
+                            </InputLabel>
+                        </Grid>
 
-                    <Typography variant="subtitle1" gutterBottom>
-                        Total FSC Details:{this.state.allOfferData.length}
-                    </Typography>
+                        <Grid item xs={12} sm={3}>
+                            <Typography variant="subtitle1">Upload Re-Registration csv file</Typography>
+                        </Grid>
 
-                    {this.state.allOfferData ? 
-                        
-                        <CSVLink data={this.state.allOfferData}
-                        filename={"offers-details.csv"}
-                        className="btn btn-primary"
-                        target="_blank"
-                        >
-                        <Typography variant="subtitle1"  gutterBottom>
-                            Download FSC
-                        </Typography>
+                        <Grid item xs={12} sm={3}>
+                            <Typography variant="subtitle1">
+                            <input
+                                    type="file"
+                                    name="customer_kyc_data"
+                                    id="customer_kyc_data"
+                                    // onChange={this.onChangeHandler}
+                                    onChange={this.onChangeBulkFileUpload}
+                                  />
+                            </Typography>
+                        </Grid>
 
-                        </CSVLink> 
-                        
-                    :""}
-                </Paper> */}
+                        <Grid item xs={12} sm={3}>
+                            { !this.state.bulkProgressBar ? <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={this.bulkUploadOffer}>Upload</Button> : ""} 
+                            {this.state.bulkProgressBar ?  <>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <CircularProgress /> </>: ""}
+                        </Grid>
+
+                        <Grid item xs={12} sm={12} style={{textAlign:"center"}}>
+                           <Typography variant="subtitle1" style={{color: "green"}}>   <b> {this.state.bulkSuccessMsg}  </b></Typography>
+                        </Grid>
+                    </Grid>
+                </Paper>
+
+                <br />
+              
 
         </div>
 

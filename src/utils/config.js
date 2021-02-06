@@ -152,6 +152,7 @@ export const FSE_DELETE =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 
 
 //KYC RE_RESISTRATION
 export const RETAILER_API_RE_RESISTRATION_UPLOAD =  RETAILER_API_BASE_URL + 'customer/kyc/upload';
+export const RETAILER_API_RE_RESISTRATION_BULK_UPLOAD =  RETAILER_API_BASE_URL + 'customer/kyc/bulkUpload';
 
 //role Management 
 export const LIST_OF_ROLES = RETAILER_API_BASE_URL + 'roles/all';
