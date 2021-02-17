@@ -254,6 +254,16 @@ export const DISTMenuList = (
   </div>
 );
 
+function deleteAllCookies() {
+  var cookies = document.cookie.split(";");
+  for (var i = 0; i < cookies.length; i++) {
+      var cookie = cookies[i];
+      var eqPos = cookie.indexOf("=");
+      var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  }
+}
+
 function logoutPortal(){
   //console.log("yo_man")
 
@@ -261,11 +271,15 @@ function logoutPortal(){
   .then(res => {
    // {"status":200,"message":"Success","result":{"message":"User logged out successfully"}}
    //console.log(res.data);   
+  
    localStorage.clear();
+   deleteAllCookies();
+
    window.location.replace("#/login");
    return;
   //  if(res.data && res.data.message == "Unauthorised" || res.data.message == "Success"){
-  //   localStorage.clear();
+  //   
+  
   //   window.location.replace("#/login");
   //   return;
   //  }

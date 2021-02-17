@@ -14,10 +14,6 @@ const style = {
 
 
 const LoginNavBar = (props) => {
-    var CookieExpireDate = new Date();
-    CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
-    document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
-
     
     return (
         <React.Fragment>

@@ -608,11 +608,13 @@ class OwnershipDataentryEdit extends React.Component {
         var test = !data.includes("$") && !data.includes("&") ; 
         if(test){
            
-            if(e.target.name == "firstName" || e.target.name == "middleName" || e.target.name == "lastName" ){
+            if(e.target.name == "firstName" && /^[a-zA-Z ]+$/.test(e.target.value) && e.target.value.length <= 64){
+                this.setState({[e.target.name]: e.target.value});
+            }else if(e.target.name == "middleName" || e.target.name == "lastName" ){
                 if(/^[a-zA-Z ]+$/.test(e.target.value)){
                     this.setState({[e.target.name]: e.target.value});
                 }
-            }else{
+            }else if(e.target.name != "firstName"){
                 this.setState({[e.target.name]: e.target.value});
             }
         }

@@ -3,7 +3,7 @@ import { domain } from "process";
 var RETAILER_API_BASE_URL = 'https://retailer.airtel.lk/SLRetailer/';
 var STAGING_IP_PORT = 'http://125.16.74.160:30611/';
 var DEV_IP_PORT = 'http://125.17.6.6/retailer/';
-
+var templatePath = '',domainIpName=window.location.hostname; 
 
 if(window.location.hostname == "retailer.airtel.lk"){
     RETAILER_API_BASE_URL = 'https://retailer.airtel.lk/SLRetailer/';
@@ -17,7 +17,7 @@ if(window.location.hostname == "125.16.74.160"){
     RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; 
 }
 
-var templatePath = '',domainIpName=''; 
+
 if(window.location.hostname == "125.17.6.6"){
     RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/';
     templatePath =  '/retailerdev';  

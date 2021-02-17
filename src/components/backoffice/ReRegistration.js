@@ -69,7 +69,7 @@ class ReRegistration extends React.Component {
               Notify.showError("File size should be grater than 5KB and less than 2MB")
             }
         }else {
-          Notify.showError("Only csv file allow to upload")
+          Notify.showError("Only xlsx file allow to upload")
         }
         return false;
       }

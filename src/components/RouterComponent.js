@@ -133,7 +133,7 @@ const AppRouter = () => {
                     <Route path="/view-docs" component={MSISDNDocsView} />
 
                     
-                    <Route path="/reportpoc" component={ReportPOC} />
+                    {/* <Route path="/reportpoc" component={ReportPOC} /> */}
 
                     {/* <Route path="/testreport" component={TestReport} /> */}
 
