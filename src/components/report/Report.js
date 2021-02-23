@@ -23,6 +23,7 @@ import MaterialUIPickers from "./MaterialUIPickers";
 import DoneSharpIcon from '@material-ui/icons/DoneSharp';
 import { CSVLink } from "react-csv";
 import * as moment from 'moment';
+import { rgbToHex } from "@material-ui/core";
 
 
 const ITEM_HEIGHT = 48;
@@ -269,7 +270,7 @@ class Report extends React.Component {
 
                     this.setState({  generateReportLoader: false});
 
-                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport' || this.state.reporttype == 'kycReceptionReport'  || this.state.reporttype == 'kycAgentAuditReport' || this.state.reporttype == 'kycIpacReadyReport' ||  this.state.reporttype == 'ostReceptionReport'  ||  this.state.reporttype == 'ostAgentAuditReport'  ||  this.state.reporttype == 'ostIpacReadyReport' ){
+                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport' || this.state.reporttype == 'kycReceptionReport'  || this.state.reporttype == 'kycAgentAuditReport' || this.state.reporttype == 'kycIpacReadyReport' ||  this.state.reporttype == 'ostReceptionReport'  ||  this.state.reporttype == 'ostAgentAuditReport'  ||  this.state.reporttype == 'ostIpacReadyReport' || this.state.reporttype == "bdeActivationReport" ){
 
                     this.setState({ generateReportMsg:  "Ready to Download"});
                     console.log("data.result.length",data.result.length)
@@ -359,7 +360,9 @@ class Report extends React.Component {
         }
 
 
+
         var distReports = []; 
+        
         distReports.push(<MenuItem value="detailedPendingReport">Distributor Detail Report</MenuItem>); 
         distReports.push(<MenuItem value="rejectReport"> Distributor Reject Data Report</MenuItem>); 
         distReports.push(<MenuItem value="summaryReportForDistributor">Distributor Summary Report</MenuItem>); 
@@ -368,34 +371,45 @@ class Report extends React.Component {
         
 
         var adminReports = [];
-        adminReports.push(<MenuItem value="agentAuditReport">Agent Audit Report</MenuItem>); 
-        adminReports.push(<MenuItem value="agentStatusReport">Agent Status Report</MenuItem>); 
-        adminReports.push(<MenuItem value="agentWisePerformanceLog">Agent Wise Performance Report</MenuItem>); 
-        adminReports.push(<MenuItem value="backOfficeReceptionReport">Back Office Reception Report</MenuItem>);    
-        adminReports.push(<MenuItem value="backOfficeReceptionReportWithDetails">Back Office Reception Report with Details</MenuItem>); 
-        adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
-        adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
-        adminReports.push(<MenuItem value="mpinResetCount">D-1 Mpin Reset Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
-        adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
-        adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
+
+        
+        adminReports.push(<MenuItem disabled value="" style={{color:'#0D0D0E', background:'#a8cdee'}}><b><em> New Acquisition</em> </b></MenuItem>);
         adminReports.push(<MenuItem value="detailedPendingReport">Distributor Detail Report</MenuItem>); 
         adminReports.push(<MenuItem value="rejectReport"> Distributor Reject Data Report</MenuItem>); 
         adminReports.push(<MenuItem value="summaryReportForDistributor">Distributor Summary Report</MenuItem>); 
         adminReports.push(<MenuItem value="distributorLastUploadedData">Distributor Uploaded Data Status</MenuItem>); 
         adminReports.push(<MenuItem value="ftaDeviationReport">FTA Deviation Report</MenuItem>); 
+      
+        adminReports.push(<MenuItem value="agentAuditReport">Agent Audit Report</MenuItem>); 
+        adminReports.push(<MenuItem value="agentStatusReport">Agent Status Report</MenuItem>); 
+        adminReports.push(<MenuItem value="agentWisePerformanceLog">Agent Wise Performance Report</MenuItem>); 
+        adminReports.push(<MenuItem value="backOfficeReceptionReport">Back Office Reception Report</MenuItem>);    
+        adminReports.push(<MenuItem value="backOfficeReceptionReportWithDetails">Back Office Reception Report with Details</MenuItem>); 
+        adminReports.push(<MenuItem value="bdeActivationReport">BDE Activation Report</MenuItem>);
+
         adminReports.push(<MenuItem value="ipacsReadyReport">IPACS Ready Report</MenuItem>); 
         adminReports.push(<MenuItem value="noneComplainceReport">None Compliance Report</MenuItem>); 
         adminReports.push(<MenuItem value="omniTransferReport">OMNI Transfer Report</MenuItem>);
-        adminReports.push(<MenuItem value="simSwapReport">SIM Swap Report</MenuItem>);
-        adminReports.push(<MenuItem value="zoneWiseDetailedReport">Zone Wise Detailed Report </MenuItem>);
+       
         adminReports.push(<MenuItem value="barReport">Bar Report</MenuItem>);
         adminReports.push(<MenuItem value="unBarReport">Unbar Report</MenuItem>);
 
+        adminReports.push(<MenuItem value="zoneWiseDetailedReport">Zone Wise Detailed Report </MenuItem>);
+        adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
+        adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
+
+      
+        adminReports.push(<MenuItem disabled value="" style={{color:'#0D0D0E', background:'#a8cdee'}}><b><em> Sales Reports </em> </b></MenuItem>);
+        adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
+        adminReports.push(<MenuItem value="mpinResetCount">D-1 Mpin Reset Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
+        adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
+        
+        adminReports.push(<MenuItem disabled value="" style={{color:'#0D0D0E', background:'#a8cdee'}}><b><em> Other Services </em> </b></MenuItem>);
         //sprint 12
         adminReports.push(<MenuItem value="disconnectionReceptionReport">Disconnection Reception Report</MenuItem>);
         adminReports.push(<MenuItem value="disconnectionAgentAuditReport">Disconnection Agent Audit Report</MenuItem>);
@@ -404,10 +418,13 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="kycReceptionReport">KYC Reception Report</MenuItem>);
         adminReports.push(<MenuItem value="kycAgentAuditReport">KYC Agent Audit Report</MenuItem>);
         adminReports.push(<MenuItem value="kycIpacReadyReport">KYC Ipac Ready Report</MenuItem>);
-     
+
         adminReports.push(<MenuItem value="ostReceptionReport">Ownership Reception Report</MenuItem>);
         adminReports.push(<MenuItem value="ostAgentAuditReport">Ownership Agent Audit Report</MenuItem>);
         adminReports.push(<MenuItem value="ostIpacReadyReport">Ownership Ipacs Ready Report</MenuItem>);
+        adminReports.push(<MenuItem value="simSwapReport">SIM Swap Report</MenuItem>);
+
+
 
         // BY_VERIFICATION_DATE,
         // BY_DATA_ENTRY_DATE

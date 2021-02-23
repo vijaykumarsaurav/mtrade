@@ -49,6 +49,7 @@ class RechargePackAdd extends React.Component {
         endDate: new Date(),
         imageURL: "imageURL",
         isFtr: "",
+        isSpecialFtr: false,
         nightDay: "",
         nightDayType: "",
         packType: "",
@@ -65,7 +66,8 @@ class RechargePackAdd extends React.Component {
         zone:'',
         showFileSize: "", 
         selectAllzone:'Select All',
-        showFileBrowser:false
+        showFileBrowser:false,
+        activationType:""
     };
     this.savePack = this.savePack.bind(this);
     this.onChange = this.onChange.bind(this);
@@ -232,6 +234,7 @@ class RechargePackAdd extends React.Component {
                     labelId="demo-mutiple-name-label"
                     id="demo-mutiple-name"
                     multiple
+                    disabled={this.state.isSpecialFtr}
                     name="selectedZone"
                     value={this.state.selectedZone}
                     onChange={this.zoneChange}
@@ -483,15 +486,16 @@ class RechargePackAdd extends React.Component {
               <Grid item xs={12} sm={6}>
                 <FormControl style={styles.multiselect}>
                   <InputLabel htmlFor="Activation status" required={true}>
-                    FTR or Normal
+                   Activation Type
                   </InputLabel>
                   <Select
-                    name="isFtr"
-                    value={this.state.isFtr}
+                    name="activationType"
+                    value={this.state.activationType}
                     onChange={this.onChange}
                   >
-                    <MenuItem value="true">FTR(First Time Recharge)</MenuItem>
-                    <MenuItem value="false">Normal</MenuItem>
+                    <MenuItem value="FTR">FTR(First Time Recharge)</MenuItem>
+                    <MenuItem value="Normal">Normal</MenuItem>
+                    <MenuItem value="Special FTR">Special FTR</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -671,6 +675,7 @@ class RechargePackAdd extends React.Component {
     formData.append('activationStatus', this.state.activationStatus);
     formData.append('comment', this.state.comment);
     formData.append('isFtr', this.state.isFtr);
+    formData.append('activationType', this.state.activationType);
 
     if(this.state.selectedZone.length){
       formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
@@ -741,8 +746,18 @@ class RechargePackAdd extends React.Component {
 
     if(e.target.name == 'displayType' && e.target.value =="details"){      
       this.setState({showFileBrowser: false,  imageURL: 'currentImage'});
-
     }
+
+    
+    if(e.target.value == "Special FTR"){      
+      this.setState({isSpecialFtr:  true});
+      this.setState({selectedZone: []})
+      this.setState({selectAllzone: []});
+    }else{
+      this.setState({selectAllzone: "Select All"})
+      this.setState({isSpecialFtr:  false});
+    }
+
   } 
 
 
