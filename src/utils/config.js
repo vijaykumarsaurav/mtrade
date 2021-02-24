@@ -30,7 +30,7 @@ if(window.location.hostname == "10.92.210.103"){
     domainIpName = '10.92.210.103'; 
 }
 
-if(window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in" || window.location.hostname == "localhost"){
+if(window.location.hostname == "localhost" || window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
     domainIpName = window.location.hostname; 
     RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
     templatePath =  '';  

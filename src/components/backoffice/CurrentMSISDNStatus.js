@@ -134,6 +134,7 @@ class CurrentMSISDNStatus extends React.Component {
                                 <TableCell align="">Omni Status</TableCell>
                                 <TableCell align="">Image Count </TableCell>
                                 <TableCell align="">Ref Number </TableCell>
+                                <TableCell align="">Verification Ready Date </TableCell>
                             </TableRow>
                         </TableHead>
 
@@ -162,6 +163,8 @@ class CurrentMSISDNStatus extends React.Component {
                                     <TableCell align="center">{row.omniStatus}</TableCell>
                                     <TableCell align="center">{row.imageCount}</TableCell>
                                     <TableCell align="center">{row.refNumber}</TableCell>
+                                    <TableCell align="center">{row.verificationReadyDate}</TableCell>
+
                                 </TableRow>
                             )):  ""}
                         </TableBody>

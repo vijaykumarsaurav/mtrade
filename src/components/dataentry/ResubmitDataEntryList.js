@@ -327,6 +327,8 @@ class DataEntryList extends React.Component{
                                 <TableCell align="">Verified Date</TableCell> */}
                                 <TableCell align="">Submit Date</TableCell>
                                 <TableCell align="">Resubmit Date</TableCell>
+                                <TableCell>Verification Ready Date </TableCell>
+
 
                             </TableRow>
                         </TableHead>
@@ -350,7 +352,8 @@ class DataEntryList extends React.Component{
                                      */}
                                     <TableCell align="center">{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
                                     <TableCell align="center">{row.resubmitDate ? row.resubmitDate.substring(0, 10) : "none"}</TableCell>
-                                  
+                                    <TableCell>{row.verificationReadyDate}</TableCell>
+
                                 </TableRow>
                             )): ""}
                         </TableBody>

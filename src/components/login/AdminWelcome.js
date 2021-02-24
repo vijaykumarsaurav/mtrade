@@ -51,7 +51,7 @@ class LoginComponent extends React.Component{
     //     const lastUrl = localStorage.getItem("lastUrl"); 
     //     this.props.history.push('/'+lastUrl);
     //   }
-    
+
     // ActivationService.checkSession().then(res => {
     //     let data = resolveResponse(res);
     // })

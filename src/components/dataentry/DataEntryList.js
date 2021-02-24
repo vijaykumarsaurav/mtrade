@@ -213,6 +213,8 @@ class DataEntryList extends React.Component{
                                 <TableCell>Zone</TableCell>
                                 <TableCell>FTA Date</TableCell>
                                 <TableCell>Submit Date</TableCell>
+                                <TableCell>Verification Ready Date </TableCell>
+
                             </TableRow>
                         </TableHead>
                         <TableBody style={{width:"170px",whiteSpace: "nowrap"}}>
@@ -230,6 +232,8 @@ class DataEntryList extends React.Component{
                                     <TableCell>{row.zone}</TableCell>
                                     <TableCell>{row.ftaDate.substring(0, 10)}</TableCell>
                                     <TableCell>{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
+                                    <TableCell>{row.verificationReadyDate}</TableCell>
+
                                 </TableRow>
                             )): ""}
                         </TableBody>
