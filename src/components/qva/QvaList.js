@@ -209,6 +209,8 @@ class VerifyList extends React.Component{
                                 <TableCell>FTA Date</TableCell>
                                 <TableCell>Submit Date</TableCell>
                                 <TableCell>Resubmit Date</TableCell>
+                                <TableCell>Verification Ready Date </TableCell>
+
                             </TableRow>
                         </TableHead>
                         <TableBody style={{whiteSpace: "nowrap"}}>
@@ -227,6 +229,7 @@ class VerifyList extends React.Component{
                                     <TableCell align="center">{row.ftaDate.substring(0, 10)}</TableCell>
                                     <TableCell align="center">{row.submitDate ? row.submitDate.substring(0, 10) : "none"}</TableCell>
                                     <TableCell align="center">{row.resubmitDate ? row.resubmitDate.substring(0, 10) : "none"}</TableCell>
+                                    <TableCell align="center">{row.verificationReadyDate}</TableCell>
 
                                 </TableRow>
                             )):  ""}
