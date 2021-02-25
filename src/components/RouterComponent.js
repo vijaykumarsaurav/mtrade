@@ -59,6 +59,7 @@ import Dashboard from './backoffice/Dashboard';
 import OfferUpload from './backoffice/OfferUpload';
 import FSEUpload from './backoffice/FSEUpload';
 import ReRegistration from './backoffice/ReRegistration';
+import FTRMapping from './backoffice/FTRMapping';
 import AdminWelcome from './login/AdminWelcome';
 import ImageTest from './login/ImageTest';
 import RoleManagement from './login/RoleManagement';
@@ -115,6 +116,9 @@ const AppRouter = () => {
                     <Route path="/packs" component={RechargePack} />
                     <Route path="/pack-add" component={RechargePackAdd} />
                     <Route path="/pack-edit" component={RechargePackEdit} />
+                    <Route path="/ftr-mapping" component={FTRMapping} />
+
+                    
                     
                     <Route path="/backoffice" component={BackOffice} />
                     <Route path="/dashboard" component={Dashboard} />

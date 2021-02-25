@@ -30,7 +30,7 @@ if(window.location.hostname == "10.92.210.103"){
     domainIpName = '10.92.210.103'; 
 }
 
-if(window.location.hostname == "localhost" || window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
+if( window.location.hostname == "slretailer-web-ui-service.development.slmitra.airtelworld.in"){
     domainIpName = window.location.hostname; 
     RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
     templatePath =  '';  
@@ -41,7 +41,7 @@ if(window.location.hostname == "tstretailer.airtel.lk"){
     domainIpName = 'tstretailer.airtel.lk'; 
 }
 
-if(window.location.hostname == "127.0.0.1"){
+if(window.location.hostname == "127.0.0.1" || window.location.hostname == "localhost"){
   //RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
    RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
    domainIpName = '125.17.6.6'; 
@@ -153,6 +153,9 @@ export const FSE_DELETE =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 
 //KYC RE_RESISTRATION
 export const RETAILER_API_RE_RESISTRATION_UPLOAD =  RETAILER_API_BASE_URL + 'customer/kyc/upload';
 export const RETAILER_API_RE_RESISTRATION_BULK_UPLOAD =  RETAILER_API_BASE_URL + 'customer/kyc/bulkUpload';
+
+//ftr mapping
+export const RETAILER_API_FTR_MAPPING_UPLOAD =  RETAILER_API_BASE_URL + 'retailer/ftr/upload';
 
 //role Management 
 export const LIST_OF_ROLES = RETAILER_API_BASE_URL + 'roles/all';

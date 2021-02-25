@@ -36,6 +36,11 @@ class AdminService {
         return axios.post(apiConstant.RETAILER_API_RE_RESISTRATION_UPLOAD, formData, AuthService.getHeader());
     }
 
+    uploadFTRMapping(formData){
+        return axios.post(apiConstant.RETAILER_API_FTR_MAPPING_UPLOAD, formData, AuthService.getHeader());
+    }
+
+
     uploadBulkReRegistration(formData){
         return axios.post(apiConstant.RETAILER_API_RE_RESISTRATION_BULK_UPLOAD, formData, AuthService.getHeader());
     }

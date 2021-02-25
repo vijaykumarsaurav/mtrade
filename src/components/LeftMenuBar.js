@@ -59,6 +59,13 @@ export const AdminMenuList = (
       <ListItemText primary="Pack Activation" />
     </ListItem>
 
+    <ListItem button component='a' href={"#/ftr-mapping"} >  
+      <ListItemIcon>
+        <LayersIcon />
+      </ListItemIcon>
+      <ListItemText primary="Specific Retailer FTR Mapping" />
+    </ListItem>
+
     <ListItem button component='a' href={"#/offerupload"} >
       <ListItemIcon>
         <LocalOfferIcon />
