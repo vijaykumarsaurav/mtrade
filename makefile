@@ -7,7 +7,7 @@ all: build
 build:
 	@echo "Building/Compiling application"
 	rm -rf build
-	docker run -i --rm -v $(ROOT_DIR):/app -w /app node:lts-stretch npm run docker-build-ui
+	docker run -i --rm -v $(ROOT_DIR):/app -w /app -e https_proxy=http://appproxy.airtel.com:4145 -e http_proxy=http://appproxy.airtel.com:4145 node:lts-stretch npm run docker-build-ui
 
 
 clean:
