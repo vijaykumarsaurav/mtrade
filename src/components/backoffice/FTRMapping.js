@@ -23,7 +23,10 @@ import md5  from 'md5';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import  {DEV_PROTJECT_PATH} from "../../utils/config";
 import ActivationService from "../service/ActivationService";
-import MaterialUIPickers from "../../utils/MaterialUIPickers";
+import MaterialUIDateTimePicker from "../../utils/MaterialUIDateTimePicker";
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 
 import FormControl from '@material-ui/core/FormControl';
@@ -58,7 +61,7 @@ class ReRegistration extends React.Component {
             bulkProgressBar: false,
             successMsg:"",
             bulkSuccessMsg: "",
-            ftrType: "Exclusion"
+            ftrType: "Inclusion"
         };
         this.uploadOffer = this.uploadOffer.bind(this);
         this.onChange = this.onChange.bind(this);
@@ -188,7 +191,7 @@ class ReRegistration extends React.Component {
             var data = data && data.data;
             this.setState({progressBar: false})
             if(data.status == 200){
-                this.setState({successMsg: "Re-Registration Data Uploaded Successfully"})
+                this.setState({successMsg: "FTR mapping data uploaded successfully"})
 
                 setTimeout(() => {
                     this.setState({successMsg: ""})
@@ -202,6 +205,11 @@ class ReRegistration extends React.Component {
         
             });
     }
+
+    handleChange = (event) => {
+        console.log(event.target.name, event.target.value)
+        this.setState({[event.target.name]: event.target.value})
+      };
     
 
     addProduct() {
@@ -234,8 +242,8 @@ class ReRegistration extends React.Component {
             myCallback: this.myCallback,
             startDate: '',
             endDate:'', 
-            firstLavel : "Start Date", 
-            secondLavel : "End Date"
+            firstLavel : "Start Date and Time", 
+            secondLavel : "End Date and Time"
       
           }
 
@@ -251,8 +259,8 @@ class ReRegistration extends React.Component {
                     </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                       
-                        <Grid item xs={12} sm={2}>
-                        <FormControl style={styles.selectStyle}>
+                        <Grid item xs={12} sm={3}>
+                                     <FormControl style={styles.selectStyle}>
                                         <InputLabel id="demo-mutiple-name-label">Select type</InputLabel>
                                         <Select
                                         labelId="demo-mutiple-name-label"
@@ -263,34 +271,64 @@ class ReRegistration extends React.Component {
                                         input={<Input />}
                                         MenuProps={MenuProps}
                                         >
-                                            <MenuItem value="Exclusion">Exclusion</MenuItem>
                                             <MenuItem value="Inclusion">Inclusion</MenuItem>
+                                            <MenuItem value="Exclusion">Exclusion</MenuItem>
+                                          
                                         </Select>
                                     </FormControl>
 
-                                    <br />  <br /><br />  <br />
-                                    <InputLabel htmlFor="Connection Type" >
-                                        <Typography variant="subtitle1">
-                                            <Link color="primary" href={"/webdata/FTRMapping.csv"}>Download Sample</Link>
-                                        </Typography>
-                                    </InputLabel>
+                                    {/* <FormControl component="fieldset">
+                                    <RadioGroup row aria-label="Select type" name="reasonName" value={'Exclusion'}>
+
+                                    <Grid item >
+                                            <FormControlLabel
+                                                value={'Exclusion'}
+                                                control={<Radio color="primary" />}
+                                                label={'Inclusion'}
+                                                //onChange={this.handleChange}
+                                              
+                                                />
+                                            </Grid>
+
+                                            <Grid item >
+                                            <FormControlLabel
+                                                value={'Inclusion'}
+                                                control={<Radio color="primary" />}
+                                                label={'Inclusion'}
+                                               // onChange={this.handleChange}
+                                               // style={{ borderRadius: "10px", background: "beige"}}
+                                                />
+                                            </Grid>
+                                        
+                                        </RadioGroup>
+                                    </FormControl> */}
+
+                                    {/* <br />  <br /><br />  <br /> */}
+
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
 
-                        <MaterialUIPickers callbackFromParent={dateParam} />
-                        <input type="hidden" id="startDateMili" /> 
-                        <input type="hidden" id="endDateMili" />                         
-                        
+                        <MaterialUIDateTimePicker callbackFromParent={dateParam} />
+                            <input type="hidden" id="startDateMili" /> 
+                            <input type="hidden" id="endDateMili" />                         
+        
                         </Grid>
 
-                       
+                        <Grid item xs={12} sm={3}>  </Grid>
 
+                        <Grid item xs={12} sm={3}> 
+                         <InputLabel htmlFor="Connection Type" >
+                            <Typography variant="subtitle1">
+                                <Link color="primary" href={"/webdata/FTRMapping.csv"}>Download Sample</Link>
+                            </Typography>
+                        </InputLabel>
+                         </Grid>
 
-
-                       
-
+                        
+                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         <Grid item xs={12} sm={3}>
+                       
                         <InputLabel id="demo-mutiple-name-label">Select file(.csv format only)</InputLabel>
 
                             <Typography variant="subtitle1">
@@ -304,15 +342,23 @@ class ReRegistration extends React.Component {
                                   />
                             </Typography>
                             <br/> <br/> 
-                            { !this.state.progressBar ? <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={this.uploadOffer}>Upload</Button> : ""} 
-                            {this.state.progressBar ?  <>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <CircularProgress /> </>: ""}
-
+                           
                         </Grid>
 
-                        <Grid item xs={12} sm={3}>
-                                                 </Grid>
+                       
+                      
+                        
 
-                        <Grid item xs={12} sm={12} style={{textAlign:"center"}}>
+                        <Grid item xs={12} sm={4}>
+                        { !this.state.progressBar ? <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={this.uploadOffer}>Upload</Button> : ""} 
+                            {this.state.progressBar ?  <>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <CircularProgress /> </>: ""}
+                         </Grid>
+
+                        
+
+                        
+
+                        <Grid item xs={12} sm={8} style={{textAlign:"center"}}>
                            <Typography variant="subtitle1" style={{color: "green"}}>   <b> {this.state.successMsg}  </b></Typography>
                         </Grid>
                     </Grid>
