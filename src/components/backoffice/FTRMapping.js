@@ -271,7 +271,7 @@ class ReRegistration extends React.Component {
                                     <br />  <br /><br />  <br />
                                     <InputLabel htmlFor="Connection Type" >
                                         <Typography variant="subtitle1">
-                                            <Link color="primary" href={"/webdata/ReRegistrationExcel.xlsx"}>Download Sample</Link>
+                                            <Link color="primary" href={"/webdata/FTRMapping.csv"}>Download Sample</Link>
                                         </Typography>
                                     </InputLabel>
                         </Grid>

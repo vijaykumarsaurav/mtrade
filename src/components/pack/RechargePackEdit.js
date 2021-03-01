@@ -66,7 +66,9 @@ class RechargePackAdd extends React.Component {
             zone:'',
             showFileSize: "", 
             selectAllzone:'Select All',
-            showFileBrowser:false
+            showFileBrowser:false,
+            isSpecialFtr: false,
+            activationType:""
             
             
         }
@@ -297,6 +299,7 @@ class RechargePackAdd extends React.Component {
                   labelId="demo-mutiple-name-label"
                   id="demo-mutiple-name"
                   multiple
+                  disabled={this.state.activationType === 'Special FTR' ? true : false}
                   name="selectedZone"
                   value={this.state.selectedZone}
                   onChange={this.zoneChange}
@@ -562,7 +565,7 @@ class RechargePackAdd extends React.Component {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              {/* <Grid item xs={12} sm={6}>
                 <FormControl style={styles.multiselect}>
                   <InputLabel htmlFor="Activation status" required={true}>
                     FTR or Normal
@@ -576,7 +579,29 @@ class RechargePackAdd extends React.Component {
                     <MenuItem value="false">Normal</MenuItem>
                   </Select>
                 </FormControl>
+              </Grid> */}
+
+              <Grid item xs={12} sm={6}>
+                <FormControl style={styles.multiselect}>
+                  <InputLabel htmlFor="Activation status" required={true}>
+                   Activation Type
+                  </InputLabel>
+                  <Select
+                    name="activationType"
+                    value={this.state.activationType}
+                    onChange={this.onChange}
+                    disabled={this.state.activationType === 'Special FTR' ? true : false}
+                  >
+
+                    <MenuItem value="FTR">FTR(First Time Recharge)</MenuItem>
+                    <MenuItem value="Normal">Normal</MenuItem>
+                    {/* <MenuItem value="Special FTR">Special FTR</MenuItem> */}
+                    {this.state.activationType === 'Special FTR' ? <MenuItem value="Special FTR">Special FTR</MenuItem> : []}
+
+                  </Select>
+                </FormControl>
               </Grid>
+
               <Grid
                 container
                 spacing={24}
@@ -785,6 +810,8 @@ class RechargePackAdd extends React.Component {
       formData.append('activationStatus', this.state.activationStatus);
       formData.append('comment', this.state.comment);
       formData.append('isFtr', this.state.ftr);
+      formData.append('activationType', this.state.activationType);
+
      
       if(this.state.selectedZone.length){
         formData.append('zones',this.state.selectedZone.length ? this.state.selectedZone : null);
@@ -860,6 +887,18 @@ class RechargePackAdd extends React.Component {
           this.setState({showFileBrowser: false,  imageURL: 'currentImage'});
 
         }
+
+        if(e.target.value == "Special FTR"){      
+          this.setState({isSpecialFtr:  true});
+          this.setState({selectedZone: []})
+          this.setState({selectAllzone: []});
+        }else{
+          this.setState({selectAllzone: "Select All"})
+          this.setState({isSpecialFtr:  false});
+        }
+    
+
+
       } 
 
 }

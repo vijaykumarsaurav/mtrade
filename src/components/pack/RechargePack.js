@@ -112,7 +112,7 @@ class RechargePack extends React.Component{
                         <TableCell align="center">Status</TableCell>
                         <TableCell align="center">Validity Days</TableCell>
                         <TableCell align="center">Validity Type</TableCell>
-                        <TableCell align="center">Description</TableCell>
+                        <TableCell align="center">Activation Type</TableCell>
                         <TableCell align="center">Comment</TableCell>
 
                         <TableCell align="center">Start Date/Time</TableCell>
@@ -142,7 +142,7 @@ class RechargePack extends React.Component{
                             <TableCell align="center">{row.active ? 'Active' : 'Inactive'}</TableCell>
                             <TableCell align="center">{row.validityDays}</TableCell>
                             <TableCell align="center">{row.validityType}</TableCell>
-                            <TableCell align="center">{row.description}</TableCell>
+                            <TableCell align="center">{row.activationType}</TableCell>
                             <TableCell align="center">{row.comment}</TableCell>
 
                             {/* {row.startDate.substring(0, 10)} */}
