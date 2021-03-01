@@ -315,7 +315,11 @@ class ReRegistration extends React.Component {
         
                         </Grid>
 
-                        <Grid item xs={12} sm={3}>  </Grid>
+                       </Grid>
+
+                       <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
+
+
 
                         <Grid item xs={12} sm={3}> 
                          <InputLabel htmlFor="Connection Type" >

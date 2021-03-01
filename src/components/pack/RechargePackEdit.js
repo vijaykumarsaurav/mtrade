@@ -611,7 +611,7 @@ class RechargePackAdd extends React.Component {
               >
                 <Grid item xs={12} sm={6}>
                   <FormControl style={styles.multiselect}>
-                    <InputLabel htmlFor="display-type" >
+                    <InputLabel htmlFor="display-type" required={true} >
                       Display Type
                     </InputLabel>
                     <Select
@@ -727,40 +727,16 @@ class RechargePackAdd extends React.Component {
       //  this.props.history.push('/packs');
 
 
-      // if(!this.state.amount || !this.state.displayOrder || !this.state.comment || !this.state.startDate || !this.state.endDate || !this.state.packType  ){
-      //   Notify.showError("Missing required fields");
-      //   return;
-      // }
+      if(!this.state.amount || !this.state.displayOrder || !this.state.startDate || !this.state.endDate || !this.state.pack || !this.state.displayType || !this.state.connectionType ){
+        Notify.showError("Missing required fields");
+        return;
+      }
       // if(this.state.displayType == "detailsWithImage" && !this.state.file){
       //   Notify.showError("Details With Image required to upload images");
       //   return;
       // }
 
    
-
-      // const packs = {
-      //   amount: this.state.amount,
-      //   displayOrder: this.state.displayOrder,
-      //   comment: this.state.comment,
-      //   startDate: this.state.startDate,
-      //   endDate:this.state.endDate,
-      //   pack: this.state.packType,
-      //   packType: this.state.packTypeitem,
-      //   dataDay: this.state.dataDay,
-      //   dataDayType: this.dataDayType,
-      //   nightDay: this.state.nightDay,
-      //   nightDayType: this.state.nightDayType,
-      //   validityDays: this.state.validityDays,
-      //   validityType: this.state.validityType,
-      //   connectionType: this.state.connectionType,
-      //   displayType: this.state.displayType,
-      //   imageURL: this.state.imageURL,
-      //   description: this.state.description,
-      //   activationStatus: this.state.activationStatus,
-      //   isFtr: this.state.isFtr,
-
-      // };
-
       if(!this.state.startDate){
         this.state.startDate = new Date().getTime();
       }
@@ -876,6 +852,8 @@ class RechargePackAdd extends React.Component {
 
 
       onChange = e =>{
+
+        console.log(e.target.name, e.target.value); 
 
         this.setState({ [e.target.name]: e.target.value });
     
