@@ -749,14 +749,17 @@ class RechargePackAdd extends React.Component {
     }
 
     
-    if(e.target.value == "Special FTR"){      
-      this.setState({isSpecialFtr:  true});
-      this.setState({selectedZone: []})
-      this.setState({selectAllzone: []});
-    }else{
-      this.setState({selectAllzone: "Select All"})
-      this.setState({isSpecialFtr:  false});
+    if(e.target.name === 'activationType' ){
+      if(e.target.value == "Special FTR"){      
+        this.setState({isSpecialFtr:  true});
+        this.setState({selectedZone: []})
+        this.setState({selectAllzone: []});
+      }else{
+        this.setState({selectAllzone: "Select All"})
+        this.setState({isSpecialFtr:  false});
+      }
     }
+   
 
   } 
 
