@@ -596,7 +596,7 @@ class RechargePackAdd extends React.Component {
   savePack = e => {
     
     e.preventDefault();
-    if(!this.state.amount || !this.state.displayOrder || !this.state.startDate || !this.state.endDate || !this.state.packType || !this.state.displayType || !this.state.connectionType ){
+    if(!this.state.amount || !this.state.displayOrder || !this.state.startDate || !this.state.endDate || !this.state.packType || !this.state.displayType || !this.state.connectionType || !this.state.validityType || !this.state.activationStatus ){
         Notify.showError("Missing required fields");
         return;
     }

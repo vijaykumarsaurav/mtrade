@@ -257,59 +257,32 @@ class ReRegistration extends React.Component {
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
                     Specific Retailer FTR Mapping
                     </Typography> 
-                    <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
-                      
-                        <Grid item xs={12} sm={3}>
-                                     <FormControl style={styles.selectStyle}>
-                                        <InputLabel id="demo-mutiple-name-label">Select type</InputLabel>
-                                        <Select
-                                        labelId="demo-mutiple-name-label"
-                                     
-                                        name="ftrType"
-                                        value={this.state.ftrType}
-                                        onChange={this.onChange}
-                                        input={<Input />}
-                                        MenuProps={MenuProps}
-                                        >
-                                            <MenuItem value="Inclusion">Inclusion</MenuItem>
-                                            <MenuItem value="Exclusion">Exclusion</MenuItem>
-                                          
-                                        </Select>
-                                    </FormControl>
 
-                                    {/* <FormControl component="fieldset">
-                                    <RadioGroup row aria-label="Select type" name="reasonName" value={'Exclusion'}>
-
-                                    <Grid item >
-                                            <FormControlLabel
-                                                value={'Exclusion'}
-                                                control={<Radio color="primary" />}
-                                                label={'Inclusion'}
-                                                //onChange={this.handleChange}
-                                              
-                                                />
-                                            </Grid>
-
-                                            <Grid item >
-                                            <FormControlLabel
-                                                value={'Inclusion'}
-                                                control={<Radio color="primary" />}
-                                                label={'Inclusion'}
-                                               // onChange={this.handleChange}
-                                               // style={{ borderRadius: "10px", background: "beige"}}
-                                                />
-                                            </Grid>
-                                        
-                                        </RadioGroup>
-                                    </FormControl> */}
-
-                                    {/* <br />  <br /><br />  <br /> */}
+                    <Grid spacing={2} direction="row" container  style={{ padding: "10px" }}>                      
+                        <Grid item xs={12} sm={3} style={{marginTop: '-4px'}}>
+                            <br  />
+                            <FormControl style={styles.selectStyle}>
+                            <InputLabel id="demo-mutiple-name-label">Select type</InputLabel>
+                            <Select
+                            labelId="demo-mutiple-name-label"
+                            
+                            name="ftrType"
+                            value={this.state.ftrType}
+                            onChange={this.onChange}
+                            input={<Input />}
+                            MenuProps={MenuProps}
+                            >
+                                <MenuItem value="Inclusion">Inclusion</MenuItem>
+                                <MenuItem value="Exclusion">Exclusion</MenuItem>
+                                
+                            </Select>
+                        </FormControl>
 
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
 
-                        <MaterialUIDateTimePicker callbackFromParent={dateParam} />
+                             <MaterialUIDateTimePicker callbackFromParent={dateParam} />
                             <input type="hidden" id="startDateMili" /> 
                             <input type="hidden" id="endDateMili" />                         
         
