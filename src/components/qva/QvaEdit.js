@@ -393,19 +393,20 @@ class VerifyEdit extends React.Component {
                             <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.cancel}>Back to Listing</Button>
                 </Grid></div>: ""}
 
-                            <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.customerImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.pefImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                       
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.poiFrontImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.customerImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.poiBackImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.customerSignatureUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.retailerSignatureUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.pefImageUrlNext+"?token="+IMAGE_VALIDATION_TOKEN} />
 
-                            <img style={{  width: "1px"}} src={this.state.poiFrontImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.customerImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.poiBackImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.customerSignatureUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.retailerSignatureUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
-                            <img style={{  width: "1px"}} src={this.state.pefImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.poiFrontImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.customerImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.poiBackImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.customerSignatureUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.retailerSignatureUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
+                            <img style={{  width: "0px", display: 'none'}} src={this.state.pefImageUrlNextP+"?token="+IMAGE_VALIDATION_TOKEN} />
             </React.Fragment>
         )
     }
