@@ -212,7 +212,7 @@ class DataEntryList extends React.Component{
                                 <TableCell>Distributor</TableCell>
                                 <TableCell>Zone</TableCell>
                                 <TableCell>FTA Date</TableCell>
-                                <TableCell>Submit Date</TableCell>
+                                <TableCell>ACT Submit Date</TableCell>
                                 <TableCell>Verification Ready Date </TableCell>
 
                             </TableRow>

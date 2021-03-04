@@ -119,8 +119,9 @@ class CurrentMSISDNStatus extends React.Component {
                                 <TableCell align="">NIC No.</TableCell>
                                 <TableCell align="">Sim No.</TableCell>
                                 <TableCell align="">FTA Date</TableCell>
-                                <TableCell align="">Submit Date</TableCell>
+                                <TableCell align="">ACT Submit Date</TableCell>
                                 <TableCell align="">Resubmit Date</TableCell>
+                                <TableCell align="">Verification Ready Date </TableCell>
                                 <TableCell align="">Verification Date</TableCell>
                                 <TableCell align="">Data Entered Date</TableCell>
                                 <TableCell align="">Omni Transfer Date</TableCell>
@@ -134,7 +135,6 @@ class CurrentMSISDNStatus extends React.Component {
                                 <TableCell align="">Omni Status</TableCell>
                                 <TableCell align="">Image Count </TableCell>
                                 <TableCell align="">Ref Number </TableCell>
-                                <TableCell align="">Verification Ready Date </TableCell>
                             </TableRow>
                         </TableHead>
 
