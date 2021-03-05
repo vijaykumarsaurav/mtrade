@@ -304,7 +304,7 @@ class VerifyList extends React.Component{
                                 {/* <TableCell align="">Status</TableCell> */}
                                 {/* <TableCell align="">Resubmit</TableCell>
                                 <TableCell align="">Verified Date</TableCell> */}
-                                <TableCell align="">ACT Submit Date</TableCell>
+                                <TableCell align="">ACT Submit Date</TableCell>   
                                 <TableCell align="">Resubmit Date</TableCell>
                                 <TableCell>Verification Ready Date </TableCell>
 
