@@ -19,7 +19,8 @@ if(window.location.hostname == "125.16.74.160"){
 
 
 if(window.location.hostname == "125.17.6.6"){
-    RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/';
+   // RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/';
+    RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer_sit/SLRetailer/';
     templatePath =  '/retailerdev';  
     domainIpName = '125.17.6.6'; 
 }
@@ -44,9 +45,9 @@ if(window.location.hostname == "tstretailer.airtel.lk"){
 if(window.location.hostname == "127.0.0.1" || window.location.hostname == "localhost"){
   //RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; //staging
  //  RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/'; //dev
-   RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
+   //RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
 
-   //RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer_sit/SLRetailer'; //sit public service
+   RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer_sit/SLRetailer/'; //sit public service
 
    
    domainIpName = '125.17.6.6'; 
