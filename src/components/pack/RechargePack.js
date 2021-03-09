@@ -69,7 +69,8 @@ class RechargePack extends React.Component{
     }
 
     dateFormat(date){ 
-        return moment.utc(date).format('DD-MM-YYYY HH:mm:ss A');
+
+        return moment(date).format('DD-MM-YYYY HH:mm:ss A');
     }
   
 
