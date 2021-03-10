@@ -400,6 +400,7 @@ class Report extends React.Component {
 
       
         adminReports.push(<MenuItem disabled value="" style={{color:'#0D0D0E', background:'#a8cdee'}}><b><em> Sales Reports </em> </b></MenuItem>);
+        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
         adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
         adminReports.push(<MenuItem value="idleRetailers">D-1 Idle Retailers Report</MenuItem>);
         adminReports.push(<MenuItem value="monthlyActiveRetailers">D-1 Monthly Active Retailers Report</MenuItem>);
@@ -407,10 +408,10 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
         adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
         adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
-        adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
         
         adminReports.push(<MenuItem disabled value="" style={{color:'#0D0D0E', background:'#a8cdee'}}><b><em> Other Services </em> </b></MenuItem>);
         //sprint 12
+        adminReports.push(<MenuItem value="simSwapReport">SIM Swap Report</MenuItem>);
         adminReports.push(<MenuItem value="disconnectionReceptionReport">Disconnection Reception Report</MenuItem>);
         adminReports.push(<MenuItem value="disconnectionAgentAuditReport">Disconnection Agent Audit Report</MenuItem>);
         adminReports.push(<MenuItem value="disconnectionIpacReadyReport">Disconnection Ipac Ready Report</MenuItem>);
@@ -422,7 +423,6 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="ostReceptionReport">Ownership Reception Report</MenuItem>);
         adminReports.push(<MenuItem value="ostAgentAuditReport">Ownership Agent Audit Report</MenuItem>);
         adminReports.push(<MenuItem value="ostIpacReadyReport">Ownership Ipacs Ready Report</MenuItem>);
-        adminReports.push(<MenuItem value="simSwapReport">SIM Swap Report</MenuItem>);
 
 
 
