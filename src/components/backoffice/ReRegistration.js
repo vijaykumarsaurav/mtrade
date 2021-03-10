@@ -196,6 +196,9 @@ class ReRegistration extends React.Component {
              //   Notify.showSuccess(" Data Uploaded Successfully.");
             }else{
                 Notify.showError(data.message);
+                if(data.status == 401 || data.status == 400) {
+                    window.location.replace("#/login");
+                }
             }
           
             document.getElementById('customer_kyc_data').value = "";

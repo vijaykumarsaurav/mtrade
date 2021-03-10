@@ -192,13 +192,16 @@ class ReRegistration extends React.Component {
             this.setState({progressBar: false})
             if(data.status == 200){
                 this.setState({successMsg: "FTR mapping data uploaded successfully"})
-
                 setTimeout(() => {
                     this.setState({successMsg: ""})
                 }, 10000);
              //   Notify.showSuccess(" Data Uploaded Successfully.");
             }else{
                 Notify.showError(data.message);
+
+                if(data.status == 401 || data.status == 400) {
+                    window.location.replace("#/login");
+                }
             }
           
             document.getElementById('uploadfile').value = "";
