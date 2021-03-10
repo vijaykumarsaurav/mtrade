@@ -14,13 +14,7 @@ export default function MaterialUIPickers(props) {
 
   console.log("startDatestartDate,",props ); 
   var d = new Date(); 
-  
-  
-  if(window.location.hash !== "#/pack-add"){
-    d.setHours(0,0,0,0);
-  }
-
-
+  d.setHours(0,0,0,0);
 
   // The first commit of Material-UI
   var [selectedStartDate, setSelectedStartDate] = React.useState(d);
