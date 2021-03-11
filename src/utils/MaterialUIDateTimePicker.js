@@ -28,7 +28,7 @@ export default function MaterialUIPickers(props) {
     document.getElementById("startDateMili").value = startDateMili; 
     var endDateMili = document.getElementById("endDateMili").value; 
     if(startDateMili > endDateMili  ){
-      Notify.showError("Start date time can't be grater than end date.");
+      Notify.showError("Start date time can't be grater than end date time.");
     }
   };
 
@@ -42,7 +42,7 @@ export default function MaterialUIPickers(props) {
 
    var startDateMili = document.getElementById("startDateMili").value; 
    if(endDateMili  < startDateMili){
-      Notify.showError("End Date time can't be less than start date.");
+      Notify.showError("End Date time can't be less than start date time.");
     }
    
   };

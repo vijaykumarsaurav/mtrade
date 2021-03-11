@@ -172,6 +172,11 @@ class ReRegistration extends React.Component {
               return;
             }
 
+            if(startDatetime >  endDatetime){
+                Notify.showError("Start date time can't be grater than end date time.");
+                return;
+            }
+
             // var userDetails = localStorage.getItem("userDetails")
             // userDetails = userDetails && JSON.parse(userDetails);
             this.setState({progressBar: true})
