@@ -112,58 +112,56 @@ class CurrentMSISDNStatus extends React.Component {
                 <Table style={{marginTop: '100px'}}  aria-label="sticky table">
                         <TableHead >
                             <TableRow style={{width:"170px",whiteSpace: "nowrap"}}>
-                                <TableCell align="">View</TableCell>
-                                <TableCell align="">Image Count</TableCell>
-                                <TableCell align="">Zone </TableCell>
-                                <TableCell align="">MSISDN</TableCell>
-                                <TableCell align="">NIC No.</TableCell>
-                                <TableCell align="">Sim No.</TableCell>
-                                <TableCell align="">FTA Date</TableCell>
-                                <TableCell align="">ACT Submit Date</TableCell>
-                                <TableCell align="">Resubmit Date</TableCell>
-                                <TableCell align="">Verification Ready Date </TableCell>
-                                <TableCell align="">Verification Date</TableCell>
-                                <TableCell align="">Data Entered Date</TableCell>
-                                <TableCell align="">Omni Transfer Date</TableCell>
-                                <TableCell align="">Verify By</TableCell>
-                                <TableCell align="">Verifiy Comment</TableCell>
-                                <TableCell align="">Verification Status</TableCell>
-                                <TableCell align="">Data Entered By</TableCell>
-                                <TableCell align="">Distributor Name</TableCell>
-                                <TableCell align="">Distributor Number</TableCell>
-                                <TableCell align="">Retailer Number</TableCell>
-                                <TableCell align="">Omni Status</TableCell>
-                                <TableCell align="">Image Count </TableCell>
-                                <TableCell align="">Ref Number </TableCell>
+                                <TableCell>View</TableCell>
+                                <TableCell>Image Count</TableCell>
+                                <TableCell>Zone </TableCell>
+                                <TableCell>MSISDN</TableCell>
+                                <TableCell>NIC No.</TableCell>
+                                <TableCell>Sim No.</TableCell>
+                                <TableCell>FTA Date</TableCell>
+                                <TableCell>ACT Submit Date</TableCell>
+                                <TableCell>Resubmit Date</TableCell>
+                                <TableCell>Verification Ready Date </TableCell>
+                                <TableCell>Verification Date</TableCell>
+                                <TableCell>Data Entered Date</TableCell>   
+                                <TableCell>Omni Transfer Date</TableCell>
+                                <TableCell>Verify By</TableCell>
+                                <TableCell>Verifiy Comment</TableCell>
+                                <TableCell>Verification Status</TableCell>
+                                <TableCell>Data Entered By</TableCell>
+                                <TableCell>Distributor Name</TableCell>
+                                <TableCell>Distributor Number</TableCell>
+                                <TableCell>Retailer Number</TableCell>
+                                <TableCell>Omni Status</TableCell>
+                                <TableCell>Ref Number </TableCell>
                             </TableRow>
                         </TableHead>
 
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
                             {this.state.msisdnDetails ? this.state.msisdnDetails.map(row => (
                                 <TableRow hover   key={row.refNumber} >
-                                    <TableCell  align="center" onClick={() => this.viewDocs(row.refNumber)}><VisibilityIcon style={{cursor:"hand"}} /></TableCell>
-                                    <TableCell align="center">{row.imageCount}</TableCell> 
-                                    <TableCell align="center">{row.zone}</TableCell> 
-                                    <TableCell align="center" >{row.msisdnNumber}</TableCell>
-                                    <TableCell align="center">{row.nicNumber}</TableCell>
-                                    <TableCell align="center">{row.simNumber}</TableCell>
-                                    <TableCell align="center">{row.ftaDate}</TableCell>
-                                    <TableCell align="center">{row.submitDate}</TableCell>
-                                    <TableCell align="center">{row.resubmitDate}</TableCell>
-                                    <TableCell align="center">{row.verificationDate}</TableCell>
-                                    <TableCell align="center">{row.dataEnteredDate}</TableCell>
-                                    <TableCell align="center">{row.omniTransferDate}</TableCell>
-                                    <TableCell align="center">{row.verifyBy}</TableCell>
-                                    <TableCell align="center">{row.verifiyComment}</TableCell>
-                                    <TableCell align="center">{row.verificationStatus}</TableCell>
-                                    <TableCell align="center">{row.dataEnteredBy}</TableCell>
-                                    <TableCell align="center">{row.distributorName}</TableCell>
-                                    <TableCell align="center">{row.distributorNumber}</TableCell>
-                                    <TableCell align="center">{row.retailerNumber}</TableCell>
-                                    <TableCell align="center">{row.omniStatus}</TableCell>
-                                    <TableCell align="center">{row.imageCount}</TableCell>
-                                    <TableCell align="center">{row.refNumber}</TableCell>
-                                    <TableCell align="center">{row.verificationReadyDate}</TableCell>
+                                    <TableCell   onClick={() => this.viewDocs(row.refNumber)}><VisibilityIcon style={{cursor:"hand"}} /></TableCell>
+                                    <TableCell>{row.imageCount}</TableCell> 
+                                    <TableCell>{row.zone}</TableCell> 
+                                    <TableCell>{row.msisdnNumber}</TableCell>
+                                    <TableCell>{row.nicNumber}</TableCell>
+                                    <TableCell>{row.simNumber}</TableCell>
+                                    <TableCell>{row.ftaDate}</TableCell>
+                                    <TableCell>{row.submitDate}</TableCell>
+                                    <TableCell>{row.resubmitDate}</TableCell>
+                                    <TableCell>{row.verificationReadyDate}</TableCell>
+                                    <TableCell>{row.verificationDate}</TableCell> 
+                                    <TableCell>{row.dataEnteredDate}</TableCell>
+                                    <TableCell>{row.omniTransferDate}</TableCell>
+                                    <TableCell>{row.verifyBy}</TableCell>
+                                    <TableCell>{row.verifiyComment}</TableCell>
+                                    <TableCell>{row.verificationStatus}</TableCell>
+                                    <TableCell>{row.dataEnteredBy}</TableCell>
+                                    <TableCell>{row.distributorName}</TableCell>
+                                    <TableCell>{row.distributorNumber}</TableCell>
+                                    <TableCell>{row.retailerNumber}</TableCell>
+                                    <TableCell>{row.omniStatus}</TableCell>
+                                    <TableCell>{row.refNumber}</TableCell>
 
                                 </TableRow>
                             )):  ""}
