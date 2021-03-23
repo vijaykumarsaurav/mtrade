@@ -151,7 +151,7 @@ class ReRegistration extends React.Component {
     uploadOffer() {
     
 
-        console.log(this.state.uploadfile);
+       // console.log(this.state.uploadfile);
 
             if(!this.state.uploadfile || document.getElementById('uploadfile').value ==""){
                 Notify.showError("Missing required file to upload");

@@ -124,7 +124,7 @@ const AppRouter = () => {
                     <Route path="/dashboard" component={Dashboard} />
 
                     <Route path="/offerupload" component={OfferUpload} />
-                    {/* <Route path="/fse" component={FSEUpload} /> */}
+                    <Route path="/fse" component={FSEUpload} />
                     <Route path="/re-registration" component={ReRegistration} />
 
 

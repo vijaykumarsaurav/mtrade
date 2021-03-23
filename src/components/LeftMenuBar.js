@@ -73,12 +73,12 @@ export const AdminMenuList = (
       <ListItemText primary="Offer Upload" />
     </ListItem>
 
-    {/* <ListItem button component='a' href={"#/fse"} >
+    <ListItem button component='a' href={"#/fse"} >
       <ListItemIcon>
         <LocalOfferIcon />
       </ListItemIcon>
       <ListItemText primary="FSE Upload" />
-    </ListItem> */}
+    </ListItem>
 
     <ListItem button component='a' href={"#/re-registration"} >
       <ListItemIcon>

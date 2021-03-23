@@ -272,9 +272,9 @@ class Report extends React.Component {
 
                 }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport' || this.state.reporttype == 'kycReceptionReport'  || this.state.reporttype == 'kycAgentAuditReport' || this.state.reporttype == 'kycIpacReadyReport' ||  this.state.reporttype == 'ostReceptionReport'  ||  this.state.reporttype == 'ostAgentAuditReport'  ||  this.state.reporttype == 'ostIpacReadyReport' || this.state.reporttype == "bdeActivationReport" ){
 
-                    this.setState({ generateReportMsg:  "Ready to Download"});
                     console.log("data.result.length",data.result.length)
                     if(data.result && data.result.length>0){
+                        this.setState({ generateReportMsg:  "Ready to Download"});
                         this.setState({ products: data.result , responseFlag : true});
                     }else{
                         this.setState({ responseFlagMsg : "No Records Found"});
