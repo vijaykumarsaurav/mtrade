@@ -25,6 +25,14 @@ if(window.location.hostname == "125.17.6.6"){
     domainIpName = '125.17.6.6'; 
 }
 
+if(window.location.pathname == "/mitradev/"){
+    RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/';
+     templatePath =  '/mitradev';  
+     domainIpName = '125.17.6.6'; 
+ }
+
+
+
 //dev private url
 if(window.location.hostname == "10.92.210.103"){
     templatePath =  '/retailerdev';  
