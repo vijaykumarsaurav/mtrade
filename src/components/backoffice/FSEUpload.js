@@ -74,9 +74,9 @@ class FSEUpload extends React.Component {
         const fileext =  filename.split('.').pop(); 
         console.log("File Extension: ",fileext);
 
-        if(fileext == 'xlsx'){
+        if(fileext == 'csv'){
             var fileSize = file.size / 1000; //in kb
-            if(fileSize >= 5 && fileSize <= 2048){
+            if(fileSize >= 0 && fileSize <= 2048){
               Object.defineProperty(file, 'name', {
                 writable: true,
                 value:  md5(file.name) +"."+ fileext
@@ -87,7 +87,7 @@ class FSEUpload extends React.Component {
               Notify.showError("File size should be grater than 5KB and less than 2MB")
             }
         }else {
-          Notify.showError("Only xlsx file allow to upload")
+          Notify.showError("Only csv file allow to upload")
         }
         return false;
       }
@@ -144,30 +144,40 @@ class FSEUpload extends React.Component {
     }
 
 
-    uploadOffer() {
+    uploadOffer(type) {
     
-           console.log(this.state.uploadfile);
+           console.log(type, "type");
 
-            if(!this.state.uploadfile || document.getElementById('uploadfile').value ==""){
-                Notify.showError("Missing required file to upload");
-                return;
-            }
+           
 
             // var userDetails = localStorage.getItem("userDetails")
             // userDetails = userDetails && JSON.parse(userDetails);
 
             const formData = new FormData();
-            formData.append('campDetails',this.state.uploadfile);
-            formData.append('startDate', this.state.startDate);
-            formData.append('endDate',this.state.endDate);
-
-            
+            if(type === 'fse'){
+                formData.append('fse',true);
+                formData.append('campDetails',this.state.uploadfile);
+                if(!this.state.uploadfile || document.getElementById('uploadfile').value ==""){
+                    Notify.showError("Missing fse file to upload");
+                    return;
+                }
+            }else{
+                formData.append('campDetails',this.state.bdeuploadfile);
+                formData.append('fse',false);
+                if(!this.state.bdeuploadfile || document.getElementById('bdeuploadfile').value ==""){
+                    Notify.showError("Missing bde file to upload");
+                    return;
+                }
+            }
+            // formData.append('startDate', this.state.startDate);
+            // formData.append('endDate',this.state.endDate);
+        
             AdminService.uploadFSCCampin(formData).then(data => {
 
            // var data = resolveResponse(data, "FSE Uploaded Successfully.");
             var data = data && data.data;
             if(data.status == 200){
-                Notify.showSuccess("FSE Camping Uploaded Successfully.");
+                Notify.showSuccess("Camping Uploaded Successfully.");
             }else{
                 Notify.showError(data.message);
                 if(data.status === 1010 ){
@@ -280,14 +290,14 @@ class FSEUpload extends React.Component {
             <div style={{ padding: "40px" }} >
                 <Paper style={{padding:"15px",  position:"sticky", width:"98%"}}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                        FSE Camping  Upload
+                        FSE Camping Upload
                     </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                         
                     <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/FSEUploadTemplate.xlsx"}>Download Sample</Link>
+                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/FseBdeSample.csv"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>
@@ -311,18 +321,65 @@ class FSEUpload extends React.Component {
                             </Typography>
                         </Grid>
 
-                        <Grid item xs={12} sm={3}>
+                        {/* <Grid item xs={12} sm={3}>
                             <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
-                        </Grid>
+                        </Grid> */}
 
                         <Grid item xs={12} sm={3}>
-                            <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={this.uploadOffer}>Upload</Button>
+                            <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={() => this.uploadOffer('fse')}>Upload</Button>
                         </Grid>
                     </Grid>
                 </Paper>
 
                 <br />
+
                 <Paper style={{padding:"15px",  position:"sticky", width:"98%"}}>
+                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                      BDE Camping Upload
+                    </Typography> 
+                    <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
+                        
+                    <Grid item xs={12} sm={3}>
+                            <InputLabel htmlFor="Connection Type" >
+                                <Typography variant="subtitle1">
+                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/FseBdeSample.csv"}>Download Sample</Link>
+                                </Typography>
+                            </InputLabel>
+                        </Grid>
+                        
+
+                        <Grid item xs={12} sm={3}>
+                            <Typography variant="subtitle1">Upload BDE Camping</Typography>
+                        </Grid>
+
+                        <Grid item xs={12} sm={3}>
+                            <Typography variant="subtitle1">
+
+                            <input 
+                           
+                                    type="file"
+                                    name="bdeuploadfile"
+                                    id="bdeuploadfile"
+                                    // onChange={this.onChangeHandler}
+                                    onChange={this.onChangeFileUpload}
+                                  />
+                            </Typography>
+                        </Grid>
+
+                        {/* <Grid item xs={12} sm={3}>
+                            <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
+                        </Grid> */}
+
+                        <Grid item xs={12} sm={3}>
+                            <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={() => this.uploadOffer('bde')}>Upload</Button>
+                        </Grid>
+                        
+                    </Grid>
+                    
+                </Paper>
+
+                <br />
+                {/* <Paper style={{padding:"15px",  position:"sticky", width:"98%"}}>
                 <Grid syt  container spacing={1} container
                     direction="row"
                     justify="right"
@@ -345,10 +402,10 @@ class FSEUpload extends React.Component {
                             <Button startIcon={<SearchIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.searchFse}>Search</Button>
                         </Grid>
                 </Grid>
-                </Paper>
+                </Paper> */}
 
 
-                <Paper style={{padding:"15px", position:"sticky", width:"98%", overflowX:"auto"}} >
+                {/* <Paper style={{padding:"15px", position:"sticky", width:"98%", overflowX:"auto"}} >
                 <FormControl component="fieldset">
                         
                         <FormGroup aria-label="position" row>
@@ -386,7 +443,7 @@ class FSEUpload extends React.Component {
                                 <TableRow hover   key={row.fseNumber} > 
                     
                                 <TableCell><div> <label> <input type="checkbox" className="fseItems" onChange={this.handleChange(row.fseNumber)} /></label></div></TableCell>
-                                {/* <TableCell>  <Checkbox color="primary" className="fseItems"  onChange={this.handleChange(row.id)}   /></TableCell> */}
+                                <TableCell>  <Checkbox color="primary" className="fseItems"  onChange={this.handleChange(row.id)}   /></TableCell>
                                 <TableCell align="">{row.campDate}</TableCell>
                                 <TableCell align="">{row.fseNumber}</TableCell>
                                 <TableCell align="">{row.retailerNumber}</TableCell>
@@ -420,7 +477,7 @@ class FSEUpload extends React.Component {
                     </FormGroup>
                             </FormControl>
 
-                 </Paper>      
+                 </Paper>       */}
 
         </div>
 

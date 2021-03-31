@@ -158,9 +158,9 @@ export const RETAILER_SEARCH = RETAILER_API_BASE_URL + 'agent/retrieve';
 export const RETAILER_API_OFFER_UPLOAD = RETAILER_API_BASE_URL + 'bestoffers/upload';
 export const RETAILER_API_OFFER_DOWNLOAD = RETAILER_API_BASE_URL + 'bestoffers/download';
 //fsc
-//export const RETAILER_API_FSC_UPLOAD = RETAILER_API_BASE_URL + 'fse/camps/upload';
+export const RETAILER_API_FSC_UPLOAD = RETAILER_API_BASE_URL + 'fse/camps/upload';
 //export const RETAILER_API_FSC_DOWNLOAD = RETAILER_API_BASE_URL + 'fse/view';
-export const RETAILER_API_FSC_UPLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
+//export const RETAILER_API_FSC_UPLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
 export const FSE_SEARCH =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/camps/view';
 export const FSE_DELETE =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/camps/delete';
 

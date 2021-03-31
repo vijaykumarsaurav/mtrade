@@ -77,7 +77,7 @@ export const AdminMenuList = (
       <ListItemIcon>
         <LocalOfferIcon />
       </ListItemIcon>
-      <ListItemText primary="FSE Upload" />
+      <ListItemText primary="Manage Camp" />
     </ListItem>
 
     <ListItem button component='a' href={"#/re-registration"} >
