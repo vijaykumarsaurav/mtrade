@@ -34,7 +34,23 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import $ from 'jquery'; 
+import FSEPagination from "./FSEPagination";
 
+
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import Input from "@material-ui/core/Input";
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
 class FSEUpload extends React.Component {
 
     constructor(props) {
@@ -48,18 +64,19 @@ class FSEUpload extends React.Component {
             endDate: '',
             retailerDetails: '',
             allOfferData:"",
+            fse:true,
+            parPage:10,
             selectedIds:[],
+            selectedIdsDelete:'',
+            afterDeleteRefresh:false, 
             fscDetails:[]// [{"fseNumber" : 1, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 2, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 3, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 4, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", }]
         };
         this.uploadOffer = this.uploadOffer.bind(this);
-        this.fseDelete = this.fseDelete.bind(this);
+       // this.fseDelete = this.fseDelete.bind(this);
         this.searchFse = this.searchFse.bind(this);
         this.myCallback = this.myCallback.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.selectAll = this.selectAll.bind(this);
-
-        
-
     }
 
 
@@ -139,10 +156,20 @@ class FSEUpload extends React.Component {
     componentDidMount() {
         this.myCallback(new Date());
         
-       
+    //    this.searchFse();
 
     }
 
+
+    selectCampsType = (e) =>{
+        this.setState({[e.target.name]: e.target.value})
+    }
+    selectDeletedItem = (allid) =>{
+
+        this.setState({selectedIdsDelete: allid})
+
+       // alert(this.state.selectedIdsDelete); 
+    }
 
     uploadOffer(type) {
     
@@ -194,23 +221,29 @@ class FSEUpload extends React.Component {
     }
 
 
-     fseDelete() {
+    //  fseDelete() {
     
-        if(this.state.selectedIds.length <1){
-            Notify.showError("Select row(s) to delete");
-            return;
-        }
+    //     if(this.state.selectedIdsDelete.length <1){
+    //         Notify.showError("Select row(s) to delete");
+    //         return;
+    //     }
 
-       const data = {
-        campIdList : this.state.selectedIds
-       }
+    //     console.log(this.state.selectedIdsDelete);
+
+    //    const data = {
+    //         campIdList : this.state.selectedIdsDelete
+    //    }
         
-        AdminService.deleteFse(data).then(res => {
-        resolveResponse(res,'');
-        Notify.showSuccess("Deleted successfully.");
+    //     AdminService.deleteFse(data).then(res => {
+    //         resolveResponse(res,'');
+           
+    //         Notify.showSuccess("Deleted successfully.");
+    //         this.searchFse();
+    //         this.setState({afterDeleteRefresh : true})
+    //         return;
 
-        });
-    }
+    //     });
+    // }
 
     searchFse(){
        
@@ -225,14 +258,16 @@ class FSEUpload extends React.Component {
             const param = {
                     fseNumber : this.state.FSENumber.toString(), 
                     retailerNumber: this.state.RetailerNumber.toString(), 
-                    monthOfCamp: this.state.monthOfCamp.toString()
+                    monthOfCamp: this.state.monthOfCamp && this.state.monthOfCamp.toString(),
+                    lapuNumber: this.state.FSENumber.toString(), 
+                    fse: this.state.fse
             }
         
             AdminService.searchFse(param).then(res => {
             var data = resolveResponse(res,'');
-                
+            
                 if(data.result){
-                    this.setState({ fscDetails :  data.result })
+                    this.setState({ fscDetails :  data.result.data, count: data.result.count})
                 }else{
                    // this.setState({ retailerDetails :  [staticdata.result] })
                 }
@@ -244,7 +279,8 @@ class FSEUpload extends React.Component {
     }
 
     someAction() {
-        alert("action happed in other commpornt");
+      //  alert("action happed in other commpornt");
+        console.log("page clicked")
     }
 
 
@@ -288,7 +324,7 @@ class FSEUpload extends React.Component {
                 <PostLoginNavBar />
 
             <div style={{ padding: "40px" }} >
-                <Paper style={{padding:"15px",  position:"sticky", width:"98%"}}>
+                <Paper style={{padding:"15px",  position:"sticky"}}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
                         FSE Camping Upload
                     </Typography> 
@@ -333,7 +369,7 @@ class FSEUpload extends React.Component {
 
                 <br />
 
-                <Paper style={{padding:"15px",  position:"sticky", width:"98%"}}>
+                <Paper style={{padding:"15px",  position:"sticky"}}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
                       BDE Camping Upload
                     </Typography> 
@@ -379,16 +415,33 @@ class FSEUpload extends React.Component {
                 </Paper>
 
                 <br />
-                {/* <Paper style={{padding:"15px",  position:"sticky", width:"98%"}}>
+                <Paper style={{padding:"15px",  position:"sticky"}}>
                 <Grid syt  container spacing={1} container
-                    direction="row"
-                    justify="right"
-                    alignItems="center">
-                        <Grid item xs={12} sm={4} >
+                    justify="space-between"
+                    container>
+                        <Grid item xs={12} sm={3} >
                         <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                            FSE Camping Search and Delete
+                        Camping Search and Delete
                         </Typography> 
                         </Grid>
+                        <Grid item xs={10} sm={2}> 
+                            <FormControl style={styles.selectStyle}>
+                                    <InputLabel id="demo-mutiple-name-label">Select Camps Type </InputLabel>
+                                    <Select
+                                    labelId="demo-mutiple-name-label"
+                                    id="demo-mutiple-name"
+                                    name="fse"
+                                    value={this.state.fse}
+                                    onChange={this.selectCampsType}
+                                    input={<Input />}
+                                    MenuProps={MenuProps}
+                                    >
+                                     <MenuItem key={'fse'} value={true}>FSE</MenuItem>
+                                     <MenuItem key={'fse'} value={false}>BDE</MenuItem>
+
+                                    </Select>
+                                </FormControl>
+                            </Grid>
                         <Grid item xs={12} sm={2} item > 
                             <TextField type="text" value={this.state.RetailerNumber } label=" By Retailer Number  " style={{ width: "100%" }} name="RetailerNumber" onChange={this.onChange} />
                         </Grid>
@@ -398,14 +451,15 @@ class FSEUpload extends React.Component {
                         <Grid item xs={12} sm={2}>
                             <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
                         </Grid>
-                        <Grid item xs={12} sm={2} item style={{textAlign:"left"}} > 
-                            <Button startIcon={<SearchIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.searchFse}>Search</Button>
+                        <Grid item xs={12} sm={1} item > 
+                            <Button startIcon={<SearchIcon/>} variant="contained"  onClick={this.searchFse}>Search</Button>
                         </Grid>
                 </Grid>
-                </Paper> */}
+                </Paper>
 
 
-                {/* <Paper style={{padding:"15px", position:"sticky", width:"98%", overflowX:"auto"}} >
+
+                {/* <Paper style={{padding:"15px", position:"sticky", width:"100%", overflowX:"auto"}} >
                 <FormControl component="fieldset">
                         
                         <FormGroup aria-label="position" row>
@@ -421,35 +475,36 @@ class FSEUpload extends React.Component {
                                 label="Select All"
                                 labelPlacement="right"
                                 />
-                           
 
                                 </TableCell>
-                                <TableCell align="">Date Of Camp</TableCell>
-                                <TableCell align="">FSE ID(Lapu no)</TableCell>
+                                <TableCell align="">FSE Number</TableCell>
                                 <TableCell align="">Retailer Number</TableCell>
                                 <TableCell align="">Retailer Name</TableCell>
+
                                 <TableCell align="">Retailer Address</TableCell>
                                 <TableCell align="">Retailer Lat Long</TableCell>
+                                <TableCell align="">Date of Camp (dd/mm/yyyy)</TableCell>
+                                
                                 <TableCell align="">Target Acquisition</TableCell>
                                 <TableCell align="">Target Recharge Count</TableCell>
                                 <TableCell align="">Target Recharge Amount</TableCell>
                                 <TableCell align="">Target SIM Swap </TableCell>
+
+
                             </TableRow>
                         </TableHead>
 
-                        
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
                             {this.state.fscDetails ? this.state.fscDetails.map(row => (
-                                <TableRow hover   key={row.fseNumber} > 
-                    
-                                <TableCell><div> <label> <input type="checkbox" className="fseItems" onChange={this.handleChange(row.fseNumber)} /></label></div></TableCell>
-                                <TableCell>  <Checkbox color="primary" className="fseItems"  onChange={this.handleChange(row.id)}   /></TableCell>
-                                <TableCell align="">{row.campDate}</TableCell>
+                                <TableRow hover   key={row.id} > 
+         
+                                <TableCell><div> <label> <input type="checkbox" className="fseItems" onChange={this.handleChange(row.id)} /></label></div></TableCell>
                                 <TableCell align="">{row.fseNumber}</TableCell>
                                 <TableCell align="">{row.retailerNumber}</TableCell>
                                 <TableCell align="">{row.retailerName}</TableCell>
-                                <TableCell align="">{row.retailerAddress}</TableCell>
+                                <TableCell align="">{row.address}</TableCell>
                                 <TableCell align="">{row.latlong}</TableCell>
+                                <TableCell align="">{row.campDate}</TableCell>
                                 <TableCell align="">{row.targetAcqCount}</TableCell>
                                 <TableCell align="">{row.targetRechargeCount}</TableCell>
                                 <TableCell align="">{row.targetRechargeAmount}</TableCell>
@@ -458,8 +513,6 @@ class FSEUpload extends React.Component {
                                 </TableRow>
                             )):  ""}
                         </TableBody>
-
-                       
                     </Table>  
 
 
@@ -469,15 +522,55 @@ class FSEUpload extends React.Component {
                     alignItems="left">
                         <Grid item xs={12} sm={2} item style={{textAlign:"left"}} > 
                              <br />
-                            <Button startIcon={<DeleteIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.fseDelete}>Delete Selected</Button>
+                            <Button startIcon={<DeleteIcon/>} variant="contained" color="" style={{ marginLeft: '20px' }} onClick={this.fseDelete}>Delete</Button>
                         </Grid>
                     </Grid>
                     :"" }
 
                     </FormGroup>
-                            </FormControl>
+                 </FormControl>
+                        
 
-                 </Paper>       */}
+                 </Paper>  */}
+
+                 <FSEPagination fscData={{fscDetails: this.state.fscDetails ? this.state.fscDetails : [], count: this.state.count, selectDeletedItem:this.selectDeletedItem, searchFse:this.searchFse} }/>
+
+
+                 {/* <Paper style={{padding:"15px",  position:"sticky"}}>
+                <Grid  container spacing={1} container
+                    justify="space-between"
+                    container>
+                      
+                        <Grid item xs={2} sm={2}> 
+                            <FormControl style={styles.selectStyle}>
+                                    <InputLabel id="demo-mutiple-name-label">Per Page Size </InputLabel>
+                                    <Select
+                                    labelId="demo-mutiple-name-label"
+                                    id="demo-mutiple-name"
+                                    name="parPage"
+                                    value={this.state.parPage}
+                                    onChange={this.selectCampsType}
+                                    input={<Input />}
+                                    MenuProps={MenuProps}
+                                    >
+                                     <MenuItem key={'10'} value={10}>10</MenuItem>
+                                     <MenuItem key={'20'} value={25}>25</MenuItem>
+                                     <MenuItem key={'50'} value={50}>50</MenuItem>
+
+
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                      
+                        <Grid item xs={12} sm={10} item > 
+                            <FSEPagination pageAction={{searchFse : this.searchFse}}/>
+                        </Grid>
+                </Grid>
+                </Paper>
+
+                        */}
+                   
+   
 
         </div>
 
@@ -488,11 +581,230 @@ class FSEUpload extends React.Component {
 }
 
 const styles = {
-    tableStyle: {
+    tableStyle : {
         display: 'flex',
         justifyContent: 'left'
+    },
+    tableRow: {
+        hover: {
+            "&:hover": {
+                background: 'green !important',
+            },
+        },
+    },
+    selectStyle:{
+        marginBottom: '0px',
+        minWidth: 200,
+        maxWidth: 340
     }
 }
 
 
 export default FSEUpload;
+
+
+
+// import React from 'react';
+// import { makeStyles } from '@material-ui/core/styles';
+// import Pagination from '@material-ui/lab/Pagination';
+
+// const useStyles = makeStyles((theme) => ({
+//   root: {
+//     '& > *': {
+//       marginTop: theme.spacing(2),
+//     },
+//   },
+// }));
+
+
+
+// export default function PaginationOutlined(props) {
+//   const classes = useStyles();
+
+//   const changePage = page => {
+//     alert(page);
+//   // searchFse
+// }	
+// // function changePage(event: object, page: number) => {
+// //   alert(number);
+// // }; 
+
+//   return (
+//     <div className={classes.root}>
+//       <Pagination page={9} onChange={ alert() }  count={100} variant="outlined" color="primary" />
+//     </div>
+//   );
+// }
+
+
+
+// import React from "react";
+// import { makeStyles } from "@material-ui/core/styles";
+// import Table from "@material-ui/core/Table";
+// import TableBody from "@material-ui/core/TableBody";
+// import TableCell from "@material-ui/core/TableCell";
+// import TableContainer from "@material-ui/core/TableContainer";
+// import TableHead from "@material-ui/core/TableHead";
+// import TableRow from "@material-ui/core/TableRow";
+// import TablePagination from "@material-ui/core/TablePagination";
+// import Paper from "@material-ui/core/Paper";
+
+
+// import Checkbox from '@material-ui/core/Checkbox';
+// import FormGroup from '@material-ui/core/FormGroup';
+// import FormControlLabel from '@material-ui/core/FormControlLabel';
+// import FormControl from '@material-ui/core/FormControl';
+// import FormLabel from '@material-ui/core/FormLabel';
+// import $ from 'jquery'; 
+
+// const useStyles = makeStyles({
+// //   table: {
+// //    minWidth: '100%'
+// //   }
+// });
+
+
+
+// const rows = [
+
+//  {"onecolumn": "647446446" , id: 1}, 
+//  {"onecolumn": "647446446", id: 2},
+//  {"onecolumn": "647446446", id: 3},
+//  {"onecolumn": "647446446", id: 4},
+//  {"onecolumn": "647446446", id: 5},
+//  {"onecolumn": "647446446", id: 6},
+//  {"onecolumn": "647446446", id: 7},
+//  {"onecolumn": "647446446", id: 8},
+//  {"onecolumn": "647446446", id: 9},
+//  {"onecolumn": "647446446", id: 10},
+//  {"onecolumn": "647446446", id: 11},
+//  {"onecolumn": "647446446", id: 12},
+//  {"onecolumn": "647446446", id: 13},
+//  {"onecolumn": "647446446", id: 14},
+//  {"onecolumn": "647446446", id: 15},
+ 
+ 
+ 
+ 
+ 
+// ];
+
+// export default function SimpleTable() {
+//   const classes = useStyles();
+//   const [page, setPage] = React.useState(0);
+//   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+//   const handleChangePage = (event, newPage) => {
+//     alert( "newPage: "+ newPage);     
+//     setPage(newPage);
+//   };
+
+//   const [values, setValues] = React.useState({
+//     selectedIds : [], 
+  
+//   });
+
+
+  
+//   const handleChangeRowsPerPage = event => {
+//     setRowsPerPage(parseInt(event.target.value, 10));
+//     setPage(0);
+//     alert( "perpage: "+ event.target.value);     
+//   };
+
+//   const selectAll = name => event =>{
+    
+//     //  console.log("fscDetails",  this.state.fscDetails) 
+//       $('.fseItems').prop('checked', event.target.checked);  
+//       if(event.target.checked){
+//        //   var ids = this.state.fscDetails && this.state.fscDetails.map(row => row.fseNumber); 
+//         //  this.setState({ selectedIds :  ids })
+//            var ids = rows.map(row => row.onecolumn); 
+//           setValues({ ...values, ['selectedIds']: ids });
+//       }else{
+//         setValues({ ...values, ['selectedIds']: [] });
+//       }
+//       alert(name);  
+//   }
+
+//     const handleChange = name => event => {
+   
+
+//         if(event.target.checked){
+//            // setValues({ ...values, ['selectedIds']: name });
+//             values.selectedIds.push(name); 
+//         }else{
+//             values.selectedIds.pop(name); 
+//         }
+
+       
+//     }
+
+//   const emptyRows =
+//     rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+
+//   return (
+//     <TableContainer component={Paper}  style={{padding:"15px",  position:"sticky"}}>
+//       <Table className={classes.table} aria-label="simple table">
+//         <TableHead>
+//           <TableRow>
+//           <TableCell align="">   
+//                 <FormControlLabel
+//                 value="All"
+//                 control={<Checkbox name="selectAll" onChange={selectAll()} color="primary"  />}
+//                 label="Select All"
+//                 labelPlacement="right"
+//                 />
+//                </TableCell>
+//             <TableCell align="">FSE LAPU Number</TableCell>
+//             <TableCell align="">Retailer Number</TableCell>
+//             <TableCell align="">Retailer Name</TableCell>
+//             <TableCell align="">Retailer Address</TableCell>
+//             <TableCell align="">Retailer Lat Long</TableCell>
+//             <TableCell align="">Date of Camp (dd/mm/yyyy)</TableCell>
+//             <TableCell align="">Target Acquisition</TableCell>
+//             <TableCell align="">Target Recharge Count</TableCell>
+//             <TableCell align="">Target Recharge Amount</TableCell>
+//             <TableCell align="">Target SIM Swap </TableCell>
+//           </TableRow>
+//         </TableHead>
+//         <TableBody>
+//           {rows
+//             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+//             .map((row, index) => (
+//               <TableRow key={row.onecolumn}>
+
+//                 {/* <TableCell><div> <label> <input type="checkbox" className="fseItems" onChange={this.handleChange(row.fseNumber)} /></label></div></TableCell> */}
+//                 <TableCell>  <Checkbox color="primary" className="fseItems"  onChange={handleChange(row.id)}   /></TableCell>
+                              
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+//                 <TableCell align="">{row.onecolumn}</TableCell>
+               
+//               </TableRow>
+//             ))}
+//           {emptyRows > 0 && (
+//             <TableRow style={{ height: 53 * emptyRows }}>
+//               <TableCell colSpan={6} />
+//             </TableRow>
+//           )}
+//         </TableBody>
+//       </Table>
+//       <TablePagination
+//         rowsPerPageOptions={[5, 10, 25]}
+//         component="div"
+//         count={rows.length}
+//         rowsPerPage={rowsPerPage}
+//         page={page}
+//         onChangePage={handleChangePage}
+//         onChangeRowsPerPage={handleChangeRowsPerPage}
+//       />
+//     </TableContainer>
+//   );
+// }
