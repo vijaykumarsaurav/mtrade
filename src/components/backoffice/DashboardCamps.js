@@ -41,6 +41,9 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from "@material-ui/core/Input";
 
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
@@ -324,23 +327,23 @@ class FSEUpload extends React.Component {
                 <PostLoginNavBar />
 
             <div style={{ padding: "40px" }} >
-                <Paper style={{padding:"15px",  position:"sticky"}}>
+                {/* <Paper style={{padding:"15px",  position:"sticky"}}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                        Agent FSE Upload
+                        FSE Camping Upload
                     </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                         
                     <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/FseSample.csv"}>Download Sample</Link>
+                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/FseBdeSample.csv"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>
                         
 
                         <Grid item xs={12} sm={3}>
-                            <Typography variant="subtitle1">Upload csv file</Typography>
+                            <Typography variant="subtitle1">Upload FSE Camping</Typography>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
@@ -357,9 +360,6 @@ class FSEUpload extends React.Component {
                             </Typography>
                         </Grid>
 
-                        {/* <Grid item xs={12} sm={3}>
-                            <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
-                        </Grid> */}
 
                         <Grid item xs={12} sm={3}>
                             <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={() => this.uploadOffer('fse')}>Upload</Button>
@@ -373,21 +373,21 @@ class FSEUpload extends React.Component {
 
                 <Paper style={{padding:"15px",  position:"sticky"}}>
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                    BDE/Independent FSE Upload
+                      BDE Camping Upload
                     </Typography> 
                     <Grid container className="flexGrow" spacing={3} style={{ padding: "10px" }}>
                         
                     <Grid item xs={12} sm={3}>
                             <InputLabel htmlFor="Connection Type" >
                                 <Typography variant="subtitle1">
-                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/BdeSample.csv"}>Download Sample</Link>
+                                    <Link color="primary" href={DEV_PROTJECT_PATH+"/webdata/FseBdeSample.csv"}>Download Sample</Link>
                                 </Typography>
                             </InputLabel>
                         </Grid>
                         
 
                         <Grid item xs={12} sm={3}>
-                            <Typography variant="subtitle1">Upload csv file</Typography>
+                            <Typography variant="subtitle1">Upload BDE Camping</Typography>
                         </Grid>
 
                         <Grid item xs={12} sm={3}>
@@ -404,23 +404,17 @@ class FSEUpload extends React.Component {
                             </Typography>
                         </Grid>
 
-                        {/* <Grid item xs={12} sm={3}>
-                            <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
-                        </Grid> */}
-
                         <Grid item xs={12} sm={3}>
                             <Button startIcon={<CloudUploadIcon />}  variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={() => this.uploadOffer('bde')}>Upload</Button>
                         </Grid>
                         
                     </Grid>
                     <Typography color="secondary" variant="body1">Note: Please review camping details under DASHBOARD CAMP before uploading</Typography>
-                  
-
 
                     
-                </Paper>
+                </Paper> */}
 
-                {/* <br />
+                <br />
                 <Paper style={{padding:"15px",  position:"sticky"}}>
                 <Grid syt  container spacing={1} container
                     justify="space-between"
@@ -431,7 +425,7 @@ class FSEUpload extends React.Component {
                         </Typography> 
                         </Grid>
                         <Grid item xs={10} sm={2}> 
-                            <FormControl style={styles.selectStyle}>
+                               <FormControl style={styles.selectStyle}>
                                     <InputLabel id="demo-mutiple-name-label">Select Camps Type </InputLabel>
                                     <Select
                                     labelId="demo-mutiple-name-label"
@@ -442,11 +436,21 @@ class FSEUpload extends React.Component {
                                     input={<Input />}
                                     MenuProps={MenuProps}
                                     >
-                                     <MenuItem key={'fse'} value={true}>FSE</MenuItem>
-                                     <MenuItem key={'fse'} value={false}>BDE</MenuItem>
+                                     <MenuItem key={'fse'} value={true}>Agent FSE</MenuItem>
+                                     <MenuItem key={'fse'} value={false}>BDE/Independent FSE</MenuItem>
 
                                     </Select>
                                 </FormControl>
+
+                                {/* <FormControl component="fieldset">                                   
+                                    <RadioGroup row aria-label="position" name="position" defaultValue="top">
+                                       <FormControlLabel value="Agent_FSE" control={<Radio />} label="Agent FSE" />
+                                       <FormControlLabel value="BDE_Independent_FSE " control={<Radio color="primary" />} label="BDE/Independent FSE" />
+                                    </RadioGroup>
+                                </FormControl> */}
+
+                       
+                                    
                             </Grid>
                         <Grid item xs={12} sm={2} item > 
                             <TextField type="text" value={this.state.RetailerNumber } label=" By Retailer Number  " style={{ width: "100%" }} name="RetailerNumber" onChange={this.onChange} />
@@ -462,8 +466,7 @@ class FSEUpload extends React.Component {
                         </Grid>
                 </Grid>
                 </Paper>
-                 <FSEPagination fscData={{fscDetails: this.state.fscDetails ? this.state.fscDetails : [], count: this.state.count, selectDeletedItem:this.selectDeletedItem, searchFse:this.searchFse} }/>
- */}
+
 
 
                 {/* <Paper style={{padding:"15px", position:"sticky", width:"100%", overflowX:"auto"}} >
@@ -540,6 +543,7 @@ class FSEUpload extends React.Component {
 
                  </Paper>  */}
 
+                 <FSEPagination fscData={{fscDetails: this.state.fscDetails ? this.state.fscDetails : [], count: this.state.count, selectDeletedItem:this.selectDeletedItem, searchFse:this.searchFse} }/>
 
 
                  {/* <Paper style={{padding:"15px",  position:"sticky"}}>
