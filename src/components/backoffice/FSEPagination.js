@@ -93,11 +93,12 @@ function EnhancedTableHead(props) {
   console.log('props', props);
  var headCells = []; 
 
+
   if(props.fse == 'false'){
    headCells = [
       { id: 'id', numeric: false, disablePadding: true, label: 'Select All' },
       { id: 'fseNumber', numeric: true, disablePadding: false, label: 'BDE/iFSE LAPU Number' },
-      { id: 'retailerNumber', numeric: true, disablePadding: false, label: 'Location Name' },
+      { id: 'retailerNumber', numeric: true, disablePadding: false, label: 'Lapu Name' },
       { id: 'retailerName', numeric: false, disablePadding: false, label: 'Location Address' },
       { id: 'latlong', numeric: true, disablePadding: false, label: 'Retailer Lat Long' },
       { id: 'campDate', numeric: false, disablePadding: false, label: 'Date of Camp (dd/mm/yyyy)' },
@@ -105,6 +106,7 @@ function EnhancedTableHead(props) {
       { id: 'targetRechargeAmount', numeric: true, disablePadding: false, label: 'Target Recharge Count' },
       { id: 'targetRechargeCount', numeric: true, disablePadding: false, label: 'Target Recharge Amount' },
       { id: 'targetSimSwapCount', numeric: true, disablePadding: false, label: 'Target SIM Swap' },
+
     ];
   }else{
      headCells = [
@@ -420,9 +422,11 @@ export default function EnhancedTable(props) {
                       </TableCell>
 
 
-                      <TableCell align="center">{row.fseNumber}</TableCell>
-                      <TableCell align="center">{row.retailerNumber}</TableCell>
-                      <TableCell align="center">{row.retailerName}</TableCell>
+
+                      {props.fscData.fse == 'true'? <TableCell align="center">{row.fseNumber}</TableCell> : "" }
+                     
+                      <TableCell align="center">{row.retailerNumber}{row.lapuNumber}</TableCell>
+                      <TableCell align="center">{row.retailerName}{row.lapuName}  </TableCell>
 
                       <TableCell align="center">{row.address}</TableCell>
                       <TableCell align="center">{row.latlong}</TableCell>
