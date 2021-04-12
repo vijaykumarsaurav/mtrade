@@ -67,11 +67,12 @@ class FSEUpload extends React.Component {
             endDate: '',
             retailerDetails: '',
             allOfferData:"",
-            fse:true,
+            fse:'true',
             parPage:10,
             selectedIds:[],
             selectedIdsDelete:'',
             afterDeleteRefresh:false, 
+            MSISDN:'',
             fscDetails:[]// [{"fseNumber" : 1, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 2, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 3, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", },{"fseNumber" : 4, "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", "one" : "one", }]
         };
         this.uploadOffer = this.uploadOffer.bind(this);
@@ -166,6 +167,9 @@ class FSEUpload extends React.Component {
 
     selectCampsType = (e) =>{
         this.setState({[e.target.name]: e.target.value})
+        this.setState({ fscDetails :  []})
+      //this.searchFse();
+
     }
     selectDeletedItem = (allid) =>{
 
@@ -259,10 +263,10 @@ class FSEUpload extends React.Component {
             userDetails = userDetails && JSON.parse(userDetails);
            
             const param = {
-                    fseNumber : this.state.FSENumber.toString(), 
-                    retailerNumber: this.state.RetailerNumber.toString(), 
-                    monthOfCamp: this.state.monthOfCamp && this.state.monthOfCamp.toString(),
-                    lapuNumber: this.state.FSENumber.toString(), 
+                //    fseNumber : this.state.MSISDN.toString(), 
+                //    retailerNumber: this.state.MSISDN.toString(), 
+                 //   monthOfCamp:  null,//this.state.monthOfCamp && this.state.monthOfCamp.toString(),
+                    lapuNumber: this.state.MSISDN.toString(), 
                     fse: this.state.fse
             }
         
@@ -424,8 +428,8 @@ class FSEUpload extends React.Component {
                         Camping Search and Delete
                         </Typography> 
                         </Grid>
-                        <Grid item xs={10} sm={2}> 
-                               <FormControl style={styles.selectStyle}>
+                        <Grid item xs={10} sm={4}> 
+                               {/* <FormControl style={styles.selectStyle}>
                                     <InputLabel id="demo-mutiple-name-label">Select Camps Type </InputLabel>
                                     <Select
                                     labelId="demo-mutiple-name-label"
@@ -440,27 +444,27 @@ class FSEUpload extends React.Component {
                                      <MenuItem key={'fse'} value={false}>BDE/Independent FSE</MenuItem>
 
                                     </Select>
-                                </FormControl>
-
-                                {/* <FormControl component="fieldset">                                   
-                                    <RadioGroup row aria-label="position" name="position" defaultValue="top">
-                                       <FormControlLabel value="Agent_FSE" control={<Radio />} label="Agent FSE" />
-                                       <FormControlLabel value="BDE_Independent_FSE " control={<Radio color="primary" />} label="BDE/Independent FSE" />
-                                    </RadioGroup>
                                 </FormControl> */}
+
+                                <FormControl component="fieldset">                                   
+                                    <RadioGroup value={this.state.fse} onChange={this.selectCampsType} row aria-label="position"  name="fse" defaultValue="top">
+                                       <FormControlLabel value={'true'} control={<Radio  color="primary" />} label="Agent FSE" />
+                                       <FormControlLabel value={'false'} control={<Radio color="primary" />} label="BDE/Independent FSE" />
+                                    </RadioGroup>
+                                </FormControl>
 
                        
                                     
                             </Grid>
-                        <Grid item xs={12} sm={2} item > 
-                            <TextField type="text" value={this.state.RetailerNumber } label=" By Retailer Number  " style={{ width: "100%" }} name="RetailerNumber" onChange={this.onChange} />
+                        <Grid item xs={12} sm={4} item > 
+                            <TextField type="text" value={this.state.MSISDN } label="Search MSISDN" style={{ width: "100%" }} name="MSISDN" onChange={this.onChange} />
                         </Grid>
-                        <Grid item xs={12} sm={2} item > 
+                        {/* <Grid item xs={12} sm={2} item > 
                             <TextField type="text" value={this.state.FSENumber } label=" By FSE Number  " style={{ width: "100%" }} name="FSENumber" onChange={this.onChange} />
                         </Grid>
                         <Grid item xs={12} sm={2}>
                             <MonthYearCalender calParams={{myCallback: this.myCallback}}/>
-                        </Grid>
+                        </Grid> */}
                         <Grid item xs={12} sm={1} item > 
                             <Button startIcon={<SearchIcon/>} variant="contained"  onClick={this.searchFse}>Search</Button>
                         </Grid>
@@ -543,7 +547,7 @@ class FSEUpload extends React.Component {
 
                  </Paper>  */}
 
-                 <FSEPagination fscData={{fscDetails: this.state.fscDetails ? this.state.fscDetails : [], count: this.state.count, selectDeletedItem:this.selectDeletedItem, searchFse:this.searchFse} }/>
+                 <FSEPagination fscData={{fse :this.state.fse, fscDetails: this.state.fscDetails ? this.state.fscDetails : [], count: this.state.count, selectDeletedItem:this.selectDeletedItem, searchFse:this.searchFse} }/>
 
 
                  {/* <Paper style={{padding:"15px",  position:"sticky"}}>

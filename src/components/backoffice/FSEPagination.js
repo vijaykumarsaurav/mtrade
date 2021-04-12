@@ -80,19 +80,8 @@ function stableSort(array, comparator) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-const headCells = [
-  { id: 'id', numeric: false, disablePadding: true, label: 'Select All' },
-  { id: 'fseNumber', numeric: true, disablePadding: false, label: 'FSE Number' },
-  { id: 'retailerNumber', numeric: true, disablePadding: false, label: 'Retailer Number' },
-  { id: 'retailerName', numeric: false, disablePadding: false, label: 'Retailer Name' },
-  { id: 'address', numeric: false, disablePadding: false, label: 'Retailer Address' },
-  { id: 'latlong', numeric: true, disablePadding: false, label: 'Retailer Lat Long' },
-  { id: 'campDate', numeric: false, disablePadding: false, label: 'Date of Camp (dd/mm/yyyy)' },
-  { id: 'targetAcqCount', numeric: true, disablePadding: false, label: 'Target Acquisition' },
-  { id: 'targetRechargeAmount', numeric: true, disablePadding: false, label: 'Target Recharge Count' },
-  { id: 'targetRechargeCount', numeric: true, disablePadding: false, label: 'Target Recharge Amount' },
-  { id: 'targetSimSwapCount', numeric: true, disablePadding: false, label: 'Target SIM Swap' },
-];
+
+
 
 
 
@@ -101,6 +90,41 @@ function EnhancedTableHead(props) {
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
+  console.log('props', props);
+ var headCells = []; 
+
+  if(props.fse == 'false'){
+   headCells = [
+      { id: 'id', numeric: false, disablePadding: true, label: 'Select All' },
+      { id: 'fseNumber', numeric: true, disablePadding: false, label: 'BDE/iFSE LAPU Number' },
+      { id: 'retailerNumber', numeric: true, disablePadding: false, label: 'Location Name' },
+      { id: 'retailerName', numeric: false, disablePadding: false, label: 'Location Address' },
+      { id: 'latlong', numeric: true, disablePadding: false, label: 'Retailer Lat Long' },
+      { id: 'campDate', numeric: false, disablePadding: false, label: 'Date of Camp (dd/mm/yyyy)' },
+      { id: 'targetAcqCount', numeric: true, disablePadding: false, label: 'Target Acquisition' },
+      { id: 'targetRechargeAmount', numeric: true, disablePadding: false, label: 'Target Recharge Count' },
+      { id: 'targetRechargeCount', numeric: true, disablePadding: false, label: 'Target Recharge Amount' },
+      { id: 'targetSimSwapCount', numeric: true, disablePadding: false, label: 'Target SIM Swap' },
+    ];
+  }else{
+     headCells = [
+      { id: 'id', numeric: false, disablePadding: true, label: 'Select All' },
+      { id: 'fseNumber', numeric: true, disablePadding: false, label: 'Agent FSE LAPU Number' },
+      { id: 'retailerNumber', numeric: true, disablePadding: false, label: 'Retailer Number' },
+      { id: 'retailerName', numeric: false, disablePadding: false, label: 'Retailer Name' },
+      { id: 'address', numeric: false, disablePadding: false, label: 'Retailer Address' },
+      { id: 'latlong', numeric: true, disablePadding: false, label: 'Retailer Lat Long' },
+      { id: 'campDate', numeric: false, disablePadding: false, label: 'Date of Camp (dd/mm/yyyy)' },
+      { id: 'targetAcqCount', numeric: true, disablePadding: false, label: 'Target Acquisition' },
+      { id: 'targetRechargeAmount', numeric: true, disablePadding: false, label: 'Target Recharge Count' },
+      { id: 'targetRechargeCount', numeric: true, disablePadding: false, label: 'Target Recharge Amount' },
+      { id: 'targetSimSwapCount', numeric: true, disablePadding: false, label: 'Target SIM Swap' },
+    ];
+  }
+
+  console.log("test"); 
+  //headCells=[];
+
 
   return (
     <TableHead>
@@ -262,7 +286,7 @@ export default function EnhancedTable(props) {
   });
 
 
-  console.log(props); 
+  console.log('propsprops', props); 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
       const newSelecteds = props.fscData.fscDetails.map((n) => n.id);
@@ -364,6 +388,8 @@ export default function EnhancedTable(props) {
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
               rowCount={props.fscData && props.fscData && props.fscData.count}
+              fse={props.fscData.fse}
+
             />
             <TableBody>
               {stableSort(props.fscData.fscDetails, getComparator(order, orderBy))

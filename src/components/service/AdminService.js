@@ -58,7 +58,7 @@ class AdminService {
     }
 
     searchFse(data){
-        return axios.get(apiConstant.FSE_SEARCH+ "?fseNumber="+data.fseNumber+"&retailerNumber="+data.retailerNumber+"&monthOfCamp="+data.monthOfCamp+"&lapuNumber="+data.lapuNumber+"&fse="+data.fse, AuthService.getHeader());
+        return axios.get(apiConstant.FSE_SEARCH+ "?lapuNumber="+data.lapuNumber+"&fse="+data.fse, AuthService.getHeader());
     }
     
     getDashboardCount(){
