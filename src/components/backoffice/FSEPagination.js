@@ -98,7 +98,7 @@ function EnhancedTableHead(props) {
    headCells = [
       { id: 'id', numeric: false, disablePadding: true, label: 'Select All' },
       { id: 'fseNumber', numeric: true, disablePadding: false, label: 'BDE/iFSE LAPU Number' },
-      { id: 'retailerNumber', numeric: true, disablePadding: false, label: 'Lapu Name' },
+      { id: 'retailerNumber', numeric: true, disablePadding: false, label: 'Location Name' },
       { id: 'retailerName', numeric: false, disablePadding: false, label: 'Location Address' },
       { id: 'latlong', numeric: true, disablePadding: false, label: 'Retailer Lat Long' },
       { id: 'campDate', numeric: false, disablePadding: false, label: 'Date of Camp (dd/mm/yyyy)' },
@@ -381,6 +381,7 @@ export default function EnhancedTable(props) {
             aria-labelledby="tableTitle"
             size={dense ? 'small' : 'medium'}
             aria-label="enhanced table"
+            align="left"
           >
             <EnhancedTableHead
               classes={classes}
@@ -426,7 +427,7 @@ export default function EnhancedTable(props) {
                       {props.fscData.fse == 'true'? <TableCell align="center">{row.fseNumber}</TableCell> : "" }
                      
                       <TableCell align="center">{row.retailerNumber}{row.lapuNumber}</TableCell>
-                      <TableCell align="center">{row.retailerName}{row.lapuName}  </TableCell>
+                      <TableCell align="center">{row.retailerName}{row.locationName}  </TableCell>
 
                       <TableCell align="center">{row.address}</TableCell>
                       <TableCell align="center">{row.latlong}</TableCell>
