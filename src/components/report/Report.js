@@ -383,7 +383,7 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="agentWisePerformanceLog">Agent Wise Performance Report</MenuItem>); 
         adminReports.push(<MenuItem value="backOfficeReceptionReport">Back Office Reception Report</MenuItem>);    
         adminReports.push(<MenuItem value="backOfficeReceptionReportWithDetails">Back Office Reception Report with Details</MenuItem>); 
-        adminReports.push(<MenuItem value="bdeActivationReport">BDE Activation Report</MenuItem>);
+        // adminReports.push(<MenuItem value="bdeActivationReport">BDE Activation Report</MenuItem>);
 
         adminReports.push(<MenuItem value="ipacsReadyReport">IPACS Ready Report</MenuItem>); 
         adminReports.push(<MenuItem value="noneComplainceReport">None Compliance Report</MenuItem>); 
