@@ -12,12 +12,6 @@ if(window.location.hostname == "retailer.srilanka.airtel.itm"){
     RETAILER_API_BASE_URL = 'http://retailer.srilanka.airtel.itm:5443/SLRetailer/';
 }
 
-//window.location.hostname == "localhost"  SLRetailerIPACS  SLRetailer
-if(window.location.hostname == "125.16.74.160"){
-    RETAILER_API_BASE_URL = 'http://125.16.74.160:30611/SLRetailer/'; 
-}
-
-
 if(window.location.hostname == "125.17.6.6"){
    // RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer/SLRetailer/';
     RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer_sit/SLRetailer/';
@@ -25,14 +19,12 @@ if(window.location.hostname == "125.17.6.6"){
     domainIpName = '125.17.6.6'; 
 }
 
-if(window.location.pathname == "/mitradev/"){
+if(window.location.hostname == "125.17.6.6" && window.location.pathname == "/mitradev/"){
     RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer/SLRetailer/';
      templatePath =  '/mitradev';  
      domainIpName = '125.17.6.6'; 
- }
-
-
-
+ } 
+ 
 //dev private url
 if(window.location.hostname == "10.92.210.103"){
     templatePath =  '/retailerdev';  
@@ -51,15 +43,14 @@ if(window.location.hostname == "tstretailer.airtel.lk"){
 }
 
 if(window.location.hostname == "127.0.0.1" || window.location.hostname == "localhost"){
-  //RETAILER_API_BASE_URL = 'https://125.16.74.160:30611/SLRetailer/'; //staging
-   RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer/SLRetailer/'; //dev
- //  RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
+    //RETAILER_API_BASE_URL = 'https://125.16.74.160:30611/SLRetailer/'; //staging
+     RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer/SLRetailer/'; //dev
+   //  RETAILER_API_BASE_URL = 'http://slretailer-service.development.slmitra.airtelworld.in/SLRetailer/';
+     //RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer_sit/SLRetailer/'; //sit public service
+     domainIpName = '125.17.6.6'; 
+  }
 
-   //RETAILER_API_BASE_URL = 'http://125.17.6.6/retailer_sit/SLRetailer/'; //sit public service
 
-   
-   domainIpName = '125.17.6.6'; 
-}
 //reports 
 export const RETAILER_REPORT_BASEAPI = RETAILER_API_BASE_URL + 'reports/';
 // export const RETAILER_RECHAGE_REPORT_BASEAPI = STAGING_IP_PORT + 'SLRetailerA/' + 'recharges/';

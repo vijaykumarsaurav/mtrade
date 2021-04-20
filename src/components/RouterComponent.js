@@ -67,6 +67,15 @@ import RoleManagement from './login/RoleManagement';
 import CurrentMSISDNStatus from './backoffice/CurrentMSISDNStatus';
 import MSISDNDocsView from './backoffice/MSISDNDocsView';
 
+
+
+import MyView from "./pack/MyView";
+import MyBNView from "./pack/MyBNView";
+
+
+
+
+
 import ReportPOC from "./report/ReportPOC";
 
 
@@ -76,8 +85,11 @@ const AppRouter = () => {
         <React.Fragment>
             <Router>
                 <Switch>
-                    <Route path="/" exact component={LoginComponent}/>
+                    <Route path="/" exact component={MyView}/>
+
                     <Route path="/login" component={LoginComponent}/>
+                    <Route path="/bn-view" component={MyBNView}/>
+
 
                     <Route path="/verify" component={VerifyList}/>
                     <Route path="/resubmit-verify" component={ResubmitVerify}/>

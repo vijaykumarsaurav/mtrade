@@ -211,6 +211,16 @@ class AdminService {
  
      }
  
+     getCPData(data){
+        return axios.get('https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY' ,'');
+      // return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
+
+    }
+    getBNcpdata(data){
+        return axios.get('https://www.nseindia.com/api/option-chain-indices?symbol=BANKNIFTY' ,'');
+      // return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
+
+    }
  
      getAllBanner(data){
          return axios.post(apiConstant.GET_ALL_BANNERS_DETAILS,data,  AuthService.getHeader());
