@@ -270,7 +270,7 @@ class Report extends React.Component {
 
                     this.setState({  generateReportLoader: false});
 
-                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport' || this.state.reporttype == 'kycReceptionReport'  || this.state.reporttype == 'kycAgentAuditReport' || this.state.reporttype == 'kycIpacReadyReport' ||  this.state.reporttype == 'ostReceptionReport'  ||  this.state.reporttype == 'ostAgentAuditReport'  ||  this.state.reporttype == 'ostIpacReadyReport' || this.state.reporttype == "bdeActivationReport" ){
+                }else if(this.state.reporttype == 'disconnectionAgentAuditReport' || this.state.reporttype == 'disconnectionReceptionReport' || this.state.reporttype == 'disconnectionIpacReadyReport' || this.state.reporttype == 'kycReceptionReport'  || this.state.reporttype == 'kycAgentAuditReport' || this.state.reporttype == 'kycIpacReadyReport' ||  this.state.reporttype == 'ostReceptionReport'  ||  this.state.reporttype == 'ostAgentAuditReport'  ||  this.state.reporttype == 'ostIpacReadyReport' || this.state.reporttype == "bdeActivationReport" ||  this.state.reporttype == 'agentFSECampingReport' || this.state.reporttype == 'bdeAndIndependentFSECampingReport' || this.state.reporttype == 'agentFSEActivationReport' || this.state.reporttype == 'bdeAndFseActivationReport'){
                     if(data.result && data.result.length>0){
                         this.setState({ generateReportMsg:  "Ready to Download"});
                         this.setState({ products: data.result , responseFlag : true});
@@ -383,7 +383,7 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="agentWisePerformanceLog">Agent Wise Performance Report</MenuItem>); 
         adminReports.push(<MenuItem value="backOfficeReceptionReport">Back Office Reception Report</MenuItem>);    
         adminReports.push(<MenuItem value="backOfficeReceptionReportWithDetails">Back Office Reception Report with Details</MenuItem>); 
-        adminReports.push(<MenuItem value="bdeActivationReport">BDE Activation Report</MenuItem>);
+        // adminReports.push(<MenuItem value="bdeActivationReport">BDE Activation Report</MenuItem>);
 
         adminReports.push(<MenuItem value="ipacsReadyReport">IPACS Ready Report</MenuItem>); 
         adminReports.push(<MenuItem value="noneComplainceReport">None Compliance Report</MenuItem>); 
@@ -396,7 +396,9 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="disconnectionReport">D-1 Disconnect Report</MenuItem>);
         adminReports.push(<MenuItem value="reconnectionReport">D-1 Re-connection Report</MenuItem>);
 
-      
+        adminReports.push(<MenuItem value="agentFSEActivationReport">Agent FSE Activation eport</MenuItem>);
+        adminReports.push(<MenuItem value="bdeAndFseActivationReport">BDE/Independent FSE Activation Report</MenuItem>);
+       
         adminReports.push(<MenuItem disabled value="" style={{color:'#0D0D0E', background:'#a8cdee'}}><b><em> Sales Reports </em> </b></MenuItem>);
         adminReports.push(<MenuItem value="simSwapCount">D-1 Sim Swap Count Report</MenuItem>);
         adminReports.push(<MenuItem value="dailyActiveRetailers">D-1 Daily Active Retailers Report</MenuItem>);
@@ -406,6 +408,8 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="reloadAndBillPayCount">D-1 Reload & Bill Pay Count Report</MenuItem>);
         adminReports.push(<MenuItem value="retailerOnboardedReport">D-1 Retailer Onboarded Report</MenuItem>);
         adminReports.push(<MenuItem value="acquisitionCountReport">D-1 SUK vs CYN Count Report</MenuItem>);
+        adminReports.push(<MenuItem value="agentFSECampingReport">Agent FSE Camping Report</MenuItem>);
+        adminReports.push(<MenuItem value="bdeAndIndependentFSECampingReport">BDE/Independent FSE Camping Report</MenuItem>);
         
         adminReports.push(<MenuItem disabled value="" style={{color:'#0D0D0E', background:'#a8cdee'}}><b><em> Other Services </em> </b></MenuItem>);
         //sprint 12
@@ -421,7 +425,6 @@ class Report extends React.Component {
         adminReports.push(<MenuItem value="ostReceptionReport">Ownership Reception Report</MenuItem>);
         adminReports.push(<MenuItem value="ostAgentAuditReport">Ownership Agent Audit Report</MenuItem>);
         adminReports.push(<MenuItem value="ostIpacReadyReport">Ownership Ipacs Ready Report</MenuItem>);
-
 
 
         // BY_VERIFICATION_DATE,
@@ -451,6 +454,11 @@ class Report extends React.Component {
         if(this.state.reporttype == 'unBarReport'){
             downloadfilename = "unBarReport_from_"+ this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"; 
         }  
+        if(this.state.reporttype == 'agentFSECampingReport' || this.state.reporttype == 'bdeAndIndependentFSECampingReport'){
+            downloadfilename = this.state.reporttype + '_'+ this.dateFormat(this.state.startDate)+ "_to_"+this.dateFormat(this.state.endDate)+".csv"; 
+        }  
+
+
 
         return (
 
@@ -512,7 +520,7 @@ class Report extends React.Component {
                             </Grid>
                             :""}
 
-                          {this.state.reporttype != 'disconnectionReport' && this.state.reporttype != 'reconnectionReport' && this.state.reporttype != 'simSwapCount' && this.state.reporttype != 'mpinResetCount' && this.state.reporttype != 'reloadAndBillPayCount' && this.state.reporttype != 'idleRetailers' &&  this.state.reporttype != 'monthlyActiveRetailers' && this.state.reporttype != 'dailyActiveRetailers' && this.state.reporttype !=  'acquisitionCountReport' &&  this.state.reporttype != 'retailerOnboardedReport' &&  this.state.reporttype != 'barReport' &&  this.state.reporttype != 'unBarReport'? 
+                          {this.state.reporttype != 'disconnectionReport' && this.state.reporttype != 'reconnectionReport' && this.state.reporttype != 'simSwapCount' && this.state.reporttype != 'mpinResetCount' && this.state.reporttype != 'reloadAndBillPayCount' && this.state.reporttype != 'idleRetailers' &&  this.state.reporttype != 'monthlyActiveRetailers' && this.state.reporttype != 'dailyActiveRetailers' && this.state.reporttype !=  'acquisitionCountReport' &&  this.state.reporttype != 'retailerOnboardedReport' &&  this.state.reporttype != 'barReport' &&  this.state.reporttype != 'unBarReport' && this.state.reporttype != 'agentFSECampingReport' && this.state.reporttype != 'bdeAndIndependentFSECampingReport' ? 
                             <Grid item xs={12} sm={3}>
                                 <FormControl style={styles.selectStyle}>
                                     <InputLabel id="demo-mutiple-name-label">Retrieve Type</InputLabel>

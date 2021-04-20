@@ -20,7 +20,12 @@ if(window.location.hostname == "125.17.6.6"){
 }
 
 if(window.location.hostname == "125.17.6.6" && window.location.pathname == "/mitradev/"){
+<<<<<<< HEAD
     RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer/SLRetailer/';
+=======
+  //  RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer/SLRetailer/';
+     RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer_sit/SLRetailer/';
+>>>>>>> f8358e0df9c820d81a6571779bf3df4099ea5eca
      templatePath =  '/mitradev';  
      domainIpName = '125.17.6.6'; 
  } 
@@ -149,11 +154,12 @@ export const RETAILER_SEARCH = RETAILER_API_BASE_URL + 'agent/retrieve';
 export const RETAILER_API_OFFER_UPLOAD = RETAILER_API_BASE_URL + 'bestoffers/upload';
 export const RETAILER_API_OFFER_DOWNLOAD = RETAILER_API_BASE_URL + 'bestoffers/download';
 //fsc
-export const RETAILER_API_FSC_UPLOAD = RETAILER_API_BASE_URL + 'fse/camps/upload';
+export const RETAILER_API_FSC_UPLOAD = RETAILER_API_BASE_URL + 'promoter/camps/upload';
 //export const RETAILER_API_FSC_DOWNLOAD = RETAILER_API_BASE_URL + 'fse/view';
 //export const RETAILER_API_FSC_UPLOAD =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' + 'fse/camps/upload';
-export const FSE_SEARCH =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/camps/view';
-export const FSE_DELETE =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/camps/delete';
+//export const FSE_SEARCH =  'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/camps/view';
+export const FSE_SEARCH =  RETAILER_API_BASE_URL +  'promoter/camps/view';
+export const FSE_DELETE =  RETAILER_API_BASE_URL +  'promoter/camps/delete'; //'http://125.17.6.6/retailer/SLRetailerFSECamping/' +  'fse/camps/delete';
 
 //KYC RE_RESISTRATION
 export const RETAILER_API_RE_RESISTRATION_UPLOAD =  RETAILER_API_BASE_URL + 'customer/kyc/upload';

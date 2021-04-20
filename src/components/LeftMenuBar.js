@@ -45,6 +45,13 @@ export const AdminMenuList = (
       <ListItemText primary="Dashboard Count" />
     </ListItem>
 
+    <ListItem button component='a' href={"#/dashboard-camps"} >  
+      <ListItemIcon>
+        <EmojiEmotionsIcon />
+      </ListItemIcon>
+      <ListItemText primary="Dashboard Camp" />
+    </ListItem>
+
     <ListItem button component='a' href={"#/msisdn-status"} >  
       <ListItemIcon>
         <FileCopyIcon />

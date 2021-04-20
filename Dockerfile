@@ -1,4 +1,4 @@
-FROM node:10-alpine
+FROM core.harbor.cloudapps.okdcloud.india.airtel.itm/library/node:lts-stretch
 
 MAINTAINER VijayKumar<vijay3.kumar@airtel.com>
 #
