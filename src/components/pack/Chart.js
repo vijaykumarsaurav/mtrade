@@ -1,133 +1,90 @@
-import React from 'react';
-import { withStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import MuiDialogTitle from '@material-ui/core/DialogTitle';
-import MuiDialogContent from '@material-ui/core/DialogContent';
-import MuiDialogActions from '@material-ui/core/DialogActions';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
-import Typography from '@material-ui/core/Typography';
-import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
-import TableBody from "@material-ui/core/TableBody";
-import {
-  Chart,
-  ArcElement,
-  LineElement,
-  BarElement,
-  PointElement,
-  BarController,
-  BubbleController,
-  DoughnutController,
-  LineController,
-  PieController,
-  PolarAreaController,
-  RadarController,
-  ScatterController,
-  CategoryScale,
-  LinearScale,
-  LogarithmicScale,
-  RadialLinearScale,
-  TimeScale,
-  TimeSeriesScale,
-  Decimation,
-  Filler,
-  Legend,
-  Title,
-  Tooltip
-} from 'chart.js';
+import React from "react";
+//import "./styles.css";
 
-Chart.register(
-  ArcElement,
-  LineElement,
-  BarElement,
-  PointElement,
-  BarController,
-  BubbleController,
-  DoughnutController,
-  LineController,
-  PieController,
-  PolarAreaController,
-  RadarController,
-  ScatterController,
-  CategoryScale,
-  LinearScale,
-  LogarithmicScale,
-  RadialLinearScale,
-  TimeScale,
-  TimeSeriesScale,
-  Decimation,
-  Filler,
-  Legend,
-  Title,
-  Tooltip
-);
+import { Line } from "react-chartjs-2";
 
-var myChart = new Chart(ctx, {...LineController});
+
+
+export default function App( props ) {
+
+ 
+
+  // dateTime: "23-06-2021 4:43:02 PM"
+  // diff: -298523
+  // isDuplicate: true
+  // totCEOI: 902038
+  // totCEOIChange: "0.000"
+  // totCEVol: 15312564
+  // totChangeINOICall: 127897
+  // totChangeINOIDiff: -107353
+  // totChangeINOIPut: 20544
+  // totDiffChange: "0.000"
+  // totPEOI: 603515
+  // totPEOIChange: "0.000"
+  // totPEVol: 15418605
+  var data =  props.diffData.data;
+  var putData = [], callData = [],  timeDate = []; 
 
 
 
 
+  
+  var scpage =   Math.floor( props.diffData.scrollcount/10 ) ? Math.floor( props.diffData.scrollcount/10 ) : 1; 
+  
 
-const styles = (theme) => ({
-  root: {
-    margin: 0,
-    padding: theme.spacing(2),
-  },
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-});
-
-const DialogTitle = withStyles(styles)((props) => {
-  const { children, classes, onClose, ...other } = props;
-  return (
-    <MuiDialogTitle disableTypography className={classes.root} {...other}>
-      <Typography variant="h6">{children}</Typography>
-      {onClose ? (
-        <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      ) : null}
-    </MuiDialogTitle>
-  );
-});
-
-const DialogContent = withStyles((theme) => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-}))(MuiDialogContent);
-
-const DialogActions = withStyles((theme) => ({
-  root: {
-    margin: 0,
-    padding: theme.spacing(1),
-  },
-}))(MuiDialogActions);
-
-export default function CustomizedDialogs(props) {
-  const [open, setOpen] = React.useState(false);
+  var startpage = 0  
+  if(scpage * 10 <  data.length) {
+    startpage =  scpage * 10;  
+  }   
+  else if (props.diffData.scrollcount > data.length){
+    startpage =  0; 
+  }
 
 
-  //var indexSymbolData = JSON.parse(localStorage.getItem(props.data.indexSymbol)).data ; 
 
-  const handleClickOpen = () => {
-    setOpen(true);
+  console.log('scrollcount', props.diffData.scrollcount); 
+  console.log('startpage', startpage); 
+
+
+  for (let index = startpage; index <  startpage + 10; index++) {
+    if(data[index]){
+      putData.push(data[index].totPEOI); 
+      callData.push(data[index].totCEOI); 
+      timeDate.push( data[index].dateTime.substring(19,11)); 
+    }
+  
+  }
+
+
+
+
+  const chartData = {
+    labels: timeDate,
+    datasets: [
+      {
+        label: "Call",
+        data: callData,
+        fill: true,
+        backgroundColor:  "rgba(75,192,192,0.1)",
+        borderColor: "red",
+        
+      },
+      {
+        label: "Put",
+        data: putData,
+        fill: true,
+        backgroundColor: "rgba(75,192,192,0.2)",
+        borderColor: "green"
+      }
+    ]
   };
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const options = {
+    maintainAspectRatio: true,	// Don't maintain w/h ratio
+  } 
 
   return (
-    <div>
-      <myChart />
+    <div className="App">
+      <Line data={chartData} options={options} />
     </div>
   );
 }

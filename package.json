@@ -18,6 +18,7 @@
     "md5": "^2.3.0",
     "moment": "^2.29.0",
     "react": "^16.8.6",
+    "react-chartjs-2": "^3.0.3",
     "react-csv": "^2.0.1",
     "react-dom": "^16.8.6",
     "react-image-pan-zoom-rotate": "^1.2.0",

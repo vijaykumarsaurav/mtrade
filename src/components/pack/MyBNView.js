@@ -20,6 +20,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Input from "@material-ui/core/Input";
 import "./ViewStyle.css";
 
+import Chart from "./Chart";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -49,6 +50,7 @@ class MyView extends React.Component{
             AllspTotalOI:[],
             PEoi:0,
             CEoi:0,
+            scrollcount : 0,
             pcrTableBN : JSON.parse(localStorage.getItem('pcrTableBN')) && JSON.parse(localStorage.getItem('pcrTableBN')).data,
             optionChainDataBN: JSON.parse( localStorage.getItem('optionChainDataBN')),
             filtered: JSON.parse(localStorage.getItem('optionChainDataBN'))  && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered.data  
@@ -104,10 +106,22 @@ class MyView extends React.Component{
        //  console.log(filereddata); 
     }
 
+    // componentWillUnmount() {
+    //     var tabledata = document.getElementById('tabledata'); 
+    //     tabledata.removeEventListener('scroll', this.handleScroll);
+       
+    // }
 
+    handleScroll = (data)  => {
+
+        this.setState({scrollcount : this.state.scrollcount +=1 });
+
+    }
 
     componentDidMount() {
 
+        var tabledatachart = document.getElementById('tabledatachart'); 
+        tabledatachart.addEventListener('scroll', this.handleScroll);
 
        this.loadPackList();
    //   console.log('this.state.optionChainDataBN.records.expiryDates', this.state.optionChainDataBN.records.expiryDates)
@@ -200,8 +214,6 @@ class MyView extends React.Component{
             //         } 
             //     }                  
             // }   
-
-            //var myStrike = [14000, 14050, 14100, 14150, 14200, 14050, 14300, 14350, 14400,14450,14500,14550,14600,14650,14700,14750,14800,14850,14900,14950,15000,15050,15100,15150,15200,15250]; 
 
            var myStrike =[]; 
 
@@ -493,15 +505,11 @@ class MyView extends React.Component{
                          
 
 
-                         <Grid item xs={2} sm={2} >
-                         <Typography  component="h3" variant="body1" color="primary" style={{justifyContent:'left'}}>
-                            <span>14000 to 15250 PCR: <b>{this.state.selectedSPpcr} </b></span>
-
-                         </Typography> 
-                
-              
-
-                        </Grid>
+                         {/* <Grid item xs={2} sm={2} >
+                            <Typography  component="h3" variant="body1" color="primary" style={{justifyContent:'left'}}>
+                                <span>14000 to 15250 PCR: <b>{this.state.selectedSPpcr} </b></span>
+                            </Typography> 
+                        </Grid> */}
 
 
                         
@@ -513,12 +521,12 @@ class MyView extends React.Component{
 
 
             
-            <Grid  direction="row" container className="flexGrow" spacing={0}  style={{paddingLeft:"5px",paddingRight:"5px"}}>
+            <Grid   direction="row" container className="flexGrow" spacing={0}  style={{paddingLeft:"5px",paddingRight:"5px"}}>
               
               
-                <Grid item xs={7} sm={7} style={{padding:"2px", overflow:"auto", height:"250px"}}>
-                <Table  id="tabledata" stickyHeader aria-label="sticky table"  id="tabledata" size="small">
-                    <TableHead style={{}} variant="head">
+                <Grid id="tabledatachart"  item xs={3} sm={3} style={{padding:"2px", overflow:"auto", height:"250px"}}>
+                <Table id="tabledata" stickyHeader aria-label="sticky table" size="small">
+                    <TableHead  key={2222}  variant="head"  style={{width:"",whiteSpace: "nowrap"}}>
                         <TableRow variant="head">
                             <TableCell align="center"><b>Time</b></TableCell>
                             <TableCell align="center"><b>VIEW</b></TableCell>
@@ -529,15 +537,15 @@ class MyView extends React.Component{
                             <TableCell align="center"><b>Chng Put OI</b></TableCell>                            
 
                             <TableCell align="center"><b>Call OI</b></TableCell>
-
-                         
                             <TableCell align="center"><b>Chng Call OI</b></TableCell>                            
                             
                             {/* <TableCell align="center"><b>Total PUT Volume</b></TableCell>
                             <TableCell align="center"><b>Total Call Volume</b> </TableCell> */}
                         </TableRow>
                     </TableHead>
-                    <TableBody hover style={{width:"",whiteSpace: "nowrap"}}>
+                    <TableBody  hover style={{width:"",whiteSpace: "nowrap"}} >
+
+                        
                     
                         { this.state.products ? this.state.products.map(row => (
                             <TableRow key={row.dateTime} style={{background: row.isDuplicate ? "lightgray":""}}>
@@ -558,9 +566,15 @@ class MyView extends React.Component{
                 
                             </TableRow>
                         )):<Spinner/>}
+
+                    
                     </TableBody>
                 </Table>
                 
+                </Grid>
+                <Grid item xs={4} sm={4} style={{padding:"2px", overflow:"auto", height:"250px"}}>
+                
+                 <Chart diffData={{data :  this.state.products, scrollcount : this.state.scrollcount}}/>
                 </Grid>
 
                 <Grid item xs={3} sm={3} style={{padding:"2px", overflow:"auto", height:"250px"}}>
@@ -575,7 +589,7 @@ class MyView extends React.Component{
                            
                         </TableRow>
                     </TableHead>
-                    <TableBody style={{width:"",whiteSpace: "nowrap"}}>
+                    <TableBody>
                     
                         { this.state.AllspTotalOI ? this.state.AllspTotalOI.map(row => (
                              <TableRow  hover key={row.dateTime} >
@@ -635,7 +649,7 @@ class MyView extends React.Component{
                         <TableCell align="center"><b></b></TableCell>
                         <TableCell colSpan={6} align="center"><b>PUT</b></TableCell>
                     </TableRow>
-                    <TableRow variant="head" >
+                    <TableRow variant="head" style={{width:"",whiteSpace: "nowrap"}} >
                     
                         {/* <TableCell align="center" ><b>Sr No.</b></TableCell>  */}
                      

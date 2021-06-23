@@ -76,7 +76,7 @@ import MyBNView from "./pack/MyBNView";
 
 import MySectorTop from "./pack/MySectorTop";
 
-
+import Chart from "./pack/Chart";
 
 
 
@@ -95,6 +95,7 @@ const AppRouter = () => {
                     <Route path="/login" component={LoginComponent}/>
                     <Route path="/bn-view" component={MyBNView}/>
                     <Route path="/sector" component={MySectorTop}/>
+                    <Route path="/chart" component={Chart}/>
 
                     <Route path="*" component={LoginComponent} />
 
