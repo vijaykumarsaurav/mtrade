@@ -74,6 +74,9 @@ import MSISDNDocsView from './backoffice/MSISDNDocsView';
 import MyView from "./pack/MyView";
 import MyBNView from "./pack/MyBNView";
 
+import MySectorTop from "./pack/MySectorTop";
+
+
 
 
 
@@ -91,77 +94,9 @@ const AppRouter = () => {
 
                     <Route path="/login" component={LoginComponent}/>
                     <Route path="/bn-view" component={MyBNView}/>
-
-
-                    <Route path="/verify" component={VerifyList}/>
-                    <Route path="/resubmit-verify" component={ResubmitVerify}/>
-                    <Route path="/verify-edit" component={VerifyEdit} />
-
-                    <Route path="/kyc" component={Kyc}/>
-                    <Route path="/kyc-edit" component={KycEdit} />
-
-                    <Route path="/kyc-dataentry" component={KycDataEntryList}/>
-                    <Route path="/kyc-dataentry-edit" component={KycDataEntryEdit}/>
-
-                    <Route path="/ownership" component={Ownership}/>
-                    <Route path="/ownership-edit" component={OwnershipEdit} />
-
-                    <Route path="/ownership-dataentry" component={OwnershipDataentryList}/>
-                    <Route path="/ownership-dataentry-edit" component={OwnershipDataentryEdit} />
-
-                    <Route path="/disconnection" component={Disconnection}/>
-                    <Route path="/disconnection-edit" component={DisconnectionEdit} />
-                   
-                    <Route path="/qva" component={QvaList}/>
-                    <Route path="/qva-edit" component={QvaEdit}/>
-
-                    <Route path="/dataentry" component={DataEntryList} />
-                    <Route path="/resubmit-dataentry" component={ResubmitDataEntryList} />
-                    <Route path="/data-edit" replace component={DataEntryEdit} />
-
-                    <Route path="/distributor" component={DistributerList} />
-                    <Route path="/dist-resubmit" component={DistResubmit} />
-
-                    {/* admin dashboard */}
-                    <Route path="/banners" component={BaneerList} />
-                    <Route path="/banner-add" component={BannerAdd} />
-                    <Route path="/banner-edit" component={BannerEdit} />
-
-                    <Route path="/packs" component={RechargePack} />
-                    <Route path="/pack-add" component={RechargePackAdd} />
-                    <Route path="/pack-edit" component={RechargePackEdit} />
-                    <Route path="/ftr-mapping" component={FTRMapping} />
-
-                    
-                    
-                    <Route path="/backoffice" component={BackOffice} />
-                    <Route path="/dashboard" component={Dashboard} />
-                    <Route path="/dashboard-camps" component={DashboardCamps} />
-
-
-                    <Route path="/offerupload" component={OfferUpload} />
-                    <Route path="/fse" component={FSEUpload} />
-                    <Route path="/re-registration" component={ReRegistration} />
-
-
-                    <Route path="/report" component={Report} />
-                    <Route path="/welcome" component={AdminWelcome} />
-
-                    <Route path="/role" component={RoleManagement} />
-
-                    <Route path="/msisdn-status" component={CurrentMSISDNStatus} />
-                    <Route path="/view-docs" component={MSISDNDocsView} />
-
-                    
-                    {/* <Route path="/reportpoc" component={ReportPOC} /> */}
-
-                    {/* <Route path="/testreport" component={TestReport} /> */}
-
-                    <Route path="/imageTest" component={ImageTest} />
+                    <Route path="/sector" component={MySectorTop}/>
 
                     <Route path="*" component={LoginComponent} />
-
-
 
 
                     {/* <Route render={() => <Redirect to={{pathname: "/"}} />} /> */}

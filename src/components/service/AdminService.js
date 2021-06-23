@@ -211,16 +211,27 @@ class AdminService {
  
      }
  
-     getCPData(data){
-        return axios.get('https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY' ,'');
+     getCPData(type){
+        return axios.get('https://www.nseindia.com/api/option-chain-equities?symbol=SBIN' ,'');
+       // return axios.get('https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY' ,'');
       // return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
-
     }
     getBNcpdata(data){
         return axios.get('https://www.nseindia.com/api/option-chain-indices?symbol=BANKNIFTY' ,'');
       // return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
-
     }
+
+    getAllIndices(data){
+        return axios.get('https://www.nseindia.com/api/allIndices' ,'');
+      // return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
+    }
+
+    getIndiceStock(index){
+        return axios.get('https://www.nseindia.com/api/equity-stockIndices?index='+index ,'');
+      // return axios.post(apiConstant.RECHARGE_PACK_LISTING, data, AuthService.getHeader());
+    }
+
+
  
      getAllBanner(data){
          return axios.post(apiConstant.GET_ALL_BANNERS_DETAILS,data,  AuthService.getHeader());

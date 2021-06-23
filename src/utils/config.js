@@ -20,12 +20,8 @@ if(window.location.hostname == "125.17.6.6"){
 }
 
 if(window.location.hostname == "125.17.6.6" && window.location.pathname == "/mitradev/"){
-<<<<<<< HEAD
-    RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer/SLRetailer/';
-=======
   //  RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer/SLRetailer/';
      RETAILER_API_BASE_URL = 'https://125.17.6.6/retailer_sit/SLRetailer/';
->>>>>>> f8358e0df9c820d81a6571779bf3df4099ea5eca
      templatePath =  '/mitradev';  
      domainIpName = '125.17.6.6'; 
  } 

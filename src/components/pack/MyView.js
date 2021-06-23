@@ -47,6 +47,9 @@ class MyView extends React.Component{
             strike:'',
             FilteredBY: '',
             AllspTotalOI:[],
+            PEoi:0,
+            CEoi:0,
+            pcrTable : JSON.parse(localStorage.getItem('pcrTable')) && JSON.parse(localStorage.getItem('pcrTable')).data,
             optionChainData: JSON.parse( localStorage.getItem('optionChainData')),
             filtered: JSON.parse(localStorage.getItem('optionChainData'))  && JSON.parse(localStorage.getItem('optionChainData')).filtered && JSON.parse(localStorage.getItem('optionChainData')).filtered.data  
             
@@ -101,8 +104,9 @@ class MyView extends React.Component{
        //  console.log(filereddata); 
     }
 
-    componentDidMount() {
 
+
+    componentDidMount() {
 
 
        this.loadPackList();
@@ -116,7 +120,12 @@ class MyView extends React.Component{
        // this.setState({ stopnview:  setInterval( this.loadPackList ,  60001 * 2)});
        //  clearInterval(this.state.stopnview)
 
-       
+       if(!JSON.parse(localStorage.getItem('pcrTable')))
+       localStorage.setItem('pcrTable', JSON.stringify( {data : []}) )
+       else
+       this.setState({pcrTable:  JSON.parse(localStorage.getItem('pcrTable')).data})
+     
+
 
        var todayTime =  new Date(); 
        if(todayTime.getHours()>=9 && todayTime.getHours()< 16 ){
@@ -124,11 +133,18 @@ class MyView extends React.Component{
                 this.loadPackList();
             }, 60001 * 2);
         }
+        setInterval(() => {
+            this.updatepcr()
+        }, 60010 * 2);
 
-        this.findSupportResistence(this.state.optionChainData); 
+   //     this.findSupportResistence(this.state.optionChainData); 
 
 
     }
+    // componentDidUpdate(){
+    //   //  this.updatepcr(); 
+    //    // console.log("updaate called") 
+    // }
 
     getDataforStrike = strikePrice => {
 
@@ -155,9 +171,9 @@ class MyView extends React.Component{
     }
 
     findSupportResistence = (optiondata) => {
-            console.log(optiondata);
+           // console.log(optiondata);
             var alldata =  optiondata && optiondata.records && optiondata.records.data; 
-            var underlyingValue = optiondata.records.underlyingValue; 
+            var underlyingValue = optiondata && optiondata.records.underlyingValue; 
             var PEoi = 0,CEoi = 0, PEoiChange=0,CEoiChange=0, peStrikePriceByDate=[]  ;
             for (let index = 0; index < alldata.length; index++) {
                 const element = alldata[index];
@@ -204,7 +220,7 @@ class MyView extends React.Component{
 
                 data.push(resdata); 
              
-                console.log(element, resdata);
+               // console.log(element, resdata);
                 
                  
              });
@@ -224,7 +240,7 @@ class MyView extends React.Component{
                
             // }   
 
-            console.log("allfliterExData",fliterExData);
+//            console.log("allfliterExData",fliterExData);
 
 
         this.setState({CEoi: CEoi, PEoi : PEoi, allStrikediff:  PEoi - CEoi, CEoiChange: CEoiChange,PEoiChange: PEoiChange,allStrikeChngeDiff:  PEoiChange - CEoiChange });
@@ -236,6 +252,7 @@ class MyView extends React.Component{
 
     loadPackList() {
 
+
         var data = { allPacks:true, portal: true};
         AdminService.getCPData(data)
             .then((res) => {
@@ -246,7 +263,7 @@ class MyView extends React.Component{
              
            localStorage.setItem("optionChainData",  JSON.stringify( data) );
 
-           this.findSupportResistence(data); 
+          // this.findSupportResistence(data); 
 
            // console.log("livedata", data.filtered);
 
@@ -322,10 +339,37 @@ class MyView extends React.Component{
    
                  
             }
-                
+
+
+            this.updatepcr()
+            this.setState({pcrTable:  JSON.parse(localStorage.getItem('pcrTable')) && JSON.parse(localStorage.getItem('pcrTable')).data})
+
             });
+
+
+
+
     }
 
+
+    updatepcr(){
+
+
+        var pcrdata =  {
+            allPCR : (this.state.PEoi /this.state.CEoi).toFixed(3), 
+            expiryPCR: localStorage.getItem('thisWeekPCR'), 
+            selectedSPpcr: this.state.selectedSPpcr, 
+         }
+
+         if(JSON.parse(localStorage.getItem('pcrTable'))){
+             var pcrTable = JSON.parse(localStorage.getItem('pcrTable')); 
+             pcrTable.data.unshift(pcrdata);
+             localStorage.setItem("pcrTable",  JSON.stringify( pcrTable) );
+         }
+         
+         console.log(pcrdata); 
+         this.setState({pcrTable: pcrTable })
+    }
  
 
     
@@ -413,9 +457,9 @@ class MyView extends React.Component{
                     <Grid container spacing={3}  direction="row" alignItems="center" container>
                         <Grid item xs={3} sm={3} >
                          
-                         <span>All Strike PUT OI: <b>{this.state.PEoi} ({(this.state.PEoi/100000).toFixed(3)}L)</b></span><br />
-                         <span>All Strike CALL OI: <b>{this.state.CEoi} ({(this.state.CEoi/100000).toFixed(3)}L)</b></span><br />
-                         <span>All Strike Put-Call Diff: {
+                         <span>All PUT OI: <b>{this.state.PEoi} ({(this.state.PEoi/100000).toFixed(3)}L)</b></span><br />
+                         <span>All CALL OI: <b>{this.state.CEoi} ({(this.state.CEoi/100000).toFixed(3)}L)</b></span><br />
+                         <span>All Put-Call Diff: {
                              this.state.allStrikediff > 0 ? <b style={{color:'green'}}>{this.state.allStrikediff} ({((this.state.allStrikediff)/100000).toFixed(3)}L)</b>
                             :  <b style={{color:'red'}}>{this.state.allStrikediff} ({((this.state.allStrikediff)/100000).toFixed(3)}L)</b> } 
                         </span>
@@ -423,9 +467,9 @@ class MyView extends React.Component{
 
                         <Grid item xs={3} sm={3} >
                 
-                        <span>All Strike PUT Chng in OI: <b>{this.state.PEoiChange} ({(this.state.PEoiChange/100000).toFixed(3)}L)</b></span><br />
-                         <span>All Strike CALL Chng in  OI: <b>{this.state.CEoiChange} ({(this.state.CEoiChange/100000).toFixed(3)}L)</b></span><br />
-                         <span>All Strike Put-Call Chng in Diff: {
+                        <span>All PUT Chng in OI: <b>{this.state.PEoiChange} ({(this.state.PEoiChange/100000).toFixed(3)}L)</b></span><br />
+                         <span>All CALL Chng in  OI: <b>{this.state.CEoiChange} ({(this.state.CEoiChange/100000).toFixed(3)}L)</b></span><br />
+                         <span>All Put-Call Chng in Diff: {
                              this.state.allStrikeChngeDiff > 0 ? <b style={{color:'green'}}>{this.state.allStrikeChngeDiff} ({((this.state.allStrikeChngeDiff)/100000).toFixed(3)}L)</b>
                             :  <b style={{color:'red'}}>{this.state.allStrikeChngeDiff} ({((this.state.allStrikeChngeDiff)/100000).toFixed(3)}L)</b> } 
                         </span>
@@ -433,17 +477,24 @@ class MyView extends React.Component{
 
                         </Grid>
 
-                        <Grid item xs={3} sm={3} >
+                        <Grid item xs={2} sm={2} >
 
                         <Typography  component="h3" variant="body1" color="primary" >
                             <span>ALL PCR: <b>{(this.state.PEoi /this.state.CEoi).toFixed(3) } </b></span>
-
                          </Typography> 
                          </Grid>
 
-                         <Grid item xs={3} sm={3} >
-                        <Typography  component="h3" variant="body1" color="primary" style={{justifyContent:'left'}}>
-                            <span>Selected 14000 to 15250 PCR: <b>{this.state.selectedSPpcr} </b></span>
+                         <Grid item xs={2} sm={2} >
+                        <Typography  component="h3" variant="body1" color="primary" >
+                            <span>Expire Week PCR: <b>{ localStorage.getItem('thisWeekPCR') } </b></span>
+                        </Typography> 
+                        </Grid>
+                         
+
+
+                         <Grid item xs={2} sm={2} >
+                         <Typography  component="h3" variant="body1" color="primary" style={{justifyContent:'left'}}>
+                            <span>14000 to 15250 PCR: <b>{this.state.selectedSPpcr} </b></span>
 
                          </Typography> 
                 
@@ -464,7 +515,7 @@ class MyView extends React.Component{
             <Grid  direction="row" container className="flexGrow" spacing={0}  style={{paddingLeft:"5px",paddingRight:"5px"}}>
               
               
-                <Grid item xs={8} sm={8} style={{padding:"2px", overflow:"auto", height:"250px"}}>
+                <Grid item xs={7} sm={7} style={{padding:"2px", overflow:"auto", height:"250px"}}>
                 <Table  id="tabledata" stickyHeader aria-label="sticky table"  id="tabledata" size="small">
                     <TableHead style={{}} variant="head">
                         <TableRow variant="head">
@@ -473,13 +524,13 @@ class MyView extends React.Component{
                             <TableCell align="center"><b>Put-Call(diff)</b></TableCell>
                             <TableCell align="center"><b>Chng in OI(diff)</b></TableCell>
 
-                            <TableCell align="center"><b>Total PUT OI</b></TableCell>
-                            <TableCell align="center"><b>Tot Chng in Put OI</b></TableCell>                            
+                            <TableCell align="center"><b>PUT OI</b></TableCell>
+                            <TableCell align="center"><b>Chng Put OI</b></TableCell>                            
 
-                            <TableCell align="center"><b>Total Call OI</b></TableCell>
+                            <TableCell align="center"><b>Call OI</b></TableCell>
 
                          
-                            <TableCell align="center"><b>Tot Chng In Call OI</b></TableCell>                            
+                            <TableCell align="center"><b>Chng Call OI</b></TableCell>                            
                             
                             {/* <TableCell align="center"><b>Total PUT Volume</b></TableCell>
                             <TableCell align="center"><b>Total Call Volume</b> </TableCell> */}
@@ -489,17 +540,17 @@ class MyView extends React.Component{
                     
                         { this.state.products ? this.state.products.map(row => (
                             <TableRow key={row.dateTime} style={{background: row.isDuplicate ? "lightgray":""}}>
-                                <TableCell align="center">{row.dateTime.substring(22,11)}</TableCell>
+                                <TableCell align="center">{row.dateTime.substring(19,11)}</TableCell>
                                 <TableCell align="center">{row.diff > 0 ? <Typography variant='body2' style={{ color:'green' }} >BUY</Typography>  : <Typography variant="body2" style={{ color:'red' }} >SELL</Typography> }</TableCell>
                                 <TableCell align="center">{row.diff} ({(row.diff/100000).toFixed(2)}L)({row.totDiffChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{row.totDiffChange}%</span>: row.totDiffChange == '0.000' ? <span>{row.totDiffChange}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{row.totDiffChange}%</span> }) </TableCell>
                                 <TableCell align="center">{row.totChangeINOIDiff} ({(row.totChangeINOIDiff/100000).toFixed(2)}L)</TableCell>
 
-                                <TableCell align="center">{row.totPEOI} ({(row.totPEOI/100000).toFixed(2)}L)({row.totPEOIChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{row.totPEOIChange}%</span>: row.totPEOIChange == '0.000' ? <span>{row.totPEOIChange}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{row.totPEOIChange}%</span> })</TableCell>
-                                <TableCell align="center">{row.totChangeINOIPut} ({(row.totChangeINOIPut/100000).toFixed(2)}L)</TableCell>
+                                <TableCell align="center">{row.totPEOI} ({row.totPEOIChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{row.totPEOIChange}%</span>: row.totPEOIChange == '0.000' ? <span>{row.totPEOIChange}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{row.totPEOIChange}%</span> })</TableCell>
+                                <TableCell align="center">{row.totChangeINOIPut} </TableCell>
 
-                                <TableCell align="center">{row.totCEOI} ({(row.totCEOI/100000).toFixed(2)}L)({row.totCEOIChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{row.totCEOIChange}%</span>: row.totCEOIChange == '0.000' ? <span>{row.totCEOIChange}%</span> : <span style={{ color:'red',fontWeight:'bold' }} >{row.totCEOIChange}%</span> })</TableCell>
+                                <TableCell align="center">{row.totCEOI} ({row.totCEOIChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{row.totCEOIChange}%</span>: row.totCEOIChange == '0.000' ? <span>{row.totCEOIChange}%</span> : <span style={{ color:'red',fontWeight:'bold' }} >{row.totCEOIChange}%</span> })</TableCell>
                               
-                                <TableCell align="center">{row.totChangeINOICall} ({(row.totChangeINOICall/100000).toFixed(2)}L)</TableCell>
+                                <TableCell align="center">{row.totChangeINOICall}</TableCell>
 
                                 {/* <TableCell align="center">{row.totPEVol} ({(row.totPEVol/100000).toFixed(2)}L)</TableCell>
                                 <TableCell align="center">{row.totCEVol} ({(row.totCEVol/100000).toFixed(2)}L)</TableCell>      */}
@@ -511,36 +562,59 @@ class MyView extends React.Component{
                 
                 </Grid>
 
-                <Grid item xs={4} sm={4} style={{padding:"2px", overflow:"auto", height:"250px"}}>
+                <Grid item xs={3} sm={3} style={{padding:"2px", overflow:"auto", height:"250px"}}>
                 <Table style={{borderLeft: 'dashed',borderRight: 'dashed', fontWeight:'500' }}  id="tabledata" stickyHeader aria-label="sticky table"  id="tabledata" size="small">
+                    
                     <TableHead style={{}} variant="head">
                         <TableRow variant="head">
                           
-                            <TableCell align="center"><b>Total CALL OI</b></TableCell>
-                            <TableCell align="center"><b>Strike Price</b></TableCell>
-                            <TableCell align="center"><b>Total PUT OI</b></TableCell>
+                            <TableCell align="center"><b>Total CE OI <br />{(this.state.totalsceoi/100000).toFixed(3)}L</b></TableCell>
+                            <TableCell align="center"><b>Strike Price</b> </TableCell>
+                            <TableCell align="center"><b>Total PE OI<br />{(this.state.totalspeoi/100000).toFixed(3)}L</b></TableCell>
                            
                         </TableRow>
                     </TableHead>
                     <TableBody style={{width:"",whiteSpace: "nowrap"}}>
                     
                         { this.state.AllspTotalOI ? this.state.AllspTotalOI.map(row => (
-                            <TableRow  hover key={row.dateTime} >
-                                <TableCell align="center" style={{backgroundColor: row.strikePrice < this.state.underlyingValue ? '#ded6a269' : ''}}>{row.sumOfCEoi} ({(row.sumOfCEoi/100000).toFixed(2)}L)</TableCell>
-                                <TableCell  align="center">{row.strikePrice}</TableCell>
-                                <TableCell align="center" style={{backgroundColor: row.strikePrice > this.state.underlyingValue ? '#ded6a269' : ''}}>{row.sumOfPEoi} ({(row.sumOfPEoi/100000).toFixed(2)}L)</TableCell>
-                        
-                            </TableRow>
+                             <TableRow  hover key={row.dateTime} >
+                             <TableCell align="center" style={{backgroundColor: row.strikePrice < this.state.underlyingValue ? '#ded6a269' : ''}}>{row.sumOfCEoi} ({(row.sumOfCEoi/100000).toFixed(2)}L)</TableCell>
+                             <TableCell  align="center">{row.strikePrice}</TableCell>
+                             <TableCell align="center" style={{backgroundColor: row.strikePrice > this.state.underlyingValue ? '#ded6a269' : ''}}>{row.sumOfPEoi} ({(row.sumOfPEoi/100000).toFixed(2)}L)</TableCell>
+                     
+                         </TableRow>
                         )):<Spinner/>}
 
 
+                        
+                    </TableBody>
+                </Table>
+                
+                </Grid>
+
+                <Grid item xs={2} sm={2} style={{padding:"2px", overflow:"auto", height:"250px"}}>
+                <Table   id="tabledata" stickyHeader aria-label="sticky table"  id="tabledata" size="small">
+                    
+                    <TableHead variant="head">
                         <TableRow variant="head">
                           
-                          <TableCell align="center"><b> {this.state.totalsceoi}  ({(this.state.totalsceoi/100000).toFixed(2)}L)</b></TableCell>
-                          <TableCell align="center">14000 to 15250</TableCell>
-                          <TableCell align="center"><b> {this.state.totalspeoi}({(this.state.totalspeoi/100000).toFixed(2)}L)</b></TableCell>
+                            <TableCell align="center">ALL Pcr</TableCell>
+                            <TableCell align="center">Expiry Pcr </TableCell>
+                            <TableCell align="center">Selected Pcr</TableCell>
                          
-                      </TableRow>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody style={{whiteSpace: "nowrap"}}>
+
+                        {this.state.pcrTable && this.state.pcrTable.length>0 && this.state.pcrTable ? this.state.pcrTable.map(row => (
+                            <TableRow  hover key={row.expiryPCR} >
+                                <TableCell align="center">{row.allPCR} </TableCell>
+                                <TableCell  align="center">{row.expiryPCR}</TableCell>
+                                <TableCell align="center">{row.selectedSPpcr} </TableCell>
+                            </TableRow>
+                        )):<Spinner/>}
+
+                        
                     </TableBody>
                 </Table>
                 
@@ -565,10 +639,12 @@ class MyView extends React.Component{
                         {/* <TableCell align="center" ><b>Sr No.</b></TableCell>  */}
                      
 
-                        <TableCell align="center"><b>OI</b></TableCell>
-                        <TableCell align="center"><b>Chng in OI</b></TableCell>
-                        <TableCell align="center"><b>Volume</b> </TableCell>
+                        <TableCell align="center"><b>OI Total OI <br />{localStorage.getItem('totCEOI')}({(localStorage.getItem('totCEOI')/100000).toFixed(3)}L) </b></TableCell>
+                        <TableCell align="center"><b>Chng in OI <br />{localStorage.getItem('totCEOIChange')}({(localStorage.getItem('totCEOIChange')/100000).toFixed(3)}L)</b></TableCell>
+                        {/* <TableCell align="center"><b>Volume <br />{localStorage.getItem('totCEVol')}({(localStorage.getItem('totCEVol')/100000).toFixed(3)}L)</b> </TableCell> */}
                         <TableCell align="center"><b>IV</b></TableCell>
+                        <TableCell align="center"><b>Delta</b></TableCell>
+
                         <TableCell align="center"><b>LTP</b></TableCell>
                         {/* <TableCell align="center"><b>PChange%</b></TableCell> */}
                         <TableCell align="center"><b>CHNG</b></TableCell>
@@ -596,10 +672,12 @@ class MyView extends React.Component{
                         {/* <TableCell align="center"><b>PChange%</b></TableCell> */}
                         <TableCell align="center"><b>LTP</b></TableCell>
                         <TableCell align="center"><b>IV</b></TableCell>
+                        <TableCell align="center"><b>Delta</b></TableCell>
 
-                        <TableCell align="center"><b>Volume </b></TableCell>
-                        <TableCell align="center"><b>Chng in OI</b></TableCell>
-                        <TableCell align="center"><b>OI</b></TableCell>
+
+                        {/* <TableCell align="center"><b>Volume <br />{localStorage.getItem('totPEVol')}({(localStorage.getItem('totPEVol')/100000).toFixed(3)}L)</b></TableCell> */}
+                        <TableCell align="center"><b>Chng in OI <br />{localStorage.getItem('totPEOIChange')}({(localStorage.getItem('totPEOIChange')/100000).toFixed(3)}L)</b></TableCell>
+                        <TableCell align="center"><b>OI <br />{localStorage.getItem('totPEOI')}({(localStorage.getItem('totPEOI')/100000).toFixed(3)}L)</b></TableCell>
 
 
                     </TableRow>
@@ -614,8 +692,10 @@ class MyView extends React.Component{
                                 { opdata && opdata.CE && opdata.PE ? <>
                                             <TableCell {...totCEOI = totCEOI +  opdata.CE.openInterest}  style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.openInterest}</TableCell>
                                             <TableCell {...totCEOIChange = totCEOIChange + opdata.CE.changeinOpenInterest}  style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.changeinOpenInterest}</TableCell>
-                                            <TableCell {...totCEVol = totCEVol + opdata.CE.totalTradedVolume} style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.totalTradedVolume} </TableCell>
+                                            {/* <TableCell {...totCEVol = totCEVol + opdata.CE.totalTradedVolume} style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.totalTradedVolume} </TableCell> */}
                                             <TableCell align="center">{opdata.CE.impliedVolatility} </TableCell>
+                                            <TableCell align="center">{((opdata.CE.change/opdata.strikePrice-opdata.CE.underlyingValue) * 10).toFixed(2)} </TableCell>
+
                                             <TableCell style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center"><span style={{color:'#3e85c5', fontWeight:'bold'}}> {opdata.CE.lastPrice}</span>({opdata.CE.pChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span>: opdata.CE.pChange == 0 ? <span>{opdata.CE.pChange.toFixed(2)}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{opdata.CE.pChange.toFixed(2)}%</span> }) </TableCell>
                                             {/* <TableCell style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.pChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span>: opdata.CE.pChange == 0 ? <span>{opdata.CE.pChange.toFixed(2)}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{opdata.CE.pChange.toFixed(2)}%</span> } </TableCell> */}
                                             <TableCell style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.change.toFixed(2)} </TableCell>
@@ -644,7 +724,9 @@ class MyView extends React.Component{
                                             <TableCell style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center"><span style={{color:'#3e85c5', fontWeight:'bold'}}> {opdata.PE.lastPrice}</span>({opdata.PE.pChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{opdata.PE.pChange.toFixed(2)}%</span>: opdata.PE.pChange == 0 ? <span>{opdata.PE.pChange.toFixed(2)}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{opdata.PE.pChange.toFixed(2)}%</span>})</TableCell>
 
                                             <TableCell align="center">{opdata.PE.impliedVolatility} </TableCell>
-                                            <TableCell {...totPEVol = totPEVol + opdata.PE.totalTradedVolume}  style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.PE.totalTradedVolume} </TableCell>
+                                            <TableCell align="center">{((opdata.PE.change/opdata.strikePrice-opdata.PE.underlyingValue) * 10).toFixed(2)} </TableCell>
+
+                                            {/* <TableCell {...totPEVol = totPEVol + opdata.PE.totalTradedVolume}  style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.PE.totalTradedVolume} </TableCell> */}
                                             <TableCell {...totPEOIChange = totPEOIChange + opdata.PE.changeinOpenInterest}  style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.PE.changeinOpenInterest}</TableCell>
                                             <TableCell {...totPEOI = totPEOI + opdata.PE.openInterest} style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}}align="center">{opdata.PE.openInterest} </TableCell>
                                      </> : ""
@@ -657,14 +739,15 @@ class MyView extends React.Component{
 
 
                             <TableRow  variant="head"> 
-                                <TableCell align="center"><b>{totCEOI}<br />({(totCEOI/100000).toFixed(3)}L)</b></TableCell>
+                                <TableCell align="center" {...localStorage.setItem('totCEOI',totCEOI)}><b>{totCEOI}<br />({(totCEOI/100000).toFixed(3)}L)</b></TableCell>
                                 <TableCell align="center" {...localStorage.setItem('totCEOIChange',totCEOIChange)}><b>{totCEOIChange}<br />({(totCEOIChange/100000).toFixed(3)}L)</b> </TableCell>
-                                <TableCell align="center"><b>{totCEVol}<br />({(totCEVol/100000).toFixed(3)}L)</b></TableCell>
+                                <TableCell align="center" {...localStorage.setItem('totCEVol',totCEVol)}><b>{totCEVol}<br />({(totCEVol/100000).toFixed(3)}L)</b></TableCell>
                                 <TableCell colSpan={3} align="center"></TableCell>
                                 {/* <TableCell align="center"><b>{totCEBUY}<br />({(totCEBUY/100000).toFixed(3)}L)</b></TableCell>
                                 <TableCell align="center"><b>{totCESell}<br />({(totCESell/100000).toFixed(3)}L)</b> </TableCell> */}
 
-                                <TableCell align="center" colSpan={2}><b> PCR : {(totPEOI / totCEOI).toFixed(3)}</b></TableCell>
+                                <TableCell {...localStorage.setItem('thisWeekPCR',(totPEOI / totCEOI).toFixed(3))} align="center" colSpan={2}><b> PCR : {(totPEOI / totCEOI).toFixed(3)}</b></TableCell>
+
 
                                 <TableCell colSpan={3} align="center"></TableCell>
 
@@ -672,11 +755,10 @@ class MyView extends React.Component{
                                 {/* <TableCell align="center"><b>{totPESell}<br />({(totPESell/100000).toFixed(3)}L)</b></TableCell>
                                 <TableCell align="center"><b>{totPEBUY}<br />({(totPEBUY/100000).toFixed(3)}L)</b></TableCell>
                                 */}
-                                {/* <TableCell colSpan={3} align="center"></TableCell> */}
-                                <TableCell align="center"><b>{totPEVol}<br />({(totPEVol/100000).toFixed(3)}L)</b></TableCell>
-
+                                {/* <TableCell colSpan={3} align="center"></TableCell> */} 
+                                <TableCell align="center" {...localStorage.setItem('totPEVol',totPEVol)}><b>{totPEVol}<br />({(totPEVol/100000).toFixed(3)}L)</b></TableCell>
                                 <TableCell align="center" {...localStorage.setItem('totPEOIChange',totPEOIChange)}><b>{totPEOIChange}<br />({(totPEOIChange/100000).toFixed(3)}L)</b> </TableCell>
-                                <TableCell align="center"><b>{totPEOI}<br />({(totPEOI/100000).toFixed(3)}L)</b> </TableCell>
+                                <TableCell align="center" {...localStorage.setItem('totPEOI',totPEOI)}><b>{totPEOI}<br />({(totPEOI/100000).toFixed(3)}L)</b> </TableCell>
 
                             </TableRow>
 
