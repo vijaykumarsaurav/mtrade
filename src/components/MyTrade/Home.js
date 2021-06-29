@@ -125,7 +125,7 @@ class Home extends React.Component{
             let data = resolveResponse(res, 'noPop');
              var LtpData = data && data.data; 
              this.setState({ InstrumentLTP : LtpData});
-             
+
             //  if(!localStorage.getItem('ifNotBought') && LtpData &&  LtpData.ltp > this.state.buyPrice){
             //    this.placeOrder(this.state.buyPrice); 
             //  }
@@ -282,13 +282,16 @@ class Home extends React.Component{
               if(data && data.data){
                  
                 var histCandles = data.data; 
-                histCandles.sort(function(a,b){
+                histCandles &&  histCandles.sort(function(a,b){
                   return new Date(b[0]) - new Date(a[0]);
                 });
+                if(histCandles.length > 0){
+                    localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
+                    this.setState({ InstrumentHistroy :histCandles , buyPrice : histCandles[0][2]});
+                    this.getLTP();
+                }
 
-                localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
-                this.setState({ InstrumentHistroy :histCandles , buyPrice : histCandles[0][2]});
-                this.getLTP();
+              
               }
               
         })

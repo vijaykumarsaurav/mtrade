@@ -131,42 +131,9 @@ class TradeBook extends React.Component{
             <Grid syt  container spacing={1}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                  Today Trades 
+                                  Today Trades ({this.state.oderbookData.length})
                                 </Typography> 
                             </Grid>
-                            {/* <Grid item xs={10} sm={3}> 
-                                <FormControl style={styles.selectStyle}>
-                                        <InputLabel id="demo-mutiple-name-label">Select Zone</InputLabel>
-                                        <Select
-                                        labelId="demo-mutiple-name-label"
-                                        id="demo-mutiple-name"
-                                        multiple
-                                        name="selectedZone"
-                                        value={this.state.selectedZone}
-                                        onChange={this.zoneChange}
-                                        input={<Input />}
-                                        MenuProps={MenuProps}
-                                        >
-                                        <MenuItem key={this.state.selectAllzone} value={this.state.selectAllzone} >
-                                            <b> {this.state.selectAllzone}   </b>                                         
-                                          </MenuItem>
-                                        {this.state.listofzones ? this.state.listofzones.map(name => (
-                                            <MenuItem key={name} value={name} >
-                                                {name}
-                                            </MenuItem>
-                                        )): ""}
-                                        </Select>
-                                    </FormControl>
-                            </Grid>
-
-                            <Grid item xs={2} sm={1}  > 
-                                 <Button type="submit"  onClick={() => this.loadBannerList()} variant="contained"  style={{marginLeft: '20px'}} >Search</Button>
-                            </Grid>
-                            <Grid item xs={2} sm={2} alignItems="left"> 
-                            <Button variant="contained" color="primary" onClick={() => this.addProduct()}>
-                                Add Banner
-                            </Button>      
-                            </Grid> */}
 
                             
                 </Grid>

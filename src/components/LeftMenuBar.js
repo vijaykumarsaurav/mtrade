@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { makeStyles } from '@material-ui/core/styles';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -14,6 +14,10 @@ import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 import { Redirect } from 'react-router-dom'
 import { Link } from "react-router-dom";
 
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
+import Switch from '@material-ui/core/Switch';
+
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import EditIcon from '@material-ui/icons/Edit';
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
@@ -24,9 +28,12 @@ import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
 import AdminService from "./service/AdminService";
 
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import InvertColorsIcon from '@material-ui/icons/InvertColors';
 //import RouterComponent from '../RouterComponent'; 
 
+
 export const AdminMenuList = (
+
   <div>
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
@@ -58,8 +65,6 @@ export const AdminMenuList = (
       <ListItemText primary="Trade Book" />
     </ListItem>
   
-
-
     <ListItem button component='a' href={"#/bn-view"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
@@ -130,12 +135,16 @@ function logoutPortal(){
   }
 }
 
+
 export const LogoutMenu = (
   <div>
+
     <Link to={''} style={{textDecoration: "none"}} onClick={logoutPortal}>
       <ListItem button>
           <ListItemIcon><PowerSettingsNewIcon/></ListItemIcon><ListItemText primary="Logout" />
       </ListItem>
     </Link>
+
+
   </div>
 );

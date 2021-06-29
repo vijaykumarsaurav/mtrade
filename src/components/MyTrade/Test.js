@@ -126,14 +126,15 @@ class MyView extends React.Component{
                 <Grid id="tabledatachart"  item xs={4} sm={4}>
                 <Paper style={{padding:"25px" }}>   
                
-                <Typography variant="h6">
-                    M2M Unrealized  :   {this.state.fundData && this.state.fundData.m2munrealized}
-                    </Typography>
+                    <Typography variant="h6">
+                          Test
+                      </Typography>
                     
                     
                     <Typography variant="h6">
-                    M2M Realized  :   {this.state.fundData && this.state.fundData.m2mrealized}
-                    </Typography>
+                    Test                  
+                    
+                      </Typography>
 
                   
                     </Paper>
@@ -141,50 +142,7 @@ class MyView extends React.Component{
                 </Grid>
 
                 <Grid id="tabledatachart"  item xs={8} sm={8}>
-                <Paper style={{padding:"25px" }}>   
-
-                <Typography variant="h6">
-                 Net:   {this.state.fundData && this.state.fundData.net}
-                </Typography>
-                <Typography variant="h6">
-                   Available Cash :   {this.state.fundData && this.state.fundData.availablecash}
-                </Typography>
-                <Typography variant="h6">
-                Aailable Intraday payin :   {this.state.fundData && this.state.fundData.availableintradaypayin}
-                </Typography>
-                <Typography variant="h6">
-                Available limit margin :   {this.state.fundData && this.state.fundData.availablelimitmargin}
-                </Typography>
-                <Typography variant="h6">
-                Collateral :   {this.state.fundData && this.state.fundData.collateral}
-                </Typography>
-              
-
-                <Typography variant="h6">
-                Utilised debits :   {this.state.fundData && this.state.fundData.utiliseddebits}
-                </Typography>
-                <Typography variant="h6">
-                Utilised exposure :   {this.state.fundData && this.state.fundData.utilisedexposure}
-                </Typography>
-                <Typography variant="h6">
-                Utilised holding sales :   {this.state.fundData && this.state.fundData.utilisedholdingsales}
-                </Typography>
-             
-                <Typography variant="h6">
-                Utilised option premium :   {this.state.fundData && this.state.fundData.utilisedoptionpremium}
-                </Typography>
-                <Typography variant="h6">
-                Utilised payout :   {this.state.fundData && this.state.fundData.utilisedpayout}
-                </Typography>
-                <Typography variant="h6">
-                Utilised span :   {this.state.fundData && this.state.fundData.utilisedspan}
-                </Typography>
-
-
-                <Typography variant="h6">
-                Utilised turnover :   {this.state.fundData && this.state.fundData.utilisedturnover}
-                </Typography>
-                </Paper>
+                Test
                 </Grid>
                
 

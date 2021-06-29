@@ -19,6 +19,8 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import { textAlign } from '@material-ui/system';
 import * as Menu from './LeftMenuBar';
+import AccountCircle from '@material-ui/icons/AccountCircle';
+import RightMenuBar from './RightMenuBar';
 import MyLogo from './mylogo.png';
 import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../utils/config";
 
@@ -26,7 +28,7 @@ import NotificationsIcon from '@material-ui/icons/Notifications';
 import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
 import {resolveResponse} from "../utils/ResponseHandler";
-
+import  InvertColor from './InvertColor';
 
 const drawerWidth = 240;
 
@@ -116,10 +118,6 @@ export default function PostLoginNavBar(props) {
         console.log(e.target.innerText)
         //this.props.history.push('/login');
     }
-    const mystyle = {
-        height: "40px",
-        width: "30px"
-    };
 
     var userProfile = localStorage.getItem("userProfile")
     userProfile = userProfile && JSON.parse(userProfile);
@@ -212,11 +210,14 @@ export default function PostLoginNavBar(props) {
                                 <Typography  noWrap>
 
                                 <Button color="primary">
-                                {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
-                                    </Button>
+                                <AccountCircle />   {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
+                                </Button>
 
-                                
                                 </Typography> 
+
+                        
+
+
                             </Grid>
 
 
@@ -240,21 +241,26 @@ export default function PostLoginNavBar(props) {
                 }}
             >
                 <div className={classes.drawerHeader}>
-                    <img style={{ marginRight: "73px", width: "100px" }} src={MyLogo} />
-                    {/* <img width="40" style={{ color: "red", marginRight:"130px"}} src={ 'https://www.pinclipart.com/picdir/middle/498-4988102_36-53k-airtel-logos-of-indian-companies-quiz.png'} /> */}
-
+                    {/* <img style={{ width: "100px" }} src={MyLogo} /> */}
+        
+                    <InvertColor />
                     <IconButton onClick={handleDrawerClose}  >
                         {theme.direction === 'ltr' ? <ChevronLeftIcon style={{ color: "gray" }} /> : <ChevronRightIcon style={{ color: "gray" }} />}
                     </IconButton>
                 </div>
 
-
+            
 
                 <Divider />
                 <List>{Menu.AdminMenuList}</List>
 
+                {/* <Divider />
+                <List>  <InvertColor /></List> */}
+
                 <Divider />
                 <List>{Menu.LogoutMenu}</List>
+
+                
             </Drawer>
             <main
                 className={clsx(classes.content, {

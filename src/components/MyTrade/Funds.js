@@ -89,7 +89,12 @@ class MyView extends React.Component{
     }
    
   
+   toFixedAmount =(value) => {
 
+    if(value){
+      return  parseFloat(value).toFixed(2);
+    }
+   }
 
     render(){
 
@@ -102,58 +107,50 @@ class MyView extends React.Component{
             
             <Grid   direction="row" container className="flexGrow" spacing={2}  style={{paddingLeft:"5px",paddingRight:"5px", justifyContent:'center'}}>
               
-              
-         
-                         
-           
-
-              
-
-               
-
+            
                 <Grid id="tabledatachart"  item xs={8} sm={8}>
                 <Paper style={{padding:"25px" }}>   
 
                 <Typography variant="h6">
-                 Net:   {this.state.fundData && this.state.fundData.net}
+                 Net:   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.net)}
                 </Typography>
                 <Typography variant="h6">
-                   Available Cash :   {this.state.fundData && this.state.fundData.availablecash}
+                   Available Cash :   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.availablecash)}
                 </Typography>
                 <Typography variant="h6">
-                Aailable Intraday payin :   {this.state.fundData && this.state.fundData.availableintradaypayin}
+                Aailable Intraday payin :   {this.state.fundData && this.toFixedAmount(this.state.fundData.availableintradaypayin)}
                 </Typography>
                 <Typography variant="h6">
-                Available limit margin :   {this.state.fundData && this.state.fundData.availablelimitmargin}
+                Available limit margin :   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.availablelimitmargin)}
                 </Typography>
                 <Typography variant="h6">
-                Collateral :   {this.state.fundData && this.state.fundData.collateral}
+                Collateral :   {this.state.fundData && this.toFixedAmount(this.state.fundData.collateral)}
                 </Typography>
               
 
                 <Typography variant="h6">
-                Utilised debits :   {this.state.fundData && this.state.fundData.utiliseddebits}
+                Utilised debits :   {this.state.fundData && this.toFixedAmount(this.state.fundData.utiliseddebits) }
                 </Typography>
                 <Typography variant="h6">
-                Utilised exposure :   {this.state.fundData && this.state.fundData.utilisedexposure}
+                Utilised exposure :   {this.state.fundData && this.toFixedAmount(this.state.fundData.utilisedexposure) }
                 </Typography>
                 <Typography variant="h6">
-                Utilised holding sales :   {this.state.fundData && this.state.fundData.utilisedholdingsales}
+                Utilised holding sales :   {this.state.fundData && this.toFixedAmount(this.state.fundData.utilisedholdingsales)}
                 </Typography>
              
                 <Typography variant="h6">
-                Utilised option premium :   {this.state.fundData && this.state.fundData.utilisedoptionpremium}
+                Utilised option premium :   {this.state.fundData && this.toFixedAmount(this.state.fundData.utilisedoptionpremium) }
                 </Typography>
                 <Typography variant="h6">
-                Utilised payout :   {this.state.fundData && this.state.fundData.utilisedpayout}
+                Utilised payout :   {this.state.fundData && this.toFixedAmount(this.state.fundData.utilisedpayout) }
                 </Typography>
                 <Typography variant="h6">
-                Utilised span :   {this.state.fundData && this.state.fundData.utilisedspan}
+                Utilised span :   {this.state.fundData && this.toFixedAmount(this.state.fundData.utilisedspan) }
                 </Typography>
 
 
                 <Typography variant="h6">
-                Utilised turnover :   {this.state.fundData && this.state.fundData.utilisedturnover}
+                Utilised turnover :   {this.state.fundData && this.toFixedAmount(this.state.fundData.utilisedturnover) }
                 </Typography>
                 </Paper>
                 </Grid>
@@ -164,12 +161,12 @@ class MyView extends React.Component{
                 <Paper style={{padding:"25px" }}>   
                
                 <Typography variant="h6">
-                    M2M Unrealized  :   {this.state.fundData && this.state.fundData.m2munrealized}
+                    M2M Unrealized  :   {this.state.fundData && this.toFixedAmount(this.state.fundData.m2munrealized) }
                     </Typography>
                     
                     
                     <Typography variant="h6">
-                    M2M Realized  :   {this.state.fundData && this.state.fundData.m2mrealized}
+                    M2M Realized  :   {this.state.fundData && this.toFixedAmount(this.state.fundData.m2mrealized) }
                     </Typography>
 
                   
