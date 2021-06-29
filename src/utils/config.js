@@ -67,9 +67,6 @@ export const RETAILER_SLRetailerA = RETAILER_API_BASE_URL+ 'reports/';
 //disconnetion reports bashpath
 export const RETAILER_DISCONNECTION_KYC_REPORT = RETAILER_API_BASE_URL+ 'cs/reports/';
 
-
-//login
-export const SL_AD_LOGIN_URL = RETAILER_API_BASE_URL + 'auth/portaLogin';
 export const SL_AD_LOGOUT_URL = RETAILER_API_BASE_URL + 'auth/logout'; 
 
 export const VERIFY_DOCS_LISTING = RETAILER_API_BASE_URL + 'avde/prepaidAcquisitions';
@@ -175,3 +172,24 @@ export const CHECK_SESSION_API = RETAILER_API_BASE_URL + 'commomService/checkSes
 export const DEV_PROTJECT_PATH  = templatePath;
 export const IMAGE_VALIDATION_TOKEN  = btoa("5dbc98dcc983a70728bd082d1a47546e@"+parseInt( new Date( new Date().getTime() + 60000 * 30 ).getTime() / 1000 ));
 export const COOKIE_DOMAIN = domainIpName; 
+
+
+
+//my app api
+
+export const LOGIN_API =  'https://apiconnect.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword';
+export const LOGOUT_API =  'https://apiconnect.angelbroking.com/rest/secure/angelbroking/user/v1/logout';
+export const GET_USER_PROFILE =  'https://apiconnect.angelbroking.com/rest/secure/angelbroking/user/v1/getProfile';
+export const GET_FUNDS =  'https://apiconnect.angelbroking.com/rest/secure/angelbroking/user/v1/getRMS';
+export const GetOrderBook = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getOrderBook'; 
+export const GetTradeBook = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getTradeBook'; 
+export const GetAllTradableInstruments = 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json'; 
+export const PlaceOrderApi = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/placeOrder'; 
+export const modifyOrderApi = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/modifyOrder'; 
+
+export const GetLTPAPI = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getLtpData'; 
+
+export const getCandleData = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData'; 
+
+
+	

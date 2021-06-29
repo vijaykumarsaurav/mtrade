@@ -16,7 +16,8 @@ class Notify {
 
     options() {
         return {
-            position: "top-right",
+            position: toast.POSITION.BOTTOM_RIGHT,
+          //  position: "buttom-right",
             autoClose: 2000,
             hideProgressBar: true,
             closeOnClick: true,

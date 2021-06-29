@@ -66,7 +66,7 @@ class ActivationService {
         return axios.post(apiConstant.UNLOCK_QVA_SKIP_VERIFICATION, postdata, AuthService.getHeader());
     }
     
-    getStaticData(role){
+    getUserData(role){
         return axios.get(apiConstant.VERIFICATION_STATIC_DATA + '?role=' + role, AuthService.getHeader());
     }
 

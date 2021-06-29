@@ -11,7 +11,7 @@ import {
   KeyboardDateTimePicker
 } from '@material-ui/pickers';
 
-export default function MaterialUIPickers(props) {
+function MaterialUIPickers(props) {
 
   console.log("startDatestartDate,",props ); 
   var d = new Date(); 
@@ -61,19 +61,17 @@ export default function MaterialUIPickers(props) {
 
   }
 
-
- console.log("propes", props)
  return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
       <Grid container justify="space-around">
      
         <KeyboardDateTimePicker
-          disablePast="true"
+          disableFuture="true"
           margin="normal"
           required={true}
           id="date-picker-dialog"
-          label={props.callbackFromParent.firstLavel}
-          format='dd/MM/yyyy HH:mm:ss'
+          label={'Start Date'}
+          format='yyyy-mm-dd HH:mm:ss'
           value={selectedStartDate}
           onChange={handleStartDateChange}
           KeyboardButtonProps={{
@@ -81,12 +79,12 @@ export default function MaterialUIPickers(props) {
           }}
         />
          <KeyboardDateTimePicker
-         disablePast="true"
+         disableFuture="true"
          margin="normal"
          required={true}
          id="date-picker-dialog"
-         label={props.callbackFromParent.secondLavel}
-         format='dd/MM/yyyy HH:mm:ss'
+         label={'End Date'}
+         format='yyyy-mm-dd HH:mm:ss'
          value={selectedEndDate}
          onChange={handleEndDateChange}
          KeyboardButtonProps={{
@@ -100,3 +98,6 @@ export default function MaterialUIPickers(props) {
     </MuiPickersUtilsProvider>
   );
 }
+
+
+export default  MaterialUIPickers; 

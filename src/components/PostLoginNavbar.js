@@ -19,13 +19,12 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import { textAlign } from '@material-ui/system';
 import * as Menu from './LeftMenuBar';
-import AirtellLogo from './airtellogo.png';
+import MyLogo from './mylogo.png';
 import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../utils/config";
 
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
-import ActivationService from "./service/ActivationService";
 import {resolveResponse} from "../utils/ResponseHandler";
 
 
@@ -122,24 +121,9 @@ export default function PostLoginNavBar(props) {
         width: "30px"
     };
 
-    var userDetails = localStorage.getItem("userDetails")
-    userDetails = userDetails && JSON.parse(userDetails);
-     
-    var roleCode = userDetails && userDetails.roleCode; 
-    // if(roleCode == "DE" || roleCode == "BOA"){
-    //     if(localStorage.getItem("recordToProccedFirstTime") === 'yes'){
-    //         ActivationService.getTotalToBeProcessed().then(res => {
-    //             let data = resolveResponse(res);
-    //            // localStorage.setItem("acquisitionCount",data.result && data.result.acquisitionCount ); 
-    //            // localStorage.setItem("resubmitCount",data.result && data.result.resubmitCount ); 
-             
-    //            if(data.result && data.result.acquisitionCount && data.result.resubmitCount){
-    //                 setValues({ ...values, ['acquisitionCount']: "Acquisition records to be processed: " + data.result.acquisitionCount, ['resubmitCount']: "Resubmit records to be processed: "+ data.result.resubmitCount });
-    //                 window.localStorage.setItem("recordToProccedFirstTime",'no');
-    //             }
-    //         })
-    //     }
-    // }
+    var userProfile = localStorage.getItem("userProfile")
+    userProfile = userProfile && JSON.parse(userProfile);
+    
 
     var CookieExpireDate = new Date();
     CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
@@ -175,7 +159,7 @@ export default function PostLoginNavBar(props) {
                             >
                         <Grid item >
                         <Typography variant="h6" noWrap>
-                            SL MITRA Retailer Portal
+                           My App
                          </Typography>
                         </Grid>
 
@@ -183,7 +167,9 @@ export default function PostLoginNavBar(props) {
 
                         <Grid
                             container
+                            spacing={1}
                             direction="row"
+                            style={{ color: "white" }}
                         >
 
                             <Grid item >
@@ -191,24 +177,45 @@ export default function PostLoginNavBar(props) {
                                 <span id='acqRecordId'>{values.acquisitionCount}</span>
                                 </Typography> 
                             </Grid>
-                                <Grid item >
-                                    &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                              </Grid>
 
-                            <Grid item >
-                                <Typography style={{ color: "white" }} noWrap>
-                                <span id='resubmitRecordId'>{values.resubmitCount}</span>
-                                </Typography> 
-                            </Grid>
-                             <Grid item >
-                                    &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                              </Grid>
-
-                           
 
                             <Grid item>
-                                <Typography style={{ color: "white" }} noWrap>
-                                {userDetails && userDetails.loginName ? userDetails.loginName.toUpperCase() : null}
+                                    <Button variant="contained"  autoFocus href={"#/home"}  color="secondary">
+                                        Home
+                                    </Button>
+                              </Grid>
+
+
+                            <Grid item>
+                                    <Button variant="contained"  autoFocus href={"#/trade"}  color="primary">
+                                        Trade
+                                    </Button>
+                              </Grid>
+
+
+                                <Grid item>
+                                    <Button variant="contained"  autoFocus href={"#/order"}  color="primary">
+                                        Order
+                                    </Button>
+                              </Grid>
+
+
+                            
+
+                              <Grid item>
+                                    <Button variant="contained"  autoFocus href={"#/funds"}  color="primary">
+                                        Funds
+                                    </Button>
+                              </Grid>
+
+                            <Grid item>
+                                <Typography  noWrap>
+
+                                <Button color="primary">
+                                {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
+                                    </Button>
+
+                                
                                 </Typography> 
                             </Grid>
 
@@ -233,8 +240,7 @@ export default function PostLoginNavBar(props) {
                 }}
             >
                 <div className={classes.drawerHeader}>
-                    <img style={{ marginRight: "73px", width: "100px" }} src={AirtellLogo} />
-
+                    <img style={{ marginRight: "73px", width: "100px" }} src={MyLogo} />
                     {/* <img width="40" style={{ color: "red", marginRight:"130px"}} src={ 'https://www.pinclipart.com/picdir/middle/498-4988102_36-53k-airtel-logos-of-indian-companies-quiz.png'} /> */}
 
                     <IconButton onClick={handleDrawerClose}  >
@@ -245,11 +251,7 @@ export default function PostLoginNavBar(props) {
 
 
                 <Divider />
-                {roleCode == "ADMIN" ? <List>{Menu.AdminMenuList}</List> : null}
-                {roleCode == "BOA" ? <List>{Menu.BOAMenuList}</List> : null}
-                {roleCode == "DE" ? <List>{Menu.DEMenuList}</List> : null}
-                {roleCode == "DIST" ? <List>{Menu.DISTMenuList}</List> : null}
-                {roleCode == "QVA" ? <List>{Menu.QVAMenuList}</List> : null}
+                <List>{Menu.AdminMenuList}</List>
 
                 <Divider />
                 <List>{Menu.LogoutMenu}</List>

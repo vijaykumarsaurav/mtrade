@@ -2,14 +2,13 @@ import React from 'react';
 import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import UserService from "../service/UserService";
+import AdminService from "../service/AdminService";
 import LoginNavBar from "../LoginNavbar";
 import {Container} from "@material-ui/core";
 import { resolveResponse } from '../../utils/ResponseHandler';
 import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
-import ActivationService from "../service/ActivationService";
 
 import CryptoJS  from 'crypto-js'; 
 
@@ -20,8 +19,8 @@ class LoginComponent extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            userName: "",
-            password: "", 
+            userName: "V193588",
+            password: "Email*1990A", 
             isDasable:false,
             isError:false,
             
@@ -63,15 +62,17 @@ class LoginComponent extends React.Component{
                     </Grid>
                 </Grid>
             </React.Fragment>
+
+
         )
 
     }
 
     componentDidMount() {
-      const token =   window.localStorage.getItem("token"); 
-      if(token){
-        const lastUrl = localStorage.getItem("lastUrl"); 
-        this.props.history.push('/'+lastUrl);
+      const userTokens =   window.localStorage.getItem("userTokens"); 
+      if(userTokens){
+      //  const lastUrl = localStorage.getItem("lastUrl"); 
+        this.props.history.push('home');
       }
     }
 
@@ -102,59 +103,45 @@ class LoginComponent extends React.Component{
          
         this.setState({ isDasable: true });
 
-        var keynum = Math.floor(Math.random()*1E16);
-        if(keynum.toString().length == 15){
-            keynum = keynum.toString() + "9"; 
-        }
-        var atualkey = (keynum * 69-99).toString(); 
-        atualkey =  atualkey.substring(0, 15);
-
-       var encryptedPass = CryptoJS.AES.encrypt( this.state.password, atualkey).toString();
-        //console.log( keynum , encryptedPass);
+ 
 
         const loginPayload = {
-            userName:  this.state.userName,
-            password: encryptedPass+keynum // this.state.password //
+            clientcode:  this.state.userName,
+            password: this.state.password 
 
         };
-        UserService.login(loginPayload)
-            .then(res => {
+        AdminService.login(loginPayload)
+            .then(loginRes => {
               //  Notify.showError("Olms Id and password is required.");
             //  alert(JSON.stringify(res));
+         //   console.log("res",loginRes); 
 
-              if(res.data && res.data.message !== 'Success'){
-                this.setState({ isError: res.data.message });
+             // var data = resolveResponse(res);
+             var loginRes  = loginRes && loginRes.data; 
+            //  console.log("resdata",loginRes); 
+              if(loginRes.status && loginRes.message !== 'SUCCESS'){
+                this.setState({ isError: loginRes.message });
               }
-                var data = resolveResponse(res);
-                console.log("resolveResponse",data.result && data.result.roleCode); 
               
                // data = res.data; 
                 this.setState({ isDasable: false });
 
-                if(data.result){
-                    window.localStorage.setItem("userDetails",JSON.stringify(data.result));
-                    window.localStorage.setItem("token",data.result.token);
-                    window.localStorage.setItem("recordToProccedFirstTime",'yes');
-                    
-                    ActivationService.getStaticData(data.result.roleCode).then(res => {
-                        let cmsStaticData = resolveResponse(res);
-                        window.localStorage.setItem("cmsStaticData",JSON.stringify(cmsStaticData.result));
-                        if(data.result && data.result.roleCode == "BOA"){
-                            this.props.history.push('/verify');
-                            return;
-                        }
-                        if(data.result && data.result.roleCode == "DE")
-                        this.props.history.push('/dataentry');
-        
-                        if(data.result && data.result.roleCode == "ADMIN")
-                        this.props.history.push('/welcome');
-        
-                        if(data.result && data.result.roleCode == "QVA")
-                        this.props.history.push('/qva');
-        
-                        if((data.result && data.result.roleCode== "DIST") || (data.result &&  data.result.roleCode== "FSE"))
-                        this.props.history.push('/distributor');
-                    }); 
+                if(loginRes.data){
+                    window.localStorage.setItem("userTokens",JSON.stringify(loginRes.data));
+                  
+
+                    AdminService.getUserData().then(profileRes => {
+                       // console.log('profiledata', profileRes); 
+                          //let data = resolveResponse(res);
+                          var profileRes =  profileRes && profileRes.data; 
+                          if(profileRes.status & profileRes.message == 'SUCCESS'){
+                            window.localStorage.setItem("userProfile",JSON.stringify(profileRes.data));
+                            this.props.history.push('/home');
+                          }
+                      })
+
+                  
+
                 }
             });
           

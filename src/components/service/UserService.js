@@ -1,16 +1,17 @@
 import axios from 'axios';
 
 import AuthService from "./AuthService";
-import {SL_AD_LOGIN_URL,SL_AD_LOGOUT_URL} from "../../utils/config";
+import {LOGIN_API,SL_AD_LOGOUT_URL} from "../../utils/config";
 
 class UserService {
 
     login(credentials, key) {
 
-        console.log(credentials)
+        console.log(AuthService.loginHeader()); 
+
      //   return axios.post(STORE_API_BASE_URL + '/auth/portal-login', credentials, { 'headers': { 'X-Server-Key': '8786gfhy' } });
          // return axios.post(SL_AD_LOGIN_URL, credentials,  { 'headers': { 'MyServerKey': key }});
-          return axios.post(SL_AD_LOGIN_URL, credentials, '');
+          return axios.post(LOGIN_API, credentials, AuthService.loginHeader());
 
     } 
     checkapi(url, credentials) {

@@ -3,7 +3,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
-import AirtellLogo from './airtellogo.png';
+import MyLogo from './mylogo.png';
 import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../utils/config";
 
 
@@ -20,11 +20,11 @@ const LoginNavBar = (props) => {
             {/* <AppBar position="static" style={{backgroundColor: '#f44336'}}/> */}
             <AppBar position="static">
                 <Toolbar>
-                <img  style={{width:"100px"}} src={AirtellLogo} />
+                <img  style={{width:"100px"}} src={MyLogo} />
 
                     <div style={{width:"300px"}}>
                         <Typography variant="h6" style={style}>
-                             &nbsp;&nbsp;  SL MITRA Retailer Portal
+                             &nbsp;&nbsp; My App
                         </Typography>
                     </div>              
                     

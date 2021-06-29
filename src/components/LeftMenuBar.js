@@ -21,7 +21,7 @@ import LocalOfferIcon from '@material-ui/icons/LocalOffer';
 import HistoryIcon from '@material-ui/icons/History';
 
 import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
-import UserService from "./service/UserService";
+import AdminService from "./service/AdminService";
 
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 //import RouterComponent from '../RouterComponent'; 
@@ -31,240 +31,66 @@ export const AdminMenuList = (
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
 
-    <ListItem button component='a' href={"#/welcome"} >  
+    <ListItem button component='a' href={"#/home"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
-      <ListItemText primary="Welcome" />
+      <ListItemText primary="Home" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/dashboard"} >  
-      <ListItemIcon>
-        <EmojiEmotionsIcon />
-      </ListItemIcon>
-      <ListItemText primary="Dashboard Count" />
-    </ListItem>
-
-    <ListItem button component='a' href={"#/dashboard-camps"} >  
-      <ListItemIcon>
-        <EmojiEmotionsIcon />
-      </ListItemIcon>
-      <ListItemText primary="Dashboard Camp" />
-    </ListItem>
-
-    <ListItem button component='a' href={"#/msisdn-status"} >  
+    <ListItem button component='a' href={"#/funds"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="MSISDN History" />
+      <ListItemText primary="Funds" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/packs"} >  
+    <ListItem button component='a' href={"#/order"} >  
       <ListItemIcon>
-        <LayersIcon />
+        <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="Pack Activation" />
+      <ListItemText primary="Order Book" />
     </ListItem>
-
-    <ListItem button component='a' href={"#/ftr-mapping"} >  
+    <ListItem button component='a' href={"#/trade"} >  
       <ListItemIcon>
-        <LayersIcon />
+        <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="Specific Retailer FTR Mapping" />
+      <ListItemText primary="Trade Book" />
     </ListItem>
-
-    <ListItem button component='a' href={"#/offerupload"} >
-      <ListItemIcon>
-        <LocalOfferIcon />
-      </ListItemIcon>
-      <ListItemText primary="Offer Upload" />
-    </ListItem>
-
-    <ListItem button component='a' href={"#/fse"} >
-      <ListItemIcon>
-        <LocalOfferIcon />
-      </ListItemIcon>
-      <ListItemText primary="Manage Camp" />
-    </ListItem>
-
-    <ListItem button component='a' href={"#/re-registration"} >
-      <ListItemIcon>
-        <LocalOfferIcon />
-      </ListItemIcon>
-      <ListItemText primary="Re-Registration Upload" />
-    </ListItem>
-
-    <ListItem button component='a' href={"#/banners"} >
-      <ListItemIcon>
-        <AssignmentIcon />
-      </ListItemIcon>
-      <ListItemText primary="Upload Banner" />
-    </ListItem>
-
-    
-    <ListItem button component='a' href={"#/backoffice"} >
-      <ListItemIcon>
-        <PeopleIcon />
-      </ListItemIcon>
-      <ListItemText primary="User Creations" />
-    </ListItem>
-
-
-    {/* <ListItem button component='a' href={"#/role"} >
-      <ListItemIcon>
-        <PeopleIcon /> 
-      </ListItemIcon>
-      <ListItemText primary="Role Management" />
-    </ListItem> */}
   
-    
-    <ListItem button component='a' href={"#/report"}>
+
+
+    <ListItem button component='a' href={"#/bn-view"} >  
       <ListItemIcon>
-        <BarChartIcon />
+        <EmojiEmotionsIcon />
       </ListItemIcon>
-      <ListItemText primary="Reports" />
+      <ListItemText primary="NiftyBank View" />
     </ListItem>
 
-    {/* <ListItem button component='a' href={"#/reportpoc"}>
-      <ListItemIcon>
-        <BarChartIcon />
-      </ListItemIcon>
-      <ListItemText primary="Reports POC" />
-    </ListItem> */}
-
-
-
-  </div>
-);
-
-
-export const  BOAMenuList  = (
-
-  <div>
-    {/* selected */}
-   
-    <ListItem component='a' href={"#/verify"} button>
-      <ListItemIcon>
-        <VerifiedUserIcon />
-      </ListItemIcon>
-      <ListItemText primary="Acquisition Verification" />
-    </ListItem>
-
-    {/* sprint 7 &  8 changes */}
-    <ListItem component='a' href={"#/resubmit-verify"} button>
-     <ListItemIcon>
-        <HistoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Resubmit Verification" />
-    </ListItem>   
-
-    <ListItem component='a' href={"#/kyc"} button>
-     <ListItemIcon>
-        <HistoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Re-Registration Verification" />
-    </ListItem>   
-
-    <ListItem component='a' href={"#/disconnection"} button>
-     <ListItemIcon>
-        <HistoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Disconnection Verification" />
-    </ListItem> 
-
-     <ListItem component='a' href={"#/ownership"} button>
-     <ListItemIcon>
-        <HistoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Ownership Verification" />
-    </ListItem>   
-    
-  </div>
-);
-
-export const  QVAMenuList  = (
-
-  <div>
-    <ListItem component='a' href={"#/qva"} button>
-      <ListItemIcon>
-        <VerifiedUserIcon />
-      </ListItemIcon>
-      <ListItemText primary="Quick Verifications" />
-    </ListItem>
-    
-  </div>
-);
-
-export const DEMenuList = (
-  <div>
-    {/* <ListSubheader inset>Update Acquisition</ListSubheader> */}
-
-    <ListItem component='a' href={"#/dataentry"} button>
-      <ListItemIcon>
-        <VerifiedUserIcon />
-      </ListItemIcon>
-        {/* sprint 7 &  8 changes */}
-      <ListItemText primary="Acquisition Data Entry" />
-      {/* <ListItemText primary="Data Entry" /> */}
-
-    </ListItem> 
-    
-    {/* sprint 7 &  8 changes */}
-    <ListItem component='a' href={"#/resubmit-dataentry"} button>
-     <ListItemIcon>
-        <HistoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Resubmit Data Entry" />
-    </ListItem>   
-
-    <ListItem component='a' href={"#/kyc-dataentry"} button>
-     <ListItemIcon>
-        <HistoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Re-Registration Data Entry" />
-    </ListItem>  
-
-    <ListItem component='a' href={"#/ownership-dataentry"} button>
-     <ListItemIcon>
-        <HistoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Ownership Data Entry" />
-    </ListItem>  
-  </div>
-);
-
-
-export const DISTMenuList = (
-  <div>
-    {/* <ListSubheader inset>Upload</ListSubheader> */}
-   
-    <ListItem component='a' href={"#/distributor"} button>
-      <ListItemIcon>
-        <CloudUploadIcon />
-      </ListItemIcon>
-      <ListItemText primary="Upload Document" />
-    </ListItem>   
-
-    <ListItem component='a' href={"#/dist-resubmit"} button>
-      <ListItemIcon>
-        <CloudUploadIcon />
-      </ListItemIcon>
-      <ListItemText primary="Resubmit Document" />
-    </ListItem>   
-    
-    <ListItem button component='a' href={"#/report"}>
-      <ListItemIcon>
-        <BarChartIcon />
-      </ListItemIcon>
-      <ListItemText primary="Reports" />
-    </ListItem>
-
-    <ListItem button component='a' href={"#/msisdn-status"} >  
+    <ListItem button component='a' href={"#/nifty-view"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="Document View" />
+      <ListItemText primary="Nifty View" />
     </ListItem>
+
+
+    <ListItem button component='a' href={"#/sector"} >  
+      <ListItemIcon>
+        <FileCopyIcon />
+      </ListItemIcon>
+      <ListItemText primary="Sector Top" />
+    </ListItem>
+
+    <ListItem button component='a' href={"#/test"} >  
+      <ListItemIcon>
+        <FileCopyIcon />
+      </ListItemIcon>
+      <ListItemText primary="Exprement - Research" />
+    </ListItem>
+  
+
+
   </div>
 );
 
@@ -281,25 +107,27 @@ function deleteAllCookies() {
 function logoutPortal(){
   //console.log("yo_man")
 
-  UserService.logout()
-  .then(res => {
-   // {"status":200,"message":"Success","result":{"message":"User logged out successfully"}}
-   //console.log(res.data);   
-  
-   localStorage.clear();
-   deleteAllCookies();
+  if(window.confirm("Are you sure to logout?")){
 
-   window.location.replace("#/login");
-   return;
-  //  if(res.data && res.data.message == "Unauthorised" || res.data.message == "Success"){
-  //   
-  
-  //   window.location.replace("#/login");
-  //   return;
-  //  }
+  var userProfile = localStorage.getItem("userProfile")
+  userProfile = userProfile && JSON.parse(userProfile);
 
-  });
- //  window.localStorage.setItem("userDetails", '' );
+  var data = {
+    clientcode : userProfile && userProfile.clientcode
+    }
+
+    AdminService.logout(data)
+    .then(res => {
+    
+    localStorage.clear();
+    deleteAllCookies();
+    
+    window.location.replace("#/login");
+    return;
+
+    });
+
+  }
 }
 
 export const LogoutMenu = (

@@ -5,26 +5,26 @@ export function resolveResponse(response, msg) {
    
     let data = {};
         if (response.status === 200) {
-            console.log(response,"RESPONSE@@@@@@@@@@@")
             data = response.data;
-            if(data.status === 200 || data.status === 201) {
-                // if(data.message){
-                //     Notify.showSuccess(data.message);
-                // }
-            }else if(data.status === 400 || data.status === 401 || data.status === 403) {
-              //  Notify.showError("We need to authenticate you. Please login again.");
-                localStorage.clear();
-                //return window.location.replace("/#/login");
-                return Promise.reject(window.location.replace("#/login"));
-            }else {
-               // console.log(data.message,"XXXX");
+            if(data.status) {
+                if(data.message){
+
+                    if(msg != 'noPop')
+                    Notify.showSuccess(data.message);
+                }
+                return data;
+            }else{
+               // console.log('inside');
                 Notify.showError(data.message);
+
+                //window.location.replace("#/login");
                 return Promise.reject(data.message);
             }
         }
-        // else {
-        //     Notify.showError(data.message);
-        //     return Promise.reject(data.message);
-        // }
-        return data;
+        else if(response && !response.status){
+            Notify.showError(data.message);
+           // console.log('outside');
+            window.location.replace("#/login");
+           // return Promise.reject(data.message);
+        }   
 }

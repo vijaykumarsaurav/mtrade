@@ -4,14 +4,24 @@
 
 .App-logo {
   animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
+  height: 30vmin;
   pointer-events: none;
   
 }
 
+.MuiToolbar-root {
+  background-color: #bfc7df;
+  color: #191616;
+
+}
+
+.MuiToolbar-regular {
+  min-height: 24px !important;
+}
+
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  /* background-color: #d2d4e0; */
+  min-height: 34px !important;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -19,6 +29,8 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+
+
 
 main, .jss10, .jss297{
   padding: 0px !important;

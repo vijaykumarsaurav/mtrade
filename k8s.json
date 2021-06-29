@@ -1,0 +1,24 @@
+{
+  "version": "1.0.1",
+  "port": 8080,
+  "name": "drift-ui-service",
+  "slackUser": "@raghav_tandon",
+  "metricsEnabled": true,
+  "metricsPath": "/metrics",
+  "healthCheckPath": "/health",
+  "environment": [
+    {
+      "name": "APP_ENV",
+      "value": "works"
+    },
+    {
+      "name": "APP_PORT",
+      "value": 8080
+    }
+  ],
+  "tier": "frontend",
+  "owner": "raghav",
+  "labels": {
+    "group": "airtelWork"
+  }
+}
