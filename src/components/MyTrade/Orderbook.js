@@ -23,7 +23,9 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from "@material-ui/core/Input";
 import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
+import Dialogbox from "./Dialogbox";
 
+import TextField from "@material-ui/core/TextField";
 
 
 const ITEM_HEIGHT = 48;
@@ -46,11 +48,49 @@ class OrderBook extends React.Component{
         this.convertBool = this.convertBool.bind(this);
 
         this.state = {
-            oderbookData:[],
+            oderbookData:[{
+                
+                "variety":'NORMAL',
+                "ordertype":'LIMIT',
+                "producttype":'INTRADAY',
+                "duration":'DAY',
+                "price":"194.00",
+                "triggerprice":"0",
+                "quantity":"1",
+                "disclosedquantity":"0",
+                "squareoff":"0",
+                "stoploss":"0",
+                "trailingstoploss":"0",
+                "tradingsymbol":"SBIN-EQ",
+                "transactiontype":'BUY',
+                "exchange":'NSE',
+                "symboltoken":null,
+                "instrumenttype":"",
+                "strikeprice":"-1",
+                "optiontype":"",
+                "expirydate":"",
+                "lotsize":"1",
+                "cancelsize":"1",
+                "averageprice":"1001",
+                "filledshares":"0",
+                "unfilledshares":"1",
+                "orderid":201020000000080,
+                "text":"",
+                "status":"cancelled",
+                "orderstatus":"cancelled",
+                "updatetime":"20-Oct-2020 13:10:59",
+                "exchtime":"20-Oct-2020 13:10:59",
+                "exchorderupdatetime":"20-Oct-2020 13:10:59",
+                "fillid":"",
+                "filltime":"",
+                "parentorderid":""
+                 }],
             listofzones:[],
             selectedZone:[],
             zone:'',
-            selectAllzone:'Select All'
+            selectAllzone:'Select All',
+            triggerprice :0,
+            price:0
 
         }
     }
@@ -115,22 +155,45 @@ class OrderBook extends React.Component{
         var fd = d.toLocaleDateString() + ' ' + d.toTimeString().substring(0, d.toTimeString().indexOf("GMT"));
         return fd;
     }
+    modifyOrder = (row) => {
+
+        console.log(this.state.triggerprice);
+
+        var data = {
+            "variety" :row.variety,  // "STOPLOSS",
+            "orderid": row.orderid,
+            "ordertype": this.state.price != 0 ? "STOPLOSS_LIMIT" : "STOPLOSS_MARKET",
+            "producttype":  row.producttype, //"DELIVERY",
+            "duration": row.duration,
+            "price":  this.state.price,
+            "triggerprice": this.state.triggerprice,
+            "quantity":row.quantity,
+            "tradingsymbol": row.tradingsymbol,
+            "symboltoken": row.symboltoken,
+            "exchange": row.exchange
+            }
+        AdminService.modifyOrder(data).then(res => {
+            let data = resolveResponse(res);
+            console.log(data);   
+            if(data.status  && data.message == 'SUCCESS'){
+               // localStorage.setItem('ifNotBought' ,  'false')
+            }
+        })
+    }
+
+    onChange = (e) => {
+        this.setState({ [e.target.name]: e.target.value.trim() });
+    }
+
    
     
 
     render(){
-        var CookieExpireDate = new Date();
-        CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
-        document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
-        console.log("COOKIE", document.cookie ); 
-
-        console.log(this.props,"PROPS")
+        
       return(
         <React.Fragment>
             <PostLoginNavBar/>
-
-
-
+             <Dialogbox dialogAction = {{onChange : this.onChange}}/>
             <Paper style={{padding:"10px", overflow:"auto"}} >
 
 
@@ -147,27 +210,23 @@ class OrderBook extends React.Component{
             <Table  size="small"   aria-label="sticky table" >
                 <TableHead style={{width:"",whiteSpace: "nowrap"}} variant="head">
                     <TableRow variant="head" >
-                          {/* <TableCell align="center">Edit</TableCell> */}
-
-
-                        {/* <TableCell align="center">checkbox</TableCell> */}
-                        <TableCell align="center"><b>OrderId</b></TableCell>
-                        <TableCell align="center"><b>Product Type</b></TableCell>
-                        <TableCell align="center"><b>Type</b></TableCell>
-                        <TableCell align="center"><b>Instrument</b></TableCell>
-
-                        <TableCell align="center"><b>Qty </b></TableCell>
-                        
-
-                        {/* <TableCell align="center">Lob</TableCell> */}
-                        {/* <TableCell align="center">Section</TableCell> */}
-                        <TableCell align="center"><b>Average Price</b></TableCell>
-                        {/* <TableCell align="center">Category</TableCell> */}
-                        <TableCell align="center"><b>Status</b></TableCell>
-
                         <TableCell align="center"><b>Update time</b></TableCell>
 
-                      
+                        <TableCell align="center"><b>OrderId</b></TableCell>
+                        <TableCell align="center"><b>Instrument</b></TableCell>
+                        <TableCell align="center"><b>Order Type</b></TableCell>
+                        <TableCell align="center"><b>CNC/Intraday</b></TableCell>
+                        <TableCell align="center"><b>Qty </b></TableCell>
+                
+                        <TableCell align="center"><b>Average Price</b></TableCell>
+                        <TableCell align="center"><b>Status</b></TableCell>
+                        
+                        <TableCell align="center"><b>Price</b></TableCell>
+                        <TableCell align="center"><b>Trigger Price</b></TableCell>
+
+                        
+                        <TableCell align="center">Update</TableCell>
+                   
 
                     </TableRow>
                 </TableHead>
@@ -176,20 +235,40 @@ class OrderBook extends React.Component{
                     {this.state.oderbookData && this.state.oderbookData ? this.state.oderbookData.map(row => (
                         <TableRow key={row.productId} >
 
-                            {/* <TableCell align="center"> <img style={{width:"100px", height:"50px"}} src={row.imageURL} /> </TableCell> */}
+                            <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(0, 25) : ""}</TableCell>
+
                             <TableCell align="center">{row.orderid  }</TableCell>
                             <TableCell align="center">{row.tradingsymbol}</TableCell>
                             <TableCell align="center">{row.transactiontype}</TableCell>
+                           
                             
                             <TableCell align="center">{row.producttype}</TableCell>
                             <TableCell align="center">{row.lotsize}</TableCell>
-                            {/* <TableCell align="center">{row.lob}</TableCell> */}
-                            {/* <TableCell align="center">{row.section}</TableCell> */}
+                        
                             <TableCell align="center">{row.averageprice}</TableCell>
-                            <TableCell align="center">{row.orderstatus}</TableCell>
-                            {/* <TableCell align="center">{row.category}</TableCell> */}
-                             <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(0, 25) : ""}</TableCell>
 
+                            <TableCell align="center">{row.orderstatus}</TableCell>
+
+
+                            <TableCell align="center">
+                                {row.orderstatus == 'trigger pending' ? 
+                                <TextField style={{textAlign:'center', width:'50px'}} id="price"  value={this.state.price == 0 ? row.price : this.state.price}  name="price" onChange={this.onChange}/>
+                                : row.price}
+                            </TableCell>
+                            <TableCell align="center">
+                                {row.orderstatus == 'trigger pending' ? 
+                                <TextField style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice == 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
+                                : row.triggerprice}
+                            </TableCell>
+
+                            <TableCell align="center">
+                                {row.orderstatus == 'trigger pending' ? 
+                                <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
+                                : row.triggerprice}
+                            </TableCell>
+                            
+                           
+                           
                             
                         </TableRow>
                     )):<Spinner/>}

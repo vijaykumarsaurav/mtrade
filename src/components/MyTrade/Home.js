@@ -235,30 +235,6 @@ class Home extends React.Component{
 
     }
 
-    modifyOrder = (price) => {
-
-        var data = {
-            "variety" : "STOPLOSS",
-            "orderid": "210628000592416",
-            "ordertype":"STOPLOSS_LIMIT",
-            "producttype":"DELIVERY",
-            "duration":"DAY",
-            "price":670,
-            "triggerprice": 670.1,
-            "quantity":"1",
-            "tradingsymbol":"GLENMARK-EQ",
-            "symboltoken":"7406",
-            "exchange":"NSE"
-            }
-        AdminService.modifyOrder(data).then(res => {
-            let data = resolveResponse(res);
-            console.log(data);   
-            if(data.status  && data.message == 'SUCCESS'){
-                localStorage.setItem('ifNotBought' ,  'false')
-            }
-        })
-    }
-
     getHistory = (token) => {
 
         const format1 = "YYYY-MM-DD HH:mm";
@@ -297,10 +273,7 @@ class Home extends React.Component{
         })
     }
 
-    onChange = (e) => {
-        this.setState({ [e.target.name]: e.target.value.trim() });
-    }
-
+   
     getAveragePrice =(orderId) => {
 
        var  oderbookData = localStorage.getItem('oderbookData');
