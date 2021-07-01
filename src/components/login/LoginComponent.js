@@ -19,8 +19,8 @@ class LoginComponent extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            userName: "V193588",
-            password: "Email*1990A", 
+            userName: "",
+            password: "", 
             isDasable:false,
             isError:false,
             
