@@ -90,7 +90,9 @@ class OrderBook extends React.Component{
             zone:'',
             selectAllzone:'Select All',
             triggerprice :0,
-            price:0
+            price:0,
+            lotsize:0,
+            firstTimeFlag: true
 
         }
     }
@@ -109,12 +111,47 @@ class OrderBook extends React.Component{
                       });
 
                     this.setState({oderbookData: orderlist});
+
+                    var pendingOrder = orderlist.filter(function(row){
+                        return row.status == "trigger pending";
+                    }); 
+                    this.setState({pendingOrder: pendingOrder});
+                    
+                  //  console.log(pendingOrder);
+                    
                     localStorage.setItem('oderbookData', JSON.stringify( orderlist ));
                 }
             });
 
 
-       
+        while(1){
+
+            if(this.state.pendingOrder && this.state.pendingOrder.length> 0){
+                setTimeout(() => {
+                
+                    var data  = {
+                        "exchange":"NSE",
+                        "tradingsymbol":  this.state.pendingOrder[0].tradingsymbol,
+                        "symboltoken":this.state.pendingOrder[0].symboltoken,
+                    }
+                    AdminService.getLTP(data).then(res => {
+                        let data = resolveResponse(res, 'noPop');
+                         var LtpData = data && data.data; 
+                         this.setState({ InstrumentLTP : LtpData});
+
+                        const averageprice =  this.state.pendingOrder[0].averageprice; 
+                         
+                        let changePercentage = (LtpData.ltp - averageprice)*100/averageprice; 
+                        if(this.state.firstTimeFlag && changePercentage > 0.7){           
+                            let minprice =  (averageprice * 0.25)/100 + averageprice ; 
+                            this.modifyOrder(this.state.pendingOrder, minprice);
+                        }
+                   })
+    
+                }, 1000);
+            }
+        }
+
     }
 
     zoneChange = (e) =>{
@@ -155,7 +192,7 @@ class OrderBook extends React.Component{
         var fd = d.toLocaleDateString() + ' ' + d.toTimeString().substring(0, d.toTimeString().indexOf("GMT"));
         return fd;
     }
-    modifyOrder = (row) => {
+    modifyOrder = (row, trailingstoploss) => {
 
         console.log(this.state.triggerprice);
 
@@ -166,8 +203,8 @@ class OrderBook extends React.Component{
             "producttype":  row.producttype, //"DELIVERY",
             "duration": row.duration,
             "price":  this.state.price,
-            "triggerprice": this.state.triggerprice,
-            "quantity":row.quantity,
+            "triggerprice": trailingstoploss || this.state.triggerprice,
+            "quantity":this.state.lotsize,
             "tradingsymbol": row.tradingsymbol,
             "symboltoken": row.symboltoken,
             "exchange": row.exchange
@@ -224,6 +261,7 @@ class OrderBook extends React.Component{
                         <TableCell align="center"><b>Price</b></TableCell>
                         <TableCell align="center"><b>Trigger Price</b></TableCell>
 
+                        <TableCell align="center"><b>LTP</b></TableCell>
                         
                         <TableCell align="center">Update</TableCell>
                    
@@ -243,7 +281,13 @@ class OrderBook extends React.Component{
                            
                             
                             <TableCell align="center">{row.producttype}</TableCell>
-                            <TableCell align="center">{row.lotsize}</TableCell>
+
+                            <TableCell align="center">
+                                {row.orderstatus == 'trigger pending' ? 
+                                <TextField type="number" style={{textAlign:'center', width:'50px'}} id="lotsize"  value={this.state.lotsize == 0 ? row.lotsize : this.state.lotsize}  name="lotsize" onChange={this.onChange}/>
+                                : row.lotsize}
+                            </TableCell>
+
                         
                             <TableCell align="center">{row.averageprice}</TableCell>
 
@@ -257,18 +301,20 @@ class OrderBook extends React.Component{
                             </TableCell>
                             <TableCell align="center">
                                 {row.orderstatus == 'trigger pending' ? 
-                                <TextField style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice == 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
+                                <TextField  type="number" style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice == 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
                                 : row.triggerprice}
                             </TableCell>
 
+                            <TableCell align="center">{row.triggerprice}</TableCell>
+
+
+
                             <TableCell align="center">
                                 {row.orderstatus == 'trigger pending' ? 
-                                <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
+                                <Button  type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
                                 : row.triggerprice}
                             </TableCell>
                             
-                           
-                           
                             
                         </TableRow>
                     )):<Spinner/>}

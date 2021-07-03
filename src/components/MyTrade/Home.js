@@ -105,6 +105,9 @@ class Home extends React.Component{
         this.myCallback = this.myCallback.bind(this);
       //  this.login = this.login.bind(this);
     }
+    onChange = (e) => {
+        this.setState({ [e.target.name]: e.target.value});
+    }
 
     myCallback = (date, fromDate) => {
         if (fromDate === "START_DATE") {
@@ -200,7 +203,7 @@ class Home extends React.Component{
         this.getHistory(token); 
     }
 
-    placeSLMOrder = (price) => {
+    placeSLMOrder = () => {
 
         var data = {
             "variety":"NORMAL",
@@ -215,7 +218,7 @@ class Home extends React.Component{
             "squareoff":"0",
             "stoploss":"0",
             "quantity": this.state.quantity, 
-            "triggerprice" : price,
+            "triggerprice" : this.state.stoploss,
             "variety" : "STOPLOSS"
         }
 
@@ -228,10 +231,6 @@ class Home extends React.Component{
             }
         })
 
-        // let changePercentage = (price - this.state.averageprice)*100/this.state.averageprice; 
-        // if(changePercentage > 0.5){           
-        //     let minprice =  (this.state.averageprice * 0.25)/100 + this.state.averageprice ; 
-        // }
 
     }
 

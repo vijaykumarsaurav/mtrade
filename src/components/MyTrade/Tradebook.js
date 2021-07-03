@@ -142,7 +142,6 @@ class TradeBook extends React.Component{
             <Table  size="small"   aria-label="sticky table" >
                 <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
                     <TableRow   variant="head" style={{fontWeight: 'bold'}}>
-                          {/* <TableCell align="center">Edit</TableCell> */}
 
 
                         {/* <TableCell align="center">checkbox</TableCell> */}
