@@ -50,6 +50,12 @@ class AdminService {
         return axios.post('https://chartink.com/screener/process', credentials, AuthService.getScannerHeader());
      } 
 
+     autoCompleteSearch(query) {
+        return axios.get('http://localhost:8081/search/'+query, '');
+     } 
+     saveWatchList(data) {
+        return axios.get('http://localhost:8081/saveWatchList/'+data, '');
+     } 
 
 
 }

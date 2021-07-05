@@ -124,33 +124,33 @@ class OrderBook extends React.Component{
             });
 
 
-        while(1){
+        // while(1){
 
-            if(this.state.pendingOrder && this.state.pendingOrder.length> 0){
-                setTimeout(() => {
+        //     if(this.state.pendingOrder && this.state.pendingOrder.length> 0){
+        //         setTimeout(() => {
                 
-                    var data  = {
-                        "exchange":"NSE",
-                        "tradingsymbol":  this.state.pendingOrder[0].tradingsymbol,
-                        "symboltoken":this.state.pendingOrder[0].symboltoken,
-                    }
-                    AdminService.getLTP(data).then(res => {
-                        let data = resolveResponse(res, 'noPop');
-                         var LtpData = data && data.data; 
-                         this.setState({ InstrumentLTP : LtpData});
+        //             var data  = {
+        //                 "exchange":"NSE",
+        //                 "tradingsymbol":  this.state.pendingOrder[0].tradingsymbol,
+        //                 "symboltoken":this.state.pendingOrder[0].symboltoken,
+        //             }
+        //             AdminService.getLTP(data).then(res => {
+        //                 let data = resolveResponse(res, 'noPop');
+        //                  var LtpData = data && data.data; 
+        //                  this.setState({ InstrumentLTP : LtpData});
 
-                        const averageprice =  this.state.pendingOrder[0].averageprice; 
+        //                 const averageprice =  this.state.pendingOrder[0].averageprice; 
                          
-                        let changePercentage = (LtpData.ltp - averageprice)*100/averageprice; 
-                        if(this.state.firstTimeFlag && changePercentage > 0.7){           
-                            let minprice =  (averageprice * 0.25)/100 + averageprice ; 
-                            this.modifyOrder(this.state.pendingOrder, minprice);
-                        }
-                   })
+        //                 let changePercentage = (LtpData.ltp - averageprice)*100/averageprice; 
+        //                 if(this.state.firstTimeFlag && changePercentage > 0.7){           
+        //                     let minprice =  (averageprice * 0.25)/100 + averageprice ; 
+        //                     this.modifyOrder(this.state.pendingOrder, minprice);
+        //                 }
+        //            })
     
-                }, 1000);
-            }
-        }
+        //         }, 1000);
+        //     }
+        // }
 
     }
 

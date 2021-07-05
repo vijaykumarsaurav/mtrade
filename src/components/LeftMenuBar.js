@@ -37,6 +37,12 @@ export const AdminMenuList = (
   <div>
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
+    <ListItem button component='a' href={"#/livefeed"} >  
+      <ListItemIcon>
+        <EmojiEmotionsIcon />
+      </ListItemIcon>
+      <ListItemText primary="Live Feed" />
+    </ListItem>
 
     <ListItem button component='a' href={"#/home"} >  
       <ListItemIcon>
@@ -124,7 +130,9 @@ function logoutPortal(){
     AdminService.logout(data)
     .then(res => {
     
-    localStorage.clear();
+    //localStorage.clear();
+    localStorage.setItem('userTokens', '');
+    localStorage.setItem('userProfile', '');
     deleteAllCookies();
     
     window.location.replace("#/login");

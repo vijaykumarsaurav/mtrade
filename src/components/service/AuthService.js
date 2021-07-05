@@ -20,7 +20,7 @@ class AuthService {
             'X-ClientLocalIP':'192.168.1.128',
             'X-ClientPublicIP':'91.0.4472.114',
             'X-MACAddress':'f0:18:98:26:c4:cc',
-            'X-PrivateKey':'Zp0UXRzd'
+            'X-PrivateKey':'I4O6PJAn'
         } }
 
         return { 'headers': {'Authorization': 'Bearer ' + localStorage.getItem("token") } }
@@ -37,7 +37,7 @@ class AuthService {
             'X-ClientLocalIP':'192.168.1.128',
             'X-ClientPublicIP':'91.0.4472.114',
             'X-MACAddress':'f0:18:98:26:c4:cc',
-            'X-PrivateKey':'Zp0UXRzd'
+            'X-PrivateKey':'I4O6PJAn'
         } }
     }
     getImageHeader() {

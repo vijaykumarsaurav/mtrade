@@ -14,6 +14,7 @@ import Chart from "./MyTrade/Chart";
 import Funds from "./MyTrade/Funds";
 import Orderbook from "./MyTrade/Orderbook";
 import Tradebook from "./MyTrade/Tradebook";
+import LiveFeed from "./MyTrade/LiveFeed";
 import Test from "./MyTrade/Test";
 
 const AppRouter = () => {
@@ -32,7 +33,9 @@ const AppRouter = () => {
                     <Route path="/funds" component={Funds}/>
                     <Route path="/order" component={Orderbook}/>
                     <Route path="/trade" component={Tradebook}/>
-                    
+
+                    <Route path="/livefeed" component={LiveFeed}/>
+
 
                     <Route path="/test" component={Test}/>
                     
