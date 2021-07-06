@@ -22,7 +22,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Spinner from "react-spinner-material";
-import  {DEV_PROTJECT_PATH, IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
+import  {API_KEY} from "../../utils/config";
 import * as moment from 'moment';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import myWatchListOne from './myWatchListOne.json';
@@ -36,12 +36,13 @@ import { w3cwebsocket } from 'websocket';
 import pako from 'pako';
 import DeleteIcon from '@material-ui/icons/Delete';
 
-const wsClint =  new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream'); 
+const wsClint =  new w3cwebsocket('wss://smartapisocket.angelbroking.com/websocket'); 
 
 class Home extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
+            positionList : [],
             userName: "",
             password: "",
             autoSearchList :[],
@@ -100,6 +101,8 @@ class Home extends React.Component{
        })
     }
     decodeWebsocketData =(array)  => {
+
+        console.log('atoms'); 
         var newarray = [];
         try {
             for (var i = 0; i < array.length; i++) {
@@ -112,9 +115,17 @@ class Home extends React.Component{
 
     makeConnection = (feedToken ,clientcode ) => {
 
-        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-       // console.log("1st Request :- " + firstTime_req);
-        wsClint.send(firstTime_req);
+
+        var firstTime_req =  {
+            "actiontype": "subscribe",
+            "feedtype": "order_feed",
+            "jwttoken": this.state.feedToken ,
+            "clientcode": this.state.clientcode ,
+            "apikey": API_KEY
+       }
+       
+        console.log("1st Request :- " + JSON.stringify( firstTime_req));
+        wsClint.send(JSON.stringify( firstTime_req));
     }
 
     updateSocketWatch = (feedToken,clientcode ) => {
@@ -148,7 +159,8 @@ class Home extends React.Component{
         wsClint.onopen  = (res) => {
 
              this.makeConnection();
-             this.updateSocketWatch();
+             console.log('connected');
+         //    this.updateSocketWatch();
                 
             //  setTimeout(function(){
             //    this.updateSocketWatch(feedToken ,clientcode);
@@ -160,17 +172,20 @@ class Home extends React.Component{
             
             var decoded = window.atob(message.data);
             var data = this.decodeWebsocketData(pako.inflate(decoded));
-            var liveData =  JSON.parse(data); 
 
-           this.state.symbolList.forEach(element => {
+            this.setState({ positionList : JSON.parse(data) });
 
-                var foundLive = liveData.filter(row => row.tk  == element.token);
-            // console.log("foundLive", foundLive);
-                if(foundLive.length>0 &&  foundLive[0].ltp)
-                    this.setState({ [element.symbol+'ltp'] : foundLive.length>0 &&  foundLive[0].ltp})
-                if(foundLive.length>0 &&  foundLive[0].cng)
-                    this.setState({ [element.symbol+'nc'] : foundLive.length>0 &&  foundLive[0].nc})
-                });
+        //    this.state.symbolList.forEach(element => {
+
+        //         var foundLive = liveData.filter(row => row.tk  == element.token);
+        //     // console.log("foundLive", foundLive);
+        //         if(foundLive.length>0 &&  foundLive[0].ltp)
+        //             this.setState({ [element.symbol+'ltp'] : foundLive.length>0 &&  foundLive[0].ltp})
+        //         if(foundLive.length>0 &&  foundLive[0].cng)
+        //             this.setState({ [element.symbol+'nc'] : foundLive.length>0 &&  foundLive[0].nc})
+               
+               
+        //      });
         
         }
 
@@ -179,9 +194,17 @@ class Home extends React.Component{
         }
 
         setInterval(() => {
-            var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-            console.log("Request :- " + _req);
-            wsClint.send(_req);
+
+            var heartbeatReq =  {
+                "actiontype": "heartbeat",
+                "feedtype": "order_feed",
+                "jwttoken": this.state.feedToken ,
+                "clientcode": this.state.clientcode ,
+                "apikey": API_KEY
+            }
+    
+            console.log("heartbeatReq : " + heartbeatReq);
+            wsClint.send(heartbeatReq);
           //  this.makeConnection(feedToken ,clientcode );
         }, 59000);
 
@@ -212,7 +235,7 @@ class Home extends React.Component{
 
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
-         //   console.log(data);   
+            console.log(data);   
             if(data.status  && data.message == 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
@@ -259,7 +282,7 @@ class Home extends React.Component{
 
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
-       //     console.log(data);   
+            console.log(data);   
             if(data.status  && data.message == 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
@@ -287,7 +310,7 @@ class Home extends React.Component{
        
         AdminService.getHistoryData(data).then(res => {
              let data = resolveResponse(res,'noPop' );
-          //    console.log(data); 
+              console.log(data); 
               if(data && data.data){
                  
                 var histCandles = data.data; 
@@ -307,8 +330,8 @@ class Home extends React.Component{
         
 
         var autoSearchTemp = JSON.parse( localStorage.getItem('autoSearchTemp')); 
-      //  console.log("values", values); 
-     //   console.log("autoSearchTemp", autoSearchTemp); 
+        console.log("values", values); 
+        console.log("autoSearchTemp", autoSearchTemp); 
         if(autoSearchTemp.length> 0){
             var fdata = '';       
              for (let index = 0; index < autoSearchTemp.length; index++) {
@@ -368,153 +391,106 @@ class Home extends React.Component{
 
 
     render() {
-        const dateParam = {
-            myCallback: this.myCallback,
-            startDate: '',
-            endDate:'', 
-            firstLavel : "Start Date and Time", 
-            secondLavel : "End Date and Time"
-          }
+      
 
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
                 
-                <Grid container spacing={1}  direction="row" container>
                
-                     <Grid item xs={3} sm={3}  style={{}}> 
-            
+                 <Grid  container spacing={1}  direction="row" alignItems="center" container>
 
-                        <Autocomplete
-                            freeSolo
-                            id="free-solo-2-demo"
-                            disableClearable
-                            onChange={this.onSelectItem}
-                            //+ ' '+  option.exch_seg
-                            options={this.state.autoSearchList.length> 0 ?  this.state.autoSearchList.map((option) => 
-                            option.symbol
-                            ) : [] }
-                            renderInput={(params) => (
-                            <TextField
-                                onChange={this.onChange}
-                                {...params}
-                                label="Search Symbol"
-                                margin="normal"
-                                variant="outlined"
-                                name="search"
-                                value={this.state.search}
-                                InputProps={{ ...params.InputProps, type: 'search' }}
-                            />
-                            )}
-                        />
-                        {/* <Dialogbox /> */}
+                    <Grid item xs={10} sm={12}> 
+                    <Paper style={{padding:"10px", overflow:"auto"}} >
 
-                        {/* <TextField fullWidth  type="text" id="search"  value={this.state.search}  name="search" /> */}
 
-                            {this.state.symbolList && this.state.symbolList ? this.state.symbolList.map(row => (
-                               <>
-                               <ListItem button >
+                    <Table  size="small"   aria-label="sticky table" >
+                        <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
+                            <TableRow   variant="head" style={{fontWeight: 'bold'}}>
+
+                                {/* <TableCell className="TableHeadFormat" align="center">Instrument</TableCell> */}
                                 
-                                <ListItemText style={{color:this.state[row.symbol+'nc'] > 0 ? 'green' : "red"  }}  onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol+'ltp']} ({this.state[row.symbol+'nc']}%) <DeleteIcon  onClick={() => this.deleteItemWatchlist(row.symbol)} />
-                            </ListItem>
-                           
-                            </>
-                            )):''}
-                </Grid>
+                                <TableCell className="TableHeadFormat" align="center">Trading symbol</TableCell>
 
-                <Grid item xs={9} sm={9}> 
+                                <TableCell className="TableHeadFormat" align="center">Order Type</TableCell>
+                                <TableCell className="TableHeadFormat" align="center">Product type</TableCell>
+                                <TableCell className="TableHeadFormat" align="center">Transaction type</TableCell>
+                              
+                                <TableCell  className="TableHeadFormat" align="center">Quantity</TableCell>
+                                <TableCell  className="TableHeadFormat" align="center">Average Price</TableCell>
 
-                    <Grid  container spacing={1}  direction="row" alignItems="center" container>
+                                <TableCell className="TableHeadFormat" align="center">Status </TableCell>
+                                <TableCell  className="TableHeadFormat"   align="center">Order Status</TableCell>
+                                <TableCell  className="TableHeadFormat"   align="center">Exec Time</TableCell>
 
-                        <Grid item xs={10} sm={5}> 
-                            <Typography variant="h5"  >
-                            {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : "" }   {this.state.sbinLtp}
-                            </Typography>    
-                            Open : {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : "" } &nbsp;
-                            High : {this.state.InstrumentLTP ? this.state.InstrumentLTP.high : "" } &nbsp;
-                            Low :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.low : "" }&nbsp;
-                            Previous Close :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.close : "" } &nbsp;
+                            </TableRow>
+                        </TableHead>
+                        <TableBody style={{width:"",whiteSpace: "nowrap"}}>
 
-                        </Grid>
-                        <Grid item xs={12} sm={2}>
-                                <FormControl style={styles.selectStyle}>
-                                    <InputLabel  htmlFor="gender">Order Type</InputLabel>
-                                    <Select value={this.state.producttype}  name="producttype" onChange={this.onChange}>
-                                        <MenuItem value={"INTRADAY"}>INTRADAY</MenuItem>
-                                        <MenuItem value={"DELIVERY"}>DELIVERY</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                        <Grid item xs={10} sm={1}> 
-                            <TextField  id="buyPrice"  label="Buy Price"  value={this.state.buyPrice}   name="buyPrice" onChange={this.onChange}/>
-                        </Grid>
-                        <Grid item xs={10} sm={1}> 
-                            <TextField  id="quantity"  label="Qty"  value={this.state.quantity}   name="quantity" onChange={this.onChange}/>
-                        </Grid>
-                        <Grid item xs={10} sm={1}> 
-                            <TextField  id="stoploss"  label="SL"  value={this.state.stoploss}   name="stoploss" onChange={this.onChange}/>
-                        </Grid>
-                    
-                    
-                        <Grid item xs={1} sm={2}  > 
-                        
-                            <Button variant="contained" color="secondary" style={{marginLeft: '20px'}} onClick={() => this.placeOrder('BUY')}>Buy</Button> 
-                            <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.placeOrder('SELL')}>Sell</Button>    
-                        </Grid>
+                            {/* {
+                                "variety": null,
+                                "ordertype": "LIMIT",
+                                "producttype": "INTRADAY",
+                                "duration": "DAY",
+                                "price": "194",
+                                "triggerprice": "0",
+                                "quantity": "1",
+                                "disclosedquantity": "0",
+                                "squareoff": "0",
+                                "stoploss": "0",
+                                "trailingstoploss": "0",
+                                "tradingsymbol": "SBIN-EQ",
+                                "transactiontype": "BUY",
+                                "exchange": "NSE",
+                                "symboltoken": null,
+                                "instrumenttype": "",
+                                "strikeprice": "-1",
+                                "optiontype": "",
+                                "expirydate": "",
+                                "lotsize": "1",
+                                "cancelsize": "1",
+                                "averageprice": "0",
+                                "filledshares": "0",
+                                "unfilledshares": "1",
+                                "orderid": "201020000000080",
+                                "text": "",
+                                "status": "cancelled",
+                                "orderstatus": "cancelled",
+                                "updatetime": "20-Oct-2020   13:10:59",
+                                "exchtime": "20-Oct-2020   13:10:59",
+                                "exchorderupdatetime": "20-Oct-2020   13:10:59",
+                                "fillid": null,
+                                "filltime": null
+                            } */}
 
-
-                        <Grid item xs={10} sm={12}> 
-                        <Paper style={{padding:"10px", overflow:"auto"}} >
-
-
-                        <Table  size="small"   aria-label="sticky table" >
-                            <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
-                                <TableRow   variant="head" style={{fontWeight: 'bold'}}>
-
-                                    {/* <TableCell className="TableHeadFormat" align="center">Instrument</TableCell> */}
-                                    <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
-                                    <TableCell className="TableHeadFormat" align="center">Open</TableCell>
-                                    <TableCell  className="TableHeadFormat" align="center">High</TableCell>
-                                    <TableCell  className="TableHeadFormat" align="center">Low</TableCell>
-                                    <TableCell className="TableHeadFormat" align="center">Close </TableCell>
-                                    <TableCell  className="TableHeadFormat"   align="center">Volume</TableCell>
-
-                                </TableRow>
-                            </TableHead>
-                            <TableBody style={{width:"",whiteSpace: "nowrap"}}>
+                            {this.state.positionList ? this.state.positionList.map(row => (
+                                <TableRow key={row.productId} >
 
 
-                                {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map(row => (
-                                    <TableRow key={row.productId} >
-
-                                        <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
-                                        <TableCell align="center">{row[1]}</TableCell>
-                                        <TableCell align="center">{row[2]}</TableCell>
-                                        <TableCell align="center">{row[3]}</TableCell>
-                                        <TableCell align="center">{row[4]}</TableCell>
-                                        <TableCell align="center">{row[5]}</TableCell>
+                                    <TableCell align="center">{row.tradingsymbol}</TableCell>
+                                    <TableCell align="center">{row.ordertype}</TableCell>
+                                    <TableCell align="center">{row.producttype}</TableCell>
+                                    <TableCell align="center">{row.transactiontype}</TableCell>
                                     
-                                    </TableRow>
-                                )):''}
-                            </TableBody>
-                        </Table>
+                                    <TableCell align="center">{row.quantity}</TableCell>
+                                    <TableCell align="center">{row.averageprice}</TableCell>
+                                    <TableCell align="center">{row.status}</TableCell>
+                                    <TableCell align="center">{row.orderstatus}</TableCell>
+                                    <TableCell align="center">{row.exchtime}</TableCell>
+                                
+                                </TableRow>
+                            )):''}
+                        </TableBody>
+                    </Table>
 
-                        </Paper>
-                        </Grid>
-
-                        
-
-                        
-                        </Grid>
+                    </Paper>
                     </Grid>
 
 
-                            
 
 
-                
-                
-                </Grid>
+                    </Grid>
+            
                
             </React.Fragment>
         )

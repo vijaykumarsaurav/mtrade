@@ -28,7 +28,6 @@ import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
 import AdminService from "./service/AdminService";
 
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import InvertColorsIcon from '@material-ui/icons/InvertColors';
 //import RouterComponent from '../RouterComponent'; 
 
 
@@ -44,11 +43,11 @@ export const AdminMenuList = (
       <ListItemText primary="Live Feed" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/home"} >  
+    <ListItem button component='a' href={"#/position"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
-      <ListItemText primary="Home" />
+      <ListItemText primary="Positions" />
     </ListItem>
 
     <ListItem button component='a' href={"#/funds"} >  

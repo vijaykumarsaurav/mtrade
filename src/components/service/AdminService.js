@@ -57,6 +57,9 @@ class AdminService {
         return axios.get('http://localhost:8081/saveWatchList/'+data, '');
      } 
 
+     getPosition(data){
+        return axios.get(apiConstant.getPosition, AuthService.getHeader());
+    }
 
 }
 

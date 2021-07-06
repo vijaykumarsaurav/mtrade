@@ -230,7 +230,7 @@ class OrderBook extends React.Component{
       return(
         <React.Fragment>
             <PostLoginNavBar/>
-             <Dialogbox dialogAction = {{onChange : this.onChange}}/>
+             {/* <Dialogbox dialogAction = {{onChange : this.onChange}}/> */}
             <Paper style={{padding:"10px", overflow:"auto"}} >
 
 
@@ -256,7 +256,6 @@ class OrderBook extends React.Component{
                         <TableCell align="center"><b>Qty </b></TableCell>
                 
                         <TableCell align="center"><b>Average Price</b></TableCell>
-                        <TableCell align="center"><b>Status</b></TableCell>
                         
                         <TableCell align="center"><b>Price</b></TableCell>
                         <TableCell align="center"><b>Trigger Price</b></TableCell>
@@ -264,14 +263,16 @@ class OrderBook extends React.Component{
                         <TableCell align="center"><b>LTP</b></TableCell>
                         
                         <TableCell align="center">Update</TableCell>
-                   
+                        <TableCell align="center"><b>Status</b></TableCell>
+                        <TableCell align="center"><b>Reason</b></TableCell>
+               
 
                     </TableRow>
                 </TableHead>
-                <TableBody style={{width:"",whiteSpace: "nowrap"}}>
+                <TableBody style={{width:""}}>
                 
                     {this.state.oderbookData && this.state.oderbookData ? this.state.oderbookData.map(row => (
-                        <TableRow key={row.productId} >
+                        <TableRow hover key={row.productId} >
 
                             <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(0, 25) : ""}</TableCell>
 
@@ -291,8 +292,7 @@ class OrderBook extends React.Component{
                         
                             <TableCell align="center">{row.averageprice}</TableCell>
 
-                            <TableCell align="center">{row.orderstatus}</TableCell>
-
+                          
 
                             <TableCell align="center">
                                 {row.orderstatus == 'trigger pending' ? 
@@ -300,7 +300,7 @@ class OrderBook extends React.Component{
                                 : row.price}
                             </TableCell>
                             <TableCell align="center">
-                                {row.orderstatus == 'trigger pending' ? 
+                                {row.orderstatus == 'trigger pending' || row.orderstatus =='open' ? 
                                 <TextField  type="number" style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice == 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
                                 : row.triggerprice}
                             </TableCell>
@@ -310,11 +310,15 @@ class OrderBook extends React.Component{
 
 
                             <TableCell align="center">
-                                {row.orderstatus == 'trigger pending' ? 
+                                {row.orderstatus == 'trigger pending' || row.orderstatus =='open' ? 
                                 <Button  type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
                                 : row.triggerprice}
                             </TableCell>
                             
+                            <TableCell align="center">{row.orderstatus}</TableCell>
+
+                            <TableCell align="center">{row.text}</TableCell>
+
                             
                         </TableRow>
                     )):<Spinner/>}

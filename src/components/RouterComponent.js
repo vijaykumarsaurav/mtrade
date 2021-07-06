@@ -15,6 +15,8 @@ import Funds from "./MyTrade/Funds";
 import Orderbook from "./MyTrade/Orderbook";
 import Tradebook from "./MyTrade/Tradebook";
 import LiveFeed from "./MyTrade/LiveFeed";
+import OrderStatusLive from "./MyTrade/OrderStatusLive";
+import Position from "./MyTrade/Position";
 import Test from "./MyTrade/Test";
 
 const AppRouter = () => {
@@ -33,17 +35,11 @@ const AppRouter = () => {
                     <Route path="/funds" component={Funds}/>
                     <Route path="/order" component={Orderbook}/>
                     <Route path="/trade" component={Tradebook}/>
-
                     <Route path="/livefeed" component={LiveFeed}/>
-
-
+                    <Route path="/order-status-live" component={OrderStatusLive}/>
+                    <Route path="/position" component={Position}/>
                     <Route path="/test" component={Test}/>
-                    
-
-                    
                     <Route path="*" component={LoginComponent} />
-
-
                     {/* <Route render={() => <Redirect to={{pathname: "/"}} />} /> */}
                     
                 </Switch>

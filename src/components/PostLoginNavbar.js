@@ -28,7 +28,7 @@ import NotificationsIcon from '@material-ui/icons/Notifications';
 import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
 import {resolveResponse} from "../utils/ResponseHandler";
-import  InvertColor from './InvertColor';
+import  InvertColor from '../utils/InvertColor';
 
 const drawerWidth = 240;
 
@@ -156,9 +156,10 @@ export default function PostLoginNavBar(props) {
                                 container
                             >
                         <Grid item >
-                        <Typography variant="h6" noWrap>
-                           My App
-                         </Typography>
+                        {/* <Typography variant="h6" noWrap>
+                          M-Trade
+                         </Typography> */}
+                           <img style={{ width: "125px" }} src={MyLogo} />
                         </Grid>
 
                         <Grid item >
@@ -178,17 +179,23 @@ export default function PostLoginNavBar(props) {
 
 
                             <Grid item>
-                                    <Button variant="contained"  autoFocus href={"#/home"}  color="secondary">
+                                    <Button variant="contained"  autoFocus href={"#/livefeed"}  color="secondary">
                                         Home
                                     </Button>
                               </Grid>
-
-
-                            <Grid item>
-                                    <Button variant="contained"  autoFocus href={"#/trade"}  color="primary">
-                                        Trade
+                              <Grid item>
+                                    <Button variant="contained"  autoFocus href={"#/position"}  color="primary">
+                                      Position
                                     </Button>
                               </Grid>
+
+
+                              {/* <Grid item>
+                                    <Button variant="contained"  autoFocus href={"#/order-status-live"}  color="secondary">
+                                        Order Status Live
+                                    </Button>
+                              </Grid> */}
+                              
 
 
                                 <Grid item>
@@ -197,6 +204,11 @@ export default function PostLoginNavBar(props) {
                                     </Button>
                               </Grid>
 
+                              <Grid item>
+                                    <Button variant="contained"  autoFocus href={"#/trade"}  color="primary">
+                                        Trade
+                                    </Button>
+                              </Grid>
 
                             
 
@@ -241,7 +253,7 @@ export default function PostLoginNavBar(props) {
                 }}
             >
                 <div className={classes.drawerHeader}>
-                    {/* <img style={{ width: "100px" }} src={MyLogo} /> */}
+                    {/* <img style={{ width: "207px" }} src={MyLogo} /> */}
         
                     <InvertColor />
                     <IconButton onClick={handleDrawerClose}  >

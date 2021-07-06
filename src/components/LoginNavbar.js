@@ -20,13 +20,13 @@ const LoginNavBar = (props) => {
             {/* <AppBar position="static" style={{backgroundColor: '#f44336'}}/> */}
             <AppBar position="static">
                 <Toolbar>
-                <img  style={{width:"100px"}} src={MyLogo} />
+                <img  style={{width:"190px"}} src={MyLogo} />
 
-                    <div style={{width:"300px"}}>
+                    {/* <div style={{width:"300px"}}>
                         <Typography variant="h6" style={style}>
-                             &nbsp;&nbsp; My App
+                             &nbsp;&nbsp;  M-Trade
                         </Typography>
-                    </div>              
+                    </div>               */}
                     
                 </Toolbar>
             </AppBar>
