@@ -106,11 +106,24 @@ class Home extends React.Component{
             let data = resolveResponse(res, 'noPop');
              var positionList = data && data.data;
 
-         //    console.log(positionList);
-             this.setState({ positionList : positionList});
+             this.setState({ positionList : positionList}); 
+            //const reducer = (accumulator, currentValue) => parseFloat(accumulator.pnl) + parseFloat(currentValue.pnl);
+           // this.setState({ todayProfitPnL : positionList.reduce(reducer)}); 
+            var todayProfitPnL=0, totalbuyvalue=0, totalsellvalue=0, totalQtyTraded=0, allbuyavgprice=0,allsellavgprice=0;;
+            positionList.forEach(element => {
+                todayProfitPnL+= parseFloat( element.pnl); 
+                totalbuyvalue+=parseFloat( element.totalbuyvalue); 
+                totalsellvalue+=parseFloat( element.totalsellvalue); 
+                totalQtyTraded+=parseInt( element.buyqty); 
+                allbuyavgprice+=parseFloat(element.buyavgprice); 
+                allsellavgprice+=parseFloat(element.sellavgprice); 
+                
 
+            }); 
             
-        
+            this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
+            this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2)     }); 
+
        })
     }
    
@@ -118,9 +131,16 @@ class Home extends React.Component{
     
     componentDidMount() {
 
-        this.setState({
-            positionInterval :  setInterval(() => {this.getPositionData(); }, 1002)
-        }) 
+        var todayTime =  new Date(); 
+        // if(todayTime.getHours()>=9 && todayTime.getHours()< 16 ){
+        //       this.setState({
+        //         positionInterval :  setInterval(() => {this.getPositionData(); }, 1002)
+        //     }) 
+        // }
+
+        this.getPositionData();
+
+
     }
 
     componentWillUnmount() {
@@ -252,6 +272,23 @@ class Home extends React.Component{
         return averageprice;
     }
 
+    cancelOrderOfSame = (row) =>  {
+       
+        var orderData =  this.getOpenPeningOrderId(row.symboltoken);  
+        var data = {
+            "variety":orderData.variety,
+            "orderid":orderData.orderId,
+        }
+        AdminService.cancelOrder(data).then(res => {
+            let data = resolveResponse(res);
+            if(data.status  && data.message == 'SUCCESS'){
+                console.log("cancel order", data);   
+               // this.setState({ orderid : data.data && data.data.orderid });
+            }
+        })
+       
+    }
+
     squareOff = (row) =>  {
        
         var data = {
@@ -275,6 +312,7 @@ class Home extends React.Component{
                 console.log("squireoff", data);   
                 if(data.status  && data.message == 'SUCCESS'){
                     this.setState({ orderid : data.data && data.data.orderid });
+                    this.cancelOrderOfSame(row); 
                 }
             })
         }
@@ -310,26 +348,28 @@ class Home extends React.Component{
     //     })
     // }
 
-    getOpenPeningOrderId =(orderId) => {
+    getOpenPeningOrderId =(symboltoken) => {
 
-        var oderbookData = localStorage.getItem('oderbookData');
-        var averageprice = 0; 
+        var oderbookData = JSON.parse(localStorage.getItem('oderbookData'));
+        var data = {}; 
          for (let index = 0; index < oderbookData.length; index++) {
-            if(oderbookData[index].orderid ==  'orderId'){
-             averageprice =oderbookData[index].averageprice 
-             this.setState({ averageprice : averageprice });
+            if(oderbookData[index].symboltoken == symboltoken && oderbookData[index].transactiontype ==  "SELL"){
+                data.orderId = oderbookData[index].orderid  
+                data.variety = oderbookData[index].variety  
+
              break;
             }
          } 
-         return averageprice;
+         return data;
      }
     modifyOrder = (row, minPrice) => {
         //console.log(this.state.triggerprice);
 
+        var orderData = this.getOpenPeningOrderId(row.symboltoken); 
 
         var data = {
             "variety" : "STOPLOSS",
-            "orderid": '',
+            "orderid": orderData.orderId,
             "ordertype": "STOPLOSS_MARKET",   // "STOPLOSS_LIMIT",
             "producttype":  row.producttype, //"DELIVERY",
             "duration": "DAY",
@@ -342,9 +382,16 @@ class Home extends React.Component{
         }
         AdminService.modifyOrder(data).then(res => {
             let data = resolveResponse(res);
-            console.log(data);   
+
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = 'modified '+data.message
+            window.speechSynthesis.speak(msg);
+          
             if(data.status  && data.message == 'SUCCESS'){
-               // localStorage.setItem('ifNotBought' ,  'false')
+              //  this.setState({ ['lastTriggerprice_' + row.symboltoken]:  parseFloat(minPrice)})
+                localStorage.setItem('firstTimeModify'+row.symboltoken, 'No');
+                localStorage.setItem('lastTriggerprice_' + row.symboltoken, parseFloat(minPrice));
+
             }
         })
     }
@@ -352,26 +399,39 @@ class Home extends React.Component{
     getPercentage = (avgPrice,  ltp , row) =>  {
 
         avgPrice =  parseFloat(avgPrice); 
-        var per = ((ltp - avgPrice)*100/avgPrice).toFixed(2); 
+        var percentChange = ((ltp - avgPrice)*100/avgPrice).toFixed(2); 
 
-        console.log('avgPrice',avgPrice);
-         if(!localStorage.getItem('firstTimeModify') && per > 0.5){
-           var minPrice =  avgPrice + (avgPrice * 0.25/100);
+       
+         if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange > 0.7){
+                var minPrice =  avgPrice + (avgPrice * 0.25/100);
+                minPrice =  minPrice.toFixed(2); 
+                var wholenumber = parseInt( minPrice.split('.')[0]);
+                var decimal =  parseInt( minPrice.split('.')[1]);
+                var tickedecimal =  decimal-decimal%5; 
+                minPrice = parseFloat( wholenumber + '.'+tickedecimal); 
+                this.modifyOrder(row, minPrice);
+         }else{
+           //var lastTriggerprice =  this.state['lastTriggerprice_'+row.symboltoken]; 
+           var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
 
-           minPrice =  minPrice.toFixed(2); 
+           var perchngfromTriggerPrice = ((ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
+           console.log('perchngfromTriggerPrice',perchngfromTriggerPrice);
 
-            var wholenumber = parseInt( minPrice.split('.')[0]);
-            var decimal =  parseInt( minPrice.split('.')[1]);
-            var tickedecimal =  decimal -decimal%5; 
-            var minPrice = parseFloat( wholenumber + '.'+tickedecimal); 
-           
-           console.log('minPrice',minPrice);
-           this.modifyOrder(row, minPrice);
-           localStorage.setItem('firstTimeModify', 'No')
+           if(perchngfromTriggerPrice > 0.7){
+
+                var minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
+                minPrice =  minPrice.toFixed(2); 
+                var wholenumber = parseInt( minPrice.split('.')[0]);
+                var decimal =  parseInt( minPrice.split('.')[1]);
+                var tickedecimal =  decimal-decimal%5; 
+                minPrice = parseFloat( wholenumber + '.'+tickedecimal); 
+                this.modifyOrder(row, minPrice);
+           }
+
          }
 
 
-        return per;
+        return percentChange;
 
     }
 
@@ -384,20 +444,24 @@ class Home extends React.Component{
                  <PostLoginNavBar/>
                      <br />
                 
-                    <Grid container spacing={1}  direction="row" alignItems="center" container>
-                        <Grid item xs={12} sm={6} >
-                            <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                            Positions ({this.state.positionList.length})
+                    <Grid container direction="row" alignItems="center" container>
+                        <Grid item xs={12} sm={10} >
+                            <Typography  variant="h6" color="primary" gutterBottom>
+                         &nbsp;   Positions ({this.state.positionList && this.state.positionList.length})
                             </Typography> 
                         </Grid>
                         
-                        <Grid item xs={12} sm={6} >
+                        <Grid item xs={12} sm={1} >
+                          <Typography component="h3"  style={{color:this.state.todayProfitPnL>0?"red":"green"}} >
+                             P/L {this.state.todayProfitPnL}
+                            </Typography> 
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={1} >
+                        
                             <Button  type="number" variant="contained" color="" style={{float:"right"}} onClick={() => this.getPositionData()}>Refresh</Button>    
 
                         </Grid>
-                            
-
-
                 </Grid>
 
                
@@ -408,95 +472,76 @@ class Home extends React.Component{
                     <Paper style={{padding:"10px", overflow:"auto"}} >
                                  
                     <Table  size="small"   aria-label="sticky table" >
-                        <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
+                        <TableHead  style={{width:"",whiteSpace: "nowrap", backgroundColor: "lightgray"}} variant="head">
                             <TableRow   variant="head" style={{fontWeight: 'bold'}}>
 
-                                {/* <TableCell className="TableHeadFormat" align="center">Instrument</TableCell> */}
+                                {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
+                                <TableCell className="TableHeadFormat" align="left">Trading symbol</TableCell>
+                                {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
+                                <TableCell className="TableHeadFormat" align="left">Product type</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">Bought Qty</TableCell>
                                 
-                                <TableCell className="TableHeadFormat" align="center">Trading symbol</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Net Qty</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Average Buy Price</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell>
 
-                                <TableCell className="TableHeadFormat" align="center">Product type</TableCell>
-                              
-                                <TableCell  className="TableHeadFormat" align="center">Quantity</TableCell>
-                                <TableCell  className="TableHeadFormat" align="center">Average Buy Price</TableCell>
-                                <TableCell  className="TableHeadFormat" align="center">Average Sell Price</TableCell>
-                                <TableCell  className="TableHeadFormat" align="center">LTP</TableCell>
-
-                                <TableCell className="TableHeadFormat" align="center">P/L </TableCell>
-                                <TableCell className="TableHeadFormat" align="center">Chng % </TableCell>
-
+                                <TableCell  className="TableHeadFormat" align="left">Average Sell Price</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Total Sell value</TableCell>
+                               
+                                <TableCell  className="TableHeadFormat" align="left">Last Modify Price</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">LTP</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">P/L </TableCell>
+                                <TableCell className="TableHeadFormat" align="left">Chng % </TableCell>
                            
                             </TableRow>
                         </TableHead>
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
-{/* 
-                        avgnetprice: "0.00"
-                        boardlotsize: "1"
-                        buyamount: "207.00"
-                        buyavgprice: "207.00"
-                        buyqty: "1"
-                        cfbuyamount: "0.00"
-                        cfbuyavgprice: "0.00"
-                        cfbuyqty: "0"
-                        cfsellamount: "0.00"
-                        cfsellavgprice: "0.00"
-                        cfsellqty: "0"
-                        close: "200.55"
-                        exchange: "NSE"
-                        expirydate: ""
-                        genden: "1.00"
-                        gennum: "1.00"
-                        instrumenttype: ""
-                        lotsize: "1"
-                        ltp: "207.3"
-                        multiplier: "-1"
-                        netprice: "0.00"
-                        netqty: "0"
-                        netvalue: "-2.30"
-                        optiontype: ""
-                        pnl: "-2.30"
-                        precision: "2"
-                        priceden: "1.00"
-                        pricenum: "1.00"
-                        producttype: "INTRADAY"
-                        realised: "-2.30"
-                        sellamount: "204.70"
-                        sellavgprice: "204.70"
-                        sellqty: "1"
-                        strikeprice: "-1"
-                        symbolgroup: "EQ"
-                        symbolname: "RAIN"
-                        symboltoken: "15337"
-                        totalbuyavgprice: "207.00"
-                        totalbuyvalue: "207.00"
-                        totalsellavgprice: "204.70"
-                        totalsellvalue: "204.70"
-                        tradingsymbol: "RAIN-EQ"
-                        unrealised: "-0.00" */}
 
                             {this.state.positionList ? this.state.positionList.map(row => (
                                 <TableRow key={row.productId} style={{background : row.netqty != 0? 'gray': ""}} >
 
+                                    <TableCell align="left">{row.tradingsymbol}</TableCell>
+                                    {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
+                                    <TableCell align="left">{row.producttype}</TableCell>
+                                    <TableCell align="left">{row.buyqty}</TableCell>
+                                    <TableCell align="left">{row.netqty}</TableCell>
+                                    <TableCell align="left">{row.totalbuyavgprice}</TableCell>
+                                    <TableCell align="left">{row.totalbuyvalue}</TableCell>
 
-                                    <TableCell align="center">{row.tradingsymbol}</TableCell>
-                                    <TableCell align="center">{row.producttype}</TableCell>
-                                    
-                                    <TableCell align="center">{row.netqty}</TableCell>
-                                    <TableCell align="center">{row.totalbuyavgprice}</TableCell>
-                                    <TableCell align="center">{row.totalsellavgprice}</TableCell>
-                                    <TableCell align="center">{row.ltp}</TableCell>
-                                    
-                                    <TableCell align="center">{row.pnl}</TableCell>
-                                    <TableCell align="center">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}</TableCell>
-                                    
-                                    <TableCell align="center">
-                                     
-                                     {row.netqty != 0 ? <Button  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
+                                    <TableCell align="left">{row.totalsellavgprice}</TableCell>
+                                    <TableCell align="left">{row.totalsellvalue}</TableCell>
+                                    <TableCell align="left">{parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken))}</TableCell>
+                                    <TableCell align="left">{row.ltp}</TableCell>
+                                    <TableCell align="left">{row.pnl}</TableCell>
+                                    <TableCell align="left">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}</TableCell>
+                                    <TableCell align="left">
+                                        {row.netqty != 0 ? <Button small  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
                                     </TableCell>
-                  
 
                                 </TableRow>
                             )):''}
+
+                                <TableRow   variant="head" style={{fontWeight: 'bold', backgroundColor: "lightgray"}}>
+
+                                {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
+                                <TableCell className="TableHeadFormat" align="left"></TableCell>
+                                {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
+                                <TableCell className="TableHeadFormat" align="left">Total</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">{this.state.totalQtyTraded}</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">{this.state.allbuyavgprice}</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">{this.state.totalbuyvalue}</TableCell>
+
+
+                                <TableCell  className="TableHeadFormat" align="left">{ this.state.allsellavgprice}</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">{this.state.totalsellvalue}</TableCell>
+
+                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
+                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
+                                <TableCell className="TableHeadFormat" align="left">{this.state.todayProfitPnL} </TableCell>
+                                <TableCell className="TableHeadFormat" align="left"></TableCell>
+
+                                </TableRow>
 
 
                         </TableBody>
@@ -504,9 +549,6 @@ class Home extends React.Component{
 
                     </Paper>
                     </Grid>
-
-
-
 
                     </Grid>
             

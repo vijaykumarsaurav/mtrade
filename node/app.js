@@ -3,10 +3,17 @@ var express = require('express');
 var fs = require('fs');
 var cors = require('cors');
 var app = express();
+var bodyParser = require('body-parser');  
+
 app.use(cors());
+app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+})); 
+
 // on the request to root (localhost:3000/)
 app.get('/', function (req, res) {
-    res.send('<b>My</b> first express http server');
+    res.send('Home page: check other route');
 });
 
 
@@ -33,10 +40,108 @@ app.get('/search/:query', function (req, res) {
   return;
     
 });
-
-
-
 // On localhost:3000/welcome
+app.get('/getScannedStocks/', function (req, res) {
+
+  //const symbolName = req.params.query.toUpperCase(); 
+  var obj, fillertedData = []; 
+
+  fs.readFile('myScan.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    obj = JSON.parse(data);
+
+    res.status(200).send(obj) ;
+    
+  });
+return;
+  
+});
+
+
+// app.post('/saveScanList', function (req, res) {
+
+//   var name = req.body.name; 
+//   console.log("name",name);
+//   //res.status(200).send(name) ;
+//     var obj = {
+//       table: []
+//    };
+   
+//    const symbolName = name.toUpperCase(); 
+
+//   //  obj.table.push({symbolName: symbolName});
+//   //  var json = JSON.stringify(obj);
+//   //  fs.writeFile('myScan.json', json, 'utf8', function callback(){
+//   //    console.log("added");
+//   //    res.status(200).send(symbolName + "Added") ;
+//   //  });
+  
+  
+//     fs.readFile('myScan.json', 'utf8', function readFileCallback(err, data){
+//         if (err){
+//             console.log(err);
+//         } else {
+
+//         obj = JSON.parse(data); 
+        
+//         obj.table.push({symbolName: symbolName}); //add some data
+//         json = JSON.stringify(obj); //convert it back to json
+//         fs.writeFile('myScan.json', json, 'utf8', function callback(){
+//              console.log("added");
+
+//              var res = {status : 'added'};
+//             // res.setHeader('Content-Type', 'application/json');
+
+//              res.status(200).send(symbolName + "Added") ;
+//          }); // write it back 
+//     }});
+  
+  
+   
+//   return;
+    
+//   });
+
+
+  app.get('/saveScanList/:query', function (req, res) {
+    const symbolName = req.params.query.toUpperCase(); 
+
+    fs.readFile('myScan.json', 'utf8', function readFileCallback(err, data){
+        if (err){
+            console.log('err',err );
+        } else {
+            var scanlist = JSON.parse(data);
+          console.log('scanlist',scanlist );
+        var flag = true;  
+       
+        for (let index = 0; index < scanlist.length; index++) {
+          if(scanlist[index].symbolName == symbolName){
+           flag = false;  
+           break; 
+          }
+        }
+        
+        if(flag){
+          scanlist.push({symbolName: symbolName}); 
+          json = JSON.stringify(scanlist);
+          fs.writeFile('myScan.json', json, 'utf8', function callback(){
+               console.log( symbolName , "added");
+               res.status(200).send(symbolName + " Added") ;
+           }); // write it back 
+        }else{
+          console.log( symbolName , "Already there");
+          res.status(200).send("Already there") ;
+        }
+
+    }});
+  
+  
+   
+  return;
+    
+  });
+
+
 app.get('/saveWatchList/:query', function (req, res) {
 
 //   var obj = {
@@ -63,8 +168,6 @@ app.get('/saveWatchList/:query', function (req, res) {
            console.log("added");
            res.status(200).send("Added") ;
        }); // write it back 
-     
-
   }});
 
 
@@ -75,7 +178,7 @@ return;
 
 // Change the 404 message modifing the middleware
 app.use(function(req, res, next) {
-    res.status(404).send("Sorry, that route doesn't exist. Have a nice day :)");
+    res.status(404).send("Sorry, that route doesn't exist. pls check again your url");
 });
 
 // start the server in the port 3000 !

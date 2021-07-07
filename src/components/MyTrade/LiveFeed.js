@@ -190,6 +190,16 @@ class Home extends React.Component{
         if(!list){
             localStorage.setItem('watchList', []);
         }
+
+        // setInterval(() => {
+        //     AdminService.getAutoScanStock().then(res => {
+        //         let data = resolveResponse(res);
+        //         console.log(data);  
+        //         if(data.status  && data.message == 'SUCCESS'){ 
+        //         //    this.setState({ orderid : data.data && data.data.orderid });  
+        //         }
+        //     })    
+        // }, 2000);
       
     }
 

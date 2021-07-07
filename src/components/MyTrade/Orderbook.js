@@ -48,43 +48,47 @@ class OrderBook extends React.Component{
         this.convertBool = this.convertBool.bind(this);
 
         this.state = {
-            oderbookData:[{
+            oderbookData:[
                 
-                "variety":'NORMAL',
-                "ordertype":'LIMIT',
-                "producttype":'INTRADAY',
-                "duration":'DAY',
-                "price":"194.00",
-                "triggerprice":"0",
-                "quantity":"1",
-                "disclosedquantity":"0",
-                "squareoff":"0",
-                "stoploss":"0",
-                "trailingstoploss":"0",
-                "tradingsymbol":"SBIN-EQ",
-                "transactiontype":'BUY',
-                "exchange":'NSE',
-                "symboltoken":null,
-                "instrumenttype":"",
-                "strikeprice":"-1",
-                "optiontype":"",
-                "expirydate":"",
-                "lotsize":"1",
-                "cancelsize":"1",
-                "averageprice":"1001",
-                "filledshares":"0",
-                "unfilledshares":"1",
-                "orderid":201020000000080,
-                "text":"",
-                "status":"cancelled",
-                "orderstatus":"cancelled",
-                "updatetime":"20-Oct-2020 13:10:59",
-                "exchtime":"20-Oct-2020 13:10:59",
-                "exchorderupdatetime":"20-Oct-2020 13:10:59",
-                "fillid":"",
-                "filltime":"",
-                "parentorderid":""
-                 }],
+                // {
+                
+                // "variety":'NORMAL',
+                // "ordertype":'LIMIT',
+                // "producttype":'INTRADAY',
+                // "duration":'DAY',
+                // "price":"194.00",
+                // "triggerprice":"0",
+                // "quantity":"1",
+                // "disclosedquantity":"0",
+                // "squareoff":"0",
+                // "stoploss":"0",
+                // "trailingstoploss":"0",
+                // "tradingsymbol":"SBIN-EQ",
+                // "transactiontype":'BUY',
+                // "exchange":'NSE',
+                // "symboltoken":null,
+                // "instrumenttype":"",
+                // "strikeprice":"-1",
+                // "optiontype":"",
+                // "expirydate":"",
+                // "lotsize":"1",
+                // "cancelsize":"1",
+                // "averageprice":"1001",
+                // "filledshares":"0",
+                // "unfilledshares":"1",
+                // "orderid":201020000000080,
+                // "text":"",
+                // "status":"cancelled",
+                // "orderstatus":"cancelled",
+                // "updatetime":"20-Oct-2020 13:10:59",
+                // "exchtime":"20-Oct-2020 13:10:59",
+                // "exchorderupdatetime":"20-Oct-2020 13:10:59",
+                // "fillid":"",
+                // "filltime":"",
+                // "parentorderid":""
+                //  }
+                
+                ],
             listofzones:[],
             selectedZone:[],
             zone:'',
@@ -97,61 +101,32 @@ class OrderBook extends React.Component{
         }
     }
 
-    
+    getTodayOrder = () => {
+        AdminService.retrieveOrderBook()
+        .then((res) => {
+            let data = resolveResponse(res);
+            if(data && data.data){
+                var orderlist = data.data; 
+                  orderlist.sort(function(a,b){
+                    return new Date(b.updatetime) - new Date(a.updatetime);
+                  });
+
+                this.setState({oderbookData: orderlist});
+                localStorage.setItem('oderbookData', JSON.stringify( orderlist ));
+
+                // var pendingOrder = orderlist.filter(function(row){
+                //     return row.status == "trigger pending";
+                // }); 
+                // this.setState({pendingOrder: pendingOrder});
+                                    
+            }
+        });
+    }
 
     componentDidMount() {
-    
-        AdminService.retrieveOrderBook()
-            .then((res) => {
-                let data = resolveResponse(res);
-                if(data && data.data){
-                    var orderlist = data.data; 
-                      orderlist.sort(function(a,b){
-                        return new Date(b.updatetime) - new Date(a.updatetime);
-                      });
-
-                    this.setState({oderbookData: orderlist});
-
-                    var pendingOrder = orderlist.filter(function(row){
-                        return row.status == "trigger pending";
-                    }); 
-                    this.setState({pendingOrder: pendingOrder});
-                    
-                  //  console.log(pendingOrder);
-                    
-                    localStorage.setItem('oderbookData', JSON.stringify( orderlist ));
-                }
-            });
-
-
-        // while(1){
-
-        //     if(this.state.pendingOrder && this.state.pendingOrder.length> 0){
-        //         setTimeout(() => {
-                
-        //             var data  = {
-        //                 "exchange":"NSE",
-        //                 "tradingsymbol":  this.state.pendingOrder[0].tradingsymbol,
-        //                 "symboltoken":this.state.pendingOrder[0].symboltoken,
-        //             }
-        //             AdminService.getLTP(data).then(res => {
-        //                 let data = resolveResponse(res, 'noPop');
-        //                  var LtpData = data && data.data; 
-        //                  this.setState({ InstrumentLTP : LtpData});
-
-        //                 const averageprice =  this.state.pendingOrder[0].averageprice; 
-                         
-        //                 let changePercentage = (LtpData.ltp - averageprice)*100/averageprice; 
-        //                 if(this.state.firstTimeFlag && changePercentage > 0.7){           
-        //                     let minprice =  (averageprice * 0.25)/100 + averageprice ; 
-        //                     this.modifyOrder(this.state.pendingOrder, minprice);
-        //                 }
-        //            })
-    
-        //         }, 1000);
-        //     }
-        // }
-
+        
+        this.getTodayOrder();
+       
     }
 
     zoneChange = (e) =>{
@@ -240,6 +215,9 @@ class OrderBook extends React.Component{
                                     Oders Details ({this.state.oderbookData.length})
                                 </Typography> 
                             </Grid>
+                            <Grid item xs={12} sm={6} >
+                                <Button  type="number" variant="contained" color="" style={{float:"right"}} onClick={() => this.getTodayOrder()}>Refresh</Button>    
+                            </Grid>
                             
                 </Grid>
             
@@ -250,7 +228,10 @@ class OrderBook extends React.Component{
                         <TableCell align="center"><b>Update time</b></TableCell>
 
                         <TableCell align="center"><b>OrderId</b></TableCell>
+
                         <TableCell align="center"><b>Instrument</b></TableCell>
+                        <TableCell align="center"><b>Token</b></TableCell>
+
                         <TableCell align="center"><b>Order Type</b></TableCell>
                         <TableCell align="center"><b>CNC/Intraday</b></TableCell>
                         <TableCell align="center"><b>Qty </b></TableCell>
@@ -260,9 +241,7 @@ class OrderBook extends React.Component{
                         <TableCell align="center"><b>Price</b></TableCell>
                         <TableCell align="center"><b>Trigger Price</b></TableCell>
 
-                        <TableCell align="center"><b>LTP</b></TableCell>
-                        
-                        <TableCell align="center">Update</TableCell>
+                        <TableCell align="center">Action</TableCell>
                         <TableCell align="center"><b>Status</b></TableCell>
                         <TableCell align="center"><b>Reason</b></TableCell>
                
@@ -274,10 +253,12 @@ class OrderBook extends React.Component{
                     {this.state.oderbookData && this.state.oderbookData ? this.state.oderbookData.map(row => (
                         <TableRow hover key={row.productId} >
 
-                            <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(0, 25) : ""}</TableCell>
+                            <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(15, 25) : ""}</TableCell>
 
                             <TableCell align="center">{row.orderid  }</TableCell>
                             <TableCell align="center">{row.tradingsymbol}</TableCell>
+                            <TableCell align="center">{row.symboltoken  }</TableCell>
+
                             <TableCell align="center">{row.transactiontype}</TableCell>
                            
                             
@@ -299,20 +280,18 @@ class OrderBook extends React.Component{
                                 <TextField style={{textAlign:'center', width:'50px'}} id="price"  value={this.state.price == 0 ? row.price : this.state.price}  name="price" onChange={this.onChange}/>
                                 : row.price}
                             </TableCell>
+
                             <TableCell align="center">
                                 {row.orderstatus == 'trigger pending' || row.orderstatus =='open' ? 
                                 <TextField  type="number" style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice == 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
                                 : row.triggerprice}
                             </TableCell>
 
-                            <TableCell align="center">{row.triggerprice}</TableCell>
-
-
 
                             <TableCell align="center">
                                 {row.orderstatus == 'trigger pending' || row.orderstatus =='open' ? 
                                 <Button  type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
-                                : row.triggerprice}
+                                : ''}
                             </TableCell>
                             
                             <TableCell align="center">{row.orderstatus}</TableCell>

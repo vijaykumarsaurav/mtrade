@@ -37,6 +37,10 @@ class AdminService {
     modifyOrder(credentials) {
         return axios.post(apiConstant.modifyOrderApi, credentials, AuthService.getHeader());
     } 
+    cancelOrder(credentials) {
+
+        return axios.post(apiConstant.cancelOrderApi, credentials, AuthService.getHeader());
+    } 
 
     getLTP(credentials) {
         return axios.post(apiConstant.GetLTPAPI, credentials, AuthService.getHeader());
@@ -59,7 +63,16 @@ class AdminService {
 
      getPosition(data){
         return axios.get(apiConstant.getPosition, AuthService.getHeader());
-    }
+     }
+
+     getAutoScanStock(){
+        return axios.get(apiConstant.getScannedStocks, '');
+     }
+   
+
+    //  getBNcpdata(){
+    //     return axios.get(apiConstant.'', AuthService.getHeader());
+    //  }
 
 }
 

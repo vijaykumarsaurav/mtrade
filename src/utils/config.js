@@ -186,7 +186,10 @@ export const GetTradeBook = 'https://apiconnect.angelbroking.com/rest/secure/ang
 export const GetAllTradableInstruments = 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json'; 
 export const PlaceOrderApi = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/placeOrder'; 
 export const modifyOrderApi = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/modifyOrder'; 
+export const cancelOrderApi = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/cancelOrder'; 
+
 export const GetLTPAPI = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getLtpData'; 
 export const getCandleData = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData'; 
-export const getPosition =  'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getPosition'	
+export const getPosition =  'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getPosition';
 	
+export const getScannedStocks =  'http://localhost:8081/getScannedStocks/'	

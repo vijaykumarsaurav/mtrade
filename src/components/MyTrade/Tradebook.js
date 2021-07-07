@@ -56,9 +56,7 @@ class TradeBook extends React.Component{
 
         }
     }
-
-    componentDidMount() {
-    
+    getTodayTrade = () => {
         AdminService.retrieveTradeBook()
             .then((res) => {
                 let data = resolveResponse(res);
@@ -68,6 +66,13 @@ class TradeBook extends React.Component{
                     this.setState({oderbookData: data.data});
                 }
             });
+    }
+
+    componentDidMount() {
+   
+   
+        this.getTodayTrade(); 
+        
        
     }
 
@@ -134,6 +139,9 @@ class TradeBook extends React.Component{
                                   Today Trades ({this.state.oderbookData.length})
                                 </Typography> 
                             </Grid>
+                            <Grid item xs={12} sm={6} >
+                                <Button  type="number" variant="contained" color="" style={{float:"right"}} onClick={() => this.getTodayTrade()}>Refresh</Button>    
+                            </Grid>
 
                             
                 </Grid>
@@ -157,7 +165,7 @@ class TradeBook extends React.Component{
                         {/* <TableCell align="center">Section</TableCell> */}
                         <TableCell  className="TableHeadFormat" align="center">Price</TableCell>
                         {/* <TableCell align="center">Category</TableCell> */}
-                        <TableCell  className="TableHeadFormat"   align="center">Status</TableCell>
+                        <TableCell  className="TableHeadFormat"   align="center">Trade value</TableCell>
 
                         <TableCell className="TableHeadFormat" align="center">Update time</TableCell>
 
@@ -180,10 +188,10 @@ class TradeBook extends React.Component{
                             <TableCell align="center">{row.fillsize}</TableCell>
                             {/* <TableCell align="center">{row.lob}</TableCell> */}
                             {/* <TableCell align="center">{row.section}</TableCell> */}
-                            <TableCell align="center">{row.price}</TableCell>
-                            <TableCell align="center">{row.orderstatus}</TableCell>
+                            <TableCell align="center">{row.fillprice}</TableCell>
+                            <TableCell align="center">{row.tradevalue}</TableCell>
                             {/* <TableCell align="center">{row.category}</TableCell> */}
-                             <TableCell align="center">{row.filltime ? new Date(row.filltime).toString().substring(0, 25) : ""}</TableCell>
+                             <TableCell align="center">{row.filltime}</TableCell>
 
                             
                         </TableRow>
