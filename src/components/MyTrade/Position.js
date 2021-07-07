@@ -106,24 +106,29 @@ class Home extends React.Component{
             let data = resolveResponse(res, 'noPop');
              var positionList = data && data.data;
 
-             this.setState({ positionList : positionList}); 
-            //const reducer = (accumulator, currentValue) => parseFloat(accumulator.pnl) + parseFloat(currentValue.pnl);
-           // this.setState({ todayProfitPnL : positionList.reduce(reducer)}); 
-            var todayProfitPnL=0, totalbuyvalue=0, totalsellvalue=0, totalQtyTraded=0, allbuyavgprice=0,allsellavgprice=0;;
-            positionList.forEach(element => {
-                todayProfitPnL+= parseFloat( element.pnl); 
-                totalbuyvalue+=parseFloat( element.totalbuyvalue); 
-                totalsellvalue+=parseFloat( element.totalsellvalue); 
-                totalQtyTraded+=parseInt( element.buyqty); 
-                allbuyavgprice+=parseFloat(element.buyavgprice); 
-                allsellavgprice+=parseFloat(element.sellavgprice); 
+             if (positionList && positionList.length>0){
+
+
+                this.setState({ positionList : positionList}); 
+                 var todayProfitPnL=0, totalbuyvalue=0, totalsellvalue=0, totalQtyTraded=0, allbuyavgprice=0,allsellavgprice=0,totalPercentage=0;
+                  positionList.forEach(element => {
+                    var percentPnL =((parseFloat(element.sellavgprice)-parseFloat(element.buyavgprice))*100/parseFloat(element.buyavgprice)).toFixed(2); 
+
+                    todayProfitPnL+= parseFloat( element.pnl); 
+                    totalbuyvalue+=parseFloat( element.totalbuyvalue); 
+                    totalsellvalue+=parseFloat( element.totalsellvalue); 
+                    totalQtyTraded+=parseInt( element.buyqty); 
+                    allbuyavgprice+=parseFloat(element.buyavgprice); 
+                    allsellavgprice+=parseFloat(element.sellavgprice); 
+                    element.percentPnL=percentPnL;
+                    totalPercentage+= parseFloat( percentPnL ); 
+
+                }); 
                 
-
-            }); 
-            
-            this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
-            this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2)     }); 
-
+                this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
+                this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2) , totalPercentage: totalPercentage    }); 
+    
+             }
        })
     }
    
@@ -513,7 +518,7 @@ class Home extends React.Component{
                                     <TableCell align="left">{parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken))}</TableCell>
                                     <TableCell align="left">{row.ltp}</TableCell>
                                     <TableCell align="left">{row.pnl}</TableCell>
-                                    <TableCell align="left">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}</TableCell>
+                                    <TableCell align="left">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""} {row.percentPnL}</TableCell>
                                     <TableCell align="left">
                                         {row.netqty != 0 ? <Button small  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
                                     </TableCell>
@@ -539,7 +544,7 @@ class Home extends React.Component{
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell className="TableHeadFormat" align="left">{this.state.todayProfitPnL} </TableCell>
-                                <TableCell className="TableHeadFormat" align="left"></TableCell>
+                                <TableCell className="TableHeadFormat" align="left">{this.state.totalPercentage}</TableCell>
 
                                 </TableRow>
 
