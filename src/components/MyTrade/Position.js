@@ -58,8 +58,57 @@ class Home extends React.Component{
             symbolList : JSON.parse(localStorage.getItem('watchList'))
         
         };
-        this.myCallback = this.myCallback.bind(this);
     }
+    componentDidMount() {
+        var todayTime =  new Date(); 
+        if(todayTime.getHours()>=9 && todayTime.getHours()< 16 ){
+              this.setState({
+                positionInterval :  setInterval(() => {this.getPositionData(); }, 1002)
+            }) 
+        }
+        this.getPositionData();
+        this.getStockThrough(); 
+    }
+
+    getStockThrough(){
+        setInterval(() => {
+           
+            
+        }, 1000);
+
+        AdminService.getAutoScanStock().then(res => {
+            let data = resolveResponse(res);
+            if(data.status  && data.message == 'SUCCESS'){ 
+                var scandata =  data.result;                 
+                localStorage.setItem('scannedStocks',JSON.stringify(scandata)); 
+
+                if (this.state.positionList.indexOf(scandata[0].symbolName) == -1){
+                    console.log('found new stock: ', scandata[0].symbolName)
+                    this.checkAndPlaceOrder(scandata[0].symbolName); 
+                }
+            }
+        })   
+       
+        
+        
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.state.positionInterval);
+    }
+    checkAndPlaceOrder =(stock)=>{
+        
+        AdminService.autoCompleteSearch(stock).then(res => {
+            let data =  res.data; 
+            var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize == 1);
+            console.log("stockfound",found);   
+
+            this.setState({ tradingsymbol : found[0].symbol, symboltoken : found[0].token, buyPrice : 0 , producttype : "INTRADAY", quantity : 1 });
+        
+            //this.placeOrder('BUY'); 
+       })
+    }
+
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value});
         var data  = e.target.value; 
@@ -72,13 +121,6 @@ class Home extends React.Component{
 
     }
 
-    myCallback = (date, fromDate) => {
-        if (fromDate === "START_DATE") {
-          this.setState({ startDate: date  });
-        } else if (fromDate === "END_DATE") {
-          this.setState({ endDate: date  });
-        }
-      };
     getLTP =() => {
         var data  = {
             "exchange":"NSE",
@@ -121,7 +163,7 @@ class Home extends React.Component{
                     allbuyavgprice+=parseFloat(element.buyavgprice); 
                     allsellavgprice+=parseFloat(element.sellavgprice); 
                     element.percentPnL=percentPnL;
-                    totalPercentage+= parseFloat( percentPnL ); 
+                    totalPercentage+= parseFloat( percentPnL); 
 
                 }); 
                 
@@ -132,25 +174,7 @@ class Home extends React.Component{
        })
     }
    
-
-    
-    componentDidMount() {
-
-        var todayTime =  new Date(); 
-        // if(todayTime.getHours()>=9 && todayTime.getHours()< 16 ){
-        //       this.setState({
-        //         positionInterval :  setInterval(() => {this.getPositionData(); }, 1002)
-        //     }) 
-        // }
-
-        this.getPositionData();
-
-
-    }
-
-    componentWillUnmount() {
-        clearInterval( this.state.positionInterval);
-    }
+  
     placeOrder = (transactiontype) => {
 
         var data = {
@@ -190,7 +214,6 @@ class Home extends React.Component{
 
         var time = moment.duration("00:50:00");
         var startdate = moment(new Date()).subtract(time);
-     // var startdate = moment(this.state.startDate).subtract(time);
 
         var data  = {
             "exchange": "NSE",
@@ -324,34 +347,34 @@ class Home extends React.Component{
        
     }
     
-    // placeSLMOrder = (row, minprice) => {
+    placeSLMOrder = (row, minprice) => {
 
-    //     var data = {
-    //         "variety":"NORMAL",
-    //         "tradingsymbol": row.tradingsymbol,
-    //         "symboltoken": row.symboltoken,
-    //         "transactiontype":row.buyqty > 0 ? 'SELL' : "BUY", 
-    //         "exchange":row.exchange, 
-    //         "producttype": row.producttype, //"INTRADAY",//"DELIVERY",
-    //         "duration":"DAY",
-    //         "price": 0,
-    //         "squareoff":"0",
-    //         "stoploss":"0",
-    //         "quantity": row.buyqty, 
-    //         "triggerprice":minprice,
-    //         "ordertype":"STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
-    //         "variety" : "STOPLOSS"
-    //     }
+        var data = {
+            "variety":"NORMAL",
+            "tradingsymbol": row.tradingsymbol,
+            "symboltoken": row.symboltoken,
+            "transactiontype":row.buyqty > 0 ? 'SELL' : "BUY", 
+            "exchange":row.exchange, 
+            "producttype": row.producttype, //"INTRADAY",//"DELIVERY",
+            "duration":"DAY",
+            "price": 0,
+            "squareoff":"0",
+            "stoploss":"0",
+            "quantity": row.buyqty, 
+            "triggerprice":minprice,
+            "ordertype":"STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
+            "variety" : "STOPLOSS"
+        }
 
-    //     AdminService.placeOrder(data).then(res => {
-    //         let data = resolveResponse(res);
-    //       //  console.log(data);   
-    //         if(data.status  && data.message == 'SUCCESS'){
-    //             localStorage.setItem('ifNotBought' ,  'false')
-    //             this.setState({ orderid : data.data && data.data.orderid });
-    //         }
-    //     })
-    // }
+        AdminService.placeOrder(data).then(res => {
+            let data = resolveResponse(res);
+          //  console.log(data);   
+            if(data.status  && data.message == 'SUCCESS'){
+                localStorage.setItem('ifNotBought' ,  'false')
+                this.setState({ orderid : data.data && data.data.orderid });
+            }
+        })
+    }
 
     getOpenPeningOrderId =(symboltoken) => {
 
@@ -544,7 +567,7 @@ class Home extends React.Component{
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell className="TableHeadFormat" align="left">{this.state.todayProfitPnL} </TableCell>
-                                <TableCell className="TableHeadFormat" align="left">{this.state.totalPercentage}</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">{this.state.totalPercentage && this.state.totalPercentage.toFixed(2)}</TableCell>
 
                                 </TableRow>
 
@@ -569,38 +592,9 @@ class Home extends React.Component{
 
 
 const styles ={
-    formContainer : {
-        display: 'flex',
-        flexFlow: 'row wrap'
-    },
-
-    textStyle :{
-        display: 'flex',
-        justifyContent: 'center'
-
-    },
-    imgStyle:{
-        display:'flex'
-    }, 
-
-    selectStyle:{
-        minWidth: '100%',
-        marginBottom: '10px'
-    },
-    MuiTextField:{
-        overflowY: 'scroll',
-        fontSize:"12px", 
-        maxHeight:"50px",
-        
-    },
     footerButton: {
         position: 'fixed',
-        left: 0,
-        bottom: '20px',
-        width: '100%',
-        textAlign: 'right'
     }
-
 };
 
 export default Home;

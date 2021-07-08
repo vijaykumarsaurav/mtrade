@@ -3,15 +3,9 @@ import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import AdminService from "../service/AdminService";
-import LoginNavBar from "../LoginNavbar";
-import {Container} from "@material-ui/core";
-import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
-//import AdminWelcome from '../adminwelcome.png';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {resolveResponse} from "../../utils/ResponseHandler";
-import Dialogbox from "./Dialogbox";
-import MaterialUIDateTimePicker from "../../utils/MaterialUIDateTimePicker";
 import Paper from '@material-ui/core/Paper';
 import Table from "@material-ui/core/Table";
 import TableHead from "@material-ui/core/TableHead";
@@ -19,94 +13,53 @@ import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import Spinner from "react-spinner-material";
-import  {DEV_PROTJECT_PATH, IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 import * as moment from 'moment';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
+import { w3cwebsocket } from 'websocket'; 
+import pako from 'pako';
+import DeleteIcon from '@material-ui/icons/Delete';
+
+//const wsClint =  new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream'); 
+
 class Home extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
             userName: "",
-            password: "", 
+            password: "",
+            autoSearchList :[],
             isDasable:false,
             isError:false,
             InstrumentLTP : {},
             ifNotBought : true,
+            autoSearchTemp : [],
             symboltoken: "", 
             tradingsymbol : "" ,
             buyPrice : 0,
             quantity : 1,
             producttype : "INTRADAY",
-            symbolList : [
-                {
-                    "token": "2885",
-                    "symbol": "RELIANCE-EQ",
-                    "name": "RELIANCE",
-                    "expiry": "",
-                    "strike": "-1.000000",
-                    "lotsize": "1",
-                    "instrumenttype": "",
-                    "exch_seg": "NSE",
-                    "tick_size": "5.000000"
-                },{
-                "token": "3045",
-                "symbol": "SBIN-EQ",
-                "name": "SBIN",
-                "expiry": "",
-                "strike": "-1.000000",
-                "lotsize": "1",
-                "instrumenttype": "",
-                "exch_seg": "NSE",
-                "tick_size": "5.000000"
-            },
-            {
-                "token": "3456",
-                "symbol": "TATAMOTORS-EQ",
-                "name": "TATAMOTORS",
-                "expiry": "",
-                "strike": "-1.000000",
-                "lotsize": "1",
-                "instrumenttype": "",
-                "exch_seg": "NSE",
-                "tick_size": "5.000000"
-            },
-            {
-                "token": "212",
-                "symbol": "ASHOKLEY-EQ",
-                "name": "ASHOKLEY",
-                "expiry": "",
-                "strike": "-1.000000",
-                "lotsize": "1",
-                "instrumenttype": "",
-                "exch_seg": "NSE",
-                "tick_size": "5.000000"
-            },{
-                "token": "11630",
-                "symbol": "NTPC-EQ",
-                "name": "NTPC",
-                "expiry": "",
-                "strike": "-1.000000",
-                "lotsize": "1",
-                "instrumenttype": "",
-                "exch_seg": "NSE",
-                "tick_size": "5.000000"
-            }]
-           // InstrumentHistroy :  JSON.parse(localStorage.getItem('InstrumentHistroy'))
+            symbolList : JSON.parse(localStorage.getItem('watchList'))
         
         };
         this.myCallback = this.myCallback.bind(this);
-      //  this.login = this.login.bind(this);
     }
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value});
+        var data  = e.target.value; 
+        AdminService.autoCompleteSearch(data).then(res => {
+            let data =  res.data; 
+            console.log(data);       
+            localStorage.setItem('autoSearchTemp',JSON.stringify(data)); 
+            this.setState({ autoSearchList : data });
+       })
+
     }
 
     myCallback = (date, fromDate) => {
@@ -115,8 +68,6 @@ class Home extends React.Component{
         } else if (fromDate === "END_DATE") {
           this.setState({ endDate: date  });
         }
-
-        //endDate: date.getFullYear()+'-'+ date.getMonth() < 10 ? '0' + date.getMonth() : date.getMonth()+ '-'+date.getDate() < 10 ? '0' + date.getDate() : date.getDate()  + ' '+date.getHours() < 10 ? '0' + date.getHours() : date.getHours() + ':'+ date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()  
       };
     getLTP =() => {
         var data  = {
@@ -138,32 +89,116 @@ class Home extends React.Component{
             //  }
        })
     }
+    decodeWebsocketData =(array)  => {
+        var newarray = [];
+        try {
+            for (var i = 0; i < array.length; i++) {
+                newarray.push(String.fromCharCode(array[i]));
+            }
+        } catch (e) { }
+    
+        return newarray.join('');
+    }
 
+    makeConnection = (feedToken ,clientcode ) => {
+
+        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
+       // console.log("1st Request :- " + firstTime_req);
+      //  wsClint.send(firstTime_req);
+    }
+
+    updateSocketWatch = (feedToken,clientcode ) => {
+      
+        var channel = this.state.symbolList.map(element => {
+             return 'nse_cm|'+ element.token; 
+        });
+
+        channel = channel.join('&'); 
+        var sbin =  {
+            "task":"mw",
+            "channel": channel,
+            "token":this.state.feedToken,
+            "user":this.state.clientcode,
+            "acctid":this.state.clientcode
+        }
+     //   wsClint.send( JSON.stringify( sbin)); 
+    }
+
+    
     componentDidMount() {
-        //get ltd 
 
-        this.setState({ tradingsymbol :  this.state.symbolList[0].symbol, symboltoken : this.state.symbolList[0].token});
-        this.getHistory(this.state.symbolList[0].token ); 
+        var tokens = JSON.parse(localStorage.getItem("userTokens")); 
+        var feedToken =   tokens &&  tokens.feedToken;
 
-     //   this.placeSLMOrder(424); 
+        var userProfile = JSON.parse(localStorage.getItem("userProfile")); 
+        var clientcode =   userProfile &&  userProfile.clientcode;
+        this.setState({ feedToken : feedToken,clientcode : clientcode  });
+
+            
+       // wsClint.onopen  = (res) => {
+
+             //this.makeConnection();
+            // this.updateSocketWatch();
+                
+            //  setTimeout(function(){
+            //    this.updateSocketWatch(feedToken ,clientcode);
+            //  }, 800);
+      //  }
+
+        // wsClint.onmessage = (message) => {
+            
+            
+        //     var decoded = window.atob(message.data);
+        //     var data = this.decodeWebsocketData(pako.inflate(decoded));
+        //     var liveData =  JSON.parse(data); 
+
+        //    this.state.symbolList.forEach(element => {
+
+        //         var foundLive = liveData.filter(row => row.tk  == element.token);
+        //     // console.log("foundLive", foundLive);
+        //         if(foundLive.length>0 &&  foundLive[0].ltp)
+        //             this.setState({ [element.symbol+'ltp'] : foundLive.length>0 &&  foundLive[0].ltp})
+        //         if(foundLive.length>0 &&  foundLive[0].cng)
+        //             this.setState({ [element.symbol+'nc'] : foundLive.length>0 &&  foundLive[0].nc})
+        //         });
         
-        setInterval(() => {
-            this.getLTP(); 
-        }, 5000);
+        // }
 
+        // wsClint.onerror = (e) => {
+        //     console.log("socket error", e); 
+        // }
 
         // setInterval(() => {
-        //     this.getHistory(); 
-        // }, 30000 * 1);
+        //     var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
+        //     console.log("Request :- " + _req);
+        //     wsClint.send(_req);
+        //   //  this.makeConnection(feedToken ,clientcode );
+        // }, 59000);
+
+
+        var list = localStorage.getItem('watchList');
+        if(!list){
+            localStorage.setItem('watchList', []);
+        }
+
+        // setInterval(() => {
+        //     AdminService.getAutoScanStock().then(res => {
+        //         let data = resolveResponse(res);
+        //         console.log(data);  
+        //         if(data.status  && data.message == 'SUCCESS'){ 
+        //         //    this.setState({ orderid : data.data && data.data.orderid });  
+        //         }
+        //     })    
+        // }, 2000);
       
     }
 
     placeOrder = (transactiontype) => {
-
+   
         var data = {
             "variety":"NORMAL",
             "tradingsymbol": this.state.tradingsymbol,
-            "symboltoken":this.state.symboltoken,
+            "symboltoken": this.state.symboltoken,
             "transactiontype":transactiontype, //BUY OR SELL
             "exchange":"NSE",
             "ordertype":   this.state.buyPrice  == 0 ? "MARKET" : "LIMIT", 
@@ -177,7 +212,7 @@ class Home extends React.Component{
 
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
-            console.log(data);   
+         //   console.log(data);   
             if(data.status  && data.message == 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
@@ -224,7 +259,7 @@ class Home extends React.Component{
 
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
-            console.log(data);   
+       //     console.log(data);   
             if(data.status  && data.message == 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
@@ -245,15 +280,14 @@ class Home extends React.Component{
         var data  = {
             "exchange": "NSE",
             "symboltoken": token ,
-            "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE 
+            "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE 
             "fromdate": moment(startdate).format(format1) , 
             "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
        }
        
-
         AdminService.getHistoryData(data).then(res => {
              let data = resolveResponse(res,'noPop' );
-              console.log(data); 
+          //    console.log(data); 
               if(data && data.data){
                  
                 var histCandles = data.data; 
@@ -263,16 +297,61 @@ class Home extends React.Component{
                 if(histCandles.length > 0){
                     localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
                     this.setState({ InstrumentHistroy :histCandles , buyPrice : histCandles[0][2]});
-                    this.getLTP();
                 }
-
-              
+                this.getLTP();
               }
-              
         })
     }
 
-   
+    onSelectItem = (event, values) =>{
+        
+
+        var autoSearchTemp = JSON.parse( localStorage.getItem('autoSearchTemp')); 
+      //  console.log("values", values); 
+     //   console.log("autoSearchTemp", autoSearchTemp); 
+        if(autoSearchTemp.length> 0){
+            var fdata = '';       
+             for (let index = 0; index < autoSearchTemp.length; index++) {
+                console.log("fdata", autoSearchTemp[index].symbol); 
+                if( autoSearchTemp[index].symbol === values){
+                 fdata = autoSearchTemp[index];
+                 break;
+                }  
+             }
+           
+
+             var list = localStorage.getItem('watchList');
+             if(!list){
+                var data = []; 
+                data.push(fdata); 
+                localStorage.setItem('watchList',  JSON.stringify(data)); 
+             }else{
+                var list = JSON.parse( localStorage.getItem('watchList'));
+                var found = list.filter(row => row.symbol  === values);
+                if(found.length == 0){
+                    list.push(fdata); 
+                    localStorage.setItem('watchList',  JSON.stringify(list)); 
+                }
+               
+             }
+          
+             this.setState({ symbolList : JSON.parse(localStorage.getItem('watchList')), search : "" });
+            setTimeout(() => {
+                this.updateSocketWatch();
+            }, 100);
+            
+        }
+     
+    }
+
+    deleteItemWatchlist = (symbol) => {
+        var list = JSON.parse( localStorage.getItem('watchList'));
+        var index = list.findIndex(data => data.symbol == symbol)
+        list.splice(index,1);
+        localStorage.setItem('watchList',  JSON.stringify(list)); 
+        this.setState({ symbolList : list });
+    }
+
     getAveragePrice =(orderId) => {
 
        var  oderbookData = localStorage.getItem('oderbookData');
@@ -287,6 +366,7 @@ class Home extends React.Component{
         return averageprice;
     }
 
+
     render() {
         const dateParam = {
             myCallback: this.myCallback,
@@ -296,39 +376,68 @@ class Home extends React.Component{
             secondLavel : "End Date and Time"
           }
 
-
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
                 
                 <Grid container spacing={1}  direction="row" container>
                
-                <Grid item xs={2} sm={2}  style={{}}> 
-                {/* <Dialogbox /> */}
-               
-                    {this.state.symbolList && this.state.symbolList ? this.state.symbolList.map(row => (
-                        <ListItem button onClick={() => this.LoadSymbolDetails(row.symbol)} >
-                          <ListItemText primary={row.name} />
-                      </ListItem>
-                    )):''}
+                     <Grid item xs={3} sm={3}  style={{}}> 
+            
+
+                        <Autocomplete
+                            freeSolo
+                            id="free-solo-2-demo"
+                            disableClearable
+                            onChange={this.onSelectItem}
+                            //+ ' '+  option.exch_seg
+                            options={this.state.autoSearchList.length> 0 ?  this.state.autoSearchList.map((option) => 
+                            option.symbol
+                            ) : [] }
+                            renderInput={(params) => (
+                            <TextField
+                                onChange={this.onChange}
+                                {...params}
+                                label="Search Symbol"
+                                margin="normal"
+                                variant="outlined"
+                                name="search"
+                                value={this.state.search}
+                                InputProps={{ ...params.InputProps, type: 'search' }}
+                            />
+                            )}
+                        />
+                        {/* <Dialogbox /> */}
+
+                        {/* <TextField fullWidth  type="text" id="search"  value={this.state.search}  name="search" /> */}
+
+                            {this.state.symbolList && this.state.symbolList ? this.state.symbolList.map(row => (
+                               <>
+                               <ListItem button >
+                                
+                                <ListItemText style={{color:this.state[row.symbol+'nc'] > 0 ? 'green' : "red"  }}  onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol+'ltp']} ({this.state[row.symbol+'nc']}%) <DeleteIcon  onClick={() => this.deleteItemWatchlist(row.symbol)} />
+                            </ListItem>
+                           
+                            </>
+                            )):''}
                 </Grid>
-                
-                <Grid item xs={10} sm={10}> 
+
+                <Grid item xs={9} sm={9}> 
 
                     <Grid  container spacing={1}  direction="row" alignItems="center" container>
-                    
+
                         <Grid item xs={10} sm={5}> 
                             <Typography variant="h5"  >
-                            {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : "" }
+                            {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : "" }   {this.state.sbinLtp}
                             </Typography>    
                             Open : {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : "" } &nbsp;
                             High : {this.state.InstrumentLTP ? this.state.InstrumentLTP.high : "" } &nbsp;
                             Low :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.low : "" }&nbsp;
                             Previous Close :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.close : "" } &nbsp;
-      
+
                         </Grid>
                         <Grid item xs={12} sm={2}>
-                                 <FormControl style={styles.selectStyle}>
+                                <FormControl style={styles.selectStyle}>
                                     <InputLabel  htmlFor="gender">Order Type</InputLabel>
                                     <Select value={this.state.producttype}  name="producttype" onChange={this.onChange}>
                                         <MenuItem value={"INTRADAY"}>INTRADAY</MenuItem>
@@ -345,17 +454,17 @@ class Home extends React.Component{
                         <Grid item xs={10} sm={1}> 
                             <TextField  id="stoploss"  label="SL"  value={this.state.stoploss}   name="stoploss" onChange={this.onChange}/>
                         </Grid>
-                       
-                       
+                    
+                    
                         <Grid item xs={1} sm={2}  > 
                         
                             <Button variant="contained" color="secondary" style={{marginLeft: '20px'}} onClick={() => this.placeOrder('BUY')}>Buy</Button> 
                             <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.placeOrder('SELL')}>Sell</Button>    
-                         </Grid>
+                        </Grid>
 
 
-                         <Grid item xs={10} sm={12}> 
-                         <Paper style={{padding:"10px", overflow:"auto"}} >
+                        <Grid item xs={10} sm={12}> 
+                        <Paper style={{padding:"10px", overflow:"auto"}} >
 
 
                         <Table  size="small"   aria-label="sticky table" >
@@ -393,23 +502,17 @@ class Home extends React.Component{
                         </Paper>
                         </Grid>
 
-                          
+                        
 
                         
-                         </Grid>
-                  </Grid>
+                        </Grid>
+                    </Grid>
 
-                        {/* <Grid item xs={10} sm={6}> 
-                            <MaterialUIDateTimePicker callbackFromParent={dateParam} />
-                            <input type="hidden" id="startDateMili" /> 
-                            <input type="hidden" id="endDateMili" />   
-                            <Button variant="contained" color="default" style={{marginLeft: '20px'}} onClick={this.getHistory}>
-                                Search</Button>    
-                        </Grid> */}
+
+                            
+
 
                 
-
-               
                 
                 </Grid>
                

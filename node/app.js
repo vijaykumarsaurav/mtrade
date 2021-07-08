@@ -49,8 +49,13 @@ app.get('/getScannedStocks/', function (req, res) {
   fs.readFile('myScan.json', 'utf8', function (err, data) {
     if (err) throw err;
     obj = JSON.parse(data);
+    var response = {
+      result : obj, 
+      message : "SUCCESS", 
+      status : true
+    }
 
-    res.status(200).send(obj) ;
+    res.status(200).send(response) ;
     
   });
 return;

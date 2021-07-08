@@ -192,4 +192,4 @@ export const GetLTPAPI = 'https://apiconnect.angelbroking.com/rest/secure/angelb
 export const getCandleData = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData'; 
 export const getPosition =  'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getPosition';
 	
-export const getScannedStocks =  'http://localhost:8081/getScannedStocks/'	
+export const getScannedStocks =  'http://localhost:8081/getScannedStocks'	

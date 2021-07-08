@@ -3,15 +3,9 @@ import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import AdminService from "../service/AdminService";
-import LoginNavBar from "../LoginNavbar";
-import {Container} from "@material-ui/core";
-import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
-//import AdminWelcome from '../adminwelcome.png';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {resolveResponse} from "../../utils/ResponseHandler";
-import Dialogbox from "./Dialogbox";
-import MaterialUIDateTimePicker from "../../utils/MaterialUIDateTimePicker";
 import Paper from '@material-ui/core/Paper';
 import Table from "@material-ui/core/Table";
 import TableHead from "@material-ui/core/TableHead";
@@ -19,13 +13,9 @@ import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import Spinner from "react-spinner-material";
-import  {DEV_PROTJECT_PATH, IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 import * as moment from 'moment';
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import myWatchListOne from './myWatchListOne.json';
 
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
@@ -35,9 +25,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { w3cwebsocket } from 'websocket'; 
 import pako from 'pako';
 import DeleteIcon from '@material-ui/icons/Delete';
-
-import Position from './Position';
-import Orderbook from './Orderbook';
 
 const wsClint =  new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream'); 
 
@@ -68,13 +55,11 @@ class Home extends React.Component{
         var data  = e.target.value; 
         AdminService.autoCompleteSearch(data).then(res => {
             let data =  res.data; 
-            console.log(data);   
-            if(data && data.length>0) {
-                localStorage.setItem('autoSearchTemp',JSON.stringify(data)); 
-                this.setState({ autoSearchList : data });
-            }   
-           
+            console.log(data);       
+            localStorage.setItem('autoSearchTemp',JSON.stringify(data)); 
+            this.setState({ autoSearchList : data });
        })
+
     }
 
     myCallback = (date, fromDate) => {
@@ -94,7 +79,7 @@ class Home extends React.Component{
             let data = resolveResponse(res, 'noPop');
              var LtpData = data && data.data; 
              this.setState({ InstrumentLTP : LtpData});
-             document.getElementById('autocompleteid').value = '';
+
             //  if(!localStorage.getItem('ifNotBought') && LtpData &&  LtpData.ltp > this.state.buyPrice){
             //    this.placeOrder(this.state.buyPrice); 
             //  }
@@ -142,8 +127,6 @@ class Home extends React.Component{
     
     componentDidMount() {
 
-        this.setState({ symbolList : this.state.symbolList &&  this.state.symbolList.reverse()});
-
         var tokens = JSON.parse(localStorage.getItem("userTokens")); 
         var feedToken =   tokens &&  tokens.feedToken;
 
@@ -151,10 +134,11 @@ class Home extends React.Component{
         var clientcode =   userProfile &&  userProfile.clientcode;
         this.setState({ feedToken : feedToken,clientcode : clientcode  });
 
+            
         wsClint.onopen  = (res) => {
 
              this.makeConnection();
-         //    this.updateSocketWatch();
+             this.updateSocketWatch();
                 
             //  setTimeout(function(){
             //    this.updateSocketWatch(feedToken ,clientcode);
@@ -232,13 +216,10 @@ class Home extends React.Component{
             if(data.status  && data.message == 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
-                document.getElementById('orderbookrefresh') && document.getElementById('orderbookrefresh').click(); 
+
                 if(this.state.stoploss){
                     this.placeSLMOrder(this.state.stoploss);
                 }
-                setTimeout(() => {
-                    document.getElementById('positionrefresh') && document.getElementById('positionrefresh').click(); 
-                }, 1000);
             }
         })
     }
@@ -315,7 +296,7 @@ class Home extends React.Component{
                 });
                 if(histCandles.length > 0){
                     localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
-                    this.setState({ InstrumentHistroy :histCandles });//, buyPrice : histCandles[0][2]
+                    this.setState({ InstrumentHistroy :histCandles , buyPrice : histCandles[0][2]});
                 }
                 this.getLTP();
               }
@@ -350,18 +331,12 @@ class Home extends React.Component{
                 if(found.length == 0){
                     list.push(fdata); 
                     localStorage.setItem('watchList',  JSON.stringify(list)); 
-                    
-                  //  this.setState({ search :'', autoSearchList : [] });
                 }
                
-             }  
-             this.setState({ tradingsymbol :fdata.symbol , symboltoken : fdata.token });
-             this.setState({ symbolList : JSON.parse(localStorage.getItem('watchList')).reverse(), search : "" });
-            this.getLTP();
-            this.getHistory(fdata.token); 
-            
-
-             setTimeout(() => {
+             }
+          
+             this.setState({ symbolList : JSON.parse(localStorage.getItem('watchList')), search : "" });
+            setTimeout(() => {
                 this.updateSocketWatch();
             }, 100);
             
@@ -405,12 +380,14 @@ class Home extends React.Component{
             <React.Fragment>
                  <PostLoginNavBar/>
                 
-                <Grid container spacing={1} direction="row" container>
+                <Grid container spacing={1}  direction="row" container>
                
-                     <Grid style={{overflowY:"scroll", height:"85vh"}} item xs={3} sm={3} > 
+                     <Grid item xs={3} sm={3}  style={{}}> 
             
+
                         <Autocomplete
-                            id="autocompleteid"
+                            freeSolo
+                            id="free-solo-2-demo"
                             disableClearable
                             onChange={this.onSelectItem}
                             //+ ' '+  option.exch_seg
@@ -423,20 +400,22 @@ class Home extends React.Component{
                                 {...params}
                                 label="Search Symbol"
                                 margin="normal"
-                               // variant="outlined"
+                                variant="outlined"
                                 name="search"
-                                style={{paddingLeft:"10px"}}
                                 value={this.state.search}
                                 InputProps={{ ...params.InputProps, type: 'search' }}
                             />
                             )}
                         />
-                       
+                        {/* <Dialogbox /> */}
+
+                        {/* <TextField fullWidth  type="text" id="search"  value={this.state.search}  name="search" /> */}
+
                             {this.state.symbolList && this.state.symbolList ? this.state.symbolList.map(row => (
                                <>
                                <ListItem button >
                                 
-                               <DeleteIcon  onClick={() => this.deleteItemWatchlist(row.symbol)} /> &nbsp; <ListItemText style={{color:this.state[row.symbol+'nc'] > 0 ? 'green' : "red"  }}  onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol+'ltp']} ({this.state[row.symbol+'nc']}%) 
+                                <ListItemText style={{color:this.state[row.symbol+'nc'] > 0 ? 'green' : "red"  }}  onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol+'ltp']} ({this.state[row.symbol+'nc']}%) <DeleteIcon  onClick={() => this.deleteItemWatchlist(row.symbol)} />
                             </ListItem>
                            
                             </>
@@ -493,7 +472,7 @@ class Home extends React.Component{
                                 <TableRow   variant="head" style={{fontWeight: 'bold'}}>
 
                                     {/* <TableCell className="TableHeadFormat" align="center">Instrument</TableCell> */}
-                                    <TableCell className="TableHeadFormat" align="center">Timestamp 15min</TableCell>
+                                    <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
                                     <TableCell className="TableHeadFormat" align="center">Open</TableCell>
                                     <TableCell  className="TableHeadFormat" align="center">High</TableCell>
                                     <TableCell  className="TableHeadFormat" align="center">Low</TableCell>
@@ -521,10 +500,6 @@ class Home extends React.Component{
                         </Table>
 
                         </Paper>
-
-
-                        <Position />
-                        <Orderbook />
                         </Grid>
 
                         

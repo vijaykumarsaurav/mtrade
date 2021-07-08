@@ -136,7 +136,9 @@ class LoginComponent extends React.Component{
                           var profileRes =  profileRes && profileRes.data; 
                           if(profileRes.status & profileRes.message == 'SUCCESS'){
                             window.localStorage.setItem("userProfile",JSON.stringify(profileRes.data));
-                            this.props.history.push('/livefeed');
+                        //    this.props.history.push('/position');
+
+                            window.location.replace('/#/position')
                           }
                       })
 

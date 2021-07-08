@@ -35,7 +35,7 @@ const AppRouter = () => {
                     <Route path="/funds" component={Funds}/>
                     <Route path="/order" component={Orderbook}/>
                     <Route path="/trade" component={Tradebook}/>
-                    <Route path="/livefeed" component={LiveFeed}/>
+                    {/* <Route path="/livefeed" component={LiveFeed}/> */}
                     <Route path="/order-status-live" component={OrderStatusLive}/>
                     <Route path="/position" component={Position}/>
                     <Route path="/test" component={Test}/>
