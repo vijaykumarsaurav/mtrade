@@ -1,41 +1,18 @@
 import React from 'react';
 import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import AdminService from "../service/AdminService";
-import LoginNavBar from "../LoginNavbar";
-import {Container} from "@material-ui/core";
-import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
-//import AdminWelcome from '../adminwelcome.png';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {resolveResponse} from "../../utils/ResponseHandler";
-import Dialogbox from "./Dialogbox";
-import MaterialUIDateTimePicker from "../../utils/MaterialUIDateTimePicker";
 import Paper from '@material-ui/core/Paper';
 import Table from "@material-ui/core/Table";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Spinner from "react-spinner-material";
-import  {API_KEY} from "../../utils/config";
 import * as moment from 'moment';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import myWatchListOne from './myWatchListOne.json';
-
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-
-import { w3cwebsocket } from 'websocket'; 
-import pako from 'pako';
-import DeleteIcon from '@material-ui/icons/Delete';
-
+import OrderBook from './Orderbook';
 
 class Home extends React.Component{
     constructor(props) {
@@ -67,34 +44,48 @@ class Home extends React.Component{
             }) 
         }
         this.getPositionData();
-        this.getStockThrough(); 
+        this.getScannedStock(); 
     }
 
-    getStockThrough(){
-        setInterval(() => {
-           
-            
-        }, 1000);
+    getScannedStock(){
 
-        AdminService.getAutoScanStock().then(res => {
-            let data = resolveResponse(res);
-            if(data.status  && data.message == 'SUCCESS'){ 
-                var scandata =  data.result;                 
-                localStorage.setItem('scannedStocks',JSON.stringify(scandata)); 
-
-                if (this.state.positionList.indexOf(scandata[0].symbolName) == -1){
-                    console.log('found new stock: ', scandata[0].symbolName)
-                    this.checkAndPlaceOrder(scandata[0].symbolName); 
-                }
-            }
+        this.setState({
+            scaninterval :  
+            setInterval(() => {
+                AdminService.getAutoScanStock().then(res => {
+                    let data = resolveResponse(res, "noPop");
+                    if(data.status  && data.message == 'SUCCESS'){ 
+                        var scandata =  data.result;   
+                        if(scandata && scandata.length>0){
+                            var lastSeachStock = scandata[scandata.length-1].symbolName;               
+                            localStorage.setItem('scannedStocks',JSON.stringify(scandata)); 
+                           // console.log("scandata last stock",lastSeachStock);
+                          //  console.log("positionListpositionList",this.state.positionList); 
+                            var isFound = false; 
+                            for (let index = 0; index < this.state.positionList.length; index++) {
+                                 if(this.state.positionList[index].symbolname == lastSeachStock){
+                                    isFound  = true; 
+                                 }
+                            }
+                            if (!isFound && !localStorage.getItem('scannedstock_' + lastSeachStock)){
+                                console.log('found new : ', lastSeachStock);
+                                var msg = new SpeechSynthesisUtterance();
+                                msg.text = 'found new '+lastSeachStock; 
+                                window.speechSynthesis.speak(msg);
+                                localStorage.setItem('scannedstock_' + lastSeachStock , "orderdone");
+                                this.checkAndPlaceOrder(lastSeachStock); 
+                            }
+                        }
+                        
+                    }
+                })   
+            }, 1000)
         })   
-       
-        
-        
     }
 
     componentWillUnmount() {
         clearInterval(this.state.positionInterval);
+        clearInterval(this.state.scaninterval);
     }
     checkAndPlaceOrder =(stock)=>{
         
@@ -102,10 +93,9 @@ class Home extends React.Component{
             let data =  res.data; 
             var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize == 1);
             console.log("stockfound",found);   
-
             this.setState({ tradingsymbol : found[0].symbol, symboltoken : found[0].token, buyPrice : 0 , producttype : "INTRADAY", quantity : 1 });
-        
-            //this.placeOrder('BUY'); 
+            this.getStopLossPrice(found[0].token,found[0].symbol);
+            this.placeOrder('BUY'); 
        })
     }
 
@@ -131,17 +121,30 @@ class Home extends React.Component{
             let data = resolveResponse(res, 'noPop');
              var LtpData = data && data.data; 
              this.setState({ InstrumentLTP : LtpData});
+       })
+    }
 
-            //  if(!localStorage.getItem('ifNotBought') && LtpData &&  LtpData.ltp > this.state.buyPrice){
-            //    this.placeOrder(this.state.buyPrice); 
-            //  }
+    getStopLossPrice =(token, symbol) => {
+        var data  = {
+            "exchange":"NSE",
+            "tradingsymbol": symbol,
+            "symboltoken": token,
+        }
+        AdminService.getLTP(data).then(res => {
+            let data = resolveResponse(res, 'noPop');
+             var LtpData = data && data.data; 
+             if(LtpData &&  LtpData.ltp){
+                var ltp = parseFloat(LtpData.ltp); 
+                ltp  = ltp - (ltp*0.7/100);
+                var slPrice = this.getMinPriceAllowTick(ltp); 
 
-            //  if(LtpData.ltp > this.getAveragePrice(this.state.orderid)){
-            //    this.placeSLMOrder(LtpData.ltp); 
-            //  }
+                this.setState({ stoploss : slPrice});
+             }
+           
        })
     }
    
+    
     getPositionData =() => {
        
         AdminService.getPosition().then(res => {
@@ -199,6 +202,7 @@ class Home extends React.Component{
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
 
+                console.log("this.state.stoploss", this.state.stoploss); 
                 if(this.state.stoploss){
                     this.placeSLMOrder(this.state.stoploss);
                 }
@@ -341,26 +345,42 @@ class Home extends React.Component{
                 if(data.status  && data.message == 'SUCCESS'){
                     this.setState({ orderid : data.data && data.data.orderid });
                     this.cancelOrderOfSame(row); 
+                    document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
+
                 }
             })
         }
        
     }
+    updateOrderList = () => {
+        AdminService.retrieveOrderBook()
+        .then((res) => {
+            let data = resolveResponse(res);
+            if(data && data.data){
+                var orderlist = data.data; 
+                  orderlist.sort(function(a,b){
+                    return new Date(b.updatetime) - new Date(a.updatetime);
+                  });
+                localStorage.setItem('oderbookData', JSON.stringify( orderlist ));                       
+            }
+        });
+    }
     
-    placeSLMOrder = (row, minprice) => {
-
+    placeSLMOrder = (minprice) => {
+ 
+        console.log("slm order minprice", minprice); 
         var data = {
             "variety":"NORMAL",
-            "tradingsymbol": row.tradingsymbol,
-            "symboltoken": row.symboltoken,
-            "transactiontype":row.buyqty > 0 ? 'SELL' : "BUY", 
-            "exchange":row.exchange, 
-            "producttype": row.producttype, //"INTRADAY",//"DELIVERY",
+            "tradingsymbol": this.state.tradingsymbol,
+            "symboltoken": this.state.symboltoken,
+            "transactiontype": "SELL", 
+            "exchange": 'NSE', 
+            "producttype": "INTRADAY",//"DELIVERY",
             "duration":"DAY",
             "price": 0,
             "squareoff":"0",
             "stoploss":"0",
-            "quantity": row.buyqty, 
+            "quantity": 1, 
             "triggerprice":minprice,
             "ordertype":"STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
             "variety" : "STOPLOSS"
@@ -372,6 +392,8 @@ class Home extends React.Component{
             if(data.status  && data.message == 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
+               // this.updateOrderList(); 
+                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
             }
         })
     }
@@ -394,6 +416,7 @@ class Home extends React.Component{
         //console.log(this.state.triggerprice);
 
         var orderData = this.getOpenPeningOrderId(row.symboltoken); 
+        console.log("orderid", this.state.orderData);
 
         var data = {
             "variety" : "STOPLOSS",
@@ -409,7 +432,7 @@ class Home extends React.Component{
             "exchange": row.exchange
         }
         AdminService.modifyOrder(data).then(res => {
-            let data = resolveResponse(res);
+            let data = resolveResponse(res, "noPop");
 
             var msg = new SpeechSynthesisUtterance();
             msg.text = 'modified '+data.message
@@ -419,40 +442,35 @@ class Home extends React.Component{
               //  this.setState({ ['lastTriggerprice_' + row.symboltoken]:  parseFloat(minPrice)})
                 localStorage.setItem('firstTimeModify'+row.symboltoken, 'No');
                 localStorage.setItem('lastTriggerprice_' + row.symboltoken, parseFloat(minPrice));
-
             }
         })
+    }
+    getMinPriceAllowTick = (minPrice) => {
+        minPrice =  minPrice.toFixed(2); 
+        var wholenumber = parseInt( minPrice.split('.')[0]);
+        var decimal =  parseInt( minPrice.split('.')[1]);
+        var tickedecimal =  decimal-decimal%5; 
+        minPrice = parseFloat( wholenumber + '.'+tickedecimal); 
+        return minPrice; 
     }
 
     getPercentage = (avgPrice,  ltp , row) =>  {
 
         avgPrice =  parseFloat(avgPrice); 
         var percentChange = ((ltp - avgPrice)*100/avgPrice).toFixed(2); 
-
-       
+        console.log('percentChange',percentChange);
          if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange > 0.7){
                 var minPrice =  avgPrice + (avgPrice * 0.25/100);
-                minPrice =  minPrice.toFixed(2); 
-                var wholenumber = parseInt( minPrice.split('.')[0]);
-                var decimal =  parseInt( minPrice.split('.')[1]);
-                var tickedecimal =  decimal-decimal%5; 
-                minPrice = parseFloat( wholenumber + '.'+tickedecimal); 
+                minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrder(row, minPrice);
          }else{
            //var lastTriggerprice =  this.state['lastTriggerprice_'+row.symboltoken]; 
            var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
-
            var perchngfromTriggerPrice = ((ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
            console.log('perchngfromTriggerPrice',perchngfromTriggerPrice);
-
            if(perchngfromTriggerPrice > 0.7){
-
                 var minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
-                minPrice =  minPrice.toFixed(2); 
-                var wholenumber = parseInt( minPrice.split('.')[0]);
-                var decimal =  parseInt( minPrice.split('.')[1]);
-                var tickedecimal =  decimal-decimal%5; 
-                minPrice = parseFloat( wholenumber + '.'+tickedecimal); 
+                minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrder(row, minPrice);
            }
 
@@ -500,13 +518,13 @@ class Home extends React.Component{
                     <Paper style={{padding:"10px", overflow:"auto"}} >
                                  
                     <Table  size="small"   aria-label="sticky table" >
-                        <TableHead  style={{width:"",whiteSpace: "nowrap", backgroundColor: "lightgray"}} variant="head">
+                        <TableHead  style={{whiteSpace: "nowrap", backgroundColor: "lightgray" }} variant="head">
                             <TableRow   variant="head" style={{fontWeight: 'bold'}}>
 
                                 {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
-                                <TableCell className="TableHeadFormat" align="left">Trading symbol</TableCell>
+                                <TableCell style={{paddingLeft:"3px"}} className="TableHeadFormat" align="left">Trading symbol</TableCell>
                                 {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
-                                <TableCell className="TableHeadFormat" align="left">Product type</TableCell>
+                                {/* <TableCell className="TableHeadFormat" align="left">Product type</TableCell> */}
                                 <TableCell className="TableHeadFormat" align="left">Bought Qty</TableCell>
                                 
                                 <TableCell  className="TableHeadFormat" align="left">Net Qty</TableCell>
@@ -520,6 +538,8 @@ class Home extends React.Component{
                                 <TableCell  className="TableHeadFormat" align="left">LTP</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">P/L </TableCell>
                                 <TableCell className="TableHeadFormat" align="left">Chng % </TableCell>
+
+                                <TableCell className="TableHeadFormat" align="left">Action </TableCell>
                            
                             </TableRow>
                         </TableHead>
@@ -528,9 +548,9 @@ class Home extends React.Component{
                             {this.state.positionList ? this.state.positionList.map(row => (
                                 <TableRow key={row.productId} style={{background : row.netqty != 0? 'gray': ""}} >
 
-                                    <TableCell align="left">{row.tradingsymbol}</TableCell>
+                                    <TableCell style={{paddingLeft:"3px"}} align="left">{row.tradingsymbol}</TableCell>
                                     {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
-                                    <TableCell align="left">{row.producttype}</TableCell>
+                                    {/* <TableCell align="left">{row.producttype}</TableCell> */}
                                     <TableCell align="left">{row.buyqty}</TableCell>
                                     <TableCell align="left">{row.netqty}</TableCell>
                                     <TableCell align="left">{row.totalbuyavgprice}</TableCell>
@@ -541,9 +561,10 @@ class Home extends React.Component{
                                     <TableCell align="left">{parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken))}</TableCell>
                                     <TableCell align="left">{row.ltp}</TableCell>
                                     <TableCell align="left">{row.pnl}</TableCell>
-                                    <TableCell align="left">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""} {row.percentPnL}</TableCell>
+                                    <TableCell align="left">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}  {row.percentPnL} </TableCell> 
+                                     
                                     <TableCell align="left">
-                                        {row.netqty != 0 ? <Button small  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
+                                        {row.netqty != 0 ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
                                     </TableCell>
 
                                 </TableRow>
@@ -552,7 +573,7 @@ class Home extends React.Component{
                                 <TableRow   variant="head" style={{fontWeight: 'bold', backgroundColor: "lightgray"}}>
 
                                 {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
-                                <TableCell className="TableHeadFormat" align="left"></TableCell>
+                                {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                 <TableCell className="TableHeadFormat" align="left">Total</TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.totalQtyTraded}</TableCell>
@@ -567,7 +588,12 @@ class Home extends React.Component{
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell className="TableHeadFormat" align="left">{this.state.todayProfitPnL} </TableCell>
-                                <TableCell className="TableHeadFormat" align="left">{this.state.totalPercentage && this.state.totalPercentage.toFixed(2)}</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">
+                                    
+                                     {this.state.totalPercentage && this.state.totalPercentage.toFixed(2)}
+                                     
+                                </TableCell>
+                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
 
                                 </TableRow>
 
@@ -577,6 +603,9 @@ class Home extends React.Component{
 
                     </Paper>
                     </Grid>
+
+                    <OrderBook />
+
 
                     </Grid>
             

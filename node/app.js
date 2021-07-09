@@ -47,6 +47,7 @@ app.get('/getScannedStocks/', function (req, res) {
   var obj, fillertedData = []; 
 
   fs.readFile('myScan.json', 'utf8', function (err, data) {
+
     if (err) throw err;
     obj = JSON.parse(data);
     var response = {
@@ -127,7 +128,7 @@ return;
         }
         
         if(flag){
-          scanlist.push({symbolName: symbolName}); 
+          scanlist.push({symbolName: symbolName, datetime : new Date().toLocaleString()}); 
           json = JSON.stringify(scanlist);
           fs.writeFile('myScan.json', json, 'utf8', function callback(){
                console.log( symbolName , "added");

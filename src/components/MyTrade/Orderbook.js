@@ -43,52 +43,9 @@ class OrderBook extends React.Component{
 
     constructor(props) {
         super(props);
-        this.addProduct = this.addProduct.bind(this);
-        this.editProduct = this.editProduct.bind(this);
-        this.convertBool = this.convertBool.bind(this);
 
         this.state = {
-            oderbookData:[
-                
-                // {
-                
-                // "variety":'NORMAL',
-                // "ordertype":'LIMIT',
-                // "producttype":'INTRADAY',
-                // "duration":'DAY',
-                // "price":"194.00",
-                // "triggerprice":"0",
-                // "quantity":"1",
-                // "disclosedquantity":"0",
-                // "squareoff":"0",
-                // "stoploss":"0",
-                // "trailingstoploss":"0",
-                // "tradingsymbol":"SBIN-EQ",
-                // "transactiontype":'BUY',
-                // "exchange":'NSE',
-                // "symboltoken":null,
-                // "instrumenttype":"",
-                // "strikeprice":"-1",
-                // "optiontype":"",
-                // "expirydate":"",
-                // "lotsize":"1",
-                // "cancelsize":"1",
-                // "averageprice":"1001",
-                // "filledshares":"0",
-                // "unfilledshares":"1",
-                // "orderid":201020000000080,
-                // "text":"",
-                // "status":"cancelled",
-                // "orderstatus":"cancelled",
-                // "updatetime":"20-Oct-2020 13:10:59",
-                // "exchtime":"20-Oct-2020 13:10:59",
-                // "exchorderupdatetime":"20-Oct-2020 13:10:59",
-                // "fillid":"",
-                // "filltime":"",
-                // "parentorderid":""
-                //  }
-                
-                ],
+            oderbookData:[],
             listofzones:[],
             selectedZone:[],
             zone:'',
@@ -104,7 +61,7 @@ class OrderBook extends React.Component{
     getTodayOrder = () => {
         AdminService.retrieveOrderBook()
         .then((res) => {
-            let data = resolveResponse(res);
+            let data = resolveResponse(res, "noPop");
             if(data && data.data){
                 var orderlist = data.data; 
                   orderlist.sort(function(a,b){
@@ -129,44 +86,9 @@ class OrderBook extends React.Component{
        
     }
 
-    zoneChange = (e) =>{
-        this.setState({[e.target.name]: e.target.value});
 
-        if(e.target.value.includes("Select All")){
-            this.setState({selectedZone: this.state.listofzones})
-            this.setState({selectAllzone: "Remove All"})
-        }
-    
-        if(e.target.value.includes("Remove All")){
-            this.setState({selectedZone: []})
-            this.setState({selectAllzone: "Select All"})
-        }
 
-    }
 
-   
-
-   
-    addProduct=(e)=> {
-        console.log(this.props)
-        this.props.history.push('/banner-add');
-    }
-
-    editProduct(productId) {
-        window.localStorage.removeItem("selectedBannerId");
-        window.localStorage.setItem("selectedBannerId", productId);
-        this.props.history.push('/banner-edit');
-    }
-
-    convertBool(flag) {
-        return flag ? 'Yes' : 'No';
-    }
-
-    dateFormat(date){
-        var d = new Date(date);
-        var fd = d.toLocaleDateString() + ' ' + d.toTimeString().substring(0, d.toTimeString().indexOf("GMT"));
-        return fd;
-    }
     modifyOrder = (row, trailingstoploss) => {
 
         console.log(this.state.triggerprice);
@@ -216,7 +138,7 @@ class OrderBook extends React.Component{
                                 </Typography> 
                             </Grid>
                             <Grid item xs={12} sm={6} >
-                                <Button  type="number" variant="contained" color="" style={{float:"right"}} onClick={() => this.getTodayOrder()}>Refresh</Button>    
+                                <Button id="orderRefresh"  type="number" variant="contained" color="" style={{float:"right"}} onClick={() => this.getTodayOrder()}>Refresh</Button>    
                             </Grid>
                             
                 </Grid>
@@ -227,10 +149,10 @@ class OrderBook extends React.Component{
                     <TableRow variant="head" >
                         <TableCell align="center"><b>Update time</b></TableCell>
 
-                        <TableCell align="center"><b>OrderId</b></TableCell>
+                        {/* <TableCell align="center"><b>OrderId</b></TableCell> */}
 
                         <TableCell align="center"><b>Instrument</b></TableCell>
-                        <TableCell align="center"><b>Token</b></TableCell>
+                        {/* <TableCell align="center"><b>Token</b></TableCell> */}
 
                         <TableCell align="center"><b>Order Type</b></TableCell>
                         <TableCell align="center"><b>CNC/Intraday</b></TableCell>
@@ -255,13 +177,11 @@ class OrderBook extends React.Component{
 
                             <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(15, 25) : ""}</TableCell>
 
-                            <TableCell align="center">{row.orderid  }</TableCell>
+                            {/* <TableCell align="center">{row.orderid  }</TableCell> */}
                             <TableCell align="center">{row.tradingsymbol}</TableCell>
-                            <TableCell align="center">{row.symboltoken  }</TableCell>
+                            {/* <TableCell align="center">{row.symboltoken  }</TableCell> */}
 
                             <TableCell align="center">{row.transactiontype}</TableCell>
-                           
-                            
                             <TableCell align="center">{row.producttype}</TableCell>
 
                             <TableCell align="center">
@@ -290,13 +210,13 @@ class OrderBook extends React.Component{
 
                             <TableCell align="center">
                                 {row.orderstatus == 'trigger pending' || row.orderstatus =='open' ? 
-                                <Button  type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
+                                <Button  size={'small'} type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
                                 : ''}
                             </TableCell>
                             
                             <TableCell align="center">{row.orderstatus}</TableCell>
 
-                            <TableCell align="center">{row.text}</TableCell>
+                            <TableCell style={{width:'20%', fontSize: "11px"}} align="center">{row.text}</TableCell>
 
                             
                         </TableRow>
