@@ -13,17 +13,14 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import * as moment from 'moment';
 import OrderBook from './Orderbook';
+//import TradeConfig from './TradeConfig.json';
 
 class Home extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
             positionList : [],
-            userName: "",
-            password: "",
             autoSearchList :[],
-            isDasable:false,
-            isError:false,
             InstrumentLTP : {},
             ifNotBought : true,
             autoSearchTemp : [],
@@ -33,71 +30,119 @@ class Home extends React.Component{
             quantity : 1,
             producttype : "INTRADAY",
             symbolList : JSON.parse(localStorage.getItem('watchList'))
-        
         };
     }
     componentDidMount() {
-        var todayTime =  new Date(); 
-        if(todayTime.getHours()>=9 && todayTime.getHours()< 16 ){
-              this.setState({
-                positionInterval :  setInterval(() => {this.getPositionData(); }, 1002)
-            }) 
+        var beginningTime = moment('9:15am', 'h:mma');
+        var endTime = moment('3:30pm', 'h:mma');
+        const friday = 5; // for friday
+        const today = moment().isoWeekday();
+        if(today <= friday && beginningTime.isBefore(endTime)){
+            this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 1002)}) 
+            this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
         }
-        this.getPositionData();
-        this.getScannedStock(); 
+        this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
+
     }
-
-    getScannedStock(){
-
-        this.setState({
-            scaninterval :  
-            setInterval(() => {
-                AdminService.getAutoScanStock().then(res => {
-                    let data = resolveResponse(res, "noPop");
-                    if(data.status  && data.message == 'SUCCESS'){ 
-                        var scandata =  data.result;   
-                        if(scandata && scandata.length>0){
-                            var lastSeachStock = scandata[scandata.length-1].symbolName;               
-                            localStorage.setItem('scannedStocks',JSON.stringify(scandata)); 
-                           // console.log("scandata last stock",lastSeachStock);
-                          //  console.log("positionListpositionList",this.state.positionList); 
-                            var isFound = false; 
-                            for (let index = 0; index < this.state.positionList.length; index++) {
-                                 if(this.state.positionList[index].symbolname == lastSeachStock){
-                                    isFound  = true; 
-                                 }
-                            }
-                            if (!isFound && !localStorage.getItem('scannedstock_' + lastSeachStock)){
-                                console.log('found new : ', lastSeachStock);
-                                var msg = new SpeechSynthesisUtterance();
-                                msg.text = 'found new '+lastSeachStock; 
-                                window.speechSynthesis.speak(msg);
-                                localStorage.setItem('scannedstock_' + lastSeachStock , "orderdone");
-                                this.checkAndPlaceOrder(lastSeachStock); 
-                            }
-                        }
-                        
-                    }
-                })   
-            }, 1000)
-        })   
-    }
-
     componentWillUnmount() {
         clearInterval(this.state.positionInterval);
         clearInterval(this.state.scaninterval);
     }
-    checkAndPlaceOrder =(stock)=>{
-        
-        AdminService.autoCompleteSearch(stock).then(res => {
-            let data =  res.data; 
-            var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize == 1);
-            console.log("stockfound",found);   
-            this.setState({ tradingsymbol : found[0].symbol, symboltoken : found[0].token, buyPrice : 0 , producttype : "INTRADAY", quantity : 1 });
-            this.getStopLossPrice(found[0].token,found[0].symbol);
-            this.placeOrder('BUY'); 
+    getPositionData = () => {
+        AdminService.getPosition().then(res => {
+            let data = resolveResponse(res, 'noPop');
+             var positionList = data && data.data;
+             if (positionList && positionList.length>0){
+                this.setState({ positionList : positionList}); 
+                 var todayProfitPnL=0, totalbuyvalue=0, totalsellvalue=0, totalQtyTraded=0, allbuyavgprice=0,allsellavgprice=0,totalPercentage=0;
+                  positionList.forEach(element => {
+                    var percentPnL =((parseFloat(element.sellavgprice)-parseFloat(element.buyavgprice))*100/parseFloat(element.buyavgprice)).toFixed(2); 
+                    todayProfitPnL+= parseFloat( element.pnl); 
+                    totalbuyvalue+=parseFloat( element.totalbuyvalue); 
+                    totalsellvalue+=parseFloat( element.totalsellvalue); 
+                    totalQtyTraded+=parseInt( element.buyqty); 
+                    allbuyavgprice+=parseFloat(element.buyavgprice); 
+                    allsellavgprice+=parseFloat(element.sellavgprice); 
+                    element.percentPnL=percentPnL;
+                    totalPercentage+= parseFloat( percentPnL); 
+                }); 
+                this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
+                this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2) , totalPercentage: totalPercentage    }); 
+             }
        })
     }
+
+    getScannedStock(){
+         AdminService.getAutoScanStock().then(res => {
+            let data = resolveResponse(res, "noPop");
+            if(data.status  && data.message === 'SUCCESS'){ 
+                var scandata =  data.result;   
+                if(scandata && scandata.length>0){
+                    var lastSeachStock = scandata[scandata.length-1].symbolName;               
+                    localStorage.setItem('scannedStocks',JSON.stringify(scandata)); 
+                    var isFound = false; 
+                    for (let index = 0; index < this.state.positionList.length; index++) {
+                         if(this.state.positionList[index].symbolname === lastSeachStock){
+                            isFound  = true; 
+                         }
+                    }
+                    if (!isFound && !localStorage.getItem('scannedstock_' + lastSeachStock)){
+                        console.log("found new", lastSeachStock)
+                        var msg = new SpeechSynthesisUtterance();
+                        msg.text = 'hey Vijay, '+lastSeachStock; 
+                        window.speechSynthesis.speak(msg);
+                        localStorage.setItem('scannedstock_' + lastSeachStock , "orderdone");
+                        this.checkAndPlaceOrder(lastSeachStock); 
+                    }
+                }
+                
+            }
+        })  
+    }
+    checkAndPlaceOrder = (stock)=>{
+        AdminService.autoCompleteSearch(stock).then(res => {
+            let data =  res.data; 
+            var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1");
+         //   console.log("stockfound",found);   
+            if(found && found.length){
+               this.orderWithFlatstoploss(found[0].token,found[0].symbol); //percentage wise stop loss flat SL 0.7% 
+            }
+       })
+    }
+    orderWithFlatstoploss = (token, symbol) => {
+        var data  = {
+            "exchange":"NSE",
+            "tradingsymbol": symbol,
+            "symboltoken": token,
+        }
+        AdminService.getLTP(data).then(res => {
+            let data = resolveResponse(res, 'noPop');
+
+             var LtpData = data && data.data; 
+             var ltp  = LtpData.ltp
+             if(ltp){
+              var stopLossPrice = ltp - (ltp*0.7/100);
+              stopLossPrice = this.getMinPriceAllowTick(stopLossPrice); 
+              this.setState({ stoploss : stopLossPrice});
+              
+              var orderOption = {
+                  transactiontype: 'BUY',
+                  tradingsymbol: symbol,
+                  symboltoken:token,
+                  buyPrice : 0,
+                  quantity: 1, 
+                  stopLossPrice: stopLossPrice
+              }
+              this.placeOrderMethod(orderOption);     
+            }         
+
+       }).catch((error)=>{
+            console.log(symbol, "not found", 'error', error);
+        })  
+    }
+  
+  
+
 
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value});
@@ -124,13 +169,14 @@ class Home extends React.Component{
        })
     }
 
-    getStopLossPrice =(token, symbol) => {
+    getStopLossPrice = async(token, symbol) => {
         var data  = {
             "exchange":"NSE",
             "tradingsymbol": symbol,
             "symboltoken": token,
         }
-        AdminService.getLTP(data).then(res => {
+      
+        await AdminService.getLTP(data).then(res => {
             let data = resolveResponse(res, 'noPop');
              var LtpData = data && data.data; 
              if(LtpData &&  LtpData.ltp){
@@ -139,72 +185,37 @@ class Home extends React.Component{
                 var slPrice = this.getMinPriceAllowTick(ltp); 
 
                 this.setState({ stoploss : slPrice});
+                return slPrice; 
              }
            
        })
     }
-   
-    
-    getPositionData =() => {
-       
-        AdminService.getPosition().then(res => {
-            let data = resolveResponse(res, 'noPop');
-             var positionList = data && data.data;
-
-             if (positionList && positionList.length>0){
-
-
-                this.setState({ positionList : positionList}); 
-                 var todayProfitPnL=0, totalbuyvalue=0, totalsellvalue=0, totalQtyTraded=0, allbuyavgprice=0,allsellavgprice=0,totalPercentage=0;
-                  positionList.forEach(element => {
-                    var percentPnL =((parseFloat(element.sellavgprice)-parseFloat(element.buyavgprice))*100/parseFloat(element.buyavgprice)).toFixed(2); 
-
-                    todayProfitPnL+= parseFloat( element.pnl); 
-                    totalbuyvalue+=parseFloat( element.totalbuyvalue); 
-                    totalsellvalue+=parseFloat( element.totalsellvalue); 
-                    totalQtyTraded+=parseInt( element.buyqty); 
-                    allbuyavgprice+=parseFloat(element.buyavgprice); 
-                    allsellavgprice+=parseFloat(element.sellavgprice); 
-                    element.percentPnL=percentPnL;
-                    totalPercentage+= parseFloat( percentPnL); 
-
-                }); 
-                
-                this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
-                this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2) , totalPercentage: totalPercentage    }); 
-    
-             }
-       })
-    }
-   
   
-    placeOrder = (transactiontype) => {
-
+    placeOrderMethod = (orderOption) => { 
+       
         var data = {
-            "variety":"NORMAL",
-            "tradingsymbol": this.state.tradingsymbol,
-            "symboltoken":this.state.symboltoken,
-            "transactiontype":transactiontype, //BUY OR SELL
-            "exchange":"NSE",
-            "ordertype":   this.state.buyPrice  == 0 ? "MARKET" : "LIMIT", 
-            "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
+            "transactiontype":orderOption.transactiontype,//BUY OR SELL
+            "tradingsymbol": orderOption.tradingsymbol,
+            "symboltoken":orderOption.symboltoken,
+            "quantity":orderOption.quantity,
+            "ordertype": orderOption.buyPrice  === 0 ? "MARKET" : "LIMIT", 
+            "price": orderOption.buyPrice,
+            "producttype": "INTRADAY",//"DELIVERY",
             "duration":"DAY",
-            "price": this.state.buyPrice,
             "squareoff":"0",
             "stoploss":"0",
-            "quantity":this.state.quantity,
+            "exchange":"NSE",
+            "variety":"NORMAL"
         }
-
+        console.log("place order option", data);
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
           //  console.log(data);   
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message === 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
-
-                console.log("this.state.stoploss", this.state.stoploss); 
-                if(this.state.stoploss){
-                    this.placeSLMOrder(this.state.stoploss);
+                if(orderOption.stopLossPrice){
+                    this.placeSLMOrder(orderOption);
                 }
             }
         })
@@ -213,7 +224,6 @@ class Home extends React.Component{
 
 
     getHistory = (token) => {
-
         const format1 = "YYYY-MM-DD HH:mm";
 
         var time = moment.duration("00:50:00");
@@ -264,9 +274,9 @@ class Home extends React.Component{
                 data.push(fdata); 
                 localStorage.setItem('watchList',  JSON.stringify(data)); 
              }else{
-                var list = JSON.parse( localStorage.getItem('watchList'));
+                list = JSON.parse( localStorage.getItem('watchList'));
                 var found = list.filter(row => row.symbol  === values);
-                if(found.length == 0){
+                if(found.length === 0){
                     list.push(fdata); 
                     localStorage.setItem('watchList',  JSON.stringify(list)); 
                 }
@@ -284,7 +294,7 @@ class Home extends React.Component{
 
     deleteItemWatchlist = (symbol) => {
         var list = JSON.parse( localStorage.getItem('watchList'));
-        var index = list.findIndex(data => data.symbol == symbol)
+        var index = list.findIndex(data => data.symbol === symbol)
         list.splice(index,1);
         localStorage.setItem('watchList',  JSON.stringify(list)); 
         this.setState({ symbolList : list });
@@ -295,7 +305,7 @@ class Home extends React.Component{
        var  oderbookData = localStorage.getItem('oderbookData');
        var averageprice = 0; 
         for (let index = 0; index < oderbookData.length; index++) {
-           if(oderbookData[index].orderid ==  'orderId'){
+           if(oderbookData[index].orderid ===  'orderId'){
             averageprice =oderbookData[index].averageprice 
             this.setState({ averageprice : averageprice });
             break;
@@ -313,7 +323,7 @@ class Home extends React.Component{
         }
         AdminService.cancelOrder(data).then(res => {
             let data = resolveResponse(res);
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message === 'SUCCESS'){
                 console.log("cancel order", data);   
                // this.setState({ orderid : data.data && data.data.orderid });
             }
@@ -342,7 +352,7 @@ class Home extends React.Component{
             AdminService.placeOrder(data).then(res => {
                 let data = resolveResponse(res);
                 console.log("squireoff", data);   
-                if(data.status  && data.message == 'SUCCESS'){
+                if(data.status  && data.message === 'SUCCESS'){
                     this.setState({ orderid : data.data && data.data.orderid });
                     this.cancelOrderOfSame(row); 
                     document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
@@ -366,30 +376,28 @@ class Home extends React.Component{
         });
     }
     
-    placeSLMOrder = (minprice) => {
- 
-        console.log("slm order minprice", minprice); 
+    placeSLMOrder = (slmOption) => {
+        
         var data = {
-            "variety":"NORMAL",
-            "tradingsymbol": this.state.tradingsymbol,
-            "symboltoken": this.state.symboltoken,
-            "transactiontype": "SELL", 
+            "triggerprice":slmOption.stopLossPrice,
+            "tradingsymbol": slmOption.tradingsymbol,
+            "symboltoken": slmOption.symboltoken,
+            "quantity": slmOption.quantity,
+            "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY", 
             "exchange": 'NSE', 
             "producttype": "INTRADAY",//"DELIVERY",
             "duration":"DAY",
             "price": 0,
             "squareoff":"0",
             "stoploss":"0",
-            "quantity": 1, 
-            "triggerprice":minprice,
             "ordertype":"STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
             "variety" : "STOPLOSS"
         }
-
+        console.log("SLM option data", data); 
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
           //  console.log(data);   
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message === 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
                // this.updateOrderList(); 
@@ -403,16 +411,15 @@ class Home extends React.Component{
         var oderbookData = JSON.parse(localStorage.getItem('oderbookData'));
         var data = {}; 
          for (let index = 0; index < oderbookData.length; index++) {
-            if(oderbookData[index].symboltoken == symboltoken && oderbookData[index].transactiontype ==  "SELL"){
+            if(oderbookData[index].symboltoken === symboltoken && oderbookData[index].transactiontype ===  "SELL"){
                 data.orderId = oderbookData[index].orderid  
                 data.variety = oderbookData[index].variety  
-
-             break;
+                break;
             }
          } 
          return data;
      }
-    modifyOrder = (row, minPrice) => {
+    modifyOrderMethod = (row, minPrice) => {
         //console.log(this.state.triggerprice);
 
         var orderData = this.getOpenPeningOrderId(row.symboltoken); 
@@ -438,7 +445,7 @@ class Home extends React.Component{
             msg.text = 'modified '+data.message
             window.speechSynthesis.speak(msg);
           
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message ===  'SUCCESS'){
               //  this.setState({ ['lastTriggerprice_' + row.symboltoken]:  parseFloat(minPrice)})
                 localStorage.setItem('firstTimeModify'+row.symboltoken, 'No');
                 localStorage.setItem('lastTriggerprice_' + row.symboltoken, parseFloat(minPrice));
@@ -447,10 +454,14 @@ class Home extends React.Component{
     }
     getMinPriceAllowTick = (minPrice) => {
         minPrice =  minPrice.toFixed(2); 
+       // console.log("minPrice",minPrice); 
         var wholenumber = parseInt( minPrice.split('.')[0]);
-        var decimal =  parseInt( minPrice.split('.')[1]);
+      //  console.log("wholenumber",wholenumber); 
+        var decimal =  parseFloat( minPrice.split('.')[1]);
+       // console.log("decimal",decimal); 
         var tickedecimal =  decimal-decimal%5; 
         minPrice = parseFloat( wholenumber + '.'+tickedecimal); 
+     //   console.log("minPricexxxx",minPrice); 
         return minPrice; 
     }
 
@@ -458,27 +469,26 @@ class Home extends React.Component{
 
         avgPrice =  parseFloat(avgPrice); 
         var percentChange = ((ltp - avgPrice)*100/avgPrice).toFixed(2); 
+
         console.log('percentChange',percentChange);
          if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange > 0.7){
                 var minPrice =  avgPrice + (avgPrice * 0.25/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
-                this.modifyOrder(row, minPrice);
+                this.modifyOrderMethod(row, minPrice);
          }else{
            //var lastTriggerprice =  this.state['lastTriggerprice_'+row.symboltoken]; 
            var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
            var perchngfromTriggerPrice = ((ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
            console.log('perchngfromTriggerPrice',perchngfromTriggerPrice);
            if(perchngfromTriggerPrice > 0.7){
-                var minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
+                minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
-                this.modifyOrder(row, minPrice);
+                this.modifyOrderMethod(row, minPrice);
            }
 
          }
 
-
         return percentChange;
-
     }
 
 
@@ -490,7 +500,7 @@ class Home extends React.Component{
                  <PostLoginNavBar/>
                      <br />
                 
-                    <Grid container direction="row" alignItems="center" container>
+                    <Grid direction="row" alignItems="center" container>
                         <Grid item xs={12} sm={10} >
                             <Typography  variant="h6" color="primary" gutterBottom>
                          &nbsp;   Positions ({this.state.positionList && this.state.positionList.length})
@@ -505,13 +515,13 @@ class Home extends React.Component{
                         
                         <Grid item xs={12} sm={1} >
                         
-                            <Button  type="number" variant="contained" color="" style={{float:"right"}} onClick={() => this.getPositionData()}>Refresh</Button>    
+                            <Button  type="number" variant="contained" style={{float:"right"}} onClick={() => this.getPositionData()}>Refresh</Button>    
 
                         </Grid>
                 </Grid>
 
                
-                 <Grid  container spacing={1}  direction="row" alignItems="center" container>
+                 <Grid spacing={1}  direction="row" alignItems="center" container>
                                 
 
                     <Grid item xs={12} sm={12}> 
@@ -546,7 +556,7 @@ class Home extends React.Component{
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
 
                             {this.state.positionList ? this.state.positionList.map(row => (
-                                <TableRow key={row.productId} style={{background : row.netqty != 0? 'gray': ""}} >
+                                <TableRow key={row.productId} style={{background : row.netqty !== 0? 'gray': ""}} >
 
                                     <TableCell style={{paddingLeft:"3px"}} align="left">{row.tradingsymbol}</TableCell>
                                     {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
@@ -561,10 +571,10 @@ class Home extends React.Component{
                                     <TableCell align="left">{parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken))}</TableCell>
                                     <TableCell align="left">{row.ltp}</TableCell>
                                     <TableCell align="left">{row.pnl}</TableCell>
-                                    <TableCell align="left">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}  {row.percentPnL} </TableCell> 
+                                    <TableCell align="left">{ row.netqty !== 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}  {row.percentPnL} </TableCell> 
                                      
                                     <TableCell align="left">
-                                        {row.netqty != 0 ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
+                                        {row.netqty !== 0 ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
                                     </TableCell>
 
                                 </TableRow>
@@ -604,7 +614,7 @@ class Home extends React.Component{
                     </Paper>
                     </Grid>
 
-                    <OrderBook />
+                    <OrderBook/>
 
 
                     </Grid>
@@ -620,10 +630,10 @@ class Home extends React.Component{
 }
 
 
-const styles ={
-    footerButton: {
-        position: 'fixed',
-    }
-};
+// const styles ={
+//     footerButton: {
+//         position: 'fixed',
+//     }
+// };
 
 export default Home;

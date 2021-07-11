@@ -9,35 +9,10 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import CreateIcon from '@material-ui/icons/Create';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {resolveResponse} from "../../utils/ResponseHandler";
-import {connect} from "react-redux";
-import {setPackLoaded} from "../../action";
 import Spinner from "react-spinner-material";
-import ActivationService from "../service/ActivationService";
-
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import Input from "@material-ui/core/Input";
-import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
-import Dialogbox from "./Dialogbox";
-
 import TextField from "@material-ui/core/TextField";
-
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
 
 class OrderBook extends React.Component{
 
@@ -96,7 +71,7 @@ class OrderBook extends React.Component{
         var data = {
             "variety" :row.variety,  // "STOPLOSS",
             "orderid": row.orderid,
-            "ordertype": this.state.price != 0 ? "STOPLOSS_LIMIT" : "STOPLOSS_MARKET",
+            "ordertype": this.state.price !== 0 ? "STOPLOSS_LIMIT" : "STOPLOSS_MARKET",
             "producttype":  row.producttype, //"DELIVERY",
             "duration": row.duration,
             "price":  this.state.price,
@@ -109,7 +84,7 @@ class OrderBook extends React.Component{
         AdminService.modifyOrder(data).then(res => {
             let data = resolveResponse(res);
             console.log(data);   
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message === 'SUCCESS'){
                // localStorage.setItem('ifNotBought' ,  'false')
             }
         })
@@ -127,18 +102,17 @@ class OrderBook extends React.Component{
       return(
         <React.Fragment>
             <PostLoginNavBar/>
-             {/* <Dialogbox dialogAction = {{onChange : this.onChange}}/> */}
             <Paper style={{padding:"10px", overflow:"auto"}} >
 
 
-            <Grid container spacing={1}  direction="row" alignItems="center" container>
+            <Grid spacing={1}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                    Oders Details ({this.state.oderbookData.length})
+                                Oders Details ({this.state.oderbookData.length}) 
                                 </Typography> 
                             </Grid>
                             <Grid item xs={12} sm={6} >
-                                <Button id="orderRefresh"  type="number" variant="contained" color="" style={{float:"right"}} onClick={() => this.getTodayOrder()}>Refresh</Button>    
+                                <Button id="orderRefresh"  type="number" variant="contained"  style={{float:"right"}} onClick={() => this.getTodayOrder()}>Refresh</Button>    
                             </Grid>
                             
                 </Grid>
@@ -172,8 +146,8 @@ class OrderBook extends React.Component{
                 </TableHead>
                 <TableBody style={{width:""}}>
                 
-                    {this.state.oderbookData && this.state.oderbookData ? this.state.oderbookData.map(row => (
-                        <TableRow hover key={row.productId} >
+                    {this.state.oderbookData && this.state.oderbookData ? this.state.oderbookData.map((row, i)  => (
+                        <TableRow hover key={i} >
 
                             <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(15, 25) : ""}</TableCell>
 
@@ -185,8 +159,8 @@ class OrderBook extends React.Component{
                             <TableCell align="center">{row.producttype}</TableCell>
 
                             <TableCell align="center">
-                                {row.orderstatus == 'trigger pending' ? 
-                                <TextField type="number" style={{textAlign:'center', width:'50px'}} id="lotsize"  value={this.state.lotsize == 0 ? row.lotsize : this.state.lotsize}  name="lotsize" onChange={this.onChange}/>
+                                {row.orderstatus === 'trigger pending' ? 
+                                <TextField type="number" style={{textAlign:'center', width:'50px'}} id="lotsize"  value={this.state.lotsize === 0 ? row.lotsize : this.state.lotsize}  name="lotsize" onChange={this.onChange}/>
                                 : row.lotsize}
                             </TableCell>
 
@@ -196,20 +170,20 @@ class OrderBook extends React.Component{
                           
 
                             <TableCell align="center">
-                                {row.orderstatus == 'trigger pending' ? 
-                                <TextField style={{textAlign:'center', width:'50px'}} id="price"  value={this.state.price == 0 ? row.price : this.state.price}  name="price" onChange={this.onChange}/>
+                                {row.orderstatus === 'trigger pending' ? 
+                                <TextField style={{textAlign:'center', width:'50px'}} id="price"  value={this.state.price === 0 ? row.price : this.state.price}  name="price" onChange={this.onChange}/>
                                 : row.price}
                             </TableCell>
 
                             <TableCell align="center">
-                                {row.orderstatus == 'trigger pending' || row.orderstatus =='open' ? 
-                                <TextField  type="number" style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice == 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
+                                {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
+                                <TextField  type="number" style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice === 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
                                 : row.triggerprice}
                             </TableCell>
 
 
                             <TableCell align="center">
-                                {row.orderstatus == 'trigger pending' || row.orderstatus =='open' ? 
+                                {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
                                 <Button  size={'small'} type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
                                 : ''}
                             </TableCell>
@@ -231,22 +205,22 @@ class OrderBook extends React.Component{
   
 }
 
-const styles = {
-    tableStyle : {
-        display: 'flex',
-        justifyContent: 'center'
-    },
-    selectStyle:{
-        // minWidth: '100%',
-         marginBottom: '0px',
-          minWidth: 300,
-          maxWidth: 300,
-    }
-}
+// const styles = {
+//     tableStyle : {
+//         display: 'flex',
+//         justifyContent: 'center'
+//     },
+//     selectStyle:{
+//         // minWidth: '100%',
+//          marginBottom: '0px',
+//           minWidth: 300,
+//           maxWidth: 300,
+//     }
+// }
 
-const mapStateToProps=(state)=>{
-    return {packs:state.packs.packs.data};
-}
+// const mapStateToProps=(state)=>{
+//     return {packs:state.packs.packs.data};
+// }
 
 //export default connect(mapStateToProps,{setPackLoaded})(OrderBook);
 export default OrderBook;

@@ -9,34 +9,11 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import CreateIcon from '@material-ui/icons/Create';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {resolveResponse} from "../../utils/ResponseHandler";
-import {connect} from "react-redux";
-import {setPackLoaded} from "../../action";
 import Spinner from "react-spinner-material";
-import ActivationService from "../service/ActivationService";
-
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import Input from "@material-ui/core/Input";
-
-import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 import "./ViewStyle.css";
 
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
 
 class TradeBook extends React.Component{
 
@@ -118,12 +95,7 @@ class TradeBook extends React.Component{
     
 
     render(){
-        var CookieExpireDate = new Date();
-        CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
-        document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
-        console.log("COOKIE", document.cookie ); 
-
-        console.log(this.props,"PROPS")
+    
       return(
         <React.Fragment>
             <PostLoginNavBar/>
@@ -133,14 +105,14 @@ class TradeBook extends React.Component{
             <Paper style={{padding:"10px", overflow:"auto"}} >
 
 
-            <Grid syt  container spacing={1}  direction="row" alignItems="center" container>
+            <Grid spacing={1}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
                                   Today Trades ({this.state.oderbookData.length})
                                 </Typography> 
                             </Grid>
                             <Grid item xs={12} sm={6} >
-                                <Button  type="number" variant="contained" color="" style={{float:"right"}} onClick={() => this.getTodayTrade()}>Refresh</Button>    
+                                <Button  type="number" variant="contained" style={{float:"right"}} onClick={() => this.getTodayTrade()}>Refresh</Button>    
                             </Grid>
 
                             
@@ -206,22 +178,22 @@ class TradeBook extends React.Component{
   
 }
 
-const styles = {
-    tableStyle : {
-        display: 'flex',
-        justifyContent: 'center'
-    },
-    selectStyle:{
-        // minWidth: '100%',
-         marginBottom: '0px',
-          minWidth: 300,
-          maxWidth: 300,
-    }
-}
+// const styles = {
+//     tableStyle : {
+//         display: 'flex',
+//         justifyContent: 'center'
+//     },
+//     selectStyle:{
+//         // minWidth: '100%',
+//          marginBottom: '0px',
+//           minWidth: 300,
+//           maxWidth: 300,
+//     }
+// }
 
-const mapStateToProps=(state)=>{
-    return {packs:state.packs.packs.data};
-}
+// const mapStateToProps=(state)=>{
+//     return {packs:state.packs.packs.data};
+// }
 
 //export default connect(mapStateToProps,{setPackLoaded})(BaneerList);
 export default TradeBook;

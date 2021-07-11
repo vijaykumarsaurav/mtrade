@@ -22,7 +22,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Spinner from "react-spinner-material";
-import  {DEV_PROTJECT_PATH, IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../../utils/config";
 import * as moment from 'moment';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import myWatchListOne from './myWatchListOne.json';

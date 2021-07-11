@@ -1,0 +1,6 @@
+{
+    "monthlyTargetPer" :6, 
+    "dailyLossPer" :2, 
+    "perTradeExposeOnCapPer" : 10 
+    
+}

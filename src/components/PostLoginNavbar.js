@@ -1,6 +1,5 @@
 import React from 'react';
 import clsx from 'clsx';
-import { Link } from "react-router-dom";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -15,19 +14,11 @@ import Grid from '@material-ui/core/Grid';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import { textAlign } from '@material-ui/system';
 import * as Menu from './LeftMenuBar';
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import RightMenuBar from './RightMenuBar';
 import MyLogo from './mylogo.png';
-import  {IMAGE_VALIDATION_TOKEN,COOKIE_DOMAIN} from "../utils/config";
 
-import NotificationsIcon from '@material-ui/icons/Notifications';
-import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
-import {resolveResponse} from "../utils/ResponseHandler";
 import  InvertColor from '../utils/InvertColor';
 
 const drawerWidth = 240;
@@ -95,7 +86,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function PostLoginNavBar(props) {
 
-    const [values, setValues] = React.useState({
+    const [values] = React.useState({
         acquisitionCount: '',
         resubmitCount:''
     });
@@ -114,20 +105,14 @@ export default function PostLoginNavBar(props) {
         setOpen(false);
     }
 
-    function handleClick(e) {
-        console.log(e.target.innerText)
-        //this.props.history.push('/login');
-    }
+    // function handleClick(e) {
+    //     console.log(e.target.innerText)
+    //     //this.props.history.push('/login');
+    // }
 
     var userProfile = localStorage.getItem("userProfile")
     userProfile = userProfile && JSON.parse(userProfile);
     
-
-    var CookieExpireDate = new Date();
-    CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
-    document.cookie = "token=" + IMAGE_VALIDATION_TOKEN + ";expires=" + CookieExpireDate + ";domain="+COOKIE_DOMAIN+";path=/";
-
-
     return (
 
         <div className={classes.root}>
@@ -159,7 +144,7 @@ export default function PostLoginNavBar(props) {
                         {/* <Typography variant="h6" noWrap>
                           M-Trade
                          </Typography> */}
-                           <img style={{ width: "125px" }} src={MyLogo} />
+                           <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
                         </Grid>
 
                         <Grid item >

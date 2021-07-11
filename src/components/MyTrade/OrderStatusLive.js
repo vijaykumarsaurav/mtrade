@@ -1,41 +1,19 @@
 import React from 'react';
-import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
 import AdminService from "../service/AdminService";
-import LoginNavBar from "../LoginNavbar";
-import {Container} from "@material-ui/core";
-import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
 //import AdminWelcome from '../adminwelcome.png';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {resolveResponse} from "../../utils/ResponseHandler";
-import Dialogbox from "./Dialogbox";
-import MaterialUIDateTimePicker from "../../utils/MaterialUIDateTimePicker";
 import Paper from '@material-ui/core/Paper';
 import Table from "@material-ui/core/Table";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Spinner from "react-spinner-material";
 import  {API_KEY} from "../../utils/config";
 import * as moment from 'moment';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import myWatchListOne from './myWatchListOne.json';
-
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-
 import { w3cwebsocket } from 'websocket'; 
 import pako from 'pako';
-import DeleteIcon from '@material-ui/icons/Delete';
-
 const wsClint =  new w3cwebsocket('wss://smartapisocket.angelbroking.com/websocket'); 
 
 class Home extends React.Component{
@@ -224,7 +202,7 @@ class Home extends React.Component{
             "symboltoken":this.state.symboltoken,
             "transactiontype":transactiontype, //BUY OR SELL
             "exchange":"NSE",
-            "ordertype":   this.state.buyPrice  == 0 ? "MARKET" : "LIMIT", 
+            "ordertype":   this.state.buyPrice  === 0 ? "MARKET" : "LIMIT", 
             "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
             "duration":"DAY",
             "price": this.state.buyPrice,
@@ -236,7 +214,7 @@ class Home extends React.Component{
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
             console.log(data);   
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message === 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
 
@@ -251,8 +229,7 @@ class Home extends React.Component{
        
         var token= ''; 
         for (let index = 0; index <  this.state.symbolList.length; index++) {
-            const element =  this.state.symbolList[index];
-            if(this.state.symbolList[index].symbol == name){
+            if(this.state.symbolList[index].symbol === name){
                     token =  this.state.symbolList[index].token; 
                    this.setState({ tradingsymbol : name, symboltoken : this.state.symbolList[index].token});
                     break; 
@@ -264,8 +241,7 @@ class Home extends React.Component{
     placeSLMOrder = () => {
 
         var data = {
-            "variety":"NORMAL",
-            "tradingsymbol": this.state.tradingsymbol,
+                "tradingsymbol": this.state.tradingsymbol,
             "symboltoken":this.state.symboltoken,
             "transactiontype":"SELL",
             "exchange":"NSE",
@@ -283,7 +259,7 @@ class Home extends React.Component{
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
             console.log(data);   
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message === 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
             }
@@ -349,9 +325,9 @@ class Home extends React.Component{
                 data.push(fdata); 
                 localStorage.setItem('watchList',  JSON.stringify(data)); 
              }else{
-                var list = JSON.parse( localStorage.getItem('watchList'));
+                list = JSON.parse( localStorage.getItem('watchList'));
                 var found = list.filter(row => row.symbol  === values);
-                if(found.length == 0){
+                if(found.length === 0){
                     list.push(fdata); 
                     localStorage.setItem('watchList',  JSON.stringify(list)); 
                 }
@@ -369,7 +345,7 @@ class Home extends React.Component{
 
     deleteItemWatchlist = (symbol) => {
         var list = JSON.parse( localStorage.getItem('watchList'));
-        var index = list.findIndex(data => data.symbol == symbol)
+        var index = list.findIndex(data => data.symbol === symbol)
         list.splice(index,1);
         localStorage.setItem('watchList',  JSON.stringify(list)); 
         this.setState({ symbolList : list });
@@ -380,7 +356,7 @@ class Home extends React.Component{
        var  oderbookData = localStorage.getItem('oderbookData');
        var averageprice = 0; 
         for (let index = 0; index < oderbookData.length; index++) {
-           if(oderbookData[index].orderid ==  'orderId'){
+           if(oderbookData[index].orderid ===  'orderId'){
             averageprice =oderbookData[index].averageprice 
             this.setState({ averageprice : averageprice });
             break;
@@ -398,7 +374,7 @@ class Home extends React.Component{
                  <PostLoginNavBar/>
                 
                
-                 <Grid  container spacing={1}  direction="row" alignItems="center" container>
+                 <Grid spacing={1}  direction="row" alignItems="center" container>
 
                     <Grid item xs={10} sm={12}> 
                     <Paper style={{padding:"10px", overflow:"auto"}} >
@@ -463,8 +439,8 @@ class Home extends React.Component{
                                 "filltime": null
                             } */}
 
-                            {this.state.positionList ? this.state.positionList.map(row => (
-                                <TableRow key={row.productId} >
+                            {this.state.positionList ? this.state.positionList.map((row, i) => (
+                                <TableRow key={i} >
 
 
                                     <TableCell align="center">{row.tradingsymbol}</TableCell>
@@ -502,39 +478,14 @@ class Home extends React.Component{
 }
 
 
-const styles ={
-    formContainer : {
-        display: 'flex',
-        flexFlow: 'row wrap'
-    },
+// const styles ={
+//     formContainer : {
+//         display: 'flex',
+//         flexFlow: 'row wrap'
+//     },
 
-    textStyle :{
-        display: 'flex',
-        justifyContent: 'center'
+    
 
-    },
-    imgStyle:{
-        display:'flex'
-    }, 
-
-    selectStyle:{
-        minWidth: '100%',
-        marginBottom: '10px'
-    },
-    MuiTextField:{
-        overflowY: 'scroll',
-        fontSize:"12px", 
-        maxHeight:"50px",
-        
-    },
-    footerButton: {
-        position: 'fixed',
-        left: 0,
-        bottom: '20px',
-        width: '100%',
-        textAlign: 'right'
-    }
-
-};
+// };
 
 export default Home;

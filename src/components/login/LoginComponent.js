@@ -1,17 +1,8 @@
 import React from 'react';
-import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
 import AdminService from "../service/AdminService";
 import LoginNavBar from "../LoginNavbar";
-import {Container} from "@material-ui/core";
-import { resolveResponse } from '../../utils/ResponseHandler';
-import Notify from "../../utils/Notify";
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
-
-import CryptoJS  from 'crypto-js'; 
-
 import LoginNewUI from './LoginNewUI';
 
 
@@ -117,7 +108,7 @@ class LoginComponent extends React.Component{
          //   console.log("res",loginRes); 
 
              // var data = resolveResponse(res);
-             var loginRes  = loginRes && loginRes.data; 
+              loginRes  = loginRes && loginRes.data; 
             //  console.log("resdata",loginRes); 
               if(loginRes.status && loginRes.message !== 'SUCCESS'){
                 this.setState({ isError: loginRes.message });
@@ -133,8 +124,8 @@ class LoginComponent extends React.Component{
                     AdminService.getUserData().then(profileRes => {
                        // console.log('profiledata', profileRes); 
                           //let data = resolveResponse(res);
-                          var profileRes =  profileRes && profileRes.data; 
-                          if(profileRes.status & profileRes.message == 'SUCCESS'){
+                          profileRes =  profileRes && profileRes.data; 
+                          if(profileRes.status & profileRes.message === 'SUCCESS'){
                             window.localStorage.setItem("userProfile",JSON.stringify(profileRes.data));
                         //    this.props.history.push('/position');
 

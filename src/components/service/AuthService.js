@@ -14,7 +14,6 @@ class AuthService {
             'Authorization': 'Bearer ' + jwtToken,
             'Content-Type':'application/json', 
             'Accept':'application/json', 
-            'Accept':'application/json', 
             'X-UserType':'USER',
             'X-SourceID':'WEB',
             'X-ClientLocalIP':'192.168.1.128',
@@ -22,15 +21,11 @@ class AuthService {
             'X-MACAddress':'f0:18:98:26:c4:cc',
             'X-PrivateKey':'I4O6PJAn'
         } }
-
-        return { 'headers': {'Authorization': 'Bearer ' + localStorage.getItem("token") } }
-        //return { 'headers': { 'X-Server-Key': '8786gfhy' } }
     }
 
     loginHeader() {
         return { 'headers': {
             'Content-Type':'application/json', 
-            'Accept':'application/json', 
             'Accept':'application/json', 
             'X-UserType':'USER',
             'X-SourceID':'WEB',
@@ -47,7 +42,6 @@ class AuthService {
     getScannerHeader() {
         return { 'headers': {
             'Content-Type':'application/json', 
-            'Accept':'application/json', 
             'Accept':'application/json',
       //      'Access-Control-Allow-Headers': "x-csrf-token",
        //     'x-csrf-token':'dWsWEZqGaGd6RfARb33LKjPDdyuGUUrgi8Z4qvsB' 

@@ -1,4 +1,3 @@
-import AuthService from "../components/service/AuthService";
 import Notify from "./Notify";
 
 export function resolveResponse(response, msg) {
@@ -9,15 +8,16 @@ export function resolveResponse(response, msg) {
             if(data.status) {
                 if(data.message){
 
-                    if(msg != 'noPop')
+                    if(msg !== 'noPop')
                     Notify.showSuccess(data.message);
                 }
                 return data;
             }else{
                // console.log('inside');
                 Notify.showError(data.message);
-
-                //window.location.replace("#/login");
+                if(data.message === "Invalid Token"){
+                    window.location.replace("#/login");
+                }
                 return Promise.reject(data.message);
             }
         }

@@ -76,26 +76,26 @@ class MyView extends React.Component{
     
        var alldata =  this.state.optionChainDataBN && this.state.optionChainDataBN.records &&  this.state.optionChainDataBN.records.data; 
 
-       if(name == 'expiry' && actualValue == 'All' ) {
+       if(name === 'expiry' && actualValue === 'All' ) {
             
         filereddata =  alldata; 
        }
      
-        if(name == 'expiry') {
+        if(name === 'expiry') {
             
             for (let index = 0; index < alldata.length; index++) {
                 const element = alldata[index];
-                if(element.expiryDate == actualValue){
+                if(element.expiryDate === actualValue){
                     filereddata.push(element); 
                 } 
             }   
         }
 
-        if(name == 'strike') {
+        if(name === 'strike') {
             
             for (let index = 0; index < alldata.length; index++) {
                 const element = alldata[index];
-                if(element.strikePrice == actualValue){
+                if(element.strikePrice === actualValue){
                     filereddata.push(element); 
                 } 
             } 
@@ -115,7 +115,9 @@ class MyView extends React.Component{
 
     handleScroll = (data)  => {
 
-        this.setState({scrollcount : this.state.scrollcount +=1 });
+        var scrollcount = this.state.scrollcount; 
+
+        this.setState({scrollcount :  scrollcount+=1 });
 
     }
 
@@ -164,11 +166,11 @@ class MyView extends React.Component{
     getDataforStrike = strikePrice => {
 
         var alldata = JSON.parse( localStorage.getItem('optionChainDataBN')).records.data;// this.state.optionChainDataBN && this.state.optionChainDataBN.records.data; 
-        var fliterExData = [],sumOfCEoi = 0,sumOfPEoi = 0; 
+        var sumOfCEoi = 0,sumOfPEoi = 0; 
         for (let index = 0; index < alldata.length; index++) {
             const element = alldata[index];
             
-            if(strikePrice == element.strikePrice){
+            if(strikePrice === element.strikePrice){
 
                 if(element.CE && element.CE.openInterest){
                     sumOfCEoi = sumOfCEoi + element.CE.openInterest; 
@@ -188,8 +190,8 @@ class MyView extends React.Component{
     findSupportResistence = (optiondata) => {
            // console.log(optiondata);
             var alldata =  optiondata && optiondata.records && optiondata.records.data; 
-            var underlyingValue = optiondata.records && optiondata.records.underlyingValue; 
-            var PEoi = 0,CEoi = 0, PEoiChange=0,CEoiChange=0, peStrikePriceByDate=[]  ;
+           // var underlyingValue = optiondata.records && optiondata.records.underlyingValue; 
+            var PEoi = 0,CEoi = 0, PEoiChange=0,CEoiChange=0  ;
             if(alldata){
                 for (let index = 0; index < alldata.length; index++) {
                     const element = alldata[index];
@@ -303,13 +305,7 @@ class MyView extends React.Component{
 
                 } 
                 this.setState({curnewdata : newdata });
-
-                var resname = ''; 
-                if(diff > 0 )
-                 resname = "BUY";
-                 else
-                resname = "SELL"
-                
+ 
 
                 document.getElementById('title').innerHTML=  (diff/100000).toFixed(2) + '|' + ((localStorage.getItem('totPEOIChange') - localStorage.getItem('totCEOIChange'))/100000).toFixed(2) + "L" +  " Nifty Bank "; 
                // createData.push(newdata); 
@@ -327,7 +323,7 @@ class MyView extends React.Component{
                 //     }
                 // });
                 if(lastrow){
-                    newdata.isDuplicate = newdata.diff == lastrow.diff ? true : false
+                    newdata.isDuplicate = newdata.diff === lastrow.diff ? true : false
                     newdata.totCEOIChange = (((newdata.totCEOI-lastrow.totCEOI) * 100)/lastrow.totCEOI).toFixed(3);;
                     newdata.totPEOIChange =   (((newdata.totPEOI-lastrow.totPEOI) * 100)/lastrow.totPEOI).toFixed(3);;
                     newdata.totDiffChange =  (((newdata.diff-lastrow.diff) * 100)/lastrow.diff).toFixed(3); 
@@ -362,9 +358,6 @@ class MyView extends React.Component{
             this.setState({pcrTableBN:  JSON.parse(localStorage.getItem('pcrTableBN')) && JSON.parse(localStorage.getItem('pcrTableBN')).data})
 
             });
-
-
-
 
     }
 

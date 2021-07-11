@@ -22,8 +22,8 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
-import { w3cwebsocket } from 'websocket'; 
-import pako from 'pako';
+//import { w3cwebsocket } from 'websocket'; 
+//import pako from 'pako';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 //const wsClint =  new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream'); 
@@ -102,25 +102,25 @@ class Home extends React.Component{
 
     makeConnection = (feedToken ,clientcode ) => {
 
-        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
+     //   var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
        // console.log("1st Request :- " + firstTime_req);
       //  wsClint.send(firstTime_req);
     }
 
     updateSocketWatch = (feedToken,clientcode ) => {
       
-        var channel = this.state.symbolList.map(element => {
-             return 'nse_cm|'+ element.token; 
-        });
+        // var channel = this.state.symbolList.map(element => {
+        //      return 'nse_cm|'+ element.token; 
+        // });
 
-        channel = channel.join('&'); 
-        var sbin =  {
-            "task":"mw",
-            "channel": channel,
-            "token":this.state.feedToken,
-            "user":this.state.clientcode,
-            "acctid":this.state.clientcode
-        }
+      //  channel = channel.join('&'); 
+        // var sbin =  {
+        //     "task":"mw",
+        //     "channel": channel,
+        //     "token":this.state.feedToken,
+        //     "user":this.state.clientcode,
+        //     "acctid":this.state.clientcode
+        // }
      //   wsClint.send( JSON.stringify( sbin)); 
     }
 
@@ -201,7 +201,7 @@ class Home extends React.Component{
             "symboltoken": this.state.symboltoken,
             "transactiontype":transactiontype, //BUY OR SELL
             "exchange":"NSE",
-            "ordertype":   this.state.buyPrice  == 0 ? "MARKET" : "LIMIT", 
+            "ordertype":   this.state.buyPrice  === 0 ? "MARKET" : "LIMIT", 
             "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
             "duration":"DAY",
             "price": this.state.buyPrice,
@@ -213,7 +213,7 @@ class Home extends React.Component{
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
          //   console.log(data);   
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message === 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
 
@@ -228,8 +228,7 @@ class Home extends React.Component{
        
         var token= ''; 
         for (let index = 0; index <  this.state.symbolList.length; index++) {
-            const element =  this.state.symbolList[index];
-            if(this.state.symbolList[index].symbol == name){
+            if(this.state.symbolList[index].symbol === name){
                     token =  this.state.symbolList[index].token; 
                    this.setState({ tradingsymbol : name, symboltoken : this.state.symbolList[index].token});
                     break; 
@@ -241,7 +240,6 @@ class Home extends React.Component{
     placeSLMOrder = () => {
 
         var data = {
-            "variety":"NORMAL",
             "tradingsymbol": this.state.tradingsymbol,
             "symboltoken":this.state.symboltoken,
             "transactiontype":"SELL",
@@ -260,7 +258,7 @@ class Home extends React.Component{
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
        //     console.log(data);   
-            if(data.status  && data.message == 'SUCCESS'){
+            if(data.status  && data.message === 'SUCCESS'){
                 localStorage.setItem('ifNotBought' ,  'false')
                 this.setState({ orderid : data.data && data.data.orderid });
             }
@@ -326,9 +324,9 @@ class Home extends React.Component{
                 data.push(fdata); 
                 localStorage.setItem('watchList',  JSON.stringify(data)); 
              }else{
-                var list = JSON.parse( localStorage.getItem('watchList'));
+                 list = JSON.parse( localStorage.getItem('watchList'));
                 var found = list.filter(row => row.symbol  === values);
-                if(found.length == 0){
+                if(found.length === 0){
                     list.push(fdata); 
                     localStorage.setItem('watchList',  JSON.stringify(list)); 
                 }
@@ -346,7 +344,7 @@ class Home extends React.Component{
 
     deleteItemWatchlist = (symbol) => {
         var list = JSON.parse( localStorage.getItem('watchList'));
-        var index = list.findIndex(data => data.symbol == symbol)
+        var index = list.findIndex(data => data.symbol === symbol)
         list.splice(index,1);
         localStorage.setItem('watchList',  JSON.stringify(list)); 
         this.setState({ symbolList : list });
@@ -357,7 +355,7 @@ class Home extends React.Component{
        var  oderbookData = localStorage.getItem('oderbookData');
        var averageprice = 0; 
         for (let index = 0; index < oderbookData.length; index++) {
-           if(oderbookData[index].orderid ==  'orderId'){
+           if(oderbookData[index].orderid ===  'orderId'){
             averageprice =oderbookData[index].averageprice 
             this.setState({ averageprice : averageprice });
             break;
@@ -368,19 +366,19 @@ class Home extends React.Component{
 
 
     render() {
-        const dateParam = {
-            myCallback: this.myCallback,
-            startDate: '',
-            endDate:'', 
-            firstLavel : "Start Date and Time", 
-            secondLavel : "End Date and Time"
-          }
+        // const dateParam = {
+        //     myCallback: this.myCallback,
+        //     startDate: '',
+        //     endDate:'', 
+        //     firstLavel : "Start Date and Time", 
+        //     secondLavel : "End Date and Time"
+        //   }
 
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
                 
-                <Grid container spacing={1}  direction="row" container>
+                <Grid direction="row" container>
                
                      <Grid item xs={3} sm={3}  style={{}}> 
             
@@ -424,7 +422,7 @@ class Home extends React.Component{
 
                 <Grid item xs={9} sm={9}> 
 
-                    <Grid  container spacing={1}  direction="row" alignItems="center" container>
+                    <Grid  direction="row" alignItems="center" container>
 
                         <Grid item xs={10} sm={5}> 
                             <Typography variant="h5"  >
@@ -484,8 +482,8 @@ class Home extends React.Component{
                             <TableBody style={{width:"",whiteSpace: "nowrap"}}>
 
 
-                                {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map(row => (
-                                    <TableRow key={row.productId} >
+                                {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
+                                    <TableRow key={i} >
 
                                         <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
                                         <TableCell align="center">{row[1]}</TableCell>

@@ -3,12 +3,10 @@ import AdminService from "../service/AdminService";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
 import {connect} from "react-redux";
 import {setPackLoaded} from "../../action";
 import Spinner from "react-spinner-material";
@@ -113,25 +111,26 @@ class MyView extends React.Component{
                 if(document.getElementById('topDate_'+index)){
                     document.getElementById('topDate_'+index).innerHTML=resdata.timestamp.substring(12, 23);  
                 }
+                var percent = 0;
 
                 if(document.getElementById('top1_'+index)){
-                    var percent = resdata.data[1].pChange > 0 ? '<span style="color:green">'+ resdata.data[1].pChange + '</span>' : '<span style="color:red">'+ resdata.data[1].pChange + '</span>';
+                     percent = resdata.data[1].pChange > 0 ? '<span style="color:green">'+ resdata.data[1].pChange + '</span>' : '<span style="color:red">'+ resdata.data[1].pChange + '</span>';
                     document.getElementById('top1_'+index).innerHTML=resdata.data[1].symbol + ' '+resdata.data[1].lastPrice + '(' + percent + ')';  
                 }
                 if(document.getElementById('top2_'+index)){
-                    var percent = resdata.data[2].pChange > 0 ? '<span style="color:green">'+ resdata.data[2].pChange + '</span>' : '<span style="color:red">'+ resdata.data[2].pChange + '</span>';
+                     percent = resdata.data[2].pChange > 0 ? '<span style="color:green">'+ resdata.data[2].pChange + '</span>' : '<span style="color:red">'+ resdata.data[2].pChange + '</span>';
                     document.getElementById('top2_'+index).innerHTML=resdata.data[2].symbol+ ' '+resdata.data[2].lastPrice  +'(' + percent + ')'; 
                 }
                 if(document.getElementById('top3_'+index)){
-                    var percent = resdata.data[3].pChange > 0 ? '<span style="color:green">'+ resdata.data[3].pChange + '</span>' : '<span style="color:red">'+ resdata.data[3].pChange + '</span>';
+                     percent = resdata.data[3].pChange > 0 ? '<span style="color:green">'+ resdata.data[3].pChange + '</span>' : '<span style="color:red">'+ resdata.data[3].pChange + '</span>';
                     document.getElementById('top3_'+index).innerHTML=resdata.data[3].symbol+ ' '+resdata.data[3].lastPrice  + '(' + percent + ')'; 
                 }
                 if(document.getElementById('top4_'+index)){
-                    var percent = resdata.data[4].pChange > 0 ? '<span style="color:green">'+ resdata.data[4].pChange + '</span>' : '<span style="color:red">'+ resdata.data[4].pChange + '</span>';
+                     percent = resdata.data[4].pChange > 0 ? '<span style="color:green">'+ resdata.data[4].pChange + '</span>' : '<span style="color:red">'+ resdata.data[4].pChange + '</span>';
                     document.getElementById('top4_'+index).innerHTML=resdata.data[4].symbol+ ' '+resdata.data[4].lastPrice  +'(' + percent + ')'; 
                 }
                 if(document.getElementById('top5_'+index)){
-                    var percent = resdata.data[5].pChange > 0 ? '<span style="color:green">'+ resdata.data[5].pChange + '</span>' : '<span style="color:red">'+ resdata.data[5].pChange + '</span>';
+                     percent = resdata.data[5].pChange > 0 ? '<span style="color:green">'+ resdata.data[5].pChange + '</span>' : '<span style="color:red">'+ resdata.data[5].pChange + '</span>';
                     document.getElementById('top5_'+index).innerHTML=resdata.data[5].symbol + ' '+resdata.data[5].lastPrice + '(' + percent + ')'; 
                 }   
             }
@@ -209,7 +208,7 @@ class MyView extends React.Component{
                             <TableRow hover key={index}>
                               
                               {/* 'SECTORAL INDICES' */}
-                                { idata.key != 'vijay' ? <>
+                                { idata.key !== 'vijay' ? <>
 
                                    <TableCell align="left">{index+1} </TableCell>
 
@@ -218,7 +217,7 @@ class MyView extends React.Component{
                                     </TableCell>
 
                                    
-                                    <TableCell align="left"><a href={'https://www.nseindia.com/api/equity-stockIndices?index='+encodeURIComponent(idata.indexSymbol)} target="_blank">  {idata.percentChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{idata.percentChange}%</span>: idata.percentChange == 0 ? <span>{idata.percentChange}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{idata.percentChange}%</span>} </a></TableCell>
+                                    <TableCell align="left"><a href={'https://www.nseindia.com/api/equity-stockIndices?index='+encodeURIComponent(idata.indexSymbol)} target="_blank"  rel="noopener noreferrer">  {idata.percentChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{idata.percentChange}%</span>: idata.percentChange === 0 ? <span>{idata.percentChange}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{idata.percentChange}%</span>} </a></TableCell>
                                     
                                     <TableCell align="left">  <span style={{ color:'green' }} >{idata.advances}</span> / <span style={{ color:'red' }} >{idata.declines}</span> / {idata.unchanged}</TableCell>
                                 
@@ -267,19 +266,19 @@ class MyView extends React.Component{
 
 }
 
-const styles = {
-    tableStyle : {
-        display: 'flex',
-        justifyContent: 'center'
-    }, 
-    selectStyle:{
-        marginBottom: '0px',
-        minWidth: 240,
-        maxWidth: 240
+// const styles = {
+//     tableStyle : {
+//         display: 'flex',
+//         justifyContent: 'center'
+//     }, 
+//     selectStyle:{
+//         marginBottom: '0px',
+//         minWidth: 240,
+//         maxWidth: 240
 
-    }
+//     }
   
-}
+// }
 
 const mapStateToProps=(state)=>{
     return {packs:state.packs.packs.data};

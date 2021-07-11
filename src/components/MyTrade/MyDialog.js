@@ -9,7 +9,6 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
 import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
@@ -92,11 +91,11 @@ export default function CustomizedDialogs(props) {
                         {props.data.indexSymbolData ? props.data.indexSymbolData.map((idata, index) => (
                             <TableRow hover key={index}>
 
-                            {index != 0 ? <>
+                            {index !== 0 ? <>
                                    <TableCell align="left">{index} </TableCell>
                                     <TableCell align="left">{idata.symbol}</TableCell>
                                     <TableCell align="left" >{idata.lastPrice}</TableCell> 
-                                     <TableCell align="left">{idata.pChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{idata.pChange}%</span>: idata.pChange == 0 ? <span>{idata.pChange}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{idata.pChange}%</span>} </TableCell>
+                                     <TableCell align="left">{idata.pChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{idata.pChange}%</span>: idata.pChange === 0 ? <span>{idata.pChange}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{idata.pChange}%</span>} </TableCell>
                                      <TableCell align="left">{idata.change}</TableCell>
                                  
                                 </>

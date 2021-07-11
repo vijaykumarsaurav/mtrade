@@ -74,26 +74,26 @@ class MyView extends React.Component{
     
        var alldata =  this.state.optionChainData && this.state.optionChainData.records &&  this.state.optionChainData.records.data; 
 
-       if(name == 'expiry' && actualValue == 'All' ) {
+       if(name === 'expiry' && actualValue === 'All' ) {
             
         filereddata =  alldata; 
        }
      
-        if(name == 'expiry') {
+        if(name === 'expiry') {
             
             for (let index = 0; index < alldata.length; index++) {
                 const element = alldata[index];
-                if(element.expiryDate == actualValue){
+                if(element.expiryDate === actualValue){
                     filereddata.push(element); 
                 } 
             }   
         }
 
-        if(name == 'strike') {
+        if(name === 'strike') {
             
             for (let index = 0; index < alldata.length; index++) {
                 const element = alldata[index];
-                if(element.strikePrice == actualValue){
+                if(element.strikePrice === actualValue){
                     filereddata.push(element); 
                 } 
             } 
@@ -150,11 +150,11 @@ class MyView extends React.Component{
     getDataforStrike = strikePrice => {
 
         var alldata = JSON.parse( localStorage.getItem('optionChainData')).records.data;// this.state.optionChainData && this.state.optionChainData.records.data; 
-        var fliterExData = [],sumOfCEoi = 0,sumOfPEoi = 0; 
+        var     sumOfCEoi = 0,sumOfPEoi = 0; 
         for (let index = 0; index < alldata.length; index++) {
             const element = alldata[index];
             
-            if(strikePrice == element.strikePrice){
+            if(strikePrice === element.strikePrice){
 
                 if(element.CE && element.CE.openInterest){
                     sumOfCEoi = sumOfCEoi + element.CE.openInterest; 
@@ -174,7 +174,7 @@ class MyView extends React.Component{
     findSupportResistence = (optiondata) => {
            // console.log(optiondata);
             var alldata =  optiondata && optiondata.records && optiondata.records.data; 
-            var underlyingValue = optiondata && optiondata.records.underlyingValue; 
+            //var underlyingValue = optiondata && optiondata.records.underlyingValue; 
             var PEoi = 0,CEoi = 0, PEoiChange=0,CEoiChange=0, peStrikePriceByDate=[]  ;
             for (let index = 0; index < alldata.length; index++) {
                 const element = alldata[index];
@@ -191,7 +191,7 @@ class MyView extends React.Component{
 
           var allexpiryDates =   optiondata.records.expiryDates; 
           var strikePrices =  optiondata.records.strikePrices; 
-          var fliterExData = [];  
+        //  var fliterExData = [];  
            
             // for (let index = 0; index < allexpiryDates.length; index++) {
             //     const element = allexpiryDates[index];
