@@ -13,7 +13,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import * as moment from 'moment';
 import OrderBook from './Orderbook';
-//import TradeConfig from './TradeConfig.json';
+import TradeConfig from './TradeConfig.json';
 
 class Home extends React.Component{
     constructor(props) {
@@ -40,9 +40,9 @@ class Home extends React.Component{
         if(today <= friday && beginningTime.isBefore(endTime)){
             this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 1002)}) 
             this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
+            setInterval(() => {this.stopTradeDailyLossComplete()}, 1000);
         }
-        this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
-
+       // this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
     }
     componentWillUnmount() {
         clearInterval(this.state.positionInterval);
@@ -98,6 +98,7 @@ class Home extends React.Component{
                 
             }
         })  
+
     }
     checkAndPlaceOrder = (stock)=>{
         AdminService.autoCompleteSearch(stock).then(res => {
@@ -119,21 +120,26 @@ class Home extends React.Component{
             let data = resolveResponse(res, 'noPop');
 
              var LtpData = data && data.data; 
-             var ltp  = LtpData.ltp
-             if(ltp){
-              var stopLossPrice = ltp - (ltp*0.7/100);
+             var ltpPrice  = LtpData.ltp
+             if(ltpPrice){ 
+              console.log(symbol + 'ltp '+ ltpPrice); 
+            //  var stopLossPrice = ltp - (ltp*0.7/100);
+              var stopLossPrice = ltpPrice - (ltpPrice * TradeConfig.perTradeStopLossPer/100);
               stopLossPrice = this.getMinPriceAllowTick(stopLossPrice); 
-              this.setState({ stoploss : stopLossPrice});
-              
+              let perTradeExposureAmt =  TradeConfig.totalCapital/TradeConfig.perTradeExposurePer; 
+              let quantity = Math.floor(perTradeExposureAmt/ltpPrice); 
               var orderOption = {
-                  transactiontype: 'BUY',
-                  tradingsymbol: symbol,
-                  symboltoken:token,
-                  buyPrice : 0,
-                  quantity: 1, 
-                  stopLossPrice: stopLossPrice
+                    transactiontype: 'BUY',
+                    tradingsymbol: symbol,
+                    symboltoken:token,
+                    buyPrice : 0,
+                    quantity: quantity, 
+                    stopLossPrice: stopLossPrice
+                }
+              if(quantity && stopLossPrice){
+                this.placeOrderMethod(orderOption);   
               }
-              this.placeOrderMethod(orderOption);     
+               
             }         
 
        }).catch((error)=>{
@@ -465,7 +471,21 @@ class Home extends React.Component{
         return minPrice; 
     }
 
+   stopTradeDailyLossComplete = () => {
+        var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
+        totalDayLoss = -Math.abs(totalDayLoss); 
+        if(this.state.todayProfitPnL < totalDayLoss) {
+            clearInterval(this.state.scaninterval);
+            console.log("daily loss crossed"); 
+        }else{
+            console.log("still ok"); 
+            this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
+        }
+   }
+
     getPercentage = (avgPrice,  ltp , row) =>  {
+
+        this.stopTradeDailyLossComplete();
 
         avgPrice =  parseFloat(avgPrice); 
         var percentChange = ((ltp - avgPrice)*100/avgPrice).toFixed(2); 
@@ -487,6 +507,7 @@ class Home extends React.Component{
            }
 
          }
+
 
         return percentChange;
     }

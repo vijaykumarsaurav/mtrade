@@ -104,5 +104,17 @@
     {
         "symbolName": "ROSSARI",
         "datetime": "7/9/2021, 2:52:23 PM"
+    },
+    {
+        "symbolName": "IDEA",
+        "datetime": "7/9/2021, 2:52:23 PM"
+    }, 
+    {
+        "symbolName":"SPICEJET"
+    },{
+        "symbolName":"UNIONBANK"
+    },{
+        "symbolName":"EDELWEISS"
     }
+
 ]
