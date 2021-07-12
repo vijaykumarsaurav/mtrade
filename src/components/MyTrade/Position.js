@@ -36,13 +36,34 @@ class Home extends React.Component{
         var beginningTime = moment('9:15am', 'h:mma');
         var endTime = moment('3:30pm', 'h:mma');
         const friday = 5; // for friday
+        var currentTime = moment(new Date(), "h:mma");
+        console.log("currenttime time",currentTime); 
         const today = moment().isoWeekday();
-        if(today <= friday && beginningTime.isBefore(endTime)){
-            this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 1002)}) 
+        //market hours
+        if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
+            this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 2002)}) 
             this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
-            setInterval(() => {this.stopTradeDailyLossComplete()}, 1000);
+            this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
+        }else{
+            clearInterval(this.state.positionInterval);
+            clearInterval(this.state.scaninterval); 
+            clearInterval(this.state.bankNiftyInterval); 
         }
-       // this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
+       // this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)})
+   
+   
+       var data  = {
+        "exchange":"NSE",
+        "tradingsymbol": "BANKNIFTY15JUL2131500PE",
+        "symboltoken":"43283",
+    }
+    AdminService.getLTP(data).then(res => {
+        let data = resolveResponse(res, 'noPop');
+         var LtpData = data && data.data; 
+         console.log(LtpData);
+       
+   })
+   
     }
     componentWillUnmount() {
         clearInterval(this.state.positionInterval);
@@ -73,32 +94,39 @@ class Home extends React.Component{
     }
 
     getScannedStock(){
-         AdminService.getAutoScanStock().then(res => {
-            let data = resolveResponse(res, "noPop");
-            if(data.status  && data.message === 'SUCCESS'){ 
-                var scandata =  data.result;   
-                if(scandata && scandata.length>0){
-                    var lastSeachStock = scandata[scandata.length-1].symbolName;               
-                    localStorage.setItem('scannedStocks',JSON.stringify(scandata)); 
-                    var isFound = false; 
-                    for (let index = 0; index < this.state.positionList.length; index++) {
-                         if(this.state.positionList[index].symbolname === lastSeachStock){
-                            isFound  = true; 
-                         }
-                    }
-                    if (!isFound && !localStorage.getItem('scannedstock_' + lastSeachStock)){
-                        console.log("found new", lastSeachStock)
-                        var msg = new SpeechSynthesisUtterance();
-                        msg.text = 'hey Vijay, '+lastSeachStock; 
-                        window.speechSynthesis.speak(msg);
-                        localStorage.setItem('scannedstock_' + lastSeachStock , "orderdone");
-                        this.checkAndPlaceOrder(lastSeachStock); 
-                    }
-                }
-                
-            }
-        })  
 
+        var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
+        totalDayLoss = -Math.abs(totalDayLoss); 
+        if(this.state.todayProfitPnL < totalDayLoss) {
+            console.log("daily loss crossed"); 
+            clearInterval(this.state.scaninterval);
+        }else{
+            AdminService.getAutoScanStock().then(res => {
+                let data = resolveResponse(res, "noPop");
+                if(data.status  && data.message === 'SUCCESS'){ 
+                    var scandata =  data.result;   
+                    if(scandata && scandata.length>0){
+                        var lastSeachStock = scandata[scandata.length-1].symbolName;               
+                        localStorage.setItem('scannedStocks',JSON.stringify(scandata)); 
+                        var isFound = false; 
+                        for (let index = 0; index < this.state.positionList.length; index++) {
+                             if(this.state.positionList[index].symbolname === lastSeachStock){
+                                isFound  = true; 
+                             }
+                        }
+                        if (!isFound && !localStorage.getItem('scannedstock_' + lastSeachStock)){
+                            console.log("found new", lastSeachStock)
+                            var msg = new SpeechSynthesisUtterance();
+                            msg.text = 'hey Vijay, '+lastSeachStock; 
+                            window.speechSynthesis.speak(msg);
+                            localStorage.setItem('scannedstock_' + lastSeachStock , "orderdone");
+                            this.checkAndPlaceOrder(lastSeachStock); 
+                        }
+                    }
+                    
+                }
+            })  
+        }
     }
     checkAndPlaceOrder = (stock)=>{
         AdminService.autoCompleteSearch(stock).then(res => {
@@ -122,12 +150,13 @@ class Home extends React.Component{
              var LtpData = data && data.data; 
              var ltpPrice  = LtpData.ltp
              if(ltpPrice){ 
-              console.log(symbol + 'ltp '+ ltpPrice); 
+              
             //  var stopLossPrice = ltp - (ltp*0.7/100);
               var stopLossPrice = ltpPrice - (ltpPrice * TradeConfig.perTradeStopLossPer/100);
               stopLossPrice = this.getMinPriceAllowTick(stopLossPrice); 
-              let perTradeExposureAmt =  TradeConfig.totalCapital/TradeConfig.perTradeExposurePer; 
+              let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
               let quantity = Math.floor(perTradeExposureAmt/ltpPrice); 
+              console.log(symbol + 'ltp '+ ltpPrice, "quantity",quantity,"stopLossPrice",stopLossPrice, "perTradeExposureAmt",perTradeExposureAmt ); 
               var orderOption = {
                     transactiontype: 'BUY',
                     tradingsymbol: symbol,
@@ -165,13 +194,14 @@ class Home extends React.Component{
     getLTP =() => {
         var data  = {
             "exchange":"NSE",
-            "tradingsymbol":  this.state.tradingsymbol,
-            "symboltoken":this.state.symboltoken,
+            "tradingsymbol": "BANKNIFTY",
+            "symboltoken":"26009",
         }
         AdminService.getLTP(data).then(res => {
             let data = resolveResponse(res, 'noPop');
              var LtpData = data && data.data; 
-             this.setState({ InstrumentLTP : LtpData});
+             console.log(LtpData);
+             this.setState({ BankLtpltp : LtpData.ltp });
        })
     }
 
@@ -354,18 +384,19 @@ class Home extends React.Component{
             "quantity": row.buyqty,
         }
 
-        if(window.confirm("Squire Off!!! Sure?")){
-            AdminService.placeOrder(data).then(res => {
-                let data = resolveResponse(res);
-                console.log("squireoff", data);   
-                if(data.status  && data.message === 'SUCCESS'){
-                    this.setState({ orderid : data.data && data.data.orderid });
-                    this.cancelOrderOfSame(row); 
-                    document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
+        // if(window.confirm("Squire Off!!! Sure?")){
+            
+        // }
+        AdminService.placeOrder(data).then(res => {
+            let data = resolveResponse(res);
+            console.log("squireoff", data);   
+            if(data.status  && data.message === 'SUCCESS'){
+                this.setState({ orderid : data.data && data.data.orderid });
+                this.cancelOrderOfSame(row); 
+                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
 
-                }
-            })
-        }
+            }
+        })
        
     }
     updateOrderList = () => {
@@ -471,21 +502,7 @@ class Home extends React.Component{
         return minPrice; 
     }
 
-   stopTradeDailyLossComplete = () => {
-        var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
-        totalDayLoss = -Math.abs(totalDayLoss); 
-        if(this.state.todayProfitPnL < totalDayLoss) {
-            clearInterval(this.state.scaninterval);
-            console.log("daily loss crossed"); 
-        }else{
-            console.log("still ok"); 
-            this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
-        }
-   }
-
     getPercentage = (avgPrice,  ltp , row) =>  {
-
-        this.stopTradeDailyLossComplete();
 
         avgPrice =  parseFloat(avgPrice); 
         var percentChange = ((ltp - avgPrice)*100/avgPrice).toFixed(2); 
@@ -508,6 +525,19 @@ class Home extends React.Component{
 
          }
 
+        let sqrOffbeginningTime = moment('3:10pm', 'h:mma');
+        let sqrOffendTime = moment('3:14pm', 'h:mma');
+        let sqrOffcurrentTime = moment(new Date(), "h:mma");
+        if(sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)){
+
+            if(!localStorage.getItem('squiredOff'+row.symboltoken)){
+                //this.squareOff(row); 
+                console.log("Sqr off called"); 
+                localStorage.setItem('squiredOff'+row.symboltoken, 'yes');
+            }
+            
+
+        }
 
         return percentChange;
     }
@@ -525,12 +555,14 @@ class Home extends React.Component{
                         <Grid item xs={12} sm={10} >
                             <Typography  variant="h6" color="primary" gutterBottom>
                          &nbsp;   Positions ({this.state.positionList && this.state.positionList.length})
-                            </Typography> 
+                         &nbsp;    Bank Nify: <b>{this.state.BankLtpltp}  </b>
+                            </Typography>
+                         
                         </Grid>
                         
                         <Grid item xs={12} sm={1} >
                           <Typography component="h3"  style={{color:this.state.todayProfitPnL>0?"red":"green"}} >
-                             P/L {this.state.todayProfitPnL}
+                            <b>  P/L {this.state.todayProfitPnL} </b>
                             </Typography> 
                         </Grid>
                         
@@ -577,7 +609,7 @@ class Home extends React.Component{
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
 
                             {this.state.positionList ? this.state.positionList.map(row => (
-                                <TableRow key={row.productId} style={{background : row.netqty !== 0? 'gray': ""}} >
+                                <TableRow hover key={row.productId} style={{background : row.netqty !== '0'? 'gray': ""}} >
 
                                     <TableCell style={{paddingLeft:"3px"}} align="left">{row.tradingsymbol}</TableCell>
                                     {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
@@ -589,13 +621,14 @@ class Home extends React.Component{
 
                                     <TableCell align="left">{row.totalsellavgprice}</TableCell>
                                     <TableCell align="left">{row.totalsellvalue}</TableCell>
-                                    <TableCell align="left">{parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken))}</TableCell>
+                                    <TableCell align="left">{(localStorage.getItem('lastTriggerprice_'+row.symboltoken))}</TableCell>
                                     <TableCell align="left">{row.ltp}</TableCell>
-                                    <TableCell align="left">{row.pnl}</TableCell>
-                                    <TableCell align="left">{ row.netqty !== 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}  {row.percentPnL} </TableCell> 
+                                    <TableCell align="left"><b>{row.pnl}</b></TableCell>
+                                    <TableCell align="left">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}  </TableCell> 
+                                    {/* {row.percentPnL} */}
                                      
                                     <TableCell align="left">
-                                        {row.netqty !== 0 ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
+                                        {row.netqty != 0 ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
                                     </TableCell>
 
                                 </TableRow>
@@ -621,7 +654,8 @@ class Home extends React.Component{
                                 <TableCell className="TableHeadFormat" align="left">{this.state.todayProfitPnL} </TableCell>
                                 <TableCell className="TableHeadFormat" align="left">
                                     
-                                     {this.state.totalPercentage && this.state.totalPercentage.toFixed(2)}
+
+                                     {/* {this.state.totalPercentage && this.state.totalPercentage.toFixed(2)} */}
                                      
                                 </TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
@@ -633,10 +667,16 @@ class Home extends React.Component{
                     </Table>
 
                     </Paper>
+
+
                     </Grid>
 
-                    <OrderBook/>
+                  
 
+                        <Grid item xs={12} sm={12} >
+                             <OrderBook/>
+                        </Grid>
+                               
 
                     </Grid>
             

@@ -76,7 +76,7 @@ class OrderBook extends React.Component{
             "duration": row.duration,
             "price":  this.state.price,
             "triggerprice": trailingstoploss || this.state.triggerprice,
-            "quantity":this.state.lotsize,
+            "quantity":row.lotsize,
             "tradingsymbol": row.tradingsymbol,
             "symboltoken": row.symboltoken,
             "exchange": row.exchange
@@ -102,8 +102,7 @@ class OrderBook extends React.Component{
       return(
         <React.Fragment>
             <PostLoginNavBar/>
-            <Paper style={{padding:"10px", overflow:"auto"}} >
-
+            <Paper style={{padding:"10px"}} >
 
             <Grid spacing={1}  direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={6} >
@@ -117,87 +116,91 @@ class OrderBook extends React.Component{
                             
                 </Grid>
             
-
-            <Table  size="small"   aria-label="sticky table" >
-                <TableHead style={{width:"",whiteSpace: "nowrap"}} variant="head">
-                    <TableRow variant="head" >
-                        <TableCell align="center"><b>Update time</b></TableCell>
-
-                        {/* <TableCell align="center"><b>OrderId</b></TableCell> */}
-
-                        <TableCell align="center"><b>Instrument</b></TableCell>
-                        {/* <TableCell align="center"><b>Token</b></TableCell> */}
-
-                        <TableCell align="center"><b>Order Type</b></TableCell>
-                        <TableCell align="center"><b>CNC/Intraday</b></TableCell>
-                        <TableCell align="center"><b>Qty </b></TableCell>
-                
-                        <TableCell align="center"><b>Average Price</b></TableCell>
-                        
-                        <TableCell align="center"><b>Price</b></TableCell>
-                        <TableCell align="center"><b>Trigger Price</b></TableCell>
-
-                        <TableCell align="center">Action</TableCell>
-                        <TableCell align="center"><b>Status</b></TableCell>
-                        <TableCell align="center"><b>Reason</b></TableCell>
+            <Grid direction="row" alignItems="center" container>
+            <Grid item xs={12} sm={12} >
+                     <Table  size="small"  style={{width:"100%"}}  aria-label="sticky table" >
                
+                        <TableHead style={{whiteSpace: "nowrap"}} variant="head">
+                            <TableRow variant="head" >
+                                <TableCell align="center"><b>Update time</b></TableCell>
 
-                    </TableRow>
-                </TableHead>
-                <TableBody style={{width:""}}>
-                
-                    {this.state.oderbookData && this.state.oderbookData ? this.state.oderbookData.map((row, i)  => (
-                        <TableRow hover key={i} >
+                                {/* <TableCell align="center"><b>OrderId</b></TableCell> */}
 
-                            <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(15, 25) : ""}</TableCell>
+                                <TableCell align="center"><b>Instrument</b></TableCell>
+                                {/* <TableCell align="center"><b>Token</b></TableCell> */}
 
-                            {/* <TableCell align="center">{row.orderid  }</TableCell> */}
-                            <TableCell align="center">{row.tradingsymbol}</TableCell>
-                            {/* <TableCell align="center">{row.symboltoken  }</TableCell> */}
-
-                            <TableCell align="center">{row.transactiontype}</TableCell>
-                            <TableCell align="center">{row.producttype}</TableCell>
-
-                            <TableCell align="center">
-                                {row.orderstatus === 'trigger pending' ? 
-                                <TextField type="number" style={{textAlign:'center', width:'50px'}} id="lotsize"  value={this.state.lotsize === 0 ? row.lotsize : this.state.lotsize}  name="lotsize" onChange={this.onChange}/>
-                                : row.lotsize}
-                            </TableCell>
-
+                                <TableCell align="center"><b>Order Type</b></TableCell>
+                                <TableCell align="center"><b>CNC/Intraday</b></TableCell>
+                                <TableCell align="center"><b>Qty </b></TableCell>
                         
-                            <TableCell align="center">{row.averageprice}</TableCell>
+                                <TableCell align="center"><b>Average Price</b></TableCell>
+                                
+                                <TableCell align="center"><b>Price</b></TableCell>
+                                <TableCell align="center"><b>Trigger Price</b></TableCell>
 
-                          
+                                <TableCell align="center">Action</TableCell>
+                                <TableCell align="center"><b>Status</b></TableCell>
+                                <TableCell align="center"><b>Details</b></TableCell>
+                
 
-                            <TableCell align="center">
-                                {row.orderstatus === 'trigger pending' ? 
-                                <TextField style={{textAlign:'center', width:'50px'}} id="price"  value={this.state.price === 0 ? row.price : this.state.price}  name="price" onChange={this.onChange}/>
-                                : row.price}
-                            </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                        
+                            {this.state.oderbookData && this.state.oderbookData ? this.state.oderbookData.map((row, i)  => (
+                                <TableRow hover key={i} >
 
-                            <TableCell align="center">
-                                {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
-                                <TextField  type="number" style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice === 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
-                                : row.triggerprice}
-                            </TableCell>
+                                    <TableCell align="center">{row.updatetime ? new Date(row.updatetime).toString().substring(15, 25) : ""}</TableCell>
+
+                                    {/* <TableCell align="center">{row.orderid  }</TableCell> */}
+                                    <TableCell style={{ width: '10%'}}  align="center">{row.tradingsymbol}</TableCell>
+                                    {/* <TableCell align="center">{row.symboltoken  }</TableCell> */}
+
+                                    <TableCell align="center">{row.transactiontype}</TableCell>
+                                    <TableCell align="center">{row.producttype}</TableCell>
+
+                                    <TableCell align="center">
+                                        {row.orderstatus === 'trigger pending' ? 
+                                        <TextField type="number" style={{textAlign:'center', width:'50px'}} id="lotsize"  value={this.state.lotsize === 0 ? row.lotsize : this.state.lotsize}  name="lotsize" onChange={this.onChange}/>
+                                        : row.lotsize}
+                                    </TableCell>
+
+                                
+                                    <TableCell align="center">{row.averageprice}</TableCell>
+
+                                
+
+                                    <TableCell align="center">
+                                        {row.orderstatus === 'trigger pending' ? 
+                                        <TextField style={{textAlign:'center', width:'50px'}} id="price"  value={this.state.price === 0 ? row.price : this.state.price}  name="price" onChange={this.onChange}/>
+                                        : row.price}
+                                    </TableCell>
+
+                                    <TableCell align="center">
+                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
+                                        <TextField  type="number" style={{textAlign:'center', width:'50px'}} id="triggerprice"  value={this.state.triggerprice === 0 ? row.triggerprice : this.state.triggerprice}  name="triggerprice" onChange={this.onChange}/>
+                                        : row.triggerprice}
+                                    </TableCell>
 
 
-                            <TableCell align="center">
-                                {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
-                                <Button  size={'small'} type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
-                                : ''}
-                            </TableCell>
+                                    <TableCell align="left">
+                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
+                                        <Button  size={'small'} type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
+                                        : ''}
+                                    </TableCell>
+                                    
+                                    <TableCell style={{fontSize: "11px", width: '10%'}} align="center">{row.orderstatus}</TableCell>
+
+                                    <TableCell style={{fontSize: "11px"}} align="center">{row.text}</TableCell>
+
+                                    
+                                </TableRow>
+                            )):<Spinner/>}
+                        </TableBody>
+                    </Table>
+                </Grid>
                             
-                            <TableCell align="center">{row.orderstatus}</TableCell>
-
-                            <TableCell style={{width:'20%', fontSize: "11px"}} align="center">{row.text}</TableCell>
-
-                            
-                        </TableRow>
-                    )):<Spinner/>}
-                </TableBody>
-            </Table>
-
+               </Grid>    
             </Paper>
             </React.Fragment> 
         )

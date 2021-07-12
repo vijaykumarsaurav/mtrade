@@ -1,7 +1,7 @@
 import Notify from "./Notify";
 
 export function resolveResponse(response, msg) {
-   
+    console.log('response',response);
     let data = {};
         if (response.status === 200) {
             data = response.data;
@@ -13,18 +13,17 @@ export function resolveResponse(response, msg) {
                 }
                 return data;
             }else{
-               // console.log('inside');
+               
                 Notify.showError(data.message);
                 if(data.message === "Invalid Token"){
                     window.location.replace("#/login");
+                    localStorage.setItem('userTokens', '');
+                    localStorage.setItem('userProfile', '');
                 }
                 return Promise.reject(data.message);
             }
         }
         else if(response && !response.status){
             Notify.showError(data.message);
-           // console.log('outside');
-            window.location.replace("#/login");
-           // return Promise.reject(data.message);
         }   
 }
