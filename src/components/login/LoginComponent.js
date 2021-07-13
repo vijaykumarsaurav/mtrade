@@ -5,7 +5,6 @@ import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoginNewUI from './LoginNewUI';
 
-
 class LoginComponent extends React.Component{
     constructor(props) {
         super(props);
@@ -46,6 +45,7 @@ class LoginComponent extends React.Component{
 
                 {/* New Login UI */}
                 <LoginNewUI loginProps={ {onChange : this.onChange, login: this.login,   userName: this.state.userName, password:  this.state.password } }/>
+                
                 <Grid container justify="space-around">
                     <Grid justify={"center"} container  xs={12} sm={10}>
                             {this.state.isDasable ? <InputLabel variant="subtitle1" style={styles.waitMessage}> Please wait...</InputLabel> :""} 

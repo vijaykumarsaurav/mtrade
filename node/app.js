@@ -108,6 +108,41 @@ return;
     
 //   });
 
+app.get('/saveNSEList/:query', function (req, res) {
+    const toplist = req.params.query; 
+   // console.log("toplist",toplist);
+    //res.status(200).send(name) ;
+      var scandir= "/Users/B0208058/Documents/m-trade/src/components/scanfile/"; 
+      fs.writeFile('nseTopScan.json', toplist, 'utf8', function callback(){
+        console.log("Added", toplist);
+        res.status(200).send("Added") ;
+      });
+
+return;
+});
+
+// On localhost:3000/welcome
+app.get('/getNseTopStocks', function (req, res) {
+
+  //const symbolName = req.params.query.toUpperCase(); 
+  var obj, fillertedData = []; 
+
+  fs.readFile('nseTopScan.json', 'utf8', function (err, data) {
+
+    if (err) throw err;
+    obj = JSON.parse(data);
+    var response = {
+      result : obj, 
+      message : "SUCCESS", 
+      status : true
+    }
+
+    res.status(200).send(response) ;
+    
+  });
+return;
+  
+});
 
   app.get('/saveScanList/:query', function (req, res) {
     const symbolName = req.params.query.toUpperCase(); 

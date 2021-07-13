@@ -1,7 +1,7 @@
 import Notify from "./Notify";
 
 export function resolveResponse(response, msg) {
-    console.log('response',response);
+   //console.log('response',response);
     let data = {};
         if (response.status === 200) {
             data = response.data;

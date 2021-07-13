@@ -37,7 +37,6 @@ class Home extends React.Component{
         var endTime = moment('3:30pm', 'h:mma');
         const friday = 5; // for friday
         var currentTime = moment(new Date(), "h:mma");
-        console.log("currenttime time",currentTime); 
         const today = moment().isoWeekday();
         //market hours
         if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
@@ -48,14 +47,25 @@ class Home extends React.Component{
             clearInterval(this.state.scaninterval); 
             clearInterval(this.state.bankNiftyInterval); 
         }
-         //scans hours
-        var scanendTime = moment('3:00pm', 'h:mma');
-        if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
-            this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
-        }else{
-            clearInterval(this.state.scaninterval); 
-        }
-   
+         //scans from chartink 
+        // var scanendTime = moment('3:00pm', 'h:mma');
+        // if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
+        //     this.setState({scaninterval :  setInterval(() => {this.getStockOnebyOne(); }, 1002)}) 
+        // }else{
+        //     clearInterval(this.state.scaninterval); 
+        // }
+
+        // var scanendTime = moment('3:00pm', 'h:mma');
+        // if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
+        //     this.setState({scaninterval :  setInterval(() => {this.getNSETopStock(); }, 1002)}) 
+        // }else{
+        //     clearInterval(this.state.scaninterval); 
+        // }
+
+        this.getPositionData();
+        this.getNSETopStock();
+
+       
     }
     componentWillUnmount() {
         clearInterval(this.state.positionInterval);
@@ -63,7 +73,7 @@ class Home extends React.Component{
         clearInterval(this.state.bankNiftyInterval);
         
     }
-    getPositionData = () => {
+    getPositionData = async() => {
         AdminService.getPosition().then(res => {
             let data = resolveResponse(res, 'noPop');
              var positionList = data && data.data;
@@ -88,8 +98,103 @@ class Home extends React.Component{
             }
        })
     }
+    getNSETopStock(){
 
-    getScannedStock(){
+        var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
+        totalDayLoss = -Math.abs(totalDayLoss); 
+        if(this.state.todayProfitPnL < totalDayLoss) {
+            console.log("daily loss crossed"); 
+            clearInterval(this.state.scaninterval);
+        }else{
+            console.log("still ok"); 
+            AdminService.getNSETopStock().then(res => {
+                let data = resolveResponse(res, "noPop");
+                if(data.status  && data.message === 'SUCCESS'){ 
+                    var scandata =  data.result;   
+                    for (let index = 0; index < scandata.length; index++) {
+
+                        var symbol = scandata[index].symbolName;               
+                            var isFound = false; 
+                            for (let j = 0; j < this.state.positionList.length; j++) {
+                                 if(this.state.positionList[j].symbolname === symbol){
+                                    isFound  = true; 
+                                 }
+                            }
+                            if (!isFound && !localStorage.getItem('scannedstock_' + symbol)){
+                                console.log("found new ", symbol)
+                                var msg = new SpeechSynthesisUtterance();
+                                msg.text = 'hey Vijay, '+symbol; 
+                                window.speechSynthesis.speak(msg);
+                                localStorage.setItem('scannedstock_' + symbol , "orderdone");
+                                this.checkAndPlaceOrderMultipleOrder(symbol); 
+                            }
+                    }
+                }
+            })  
+        }
+    }
+
+    checkAndPlaceOrderMultipleOrder = (stock)=>{
+        AdminService.autoCompleteSearch(stock).then(res => {
+            let data =  res.data; 
+            var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1");
+            console.log("stockfound",found);  
+            this.getHistory(found[0].token, found[0].symbol);
+       })
+    }
+
+    checkAndPlaceSingleOrder = (stock)=>{
+        AdminService.autoCompleteSearch(stock).then(res => {
+            let data =  res.data; 
+            var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1");
+             console.log("stockfound",found);  
+            if(found && found.length){
+                this.orderWithFlatstoploss(found[0].token,found[0].symbol); 
+            }
+       })
+    }
+
+    orderWithCandleHistory = (token, symbol) => {
+        var data  = {
+            "exchange":"NSE",
+            "tradingsymbol": symbol,
+            "symboltoken": token,
+        }
+        AdminService.getLTP(data).then(res => {
+            let data = resolveResponse(res, 'noPop');
+
+             var LtpData = data && data.data; 
+             var ltpPrice  = LtpData.ltp
+             if(ltpPrice){ 
+              
+            //  var stopLossPrice = ltp - (ltp*0.7/100);
+              var stopLossPrice = ltpPrice - (ltpPrice * TradeConfig.perTradeStopLossPer/100);
+              stopLossPrice = this.getMinPriceAllowTick(stopLossPrice); 
+              let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
+              let quantity = Math.floor(perTradeExposureAmt/ltpPrice); 
+              console.log(symbol + 'ltp '+ ltpPrice, "quantity",quantity,"stopLossPrice",stopLossPrice, "perTradeExposureAmt",perTradeExposureAmt ); 
+              var orderOption = {
+                    transactiontype: 'BUY',
+                    tradingsymbol: symbol,
+                    symboltoken:token,
+                    buyPrice : 0,
+                    quantity: quantity, 
+                    stopLossPrice: stopLossPrice
+                }
+
+              if(quantity && stopLossPrice){
+                this.placeOrderMethod(orderOption);   
+              }
+               
+            }         
+
+       }).catch((error)=>{
+            console.log(symbol, "not found", 'error', error);
+        })  
+    }
+
+
+    getStockOnebyOne(){
 
         var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
         totalDayLoss = -Math.abs(totalDayLoss); 
@@ -117,7 +222,7 @@ class Home extends React.Component{
                             msg.text = 'hey Vijay, '+lastSeachStock; 
                             window.speechSynthesis.speak(msg);
                             localStorage.setItem('scannedstock_' + lastSeachStock , "orderdone");
-                            this.checkAndPlaceOrder(lastSeachStock); 
+                            this.checkAndPlaceSingleOrder(lastSeachStock); 
                         }
                     }
                     
@@ -125,16 +230,8 @@ class Home extends React.Component{
             })  
         }
     }
-    checkAndPlaceOrder = (stock)=>{
-        AdminService.autoCompleteSearch(stock).then(res => {
-            let data =  res.data; 
-            var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1");
-         //   console.log("stockfound",found);   
-            if(found && found.length){
-               this.orderWithFlatstoploss(found[0].token,found[0].symbol); //percentage wise stop loss flat SL 0.7% 
-            }
-       })
-    }
+
+
     orderWithFlatstoploss = (token, symbol) => {
         var data  = {
             "exchange":"NSE",
@@ -162,6 +259,7 @@ class Home extends React.Component{
                     quantity: quantity, 
                     stopLossPrice: stopLossPrice
                 }
+
               if(quantity && stopLossPrice){
                 this.placeOrderMethod(orderOption);   
               }
@@ -201,6 +299,22 @@ class Home extends React.Component{
              if(LtpData && LtpData.ltp){
                 this.setState({ BankLtpltp : LtpData.ltp });
              }
+            
+       })
+    }
+
+    compareLTPandOrder =(token,symbol, clossest, lowerest)=> {
+        var data  = {
+            "exchange":"NSE",
+            "tradingsymbol": symbol,
+            "symboltoken":token,
+        }
+        AdminService.getLTP(data).then(res => {
+            let data = resolveResponse(res, 'noPop');
+             var LtpData = data && data.data; 
+             console.log("after candle ltd", LtpData);
+             
+
             
        })
     }
@@ -259,16 +373,16 @@ class Home extends React.Component{
 
 
 
-    getHistory = (token) => {
+    getHistory = (token, symbol) => {
         const format1 = "YYYY-MM-DD HH:mm";
 
-        var time = moment.duration("00:50:00");
+        var time = moment.duration("09:10:00");
         var startdate = moment(new Date()).subtract(time);
 
         var data  = {
             "exchange": "NSE",
             "symboltoken": token ,
-            "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE 
+            "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE 
             "fromdate": moment(startdate).format(format1) , 
             "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
        }
@@ -277,16 +391,27 @@ class Home extends React.Component{
              let data = resolveResponse(res,'noPop' );
               console.log(data); 
               if(data && data.data){
-                 
-                var histCandles = data.data; 
-                histCandles &&  histCandles.sort(function(a,b){
-                  return new Date(b[0]) - new Date(a[0]);
-                });
-                if(histCandles.length > 0){
-                    localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
-                    this.setState({ InstrumentHistroy :histCandles , buyPrice : histCandles[0][2]});
+
+                var candleData = data.data, clossest =0, lowerest=0; 
+                for (let index = 0; index < candleData.length; index++) {
+                    const element = candleData[index];
+                    console.log("candleData close",candleData[index][4]);
+                    console.log("candleData low",candleData[index][3]);
+                    clossest += candleData[index][4];  
+                    // if(candleData[index][4] > clossest ){
+                    //     clossest += candleData[index][4];  
+                    // }
+                    lowerest += candleData[index][3];  
+                    // if(candleData[index][3] ){
+                    //     lowerest += candleData[index][3];  
+                    // }
                 }
-                this.getLTP();
+
+                this.compareLTPandOrder(token,symbol, clossest, lowerest); 
+
+
+                console.log("bbmiddle",clossest/candleData.length,  "lowerest", lowerest/candleData.length);
+
               }
         })
     }
@@ -560,6 +685,7 @@ class Home extends React.Component{
                             </Typography>
                          
                         </Grid>
+                       
 
                         
                         <Grid item xs={12} sm={2} >
@@ -586,7 +712,6 @@ class Home extends React.Component{
 
                         </Grid>
                 </Grid>
-
                
                  <Grid spacing={1}  direction="row" alignItems="center" container>
                                 

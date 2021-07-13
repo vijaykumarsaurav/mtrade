@@ -16,3 +16,4 @@ export const getCandleData = 'https://apiconnect.angelbroking.com/rest/secure/an
 export const getPosition =  'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getPosition';
 	
 export const getScannedStocks =  'http://localhost:8081/getScannedStocks'	
+export const getNseTopStocks =  'http://localhost:8081/getNseTopStocks'	

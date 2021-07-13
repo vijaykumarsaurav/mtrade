@@ -68,6 +68,10 @@ class AdminService {
      getAutoScanStock(){
         return axios.get(apiConstant.getScannedStocks, '');
      }
+
+     getNSETopStock(){
+        return axios.get(apiConstant.getNseTopStocks, '');
+     }
    
 
     //  getBNcpdata(){
