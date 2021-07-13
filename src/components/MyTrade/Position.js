@@ -42,32 +42,26 @@ class Home extends React.Component{
         //market hours
         if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
             this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 2002)}) 
-            this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
             this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
         }else{
             clearInterval(this.state.positionInterval);
             clearInterval(this.state.scaninterval); 
             clearInterval(this.state.bankNiftyInterval); 
         }
-       // this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)})
-   
-   
-       var data  = {
-        "exchange":"NSE",
-        "tradingsymbol": "BANKNIFTY15JUL2131500PE",
-        "symboltoken":"43283",
-    }
-    AdminService.getLTP(data).then(res => {
-        let data = resolveResponse(res, 'noPop');
-         var LtpData = data && data.data; 
-         console.log(LtpData);
-       
-   })
+         //scans hours
+        var scanendTime = moment('3:00pm', 'h:mma');
+        if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
+            this.setState({scaninterval :  setInterval(() => {this.getScannedStock(); }, 1002)}) 
+        }else{
+            clearInterval(this.state.scaninterval); 
+        }
    
     }
     componentWillUnmount() {
         clearInterval(this.state.positionInterval);
         clearInterval(this.state.scaninterval);
+        clearInterval(this.state.bankNiftyInterval);
+        
     }
     getPositionData = () => {
         AdminService.getPosition().then(res => {
@@ -89,7 +83,9 @@ class Home extends React.Component{
                 }); 
                 this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
                 this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2) , totalPercentage: totalPercentage    }); 
-             }
+                this.setState({ totalBrokerCharges: ((totalbuyvalue + totalsellvalue) * 0.25/100).toFixed(2)}); 
+
+            }
        })
     }
 
@@ -101,6 +97,7 @@ class Home extends React.Component{
             console.log("daily loss crossed"); 
             clearInterval(this.state.scaninterval);
         }else{
+            console.log("still ok"); 
             AdminService.getAutoScanStock().then(res => {
                 let data = resolveResponse(res, "noPop");
                 if(data.status  && data.message === 'SUCCESS'){ 
@@ -201,7 +198,10 @@ class Home extends React.Component{
             let data = resolveResponse(res, 'noPop');
              var LtpData = data && data.data; 
              console.log(LtpData);
-             this.setState({ BankLtpltp : LtpData.ltp });
+             if(LtpData && LtpData.ltp){
+                this.setState({ BankLtpltp : LtpData.ltp });
+             }
+            
        })
     }
 
@@ -268,7 +268,7 @@ class Home extends React.Component{
         var data  = {
             "exchange": "NSE",
             "symboltoken": token ,
-            "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE 
+            "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE 
             "fromdate": moment(startdate).format(format1) , 
             "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
        }
@@ -479,12 +479,13 @@ class Home extends React.Component{
             let data = resolveResponse(res, "noPop");
 
             var msg = new SpeechSynthesisUtterance();
-            msg.text = 'modified '+data.message
-            window.speechSynthesis.speak(msg);
+          
           
             if(data.status  && data.message ===  'SUCCESS'){
               //  this.setState({ ['lastTriggerprice_' + row.symboltoken]:  parseFloat(minPrice)})
-                localStorage.setItem('firstTimeModify'+row.symboltoken, 'No');
+              msg.text = row.tradingsymbol +' modified '+data.message
+              window.speechSynthesis.speak(msg);
+              localStorage.setItem('firstTimeModify'+row.symboltoken, 'No');
                 localStorage.setItem('lastTriggerprice_' + row.symboltoken, parseFloat(minPrice));
             }
         })
@@ -507,16 +508,16 @@ class Home extends React.Component{
         avgPrice =  parseFloat(avgPrice); 
         var percentChange = ((ltp - avgPrice)*100/avgPrice).toFixed(2); 
 
-        console.log('percentChange',percentChange);
-         if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange > 0.7){
-                var minPrice =  avgPrice + (avgPrice * 0.25/100);
+        console.log(row.symbolname,  'chng %',percentChange);
+         if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange > 0.5){
+                var minPrice =  avgPrice + (avgPrice * 0.1/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrderMethod(row, minPrice);
          }else{
            //var lastTriggerprice =  this.state['lastTriggerprice_'+row.symboltoken]; 
            var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
            var perchngfromTriggerPrice = ((ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
-           console.log('perchngfromTriggerPrice',perchngfromTriggerPrice);
+           console.log(row.symbolname, 'chng form Trigger Price',perchngfromTriggerPrice);
            if(perchngfromTriggerPrice > 0.7){
                 minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
@@ -531,9 +532,9 @@ class Home extends React.Component{
         if(sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)){
 
             if(!localStorage.getItem('squiredOff'+row.symboltoken)){
-                //this.squareOff(row); 
-                console.log("Sqr off called"); 
                 localStorage.setItem('squiredOff'+row.symboltoken, 'yes');
+                this.squareOff(row); 
+                console.log("Sqr off called for",row.symbolname);  
             }
             
 
@@ -552,17 +553,30 @@ class Home extends React.Component{
                      <br />
                 
                     <Grid direction="row" alignItems="center" container>
-                        <Grid item xs={12} sm={10} >
+                        <Grid item xs={12} sm={7} >
                             <Typography  variant="h6" color="primary" gutterBottom>
                          &nbsp;   Positions ({this.state.positionList && this.state.positionList.length})
                          &nbsp;    Bank Nify: <b>{this.state.BankLtpltp}  </b>
                             </Typography>
                          
                         </Grid>
+
+                        
+                        <Grid item xs={12} sm={2} >
+                          <Typography component="h3"  style={{color:"red"}} >
+                            <b> Charges -{this.state.totalBrokerCharges} </b>
+                            </Typography> 
+                        </Grid>
                         
                         <Grid item xs={12} sm={1} >
                           <Typography component="h3"  style={{color:this.state.todayProfitPnL>0?"red":"green"}} >
                             <b>  P/L {this.state.todayProfitPnL} </b>
+                            </Typography> 
+                        </Grid>
+
+                        <Grid item xs={12} sm={1} >
+                          <Typography component="h3"  style={{color:"red"}} >
+                            <b> Net P/L {this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges) : ""} </b>
                             </Typography> 
                         </Grid>
                         
@@ -611,7 +625,7 @@ class Home extends React.Component{
                             {this.state.positionList ? this.state.positionList.map(row => (
                                 <TableRow hover key={row.productId} style={{background : row.netqty !== '0'? 'gray': ""}} >
 
-                                    <TableCell style={{paddingLeft:"3px"}} align="left">{row.tradingsymbol}</TableCell>
+                                    <TableCell style={{paddingLeft:"3px"}} align="left"><a target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}> {row.tradingsymbol.split('-')[0]}</a> </TableCell>
                                     {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                     {/* <TableCell align="left">{row.producttype}</TableCell> */}
                                     <TableCell align="left">{row.buyqty}</TableCell>
@@ -624,8 +638,11 @@ class Home extends React.Component{
                                     <TableCell align="left">{(localStorage.getItem('lastTriggerprice_'+row.symboltoken))}</TableCell>
                                     <TableCell align="left">{row.ltp}</TableCell>
                                     <TableCell align="left"><b>{row.pnl}</b></TableCell>
-                                    <TableCell align="left">{ row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""}  </TableCell> 
-                                    {/* {row.percentPnL} */}
+                                    <TableCell align="left">
+                                        { row.netqty != 0 ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""} 
+                                        {new Date().getHours() >= 15 && new Date().getMinutes() > 30 ? row.percentPnL : ""}
+                                      </TableCell> 
+                                   
                                      
                                     <TableCell align="left">
                                         {row.netqty != 0 ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
@@ -654,8 +671,7 @@ class Home extends React.Component{
                                 <TableCell className="TableHeadFormat" align="left">{this.state.todayProfitPnL} </TableCell>
                                 <TableCell className="TableHeadFormat" align="left">
                                     
-
-                                     {/* {this.state.totalPercentage && this.state.totalPercentage.toFixed(2)} */}
+                                {new Date().getHours() >= 15 && new Date().getMinutes() > 30 ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) : ""}
                                      
                                 </TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
