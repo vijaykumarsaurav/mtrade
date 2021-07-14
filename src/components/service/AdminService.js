@@ -72,7 +72,6 @@ class AdminService {
      getNSETopStock(){
         return axios.get(apiConstant.getNseTopStocks, '');
      }
-   
 
     //  getBNcpdata(){
     //     return axios.get(apiConstant.'', AuthService.getHeader());
