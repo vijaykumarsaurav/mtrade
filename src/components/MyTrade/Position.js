@@ -661,41 +661,45 @@ class Home extends React.Component{
                  <PostLoginNavBar/>
                      <br />
                 
-                    <Grid style={{padding:'5px'}} direction="row" alignItems="center" container>
-                        <Grid item xs={12} sm={5} >
-                            <Typography  variant="h6" color="primary" gutterBottom>
-                         Positions ({this.state.positionList && this.state.positionList.length})
-                         &nbsp;    Bank Nify: <b>{this.state.BankLtpltp}  </b>
+                    <Grid style={{padding:'5px'}} justify="space-between" direction="row" container>
+                        <Grid item >
+                            <Typography variant="h6" >
+                            <b>Positions ({this.state.positionList && this.state.positionList.length}) </b>
                             </Typography>
-                         
                         </Grid>
+                        <Grid item xs={12} sm={3} >
+                          <Typography component="h3">
+                            <b>Date: {new Date().toLocaleString()} </b>
+                            </Typography> 
+                        </Grid>
+
                         
-                        <Grid item xs={12} sm={2} >
+                        <Grid item  >
                           <Typography component="h3">
                             <b>Total Turnover {this.state.totalTornOver} </b>
                             </Typography> 
                         </Grid>
                         
                        
-                        <Grid item xs={12} sm={2} >
+                        <Grid item >
                           <Typography component="h3"  >
                             <b> Charges</b> <b style={{color:"#00cbcb"}}>-{this.state.totalBrokerCharges} </b>
                             </Typography> 
                         </Grid>
                         
-                        <Grid item xs={12} sm={1} >
+                        <Grid item  >
                           <Typography component="h3"   >
                             <b>  P/L </b> <b style={{color:this.state.todayProfitPnL>0?"darkmagenta":"#00cbcb"}}>{this.state.todayProfitPnL} </b>
                             </Typography> 
                         </Grid>
 
-                        <Grid item xs={12} sm={1} >
+                        <Grid itemType>
                           <Typography component="h3" >
                             <b> Net P/L </b> <b style={{color:(this.state.todayProfitPnL - this.state.totalBrokerCharges)>0?"darkmagenta":"#00cbcb"}}>{this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2) : ""} </b>
                             </Typography> 
                         </Grid>
                         
-                        <Grid item xs={12} sm={1} >
+                        <Grid item  >
                             <Button  type="number" variant="contained" style={{float:"right"}} onClick={() => this.getPositionData()}>Refresh</Button>    
                         </Grid>
                 </Grid>
@@ -714,15 +718,16 @@ class Home extends React.Component{
                                 <TableCell style={{paddingLeft:"3px"}} className="TableHeadFormat" align="left">&nbsp;Trading symbol</TableCell>
                                 {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left">Product type</TableCell> */}
-                                <TableCell className="TableHeadFormat" align="left">Bought Qty</TableCell>
-                                
-                                <TableCell  className="TableHeadFormat" align="left">Net Qty</TableCell>
+  
                                 <TableCell  className="TableHeadFormat" align="left">Average Buy Price</TableCell>
                                 {/* <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell> */}
 
                                 <TableCell  className="TableHeadFormat" align="left">Average Sell Price</TableCell>
                                 {/* <TableCell  className="TableHeadFormat" align="left">Total Sell value</TableCell> */}
-                               
+                                <TableCell className="TableHeadFormat" align="left">Bought Qty</TableCell>
+                                
+                                <TableCell  className="TableHeadFormat" align="left">Net Qty</TableCell>
+
                                 <TableCell  className="TableHeadFormat" align="left">Trailing SL</TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">Max Locked P/L</TableCell>
 
@@ -742,15 +747,16 @@ class Home extends React.Component{
                             {this.state.positionList ? this.state.positionList.map(row => (
                                 <TableRow hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'gray': ""}} >
 
-                                    <TableCell style={{paddingLeft:"3px"}} align="left">&nbsp;<a rel="noopener noreferrer" target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}> {row.tradingsymbol.split('-')[0]}</a> </TableCell>
+                                    <TableCell style={{paddingLeft:"3px"}} align="left">&nbsp; <a rel="noopener noreferrer" target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}>{row.tradingsymbol.split('-')[0]}</a> </TableCell>
                                     {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                     {/* <TableCell align="left">{row.producttype}</TableCell> */}
-                                    <TableCell align="left">{row.buyqty}</TableCell>
-                                    <TableCell align="left">{row.netqty}</TableCell>
+                                 
                                     <TableCell align="left">{row.totalbuyavgprice}</TableCell>
                                     {/* <TableCell align="left">{row.totalbuyvalue}</TableCell> */}
 
                                     <TableCell align="left">{row.totalsellavgprice}</TableCell>
+                                    <TableCell align="left">{row.buyqty}</TableCell>
+                                    <TableCell align="left">{row.netqty}</TableCell>
                                     {/* <TableCell align="left">{row.totalsellvalue}</TableCell> */}
                                     <TableCell align="left"> {row.stopLoss}</TableCell> 
                                     <TableCell align="left"> {row.stopLossAmount}</TableCell> 
@@ -777,14 +783,15 @@ class Home extends React.Component{
                                 {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                 <TableCell className="TableHeadFormat" align="left">&nbsp;Total</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">{this.state.totalQtyTraded}</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.allbuyavgprice}</TableCell>
                                 {/* <TableCell  className="TableHeadFormat" align="left">{this.state.totalbuyvalue}</TableCell> */}
 
 
                                 <TableCell  className="TableHeadFormat" align="left">{ this.state.allsellavgprice}</TableCell>
-                                {/* <TableCell  className="TableHeadFormat" align="left">{this.state.totalsellvalue}</TableCell> */}
+          
+                                <TableCell  className="TableHeadFormat" align="left">{this.state.totalQtyTraded}</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
+                                                     {/* <TableCell  className="TableHeadFormat" align="left">{this.state.totalsellvalue}</TableCell> */}
 
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.totalMaxPnL}</TableCell>
