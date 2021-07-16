@@ -661,7 +661,7 @@ class Home extends React.Component{
                  <PostLoginNavBar/>
                      <br />
                 
-                    <Grid direction="row" alignItems="center" container>
+                    <Grid style={{padding:'5px'}} direction="row" alignItems="center" container>
                         <Grid item xs={12} sm={5} >
                             <Typography  variant="h6" color="primary" gutterBottom>
                          Positions ({this.state.positionList && this.state.positionList.length})
@@ -671,27 +671,27 @@ class Home extends React.Component{
                         </Grid>
                         
                         <Grid item xs={12} sm={2} >
-                          <Typography component="h3"  style={{color:"red"}} >
+                          <Typography component="h3">
                             <b>Total Turnover {this.state.totalTornOver} </b>
                             </Typography> 
                         </Grid>
                         
                        
                         <Grid item xs={12} sm={2} >
-                          <Typography component="h3"  style={{color:"red"}} >
-                            <b> Charges -{this.state.totalBrokerCharges} </b>
+                          <Typography component="h3"  >
+                            <b> Charges</b> <b style={{color:"#00cbcb"}}>-{this.state.totalBrokerCharges} </b>
                             </Typography> 
                         </Grid>
                         
                         <Grid item xs={12} sm={1} >
-                          <Typography component="h3"  style={{color:this.state.todayProfitPnL>0?"red":"green"}} >
-                            <b>  P/L {this.state.todayProfitPnL} </b>
+                          <Typography component="h3"   >
+                            <b>  P/L </b> <b style={{color:this.state.todayProfitPnL>0?"darkmagenta":"#00cbcb"}}>{this.state.todayProfitPnL} </b>
                             </Typography> 
                         </Grid>
 
                         <Grid item xs={12} sm={1} >
-                          <Typography component="h3"  style={{color:"red"}} >
-                            <b> Net P/L {this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2) : ""} </b>
+                          <Typography component="h3" >
+                            <b> Net P/L </b> <b style={{color:(this.state.todayProfitPnL - this.state.totalBrokerCharges)>0?"darkmagenta":"#00cbcb"}}>{this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2) : ""} </b>
                             </Typography> 
                         </Grid>
                         
@@ -700,18 +700,18 @@ class Home extends React.Component{
                         </Grid>
                 </Grid>
                
-                 <Grid spacing={1}  direction="row" alignItems="center" container>
+                 <Grid style={{padding:'5px'}}  spacing={1}  direction="row" alignItems="center" container>
                                 
 
                     <Grid item xs={12} sm={12}> 
-                    <Paper style={{overflow:"auto"}} >
+                    <Paper style={{overflow:"auto", padding:'5px'}} >
                                  
                     <Table  size="small"   aria-label="sticky table" >
                         <TableHead  style={{whiteSpace: "nowrap", backgroundColor: "lightgray" }} variant="head">
                             <TableRow key="1"  variant="head" style={{fontWeight: 'bold'}}>
 
                                 {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
-                                <TableCell style={{paddingLeft:"3px"}} className="TableHeadFormat" align="left">Trading symbol</TableCell>
+                                <TableCell style={{paddingLeft:"3px"}} className="TableHeadFormat" align="left">&nbsp;Trading symbol</TableCell>
                                 {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left">Product type</TableCell> */}
                                 <TableCell className="TableHeadFormat" align="left">Bought Qty</TableCell>
@@ -742,7 +742,7 @@ class Home extends React.Component{
                             {this.state.positionList ? this.state.positionList.map(row => (
                                 <TableRow hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'gray': ""}} >
 
-                                    <TableCell style={{paddingLeft:"3px"}} align="left"><a rel="noopener noreferrer" target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}> {row.tradingsymbol.split('-')[0]}</a> </TableCell>
+                                    <TableCell style={{paddingLeft:"3px"}} align="left">&nbsp;<a rel="noopener noreferrer" target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}> {row.tradingsymbol.split('-')[0]}</a> </TableCell>
                                     {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                     {/* <TableCell align="left">{row.producttype}</TableCell> */}
                                     <TableCell align="left">{row.buyqty}</TableCell>
@@ -757,7 +757,7 @@ class Home extends React.Component{
 
                                     
                                     {/* {(localStorage.getItem('lastTriggerprice_'+row.symboltoken))} */}
-                                    <TableCell align="left"><b>{row.pnl}</b></TableCell>
+                                    <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'darkmagenta' : '#00cbcb'}}><b>{row.pnl}</b></TableCell>
                                     <TableCell align="left">
                                         { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""} 
                                         {new Date().getHours() >= 15 && new Date().getMinutes() > 30 ? row.percentPnL : ""}
@@ -776,7 +776,7 @@ class Home extends React.Component{
                                 {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
-                                <TableCell className="TableHeadFormat" align="left">Total</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">&nbsp;Total</TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.totalQtyTraded}</TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.allbuyavgprice}</TableCell>
@@ -789,12 +789,12 @@ class Home extends React.Component{
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.totalMaxPnL}</TableCell>
                                 
-                                <TableCell className="TableHeadFormat" align="left">{this.state.todayProfitPnL} </TableCell>
+                                <TableCell className="TableHeadFormat" align="left" style={{color: parseFloat( this.state.todayProfitPnL ) > 0 ?  'darkmagenta' : '#00cbcb'}}>{this.state.todayProfitPnL} </TableCell>
  
                                 <TableCell className="TableHeadFormat" align="left">
                                     
                                 {new Date().getHours() >= 15 && new Date().getMinutes() > 30 ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) : ""}
-                                     
+                    
                                 </TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
 
