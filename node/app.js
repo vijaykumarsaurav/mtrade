@@ -1,4 +1,3 @@
-// Require express and create an instance of it
 var express = require('express');
 var fs = require('fs');
 var cors = require('cors');
@@ -112,13 +111,12 @@ app.get('/saveNSEList/:query', function (req, res) {
     const toplist = req.params.query; 
    // console.log("toplist",toplist);
     //res.status(200).send(name) ;
-      var scandir= "/Users/B0208058/Documents/m-trade/src/components/scanfile/"; 
       fs.writeFile('nseTopScan.json', toplist, 'utf8', function callback(){
         console.log("Added", toplist);
         res.status(200).send("Added") ;
       });
 
-return;
+    return;
 });
 
 // On localhost:3000/welcome
@@ -130,7 +128,10 @@ app.get('/getNseTopStocks', function (req, res) {
   fs.readFile('nseTopScan.json', 'utf8', function (err, data) {
 
     if (err) throw err;
-    obj = JSON.parse(data);
+    if(data){
+      obj = JSON.parse(data);
+    }
+
     var response = {
       result : obj, 
       message : "SUCCESS", 

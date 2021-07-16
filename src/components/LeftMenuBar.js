@@ -108,9 +108,9 @@ function logoutPortal(){
     AdminService.logout(data)
     .then(res => {
     
-    //localStorage.clear();
-    localStorage.setItem('userTokens', '');
-    localStorage.setItem('userProfile', '');
+    localStorage.clear();
+    //localStorage.setItem('userTokens', '');
+    //localStorage.setItem('userProfile', '');
     deleteAllCookies();
     
     window.location.replace("#/login");

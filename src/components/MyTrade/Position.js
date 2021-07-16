@@ -61,7 +61,7 @@ class Home extends React.Component{
         }
 
         this.getPositionData();
-       // this.getNSETopStock();
+        this.getNSETopStock();
 
     }
     componentWillUnmount() {
@@ -70,7 +70,22 @@ class Home extends React.Component{
         clearInterval(this.state.bankNiftyInterval);
         
     }
+    getStoplossFromOrderbook = (row) => {
+       var oderbookData = localStorage.getItem('oderbookData'); 
+       oderbookData =  JSON.parse(oderbookData);
+       var stopLoss = 0; 
+       var data = {}; 
+       oderbookData.forEach(element => {
+        if(element.status === "trigger pending" && element.symboltoken === row.symboltoken){
+            data.stopLoss = element.triggerprice + "("+ ((element.triggerprice-row.buyavgprice)*100/row.buyavgprice).toFixed(2) + "%)"; 
+            data.maxLossAmount = ((element.triggerprice-row.buyavgprice)* parseInt(row.netqty)).toFixed(2); 
+        }
+       });
+       return data; 
+    }
     getPositionData = async() => {
+        document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
+        var maxPnL = 0, totalMaxPnL = 0; 
         AdminService.getPosition().then(res => {
             let data = resolveResponse(res, 'noPop');
              var positionList = data && data.data;
@@ -87,11 +102,16 @@ class Home extends React.Component{
                     allsellavgprice+=parseFloat(element.sellavgprice); 
                     element.percentPnL=percentPnL;
                     totalPercentage+= parseFloat( percentPnL); 
+                    var slData  = this.getStoplossFromOrderbook(element) ; 
+                    element.stopLoss = element.totalsellavgprice === "0.00" ? slData.stopLoss : element.totalsellavgprice + "("+ ((element.totalsellavgprice-element.totalbuyavgprice)*100/element.totalbuyavgprice).toFixed(2) + "%)"; 
+                    element.stopLossAmount = slData.maxLossAmount; 
+                    totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;                     
                 }); 
                 this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
                 this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2) , totalPercentage: totalPercentage    }); 
-                this.setState({ totalBrokerCharges: ((totalbuyvalue + totalsellvalue) * 0.25/100).toFixed(2)}); 
+                this.setState({ totalBrokerCharges: ((totalbuyvalue + totalsellvalue) * 0.25/100).toFixed(2)});                
 
+                this.setState({totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL : totalMaxPnL.toFixed(2)}); 
             }
        })
     }
@@ -100,7 +120,7 @@ class Home extends React.Component{
         var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
         totalDayLoss = -Math.abs(totalDayLoss); 
         if(this.state.todayProfitPnL < totalDayLoss) {
-            console.log("daily loss crossed"); 
+            console.log("daily loss crossed",totalDayLoss); 
             clearInterval(this.state.scaninterval);
         }else{
             AdminService.getNSETopStock().then(res => {
@@ -109,26 +129,31 @@ class Home extends React.Component{
                     var scandata =  data.result;   
                     for (let index = 0; index < scandata.length; index++) {
 
-                        var symbol = scandata[index].symbolName;               
+                            var symbol = scandata[index].symbolName;               
                             var isFound = false; 
                             for (let j = 0; j < this.state.positionList.length; j++) {
                                  if(this.state.positionList[j].symbolname === symbol){
                                     isFound  = true; 
                                  }
                             }
+                         
                             if (!isFound && !localStorage.getItem('NseStock_' + symbol)){
-                                localStorage.setItem('NseStock_' + symbol, "orderdone");
-
                                 AdminService.autoCompleteSearch(symbol).then(res => {
+                                    console.log(symbol, "inside"); 
                                     let data =  res.data; 
-                                    var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1");                                
-                                    this.historyWiseOrderPlace(found[0].token, found[0].symbol);
+                                    var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === symbol);                                
+                                    if(found.length){
+                                        this.historyWiseOrderPlace(found[0].token, found[0].symbol);
+                                        localStorage.setItem('NseStock_' + found[0].symbol, "orderdone");
+                                    }
                                })
                             }
+                           
                     }
                 }
             })  
         }
+        
     }
 
     checkAndPlaceSingleOrder = (stock)=>{
@@ -148,7 +173,7 @@ class Home extends React.Component{
         var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
         totalDayLoss = -Math.abs(totalDayLoss); 
         if(this.state.todayProfitPnL < totalDayLoss) {
-            console.log("daily loss crossed"); 
+            console.log("daily loss crossed",totalDayLoss); 
             clearInterval(this.state.scaninterval);
         }else{
             console.log("still ok"); 
@@ -220,9 +245,6 @@ class Home extends React.Component{
         })  
     }
   
-  
-
-
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value});
         var data  = e.target.value; 
@@ -232,7 +254,6 @@ class Home extends React.Component{
             localStorage.setItem('autoSearchTemp',JSON.stringify(data)); 
             this.setState({ autoSearchList : data });
        })
-
     }
 
     getLTP =() => {
@@ -306,18 +327,19 @@ class Home extends React.Component{
 
     historyWiseOrderPlace = (token, symbol) => {
 
-
         var ltpdata  = {"exchange":"NSE","tradingsymbol": symbol,"symboltoken":token,}
         AdminService.getLTP(ltpdata).then(res => {
             let ltpres = resolveResponse(res, 'noPop');
                 var LtpData = ltpres && ltpres.data; 
-            // console.log("after candle ltd ", LtpData);
+                console.log(symbol, " ltd data ", LtpData);
                 let quantity =0; 
                 if(LtpData && LtpData.ltp){
                     let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
                      quantity = Math.floor(perTradeExposureAmt/LtpData.ltp); 
                 }
-
+                
+                quantity = quantity>0 ? 1 : 0; 
+                console.log(symbol, "  quantity can be order ", quantity);
                 if(quantity){
                     const format1 = "YYYY-MM-DD HH:mm";
                     var time = moment.duration("20:10:00");
@@ -338,46 +360,50 @@ class Home extends React.Component{
                             var candleData = histdata.data, clossest =0, lowerest=0, highestHigh = 0, lowestLow=0; 
                             candleData.reverse(); 
 
-                            for (let index = 0; index < 20; index++) {
-                                clossest += candleData[index][4]; //close  
-                                lowerest += candleData[index][3];  //low
-                                if(candleData[index][4] > highestHigh ){
-                                    highestHigh = candleData[index][4];  
+                            if(candleData.length){
+                                for (let index = 0; index < 20; index++) {
+                                    clossest += candleData[index][4]; //close  
+                                    lowerest += candleData[index][3];  //low
+                                    if(candleData[index][4] > highestHigh ){
+                                        highestHigh = candleData[index][4];  
+                                    }
+                                    if(lowestLow < candleData[index][3]){
+                                        lowestLow = candleData[index][3];  
+                                    }
                                 }
-                                if(lowestLow < candleData[index][3]){
-                                    lowestLow = candleData[index][3];  
+    
+                                var bbmiddleValue = clossest/20; 
+                                var bblowerValue =lowerest/20;  
+                                
+                                var stoploss = bblowerValue - (highestHigh - lowestLow)*3/100;  
+                                stoploss = this.getMinPriceAllowTick(stoploss); 
+                                
+                                console.log(symbol + "highestHigh20Candle:",highestHigh,  "lowestLowLow20Candle", lowestLow, "stoploss after tick:", stoploss);
+                                console.log(symbol,  " LTP ",LtpData.ltp ); 
+                                console.log(symbol + "  close avg middle ", bbmiddleValue,  "lowerest avg", bblowerValue);
+                              
+                                var orderOption = {
+                                    transactiontype: 'BUY',
+                                    tradingsymbol: symbol,
+                                    symboltoken:token,
+                                    buyPrice : 0,
+                                    quantity: quantity, 
+                                    stopLossPrice: stoploss
+                                }
+                                if(LtpData && LtpData.ltp > highestHigh){ 
+                                   this.placeOrderMethod(orderOption);
+                                }else{
+                                    //localStorage.setItem('NseStock_' + symbol, "");
+                                    console.log(symbol + " its not fullfilled"); 
                                 }
                             }
-
-                            var bbmiddleValue = clossest/20; 
-                            var bblowerValue =lowerest/20;  
-                            console.log(symbol + " bbmiddle",bbmiddleValue,  "lowerest", bblowerValue, "SL ", bblowerValue - (highestHigh - lowestLow)*3/100);
-                            console.log(symbol + " highestHigh",highestHigh,  "lowestLow", lowestLow );
                             
-                            var stoploss = bblowerValue - (highestHigh - lowestLow)*3/100;  
-                            stoploss = this.getMinPriceAllowTick(stoploss); 
-                            
-                            var orderOption = {
-                                transactiontype: 'BUY',
-                                tradingsymbol: symbol
-                                ,
-                                symboltoken:token,
-                                buyPrice : 0,
-                                quantity: quantity, 
-                                stopLossPrice: stoploss
-                            }
-
-                            if(LtpData && LtpData.ltp > bbmiddleValue){
-                               this.placeOrderMethod(orderOption);
-                            }
                         }
                     })
 
                 }
         })
-        
-
-        
+       // await new Promise(r => setTimeout(r, 2000)); 
     }
 
     onSelectItem = (event, values) =>{
@@ -517,7 +543,11 @@ class Home extends React.Component{
             if(data.status  && data.message === 'SUCCESS'){
                 this.setState({ orderid : data.data && data.data.orderid });
                // this.updateOrderList(); 
-                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
+               var msg = new SpeechSynthesisUtterance();
+               msg.text = 'hey Vijay, '+ slmOption.tradingsymbol; 
+               window.speechSynthesis.speak(msg);
+
+               document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
             }
         })
     }
@@ -632,13 +662,20 @@ class Home extends React.Component{
                      <br />
                 
                     <Grid direction="row" alignItems="center" container>
-                        <Grid item xs={12} sm={7} >
+                        <Grid item xs={12} sm={5} >
                             <Typography  variant="h6" color="primary" gutterBottom>
                          Positions ({this.state.positionList && this.state.positionList.length})
                          &nbsp;    Bank Nify: <b>{this.state.BankLtpltp}  </b>
                             </Typography>
                          
                         </Grid>
+                        
+                        <Grid item xs={12} sm={2} >
+                          <Typography component="h3"  style={{color:"red"}} >
+                            <b>Total Turnover {this.state.totalTornOver} </b>
+                            </Typography> 
+                        </Grid>
+                        
                        
                         <Grid item xs={12} sm={2} >
                           <Typography component="h3"  style={{color:"red"}} >
@@ -681,15 +718,20 @@ class Home extends React.Component{
                                 
                                 <TableCell  className="TableHeadFormat" align="left">Net Qty</TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">Average Buy Price</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell>
+                                {/* <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell> */}
 
                                 <TableCell  className="TableHeadFormat" align="left">Average Sell Price</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">Total Sell value</TableCell>
+                                {/* <TableCell  className="TableHeadFormat" align="left">Total Sell value</TableCell> */}
                                
-                                <TableCell  className="TableHeadFormat" align="left">Last Modify Price</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">LTP</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Trailing SL</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Max Locked P/L</TableCell>
+
+                                
                                 <TableCell className="TableHeadFormat" align="left">P/L </TableCell>
                                 <TableCell className="TableHeadFormat" align="left">Chng % </TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">LTP</TableCell>
+        
+    
 
                                 <TableCell className="TableHeadFormat" align="left">Action</TableCell>
                            
@@ -706,19 +748,22 @@ class Home extends React.Component{
                                     <TableCell align="left">{row.buyqty}</TableCell>
                                     <TableCell align="left">{row.netqty}</TableCell>
                                     <TableCell align="left">{row.totalbuyavgprice}</TableCell>
-                                    <TableCell align="left">{row.totalbuyvalue}</TableCell>
+                                    {/* <TableCell align="left">{row.totalbuyvalue}</TableCell> */}
 
                                     <TableCell align="left">{row.totalsellavgprice}</TableCell>
-                                    <TableCell align="left">{row.totalsellvalue}</TableCell>
-                                    <TableCell align="left">{(localStorage.getItem('lastTriggerprice_'+row.symboltoken))}</TableCell>
-                                    <TableCell align="left">{row.ltp}</TableCell>
+                                    {/* <TableCell align="left">{row.totalsellvalue}</TableCell> */}
+                                    <TableCell align="left"> {row.stopLoss}</TableCell> 
+                                    <TableCell align="left"> {row.stopLossAmount}</TableCell> 
+
+                                    
+                                    {/* {(localStorage.getItem('lastTriggerprice_'+row.symboltoken))} */}
                                     <TableCell align="left"><b>{row.pnl}</b></TableCell>
                                     <TableCell align="left">
                                         { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""} 
                                         {new Date().getHours() >= 15 && new Date().getMinutes() > 30 ? row.percentPnL : ""}
                                       </TableCell> 
-                                   
-                                     
+                                    <TableCell align="left">{row.ltp}</TableCell>
+                                  
                                     <TableCell align="left">
                                         {row.netqty !== "0" ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
                                     </TableCell>
@@ -735,20 +780,24 @@ class Home extends React.Component{
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.totalQtyTraded}</TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.allbuyavgprice}</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">{this.state.totalbuyvalue}</TableCell>
+                                {/* <TableCell  className="TableHeadFormat" align="left">{this.state.totalbuyvalue}</TableCell> */}
 
 
                                 <TableCell  className="TableHeadFormat" align="left">{ this.state.allsellavgprice}</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">{this.state.totalsellvalue}</TableCell>
+                                {/* <TableCell  className="TableHeadFormat" align="left">{this.state.totalsellvalue}</TableCell> */}
 
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
-                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">{this.state.totalMaxPnL}</TableCell>
+                                
                                 <TableCell className="TableHeadFormat" align="left">{this.state.todayProfitPnL} </TableCell>
+ 
                                 <TableCell className="TableHeadFormat" align="left">
                                     
                                 {new Date().getHours() >= 15 && new Date().getMinutes() > 30 ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) : ""}
                                      
                                 </TableCell>
+                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
+
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
 
                                 </TableRow>

@@ -94,8 +94,6 @@ class OrderBook extends React.Component{
         this.setState({ [e.target.name]: e.target.value.trim() });
     }
 
-   
-    
 
     render(){
         
@@ -161,8 +159,10 @@ class OrderBook extends React.Component{
 
                                     <TableCell align="center">
                                         {row.orderstatus === 'trigger pending' ? 
-                                        <TextField type="number" style={{textAlign:'center', width:'50px'}} id="lotsize"  value={this.state.lotsize === 0 ? row.lotsize : this.state.lotsize}  name="lotsize" onChange={this.onChange}/>
-                                        : row.lotsize}
+                                        <TextField type="number" style={{textAlign:'center', width:'50px'}} id="lotsize"  value={row.quantity}  name="lotsize" onChange={this.onChange}/>
+                                        : row.quantity}
+                    
+
                                     </TableCell>
 
                                 
