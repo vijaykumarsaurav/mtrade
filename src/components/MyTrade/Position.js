@@ -60,8 +60,11 @@ class Home extends React.Component{
             clearInterval(this.state.scaninterval); 
         }
 
-        this.getPositionData();
-        this.getNSETopStock();
+        // this.getPositionData();
+        // this.getNSETopStock();
+
+
+        this.findOurPattern(); 
 
     }
     componentWillUnmount() {
@@ -69,6 +72,117 @@ class Home extends React.Component{
         clearInterval(this.state.scaninterval);
         clearInterval(this.state.bankNiftyInterval);
         
+    }
+     findOurPattern = async() => {
+
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+       
+        for (let index = 0; index < watchList.length; index++) {
+            
+            const format1 = "YYYY-MM-DD HH:mm";
+            var time = moment.duration("60:10:00");
+            var startdate = moment(new Date()).subtract(time);
+
+             console.log( watchList[index].symbol);
+             var data  = {
+                "exchange": "NSE",
+                "symboltoken": watchList[index].token ,
+                "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE 
+                "fromdate": moment(startdate).format(format1) , 
+                "todate": moment(new Date()).format(format1)
+            }
+        
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res,'noPop' );
+
+                if(histdata && histdata.data.length){
+
+                    var candleHist = histdata.data.reverse(); 
+
+                  
+                    
+                    var lastTrendCandleLow = candleHist[9][3]; 
+                    var firstTrendCandleHigh = candleHist[2][2]; 
+
+                    var firstCandle = {
+                        open: candleHist[0][1],
+                        high: candleHist[0][2],
+                        low: candleHist[0][3],
+                        close: candleHist[0][4]
+                    }
+                    
+                    var secondCandle = {
+                        open: candleHist[1][1],
+                        high: candleHist[1][2],
+                        low: candleHist[1][3],
+                        close: candleHist[1][4]
+                    }
+
+                    var diffPer = (firstTrendCandleHigh - lastTrendCandleLow)*100/lastTrendCandleLow;
+                    //uptrend movement 1.5% 
+                    if(diffPer >= 1.5){
+
+                        console.log( 'more than 1.5% up', watchList[index].symbol);
+                        //1st candle green & 2nd candle is red check
+                        if(secondCandle.close > secondCandle.open && firstCandle.open < firstCandle.close){ 
+                          // var candleWickHighDiff = (secondCandle.high - firstCandle.high)*100/secondCandle.high; 
+
+                          console.log( 'making twisser top', watchList[index].symbol);
+
+                            var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
+                            var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
+                            if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
+
+                                var data  = {
+                                    "exchange":"NSE",
+                                    "tradingsymbol": watchList[index].symbol,
+                                    "symboltoken":watchList[index].token,
+                                }
+                                AdminService.getLTP(data).then(res => {
+                                     let data = resolveResponse(res, 'noPop');
+                                     var LtpData = data && data.data; 
+                                     if(LtpData && LtpData.ltp && LtpData.ltp  < lowestOfBoth){
+
+                                        console.log( 'pefect time to sell ', watchList[index].symbol);
+                                        
+                                        highestOfBoth = highestOfBoth + (highestOfBoth*0.16/100); //SL calculation
+                                        var stopLossPrice = this.getMinPriceAllowTick(highestOfBoth); 
+                                        let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
+                                        let quantity = Math.floor(perTradeExposureAmt/LtpData.ltp); 
+                                        console.log( watchList[index].symbol + 'ltp '+ LtpData.ltp , "quantity",quantity,"stopLossPrice",stopLossPrice, "perTradeExposureAmt",perTradeExposureAmt ); 
+                                        var orderOption = {
+                                              transactiontype: 'SELL',
+                                              tradingsymbol: watchList[index].symbol,
+                                              symboltoken:watchList[index].token,
+                                              buyPrice : 0,
+                                              quantity: quantity, 
+                                              stopLossPrice: stopLossPrice
+                                          }
+                          
+                                        if(quantity && stopLossPrice){
+                                         // this.placeOrderMethod(orderOption);   
+                                        }
+
+                                    }
+                                    
+                               })
+
+                            }
+                        }
+                    }
+
+                    
+                    // for (let indexj = 0; indexj < 10; indexj++) {
+                    //     console.log( watchList[index].symbol ," candle history ", candleHist[indexj][0], candleHist[indexj][1]); 
+                        
+                    //     var lastCandle = candleHist[indexj][9]; 
+                    // }
+                }
+            });
+
+            await new Promise(r => setTimeout(r, 500));   
+        }
+
     }
     getStoplossFromOrderbook = (row) => {
        var oderbookData = localStorage.getItem('oderbookData'); 
@@ -131,18 +245,12 @@ class Home extends React.Component{
                     console.log("scandata",scandata); 
             
                     for (let index = 0; index < scandata.length; index++) {
-
-    
-                            
-                            
                             var isFound = false; 
-                           
                             for (let j = 0; j < this.state.positionList.length; j++) {
                                  if(this.state.positionList[j].symbolname === scandata[index].symbolName){
                                     isFound  = true; 
                                  }
                             }
-
                            
                             console.log("index",index, "symbolName",scandata[index].symbolName);    
                             if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)){
@@ -153,16 +261,13 @@ class Home extends React.Component{
                                     var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === scandata[index].symbolName);                                
                                    
                                     if(found.length){
-                                        console.log(scandata[index].symbolName, "found",found);      
-                                        localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
+                                        console.log(found[0].symbol, "found",found);      
+                                        localStorage.setItem('NseStock_' + found[0].symbol, "orderdone");
                                         this.historyWiseOrderPlace(found[0].token, found[0].symbol);
                                     }
                                })
                              
                             }
-
-
-   
                     }
                 }
             })  
@@ -408,10 +513,11 @@ class Home extends React.Component{
                             if(LtpData && LtpData.ltp > highestHigh && stoplossPer <= 1.5){ 
                             this.placeOrderMethod(orderOption);
                             }else{
-                                //localStorage.setItem('NseStock_' + symbol, "");
+                             //   localStorage.setItem('NseStock_' + symbol, "");
                                 console.log(symbol + " its not fullfilled"); 
                             }
                         }else{
+                            //localStorage.setItem('NseStock_' + symbol, "");
                             console.log(symbol + " candle data emply"); 
                         }
                     })
