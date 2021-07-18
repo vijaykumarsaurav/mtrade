@@ -128,33 +128,37 @@ class Home extends React.Component{
                 let data = resolveResponse(res, "noPop");
                 if(data.status  && data.message === 'SUCCESS'){ 
                     var scandata =  data.result;   
+                    console.log("scandata",scandata); 
             
                     for (let index = 0; index < scandata.length; index++) {
 
-                            var symbol = scandata[index].symbolName;               
+    
+                            
+                            
                             var isFound = false; 
                            
                             for (let j = 0; j < this.state.positionList.length; j++) {
-                                 if(this.state.positionList[j].symbolname === symbol){
+                                 if(this.state.positionList[j].symbolname === scandata[index].symbolName){
                                     isFound  = true; 
                                  }
                             }
 
                            
-                            console.log("index",index, "symbol",symbol);    
-                            if (!isFound && !localStorage.getItem('NseStock_' + symbol)){
+                            console.log("index",index, "symbolName",scandata[index].symbolName);    
+                            if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)){
                                
-                                AdminService.autoCompleteSearch(symbol).then(res => {
+                                AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
 
-                                    let data =  res.data; 
-                                    var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === symbol);                                
-                                    console.log(symbol, "found", found); 
+                                    let searchResdata =  searchRes.data; 
+                                    var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === scandata[index].symbolName);                                
+                                   
                                     if(found.length){
-                                        localStorage.setItem('NseStock_' + symbol, "orderdone");
+                                        console.log(scandata[index].symbolName, "found",found);      
+                                        localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
                                         this.historyWiseOrderPlace(found[0].token, found[0].symbol);
                                     }
                                })
-                               console.log(symbol, "inside",isFound);      
+                             
                             }
 
 
@@ -365,51 +369,50 @@ class Home extends React.Component{
                     AdminService.getHistoryData(data).then(res => {
                         let histdata = resolveResponse(res,'noPop' );
                         console.log("candle history", histdata); 
-                        if(histdata && histdata.data){
-
+                        if(histdata && histdata.data && histdata.data.length){
+                           
                             var candleData = histdata.data, clossest =0, lowerest=0, highestHigh = 0, lowestLow=0; 
                             candleData.reverse(); 
 
-                            if(candleData.length){
-                                for (let index = 0; index < 20; index++) {
-                                    clossest += candleData[index][4]; //close  
-                                    lowerest += candleData[index][3];  //low
-                                    if(candleData[index][4] > highestHigh ){
-                                        highestHigh = candleData[index][4];  
-                                    }
-                                    if(lowestLow < candleData[index][3]){
-                                        lowestLow = candleData[index][3];  
-                                    }
+                            for (let index = 0; index < 20; index++) {
+                                clossest += candleData[index][4]; //close  
+                                lowerest += candleData[index][3];  //low
+                                if(candleData[index][4] > highestHigh ){
+                                    highestHigh = candleData[index][4];  
                                 }
-    
-                                var bbmiddleValue = clossest/20; 
-                                var bblowerValue =lowerest/20;  
-                                
-                                var stoploss = bblowerValue - (highestHigh - lowestLow)*3/100;  
-                                stoploss = this.getMinPriceAllowTick(stoploss); 
-
-                                var stoplossPer = (highestHigh - stoploss)*100/highestHigh; 
-                                 
-                                console.log(symbol,  " LTP ",LtpData.ltp ); 
-                                console.log(symbol + "highestHigh:",highestHigh,  "lowestLow", lowestLow, "stoploss after tick:", stoploss , "stoploss%", stoplossPer);
-                                console.log(symbol + "  close avg middle ", bbmiddleValue,  "lowerest avg", bblowerValue);
-                              
-                                var orderOption = {
-                                    transactiontype: 'BUY',
-                                    tradingsymbol: symbol,
-                                    symboltoken:token,
-                                    buyPrice : 0,
-                                    quantity: quantity, 
-                                    stopLossPrice: stoploss
-                                }
-                                if(LtpData && LtpData.ltp > highestHigh && stoplossPer <= 1.5){ 
-                                   this.placeOrderMethod(orderOption);
-                                }else{
-                                    //localStorage.setItem('NseStock_' + symbol, "");
-                                    console.log(symbol + " its not fullfilled"); 
+                                if(lowestLow < candleData[index][3]){
+                                    lowestLow = candleData[index][3];  
                                 }
                             }
+
+                            var bbmiddleValue = clossest/20; 
+                            var bblowerValue =lowerest/20;  
                             
+                            var stoploss = bblowerValue - (highestHigh - lowestLow)*3/100;  
+                            stoploss = this.getMinPriceAllowTick(stoploss); 
+
+                            var stoplossPer = (highestHigh - stoploss)*100/highestHigh; 
+                            
+                            console.log(symbol,  " LTP ",LtpData.ltp ); 
+                            console.log(symbol + "highestHigh:",highestHigh,  "lowestLow", lowestLow, "stoploss after tick:", stoploss , "stoploss%", stoplossPer);
+                            console.log(symbol + "  close avg middle ", bbmiddleValue,  "lowerest avg", bblowerValue);
+                        
+                            var orderOption = {
+                                transactiontype: 'BUY',
+                                tradingsymbol: symbol,
+                                symboltoken:token,
+                                buyPrice : 0,
+                                quantity: quantity, 
+                                stopLossPrice: stoploss
+                            }
+                            if(LtpData && LtpData.ltp > highestHigh && stoplossPer <= 1.5){ 
+                            this.placeOrderMethod(orderOption);
+                            }else{
+                                //localStorage.setItem('NseStock_' + symbol, "");
+                                console.log(symbol + " its not fullfilled"); 
+                            }
+                        }else{
+                            console.log(symbol + " candle data emply"); 
                         }
                     })
 
