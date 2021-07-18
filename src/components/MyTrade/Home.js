@@ -45,7 +45,7 @@ class Home extends React.Component{
             buyPrice : 0,
             quantity : 1,
             producttype : "INTRADAY",
-            symbolList : JSON.parse(localStorage.getItem('watchList'))
+            symbolList : localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
         
         };
         this.myCallback = this.myCallback.bind(this);

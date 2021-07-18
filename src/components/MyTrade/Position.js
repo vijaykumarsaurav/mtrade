@@ -115,6 +115,7 @@ class Home extends React.Component{
             }
        })
     }
+   
     getNSETopStock(){
 
         var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
@@ -123,32 +124,41 @@ class Home extends React.Component{
             console.log("daily loss crossed",totalDayLoss); 
             clearInterval(this.state.scaninterval);
         }else{
-            AdminService.getNSETopStock().then(res => {
+               AdminService.getNSETopStock().then(res => {
                 let data = resolveResponse(res, "noPop");
                 if(data.status  && data.message === 'SUCCESS'){ 
                     var scandata =  data.result;   
+            
                     for (let index = 0; index < scandata.length; index++) {
 
                             var symbol = scandata[index].symbolName;               
                             var isFound = false; 
+                           
                             for (let j = 0; j < this.state.positionList.length; j++) {
                                  if(this.state.positionList[j].symbolname === symbol){
                                     isFound  = true; 
                                  }
                             }
-                         
+
+                           
+                            console.log("index",index, "symbol",symbol);    
                             if (!isFound && !localStorage.getItem('NseStock_' + symbol)){
+                               
                                 AdminService.autoCompleteSearch(symbol).then(res => {
-                                    console.log(symbol, "inside"); 
+
                                     let data =  res.data; 
                                     var found = data.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === symbol);                                
+                                    console.log(symbol, "found", found); 
                                     if(found.length){
+                                        localStorage.setItem('NseStock_' + symbol, "orderdone");
                                         this.historyWiseOrderPlace(found[0].token, found[0].symbol);
-                                        localStorage.setItem('NseStock_' + found[0].symbol, "orderdone");
                                     }
                                })
+                               console.log(symbol, "inside",isFound);      
                             }
-                           
+
+
+   
                     }
                 }
             })  
@@ -354,7 +364,7 @@ class Home extends React.Component{
                 
                     AdminService.getHistoryData(data).then(res => {
                         let histdata = resolveResponse(res,'noPop' );
-                        console.log(histdata); 
+                        console.log("candle history", histdata); 
                         if(histdata && histdata.data){
 
                             var candleData = histdata.data, clossest =0, lowerest=0, highestHigh = 0, lowestLow=0; 
@@ -377,9 +387,11 @@ class Home extends React.Component{
                                 
                                 var stoploss = bblowerValue - (highestHigh - lowestLow)*3/100;  
                                 stoploss = this.getMinPriceAllowTick(stoploss); 
-                                
-                                console.log(symbol + "highestHigh20Candle:",highestHigh,  "lowestLowLow20Candle", lowestLow, "stoploss after tick:", stoploss);
+
+                                var stoplossPer = (highestHigh - stoploss)*100/highestHigh; 
+                                 
                                 console.log(symbol,  " LTP ",LtpData.ltp ); 
+                                console.log(symbol + "highestHigh:",highestHigh,  "lowestLow", lowestLow, "stoploss after tick:", stoploss , "stoploss%", stoplossPer);
                                 console.log(symbol + "  close avg middle ", bbmiddleValue,  "lowerest avg", bblowerValue);
                               
                                 var orderOption = {
@@ -390,7 +402,7 @@ class Home extends React.Component{
                                     quantity: quantity, 
                                     stopLossPrice: stoploss
                                 }
-                                if(LtpData && LtpData.ltp > highestHigh){ 
+                                if(LtpData && LtpData.ltp > highestHigh && stoplossPer <= 1.5){ 
                                    this.placeOrderMethod(orderOption);
                                 }else{
                                     //localStorage.setItem('NseStock_' + symbol, "");
