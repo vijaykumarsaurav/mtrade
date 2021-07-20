@@ -24,8 +24,10 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import AdminService from "../service/AdminService";
 import {resolveResponse} from "../../utils/ResponseHandler";
+import TextField from "@material-ui/core/TextField";
 
 import Chart from "./Chart";
+import { ContactlessOutlined } from "@material-ui/icons";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -68,7 +70,6 @@ class MyView extends React.Component{
 
     onChange = (e) =>{
       this.setState({[e.target.name]: e.target.value}); 
-      this.filterOptionChain(e.target.name,  e.target.value); 
 
     }
    
@@ -87,6 +88,62 @@ class MyView extends React.Component{
         //    })
 
     }
+
+    readCsv = () => {
+
+      var list = this.state.addtowatchlist; 
+
+      var parsedList =JSON.parse(list) 
+      console.log(parsedList.length);
+      
+
+      for (let index = 0; index < parsedList.length; index++) {
+        const element = parsedList[index];
+        console.log(element);
+
+        AdminService.autoCompleteSearch(element.SYMBOL).then(searchRes => {
+
+          let searchResdata =  searchRes.data; 
+          var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === element.SYMBOL);                                
+         
+          if(found.length){
+
+            
+            var watchlist = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
+
+              console.log(watchlist); 
+            
+              var foundInWatchlist = watchlist.filter(row => row.token  === found[0].token);                                
+              // var isFound = true; 
+              // for(var newList=0; newList < watchlist.length; newList++ ){
+              //     if( watchlist[newList].token == found[0].token){
+              //       isFound = false; 
+              //       break;
+              //     }
+              // }
+              if(!foundInWatchlist.length){
+                watchlist.push(found[0]); 
+                localStorage.setItem('watchList', JSON.stringify(watchlist));
+              }
+            //  console.log(found[0].symbol, "found",found);      
+            //  localStorage.setItem('NseStock_' + found[0].symbol, "orderdone");
+          }
+         
+
+          
+       })
+        
+      }
+
+
+
+
+
+
+
+
+      
+    }
    
   
 
@@ -98,46 +155,42 @@ class MyView extends React.Component{
             
             <PostLoginNavBar />
 
-            Add To Watchlist
-       
-            <br/><br/><br/>
+          
+            <Paper style={{padding:"25px" }}>   
+
             
             <Grid   direction="row" container className="flexGrow" spacing={2}  style={{paddingLeft:"5px",paddingRight:"5px", justifyContent:'center'}}>
               
               
          
                          
-           
+              
+
 
               
 
-                <Grid id="tabledatachart"  item xs={4} sm={4}>
-                <Paper style={{padding:"25px" }}>   
-               
-                    <Typography variant="h6">
-                          Test
-                      </Typography>
-                    
-                    
-                    <Typography variant="h6">
-                    Test                  
-                    
-                      </Typography>
+                <Grid item xs={12} sm={8}> 
+                    <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '30%'}}  label="Paste only JSON to add into watchlist"  value={this.state.addtowatchlist}   name="addtowatchlist" onChange={this.onChange}/>
+              
 
+                </Grid>
+
+            
                   
-                    </Paper>
+                <Grid  item xs={8} sm={8}>
+                  <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.readCsv()}> Add </Button>    
 
-                </Grid>
-
-                <Grid id="tabledatachart"  item xs={8} sm={8}>
-                Test
                 </Grid>
                
 
+
+
+               
                
               
                 </Grid>
                    
+                </Paper>
 
                 
            
