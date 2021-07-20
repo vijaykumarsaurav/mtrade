@@ -80,6 +80,15 @@ export const AdminMenuList = (
   
 
 
+    <ListItem button component='a' href={"#/addtowatchlist"} >  
+      <ListItemIcon>
+        <FileCopyIcon />
+      </ListItemIcon>
+      <ListItemText primary="Add to watchlist" />
+    </ListItem>
+  
+
+
   </div>
 );
 

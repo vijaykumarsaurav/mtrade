@@ -18,6 +18,8 @@ import Tradebook from "./MyTrade/Tradebook";
 import OrderStatusLive from "./MyTrade/OrderStatusLive";
 import Position from "./MyTrade/Position";
 
+import AddToWatchlist from "./MyTrade/AddToWatchlist";
+
 const AppRouter = () => {
 
     return(
@@ -37,6 +39,8 @@ const AppRouter = () => {
                     {/* <Route path="/livefeed" component={LiveFeed}/> */}
                     <Route path="/order-status-live" component={OrderStatusLive}/>
                     <Route path="/position" component={Position}/>
+                    <Route path="/addtowatchlist" component={AddToWatchlist}/>
+                    
            
                     <Route path="*" component={LoginComponent} />
                     

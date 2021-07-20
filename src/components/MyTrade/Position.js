@@ -64,7 +64,7 @@ class Home extends React.Component{
         // this.getNSETopStock();
 
 
-        this.findOurPattern(); 
+     //   this.findOurPattern(); 
 
     }
     componentWillUnmount() {
