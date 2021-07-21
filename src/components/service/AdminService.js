@@ -60,6 +60,9 @@ class AdminService {
      saveWatchList(data) {
         return axios.get('http://localhost:8081/saveWatchList/'+data, '');
      } 
+     saveCandleHistory(data) {
+        return axios.post('http://localhost:8081/saveCandleHistory', data,  '');
+     } 
 
      getPosition(data){
         return axios.get(apiConstant.getPosition, AuthService.getHeader());

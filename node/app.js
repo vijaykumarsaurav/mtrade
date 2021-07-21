@@ -3,12 +3,14 @@ var fs = require('fs');
 var cors = require('cors');
 var app = express();
 var bodyParser = require('body-parser');  
-
+var mysql = require('mysql');
 app.use(cors());
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
+
+
 
 // on the request to root (localhost:3000/)
 app.get('/', function (req, res) {
@@ -106,6 +108,46 @@ return;
 //   return;
     
 //   });
+
+app.post('/saveCandleHistory', function (req, res) {
+
+    var con = mysql.createConnection({
+      host: "localhost",
+      user: "root",
+      password: "Minu@1990",
+      database: "stockhistory"
+    });
+
+    con.connect(function(err) {
+     
+      if (err) throw err;
+      console.log("DB Connected!");
+
+      var sql = "insert into candledata (token,datetime, open, high,low,close, volume ) VALUES ?";
+
+      var data = req.body.data; 
+      var token = req.body.token; 
+      var values = [];
+
+      data.forEach(element => {
+        values.push([ token, new Date( element[0] ), element[1],element[2],element[3],element[4],  element[5]]); 
+      });
+
+      con.query(sql, [values],  function  (err, result) {
+        if (err) throw err;
+        res.status(200).send( {status : 200, result: values.length }) ;
+        console.log(values.length , " record inserted");
+      });
+
+
+    });
+
+  return;
+});
+
+
+
+
 
 app.get('/saveNSEList/:query', function (req, res) {
     const toplist = req.params.query; 
@@ -226,4 +268,12 @@ app.use(function(req, res, next) {
 // start the server in the port 3000 !
 app.listen(8081, function () {
     console.log('Example app listening on port 8081.');
+});
+
+
+process.on('uncaughtException', function (err) {
+  console.log('uncaughtException:', err);
+  console.log("uncaughtException", err.stack);
+  //console.dir(err);
+
 });

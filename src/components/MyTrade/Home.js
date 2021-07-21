@@ -22,11 +22,15 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
-//import { w3cwebsocket } from 'websocket'; 
-//import pako from 'pako';
+import { w3cwebsocket } from 'websocket'; 
+import pako from 'pako';
 import DeleteIcon from '@material-ui/icons/Delete';
 
-//const wsClint =  new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream'); 
+import Position from './Position'; 
+
+import Tab from './Tab'
+
+const wsClint =  new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream'); 
 
 class Home extends React.Component{
     constructor(props) {
@@ -49,6 +53,9 @@ class Home extends React.Component{
         
         };
         this.myCallback = this.myCallback.bind(this);
+        this.updateSocketWatch = this.updateSocketWatch.bind(this);
+
+        
     }
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value});
@@ -102,26 +109,26 @@ class Home extends React.Component{
 
     makeConnection = (feedToken ,clientcode ) => {
 
-     //   var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-       // console.log("1st Request :- " + firstTime_req);
-      //  wsClint.send(firstTime_req);
+       var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
+       console.log("1st Request :- " + firstTime_req);
+       wsClint.send(firstTime_req);
     }
 
     updateSocketWatch = (feedToken,clientcode ) => {
       
-        // var channel = this.state.symbolList.map(element => {
-        //      return 'nse_cm|'+ element.token; 
-        // });
+        var channel = this.state.symbolList.map(element => {
+             return 'nse_cm|'+ element.token; 
+        });
 
-      //  channel = channel.join('&'); 
-        // var sbin =  {
-        //     "task":"mw",
-        //     "channel": channel,
-        //     "token":this.state.feedToken,
-        //     "user":this.state.clientcode,
-        //     "acctid":this.state.clientcode
-        // }
-     //   wsClint.send( JSON.stringify( sbin)); 
+       channel = channel.join('&'); 
+        var sbin =  {
+            "task":"mw",
+            "channel": channel,
+            "token":this.state.feedToken,
+            "user":this.state.clientcode,
+            "acctid":this.state.clientcode
+        }
+       wsClint.send( JSON.stringify( sbin)); 
     }
 
     
@@ -135,45 +142,60 @@ class Home extends React.Component{
         this.setState({ feedToken : feedToken,clientcode : clientcode  });
 
             
-       // wsClint.onopen  = (res) => {
+       wsClint.onopen  = (res) => {
 
-             //this.makeConnection();
-            // this.updateSocketWatch();
+             this.makeConnection();
+             this.updateSocketWatch(feedToken ,clientcode);
                 
             //  setTimeout(function(){
             //    this.updateSocketWatch(feedToken ,clientcode);
             //  }, 800);
-      //  }
+       }
 
-        // wsClint.onmessage = (message) => {
+        wsClint.onmessage = (message) => {
             
             
-        //     var decoded = window.atob(message.data);
-        //     var data = this.decodeWebsocketData(pako.inflate(decoded));
-        //     var liveData =  JSON.parse(data); 
+            var decoded = window.atob(message.data);
+            var data = this.decodeWebsocketData(pako.inflate(decoded));
+            var liveData =  JSON.parse(data); 
 
-        //    this.state.symbolList.forEach(element => {
+           this.state.symbolList.forEach(element => {
 
-        //         var foundLive = liveData.filter(row => row.tk  == element.token);
-        //     // console.log("foundLive", foundLive);
-        //         if(foundLive.length>0 &&  foundLive[0].ltp)
-        //             this.setState({ [element.symbol+'ltp'] : foundLive.length>0 &&  foundLive[0].ltp})
-        //         if(foundLive.length>0 &&  foundLive[0].cng)
-        //             this.setState({ [element.symbol+'nc'] : foundLive.length>0 &&  foundLive[0].nc})
-        //         });
+                var foundLive = liveData.filter(row => row.tk  == element.token);
+
+
+                if(foundLive.length>0 &&  foundLive[0].ltp)
+                    this.setState({ [element.symbol+'ltp'] : foundLive.length>0 &&  foundLive[0].ltp})
+                if(foundLive.length>0 &&  foundLive[0].cng)
+                    this.setState({ [element.symbol+'nc'] : foundLive.length>0 &&  foundLive[0].nc})
+                
+                var foundTweezerTop =  localStorage.getItem('foundTweezerTop_'+element.token) && JSON.parse(localStorage.getItem('foundTweezerTop'+element.token) ); 
+
+                if(foundTweezerTop && foundTweezerTop.symboltoken == element.token){
+
+                  if(foundTweezerTop.entryBelow < foundLive[0].ltp){
+                        console.log('TweezerTop ',  foundTweezerTop.tradingsymbol,  "entry found at ", foundLive[0].ltp); 
+                        this.setState({ tradingsymbol : foundTweezerTop.tradingsymbol, symboltoken : foundTweezerTop.symboltoken,buyPrice : 0,producttype: 'INTRADAY', quantity : foundTweezerTop.quantity })
+                    //    this.placeOrder('SELL', "BUY"); 
+
+                   }
+
+                }
+                 
+                });
         
-        // }
+        }
 
-        // wsClint.onerror = (e) => {
-        //     console.log("socket error", e); 
-        // }
+        wsClint.onerror = (e) => {
+            console.log("socket error", e); 
+        }
 
-        // setInterval(() => {
-        //     var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-        //     console.log("Request :- " + _req);
-        //     wsClint.send(_req);
-        //   //  this.makeConnection(feedToken ,clientcode );
-        // }, 59000);
+        setInterval(() => {
+            var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
+            console.log("Request :- " + _req);
+            wsClint.send(_req);
+          //  this.makeConnection(feedToken ,clientcode );
+        }, 59000);
 
 
         var list = localStorage.getItem('watchList');
@@ -193,7 +215,7 @@ class Home extends React.Component{
       
     }
 
-    placeOrder = (transactiontype) => {
+    placeOrder = (transactiontype, slmOrderType) => {
    
         var data = {
             "variety":"NORMAL",
@@ -218,7 +240,7 @@ class Home extends React.Component{
                 this.setState({ orderid : data.data && data.data.orderid });
 
                 if(this.state.stoploss){
-                    this.placeSLMOrder(this.state.stoploss);
+                    this.placeSLMOrder(this.state.stoploss, slmOrderType);
                 }
             }
         })
@@ -237,12 +259,12 @@ class Home extends React.Component{
         this.getHistory(token); 
     }
 
-    placeSLMOrder = () => {
+    placeSLMOrder = (slmOrderType) => {
 
         var data = {
             "tradingsymbol": this.state.tradingsymbol,
             "symboltoken":this.state.symboltoken,
-            "transactiontype":"SELL",
+            "transactiontype":slmOrderType ? slmOrderType :  "SELL",
             "exchange":"NSE",
             "ordertype":"STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
             "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
@@ -380,13 +402,14 @@ class Home extends React.Component{
                 
                 <Grid direction="row" container>
                
-                     <Grid item xs={3} sm={3}  style={{}}> 
-            
+                     <Grid item xs={3} sm={3}  > 
+                   
 
-                        <Autocomplete
+                         <Autocomplete
                             freeSolo
                             id="free-solo-2-demo"
                             disableClearable
+                            style={{paddingLeft: "10px",paddingRight: "10px"}}
                             onChange={this.onSelectItem}
                             //+ ' '+  option.exch_seg
                             options={this.state.autoSearchList.length> 0 ?  this.state.autoSearchList.map((option) => 
@@ -398,29 +421,36 @@ class Home extends React.Component{
                                 {...params}
                                 label="Search Symbol"
                                 margin="normal"
-                                variant="outlined"
+                                variant="standard"
+                            
                                 name="search"
                                 value={this.state.search}
                                 InputProps={{ ...params.InputProps, type: 'search' }}
                             />
                             )}
                         />
-                        {/* <Dialogbox /> */}
-
-                        {/* <TextField fullWidth  type="text" id="search"  value={this.state.search}  name="search" /> */}
+            
+                        <div style={{ overflowY: 'scroll', height: "75vh" }}> 
 
                             {this.state.symbolList && this.state.symbolList ? this.state.symbolList.map(row => (
                                <>
-                               <ListItem button >
-                                
-                                <ListItemText style={{color:this.state[row.symbol+'nc'] > 0 ? 'green' : "red"  }}  onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol+'ltp']} ({this.state[row.symbol+'nc']}%) <DeleteIcon  onClick={() => this.deleteItemWatchlist(row.symbol)} />
+                            <ListItem button style={{ fontSize: '12px'}} >
+                                <ListItemText style={{color:this.state[row.symbol+'nc'] > 0 ? 'green' : "red" }}  onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol+'ltp']} ({this.state[row.symbol+'nc']}%) <DeleteIcon  onClick={() => this.deleteItemWatchlist(row.symbol)} />
                             </ListItem>
                            
                             </>
                             )):''}
+                        </div>
+
+                        {/* <Tab style={{position: 'fixed'}}  data={{symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/> */}
+                                                    
                 </Grid>
 
+               
+
+
                 <Grid item xs={9} sm={9}> 
+           
 
                     <Grid  direction="row" alignItems="center" container>
 
@@ -498,6 +528,9 @@ class Home extends React.Component{
                         </Table>
 
                         </Paper>
+
+
+                        <Position />
                         </Grid>
 
                         

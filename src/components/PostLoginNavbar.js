@@ -148,19 +148,22 @@ export default function PostLoginNavBar(props) {
                         </Grid>
 
                         <Grid item >
+                        <Typography variant="h6" noWrap>
+                        {localStorage.getItem('BankLtpltp')}
+                         </Typography>
+                         
+                        </Grid>
 
-                        <Grid
-                            container
-                            spacing={1}
-                            direction="row"
-                            style={{ color: "white" }}
-                        >
+                        <Grid item >
 
-                            <Grid item >
-                                <Typography style={{ color: "white" }} >
-                                <span id='acqRecordId'>{values.acquisitionCount}</span>
-                                </Typography> 
-                            </Grid>
+                                <Grid
+                                    container
+                                    spacing={1}
+                                    direction="row"
+                                    style={{ color: "white" }}
+                                >
+
+                    
 
 
                             <Grid item>

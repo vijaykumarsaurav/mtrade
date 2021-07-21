@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/LearnNew/static/css/main.b6b9bebf.chunk.css",
+    "main.js": "/LearnNew/static/js/main.f4e1b601.chunk.js",
+    "main.js.map": "/LearnNew/static/js/main.f4e1b601.chunk.js.map",
+    "runtime~main.js": "/LearnNew/static/js/runtime~main.1cb0fa5c.js",
+    "runtime~main.js.map": "/LearnNew/static/js/runtime~main.1cb0fa5c.js.map",
+    "static/css/2.39017165.chunk.css": "/LearnNew/static/css/2.39017165.chunk.css",
+    "static/js/2.028f7e3f.chunk.js": "/LearnNew/static/js/2.028f7e3f.chunk.js",
+    "static/js/2.028f7e3f.chunk.js.map": "/LearnNew/static/js/2.028f7e3f.chunk.js.map",
+    "index.html": "/LearnNew/index.html",
+    "precache-manifest.c5ee3f2ff01e1ee1aef2479ead51f9bf.js": "/LearnNew/precache-manifest.c5ee3f2ff01e1ee1aef2479ead51f9bf.js",
+    "service-worker.js": "/LearnNew/service-worker.js",
+    "static/css/2.39017165.chunk.css.map": "/LearnNew/static/css/2.39017165.chunk.css.map",
+    "static/css/main.b6b9bebf.chunk.css.map": "/LearnNew/static/css/main.b6b9bebf.chunk.css.map",
+    "static/media/mylogo.png": "/LearnNew/static/media/mylogo.9879549b.png"
+  }
+}

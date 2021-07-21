@@ -58,6 +58,8 @@ class MyView extends React.Component{
             PEoi:0,
             CEoi:0,
             scrollcount : 0,
+            resMessage: [],
+            counter:0
             
             //JSON.parse(localStorage.getItem('optionChainDataBN')).records.data
 
@@ -87,6 +89,9 @@ class MyView extends React.Component{
         //        }
         //    })
 
+        var list = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
+        this.setState({watchlistCount : list.length})
+
     }
 
     readCsv = () => {
@@ -111,7 +116,7 @@ class MyView extends React.Component{
             
             var watchlist = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
 
-              console.log(watchlist); 
+             
             
               var foundInWatchlist = watchlist.filter(row => row.token  === found[0].token);                                
               // var isFound = true; 
@@ -122,17 +127,32 @@ class MyView extends React.Component{
               //     }
               // }
               if(!foundInWatchlist.length){
+                 
+                this.setState({resMessage: [...this.state.resMessage,  index + ". ======================> New Symbol:  "+ element.SYMBOL]})
+
+                this.setState({watchlistCount : watchlist.length, counter:this.state.counter+1})
                 watchlist.push(found[0]); 
                 localStorage.setItem('watchList', JSON.stringify(watchlist));
+              }else{
+                this.setState({watchlistCount : watchlist.length,})
+                this.setState({resMessage: [...this.state.resMessage,  index + ". Already in List:  "+ element.SYMBOL]})
+
               }
             //  console.log(found[0].symbol, "found",found);      
             //  localStorage.setItem('NseStock_' + found[0].symbol, "orderdone");
+          }
+          if(this.state.resMessage && this.state.resMessage.length){
+            this.setState({resMessage: [...this.state.resMessage.reverse()]})
+
           }
          
 
           
        })
         
+
+
+
       }
 
 
@@ -143,6 +163,10 @@ class MyView extends React.Component{
 
 
       
+    }
+    resetCsv=()=>{
+      this.setState({addtowatchlist:"",resMessage:""})
+
     }
    
   
@@ -162,14 +186,19 @@ class MyView extends React.Component{
             <Grid   direction="row" container className="flexGrow" spacing={2}  style={{paddingLeft:"5px",paddingRight:"5px", justifyContent:'center'}}>
               
               
-         
-                         
+           
               
 
 
               
 
                 <Grid item xs={12} sm={8}> 
+                <Typography variant="h6">
+                   Current Watchlist Count   {this.state.watchlistCount} 
+                   <br />
+                  </Typography>
+                         
+
                     <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '30%'}}  label="Paste only JSON to add into watchlist"  value={this.state.addtowatchlist}   name="addtowatchlist" onChange={this.onChange}/>
               
 
@@ -178,14 +207,25 @@ class MyView extends React.Component{
             
                   
                 <Grid  item xs={8} sm={8}>
-                  <Button variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.readCsv()}> Add </Button>    
 
+                    <Button variant="contained" color="primary" onClick={() => this.readCsv()}> Add to Watchlist</Button>    &nbsp; &nbsp;
+                    <Button variant="contained" color="secondary" onClick={() => this.resetCsv()}>Reset</Button>    
+                &nbsp; &nbsp;   <b>Total Added: {this.state.counter}</b>
+                   
+                    {/* {this.state.notAddedSymbol? "Already in list: " + this.state.notAddedSymbol : "" }
+                    {this.state.addedSymbol? "Added: " + this.state.addedSymbol : "" }
+                     */}
+                       
                 </Grid>
-               
 
+                <Grid  item xs={8} sm={8}>
+                        {this.state.resMessage ? this.state.resMessage.map(data => (
+                         <>  <span> {data} </span>  <br /> </>
+                           
+                        )) : ''}
+   
+                </Grid>
 
-
-               
                
               
                 </Grid>
