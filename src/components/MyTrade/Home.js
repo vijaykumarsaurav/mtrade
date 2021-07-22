@@ -159,7 +159,7 @@ class Home extends React.Component{
             var data = this.decodeWebsocketData(pako.inflate(decoded));
             var liveData =  JSON.parse(data); 
 
-           this.state.symbolList.forEach(element => {
+            this.state.symbolList &&  this.state.symbolList.forEach(element => {
 
                 var foundLive = liveData.filter(row => row.tk  == element.token);
 
@@ -419,7 +419,7 @@ class Home extends React.Component{
                             <TextField
                                 onChange={this.onChange}
                                 {...params}
-                                label="Search Symbol"
+                                label= {"Search Symbol "} 
                                 margin="normal"
                                 variant="standard"
                             
@@ -530,7 +530,7 @@ class Home extends React.Component{
                         </Paper>
 
 
-                        <Position />
+                        {/* <Position /> */}
                         </Grid>
 
                         

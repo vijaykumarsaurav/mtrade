@@ -11,6 +11,18 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 })); 
 
 
+var con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "Minu@1990",
+  database: "stockhistory"
+});
+
+con.connect(function(err) {
+  if (err) throw err;
+  console.log("DB Connected!");
+});
+
 
 // on the request to root (localhost:3000/)
 app.get('/', function (req, res) {
@@ -111,35 +123,19 @@ return;
 
 app.post('/saveCandleHistory', function (req, res) {
 
-    var con = mysql.createConnection({
-      host: "localhost",
-      user: "root",
-      password: "Minu@1990",
-      database: "stockhistory"
+  var sql = "insert into candledata (token,datetime, open, high,low,close, volume ) VALUES ?";
+  var data = req.body.data; 
+  var token = req.body.token; 
+  var values = [];    
+
+    data.forEach(element => {
+      values.push([ token, new Date( element[0] ), element[1],element[2],element[3],element[4],  element[5]]); 
     });
 
-    con.connect(function(err) {
-     
+    con.query(sql, [values],  function  (err, result) {
       if (err) throw err;
-      console.log("DB Connected!");
-
-      var sql = "insert into candledata (token,datetime, open, high,low,close, volume ) VALUES ?";
-
-      var data = req.body.data; 
-      var token = req.body.token; 
-      var values = [];
-
-      data.forEach(element => {
-        values.push([ token, new Date( element[0] ), element[1],element[2],element[3],element[4],  element[5]]); 
-      });
-
-      con.query(sql, [values],  function  (err, result) {
-        if (err) throw err;
-        res.status(200).send( {status : 200, result: values.length }) ;
-        console.log(values.length , " record inserted");
-      });
-
-
+      res.status(200).send( {status : 200, result: values.length }) ;
+      console.log(values.length , " record inserted");
     });
 
   return;

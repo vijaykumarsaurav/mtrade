@@ -45,36 +45,18 @@ class Home extends React.Component{
             clearInterval(this.state.scaninterval); 
             clearInterval(this.state.bankNiftyInterval); 
         }
-         //scans from chartink 
-        // var scanendTime = moment('3:00pm', 'h:mma');
-        // if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
-        //     this.setState({scaninterval :  setInterval(() => {this.getStockOnebyOne(); }, 1002)}) 
-        // }else{
-        //     clearInterval(this.state.scaninterval); 
-        // }
-
+    
         var scanendTime = moment('3:00pm', 'h:mma');
         if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
             this.setState({scaninterval :  setInterval(() => {this.getNSETopStock(); }, 5000)}) 
-            this.setState({scaninterval :  setInterval(() => {this.findTweezerTopPattern() }, 5000)}) 
-
-        }else{
-            clearInterval(this.state.scaninterval); 
+            this.setState({candleHistoryInterval :  setInterval(() => {this.getCandleHistoryAndStore(); }, 1000 * 60 * 5)}) 
+       //     this.setState({scaninterval :  setInterval(() => {this.findTweezerTopPattern() }, 5000)}) 
         }
 
         // this.getPositionData();
         // this.getNSETopStock();
-
-
        // this.findTweezerTopPattern(); 
-
-
-    //    setInterval(() => {
-    //        this.getCandleHistoryAndStore(); 
-    //    }, 1000 * 60 * 5);
-       
-
-       this.getCandleHistoryAndStore(); 
+      // this.getCandleHistoryAndStore(); 
     }
 
 
@@ -85,6 +67,8 @@ class Home extends React.Component{
     }
 
     getCandleHistoryAndStore = async()=> {
+       
+       var stop = new Date().toLocaleTimeString() > "15:00:00" ?  clearInterval(this.state.candleHistoryInterval) : ""; 
 
 
        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
@@ -127,7 +111,6 @@ class Home extends React.Component{
             })
             await new Promise(r => setTimeout(r, 500));  
         }
-
     }
 
      findTweezerTopPattern = async() => {
@@ -312,6 +295,8 @@ class Home extends React.Component{
    
     getNSETopStock(){
 
+       var stop = new Date().toLocaleTimeString() > "15:00:00" ? clearInterval(this.state.scaninterval) : ""; 
+
         var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
         totalDayLoss = -Math.abs(totalDayLoss); 
         if(this.state.todayProfitPnL < totalDayLoss) {
@@ -352,7 +337,7 @@ class Home extends React.Component{
                 }
             })  
         }
-        
+
     }
 
     checkAndPlaceSingleOrder = (stock)=>{
@@ -537,11 +522,16 @@ class Home extends React.Component{
                     let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
                      quantity = Math.floor(perTradeExposureAmt/LtpData.ltp); 
                 }
+
                 
                 quantity = quantity>0 ? 1 : 0; 
                 console.log(symbol, "  quantity can be order ", quantity);
                 if(quantity){
                     const format1 = "YYYY-MM-DD HH:mm";
+                    var beginningTime = moment('9:15am', 'h:mma').format(format1);
+
+                    console.log("beginningTime", beginningTime); 
+
                     var time = moment.duration("21:10:00");
                     var startdate = moment(new Date()).subtract(time);
                     var data  = {
@@ -574,18 +564,20 @@ class Home extends React.Component{
                                     }
                                     
                                 }
+
+                                let devideLen = candleData.length > 20 ? 20 : candleData.length; 
     
-                                var bbmiddleValue = clossest/20; 
-                                var bblowerValue =lowerest/20;  
+                                var bbmiddleValue = clossest/devideLen; 
+                                var bblowerValue = lowerest/devideLen; 
                                 
                                 var stoploss = bblowerValue - (highestHigh - lowestLow)*3/100;  
                                 stoploss = this.getMinPriceAllowTick(stoploss); 
     
                                 var stoplossPer = (highestHigh - stoploss)*100/highestHigh; 
                                 
-                                // console.log(symbol,  " LTP ",LtpData.ltp ); 
-                                // console.log(symbol + "highestHigh:",highestHigh,  "lowestLow", lowestLow, "stoploss after tick:", stoploss , "stoploss%", stoplossPer);
-                                // console.log(symbol + "  close avg middle ", bbmiddleValue,  "lowerest avg", bblowerValue);
+                                console.log(symbol,  " LTP ",LtpData.ltp ); 
+                                console.log(symbol + "highestHigh:",highestHigh,  "lowestLow", lowestLow, "stoploss after tick:", stoploss , "stoploss%", stoplossPer);
+                                console.log(symbol + "  close avg middle ", bbmiddleValue,  "lowerest avg", bblowerValue);
                             
                                 var orderOption = {
                                     transactiontype: 'BUY',
@@ -596,7 +588,7 @@ class Home extends React.Component{
                                     stopLossPrice: stoploss
                                 }
                                 if(LtpData && LtpData.ltp > highestHigh && stoplossPer <= 1.5){ 
-                                this.placeOrderMethod(orderOption);
+                                   this.placeOrderMethod(orderOption);
                                 }else{
                                     localStorage.setItem('NseStock_' + LockedSymbolName, "");
                                     console.log(symbol + " its not fullfilled"); 
@@ -975,7 +967,7 @@ class Home extends React.Component{
                                     <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'darkmagenta' : '#00cbcb'}}><b>{row.pnl}</b></TableCell>
                                     <TableCell align="left">
                                         { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""} 
-                                        {new Date().getHours() >= 15 && new Date().getMinutes() > 30 ? row.percentPnL : ""}
+                                        {new Date().toLocaleTimeString() > "15:30:00" ? row.percentPnL : ""}
                                       </TableCell> 
                                     <TableCell align="left">{row.ltp}</TableCell>
                                   
@@ -1009,7 +1001,7 @@ class Home extends React.Component{
  
                                 <TableCell className="TableHeadFormat" align="left">
                                     
-                                {new Date().getHours() >= 15 && new Date().getMinutes() > 30 ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) : ""}
+                                {new Date().toLocaleTimeString() > "15:30:00" ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) : ""}
                     
                                 </TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>

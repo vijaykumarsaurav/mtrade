@@ -75,7 +75,7 @@ async function searchSectorWise(){
 }
 
 var sectorInterval = setInterval(() => {
-    if(new Date().getHours() >= 9 && new Date().getHours() <16){
+    if(new Date().toLocaleTimeString() < "15:10:00"){
      refreshApi('loadLiveMarketIndices'); 
      setTimeout(() => {
          searchSectorWise(); 

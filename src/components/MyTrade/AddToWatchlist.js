@@ -199,7 +199,7 @@ class MyView extends React.Component{
                   </Typography>
                          
 
-                    <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '30%'}}  label="Paste only JSON to add into watchlist"  value={this.state.addtowatchlist}   name="addtowatchlist" onChange={this.onChange}/>
+                    <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '50%'}}  label="Paste only JSON to add into watchlist"  value={this.state.addtowatchlist}   name="addtowatchlist" onChange={this.onChange}/>
               
 
                 </Grid>
