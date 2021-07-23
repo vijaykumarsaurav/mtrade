@@ -76,6 +76,10 @@ class AdminService {
         return axios.get(apiConstant.getNseTopStocks, '');
      }
 
+     getSelectedStockFromDb(){
+        return axios.get(apiConstant.getSelectedStock, '');
+     }
+
     //  getBNcpdata(){
     //     return axios.get(apiConstant.'', AuthService.getHeader());
     //  }

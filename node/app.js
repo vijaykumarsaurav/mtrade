@@ -15,7 +15,7 @@ var con = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "Minu@1990",
-  database: "stockhistory"
+  database: "mtrade"
 });
 
 con.connect(function(err) {
@@ -123,13 +123,14 @@ return;
 
 app.post('/saveCandleHistory', function (req, res) {
 
-  var sql = "insert into candledata (token,datetime, open, high,low,close, volume ) VALUES ?";
+  var sql = "insert into candle (token,symbol, datetime, open, high,low,close, volume ) VALUES ?";
   var data = req.body.data; 
   var token = req.body.token; 
+  var symbol = req.body.symbol; 
   var values = [];    
 
     data.forEach(element => {
-      values.push([ token, new Date( element[0] ), element[1],element[2],element[3],element[4],  element[5]]); 
+      values.push([ token,symbol,  new Date( element[0] ), element[1],element[2],element[3],element[4],  element[5]]); 
     });
 
     con.query(sql, [values],  function  (err, result) {
@@ -182,6 +183,29 @@ app.get('/getNseTopStocks', function (req, res) {
 return;
   
 });
+
+
+
+
+// my selected stocks
+app.get('/getSelectedStock', function (req, res) {
+
+  var selectedSql = "SELECT * FROM  mtrade.selected_stock"; 
+    con.query(selectedSql,  function  (err, result) {
+      if (err) throw err;
+      if(result.length > 0){
+        var response = {
+          result : result, 
+          message : "SUCCESS", 
+          status : true
+        }
+        res.status(200).send(response) ;
+      }
+      
+    });
+  return;
+});
+
 
   app.get('/saveScanList/:query', function (req, res) {
     const symbolName = req.params.query.toUpperCase(); 

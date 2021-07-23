@@ -17,3 +17,4 @@ export const getPosition =  'https://apiconnect.angelbroking.com/rest/secure/ang
 	
 export const getScannedStocks =  'http://localhost:8081/getScannedStocks'	
 export const getNseTopStocks =  'http://localhost:8081/getNseTopStocks'	
+export const getSelectedStock =  'http://localhost:8081/getSelectedStock'	

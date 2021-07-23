@@ -49,6 +49,9 @@ class Home extends React.Component{
         var scanendTime = moment('3:00pm', 'h:mma');
         if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
             this.setState({scaninterval :  setInterval(() => {this.getNSETopStock(); }, 5000)}) 
+            this.setState({selectedStockInteval :  setInterval(() => {this.getSelectedStock(); }, 5000)}) 
+
+            
             this.setState({candleHistoryInterval :  setInterval(() => {this.getCandleHistoryAndStore(); }, 1000 * 60 * 5)}) 
        //     this.setState({scaninterval :  setInterval(() => {this.findTweezerTopPattern() }, 5000)}) 
         }
@@ -56,7 +59,7 @@ class Home extends React.Component{
         // this.getPositionData();
         // this.getNSETopStock();
        // this.findTweezerTopPattern(); 
-      // this.getCandleHistoryAndStore(); 
+      this.getCandleHistoryAndStore(); 
     }
 
 
@@ -74,7 +77,8 @@ class Home extends React.Component{
        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
 
        const format1 = "YYYY-MM-DD HH:mm";
-       var time = moment.duration("31:10:00");
+       var time = moment.duration("05:10:00");
+     //  var time = moment.duration("00:50:00");
        var startdate = moment(new Date()).subtract(time);
        
 
@@ -98,10 +102,11 @@ class Home extends React.Component{
     
                     var data = {
                         data : candleData, 
-                        token: element.token
+                        token: element.token,
+                        symbol: element.symbol
                     }
                     AdminService.saveCandleHistory(data).then(storeRes=>{
-                        console.log("storeRes",storeRes); 
+                        console.log("storeRes", new Date().toLocaleTimeString(),storeRes); 
                     }); 
                 
                 }else{
@@ -339,6 +344,55 @@ class Home extends React.Component{
         }
 
     }
+
+
+    getSelectedStock(){
+
+        var stop = new Date().toLocaleTimeString() > "15:00:00" ? clearInterval(this.state.selectedStockInteval) : ""; 
+ 
+         var totalDayLoss = TradeConfig.totalCapital*TradeConfig.dailyLossPer/100; 
+         totalDayLoss = -Math.abs(totalDayLoss); 
+         if(this.state.todayProfitPnL < totalDayLoss) {
+             console.log("daily loss crossed",totalDayLoss); 
+             clearInterval(this.state.scaninterval);
+         }else{
+                AdminService.getSelectedStockFromDb().then(res => {
+                 let data = resolveResponse(res, "noPop");
+                 if(data.status  && data.message === 'SUCCESS'){ 
+                     var scandata =  data.result;   
+                    // console.log("scandata",scandata); 
+             
+                     for (let index = 0; index < scandata.length; index++) {
+                             var isFound = false; 
+                             for (let j = 0; j < this.state.positionList.length; j++) {
+                                  if(this.state.positionList[j].symbolname === scandata[index].symbolName){
+                                     isFound  = true; 
+                                  }
+                             }
+                            
+                          //   console.log("index",index, "symbolName",scandata[index].symbolName);    
+                             if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)){
+                                
+                                 AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
+ 
+                                     let searchResdata =  searchRes.data; 
+                                     var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === scandata[index].symbolName);                                
+                                    
+                                     if(found.length){
+                                         console.log(found[0].symbol, "found",found);      
+                                         localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
+                                         this.historyWiseOrderPlace(found[0].token, found[0].symbol,  scandata[index].symbolName);
+                                     }
+                                })
+                              
+                             }
+                     }
+                 }
+             })  
+         }
+ 
+     }
+
 
     checkAndPlaceSingleOrder = (stock)=>{
         AdminService.autoCompleteSearch(stock).then(res => {
@@ -836,8 +890,8 @@ class Home extends React.Component{
 
          }
 
-        let sqrOffbeginningTime = moment('3:10pm', 'h:mma');
-        let sqrOffendTime = moment('3:14pm', 'h:mma');
+        let sqrOffbeginningTime = moment('3:14pm', 'h:mma');
+        let sqrOffendTime = moment('3:15pm', 'h:mma');
         let sqrOffcurrentTime = moment(new Date(), "h:mma");
         if(sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)){
 
@@ -967,7 +1021,7 @@ class Home extends React.Component{
                                     <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'darkmagenta' : '#00cbcb'}}><b>{row.pnl}</b></TableCell>
                                     <TableCell align="left">
                                         { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""} 
-                                        {new Date().toLocaleTimeString() > "15:30:00" ? row.percentPnL : ""}
+                                        {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
                                       </TableCell> 
                                     <TableCell align="left">{row.ltp}</TableCell>
                                   
@@ -1001,7 +1055,7 @@ class Home extends React.Component{
  
                                 <TableCell className="TableHeadFormat" align="left">
                                     
-                                {new Date().toLocaleTimeString() > "15:30:00" ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) : ""}
+                                {new Date().toLocaleTimeString() > "15:15:00" ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) : ""}
                     
                                 </TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
