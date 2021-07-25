@@ -100,17 +100,18 @@ class Home extends React.Component{
 
             AdminService.getHistoryData(data).then(res => {
                 let histdata = resolveResponse(res,'noPop' );
-                //console.log("candle history", histdata); 
+                console.log("candle history", histdata); 
                 if(histdata && histdata.data && histdata.data.length){
                    
                     var candleData = histdata.data; 
                     //candleData.reverse(); 
                     var totalSet = parseInt(candleData.length/10); 
-                    for (let index2 = 0; index2 < totalSet; index2++) {
-                        var last10Candle = candleData.splice(1, 10);    
-                                
-                       // console.log(index2, last10Candle);
-                        this.findTweezerTopPattern(last10Candle,element.symbol);
+                    for (let index2 = 0; index2 < candleData.length-10; index2++) {
+                       // var startindex = index2 * 10; 
+                        var last10Candle = candleData.slice(index2, index2+10);    
+                        //console.log(index2, last10Candle);
+                        if(last10Candle.length)
+                        this.findTweezerTopPattern(last10Candle, element.symbol);
                     }
                 }else{
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -182,17 +183,30 @@ class Home extends React.Component{
         }
     }
 
-     findTweezerTopPattern = (histdata,symbol) => {
+     findTweezerTopPattern = (candleHist,symbol) => {
 
-        if(histdata && histdata.length > 0){
+        
+       // console.log("histdata",histdata.length); 
+      
+        if(candleHist && candleHist.length > 0){
 
-            var candleHist = histdata.reverse(); 
+            candleHist = candleHist.reverse(); 
+
+            var maxHigh = candleHist[2][2], maxLow = candleHist[2][3]; 
+            
+            for (let index = 3; index < candleHist.length; index++) {
+                if(maxHigh < candleHist[index][2])
+                maxHigh = candleHist[index][2];
+                if(candleHist[index][3] < maxLow)
+                maxLow = candleHist[index][3];  
+            } 
             
 
             var lastTrendCandleLow = candleHist[9][3]; 
             var firstTrendCandleHigh = candleHist[2][2]; 
 
             var firstCandle = {
+                time : candleHist[0][0],
                 open: candleHist[0][1],
                 high: candleHist[0][2],
                 low: candleHist[0][3],
@@ -200,6 +214,7 @@ class Home extends React.Component{
             }
             
             var secondCandle = {
+                time: candleHist[1][0],
                 open: candleHist[1][1],
                 high: candleHist[1][2],
                 low: candleHist[1][3],
@@ -207,27 +222,34 @@ class Home extends React.Component{
             }
 
             var diffPer = (firstTrendCandleHigh - lastTrendCandleLow)*100/lastTrendCandleLow;
+            var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
+            var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
             //uptrend movement 1.5% 
-            if(diffPer >= 1.5){
 
-
+           
+            if(diffPer >= 1.5 && maxHigh < highestOfBoth && maxLow < lowestOfBoth){
 
                 //1st candle green & 2nd candle is red check
-                if(secondCandle.close > secondCandle.open && firstCandle.open < firstCandle.close){ 
+                if(secondCandle.open < secondCandle.close && firstCandle.open > firstCandle.close){ 
                   // var candleWickHighDiff = (secondCandle.high - firstCandle.high)*100/secondCandle.high; 
 
-                  console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green');
+               // console.log(symbol, "candleHist",candleHist); 
 
-                console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
-                console.log(symbol, "histdata",candleHist); 
-                console.log(symbol,'more than 1.5% up');
-                console.log(symbol, 'making twisser 1st green & 2nd red');
 
-                    var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
-                    var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
-                    if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
+              //  console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+             
+              //  console.log(symbol, 'making twisser 1st green & 2nd red' , firstCandle, secondCandle );
 
-                        console.log(symbol, 'making twisser top close=open || open=close');
+                  
+                    if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) && Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
+
+
+
+                        console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
+                        console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
+
+                        console.log("candleHist",candleHist); 
+                        console.log(symbol, 'perfect twisser top done close=open || open=close', );
 
                     
                         // highestOfBoth = highestOfBoth + (highestOfBoth*0.16/100); //SL calculation
@@ -607,7 +629,7 @@ class Home extends React.Component{
                 
                     AdminService.getHistoryData(data).then(res => {
                         let histdata = resolveResponse(res,'noPop' );
-                        console.log("candle history", histdata); 
+                       // console.log("candle history", histdata); 
                         if(histdata && histdata.data && histdata.data.length){
                            
                             var candleData = histdata.data, clossest =0, lowerest=0, highestHigh = 0, lowestLow=0; 
