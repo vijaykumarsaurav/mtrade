@@ -49,17 +49,32 @@ class Home extends React.Component{
         var scanendTime = moment('3:00pm', 'h:mma');
         if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
             this.setState({scaninterval :  setInterval(() => {this.getNSETopStock(); }, 5000)}) 
-            this.setState({selectedStockInteval :  setInterval(() => {this.getSelectedStock(); }, 5000)}) 
+            this.setState({selectedStockInteval :  setInterval(() => {this.getMySelectedStock(); }, 5000)}) 
 
             
-            this.setState({candleHistoryInterval :  setInterval(() => {this.getCandleHistoryAndStore(); }, 1000 * 60 * 5)}) 
-       //     this.setState({scaninterval :  setInterval(() => {this.findTweezerTopPattern() }, 5000)}) 
+           // this.setState({candleHistoryInterval :  setInterval(() => {this.getCandleHistoryAndStore(); }, 1000 * 60 * 5)}) 
         }
 
         // this.getPositionData();
         // this.getNSETopStock();
-       // this.findTweezerTopPattern(); 
-      this.getCandleHistoryAndStore(); 
+     // this.getCandleHistoryAndStore(); 
+
+    //  this.getMySelectedStock();
+    this.backTestAnyPattern(); 
+    
+
+    // this.setState({selectedStockInteval : setInterval(() => {
+
+    //     var time = new Date(); 
+    //     if(time.getMinutes() % 5 === 0){
+    //         console.log("time", new Date().toLocaleTimeString() , time.getMinutes() % 5)
+    //         this.getCandleHistoryAndStore(); 
+    //     }
+
+    // }, 1000) }); 
+
+    
+
     }
 
 
@@ -69,45 +84,94 @@ class Home extends React.Component{
         clearInterval(this.state.bankNiftyInterval); 
     }
 
+    backTestAnyPattern = async() =>{
+
+        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
+        for (let index = 0; index < watchList.length; index++) {
+            const element = watchList[index];
+
+            var data  = {
+                "exchange": "NSE",
+                "symboltoken": element.token,
+                "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE 
+                "fromdate": moment("2021-07-01 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") //moment(this.state.endDate).format(format1) /
+            }
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res,'noPop' );
+                //console.log("candle history", histdata); 
+                if(histdata && histdata.data && histdata.data.length){
+                   
+                    var candleData = histdata.data; 
+                    //candleData.reverse(); 
+                    var totalSet = parseInt(candleData.length/10); 
+                    for (let index2 = 0; index2 < totalSet; index2++) {
+                        var last10Candle = candleData.splice(1, 10);    
+                                
+                       // console.log(index2, last10Candle);
+                        this.findTweezerTopPattern(last10Candle,element.symbol);
+                    }
+                }else{
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(" candle data emply"); 
+                }
+            })
+            await new Promise(r => setTimeout(r, 500));  
+        }
+
+    }
+
     getCandleHistoryAndStore = async()=> {
        
        var stop = new Date().toLocaleTimeString() > "15:00:00" ?  clearInterval(this.state.candleHistoryInterval) : ""; 
-
-
        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
+       const today = moment().isoWeekday();
+        var timediff = '';
+        if(new Date().toLocaleTimeString() > "10:05:00"){
+            timediff = moment.duration("00:50:00");
+        } else if (today === 1 && new Date().toLocaleTimeString() < "10:05:00"){
+            timediff = moment.duration("66:00:00");
+        }else{
+            timediff = moment.duration("18:00:00");
+        }
+        timediff = moment.duration("52:00:00");
 
-       const format1 = "YYYY-MM-DD HH:mm";
-       var time = moment.duration("05:10:00");
-     //  var time = moment.duration("00:50:00");
-       var startdate = moment(new Date()).subtract(time);
-       
+        const format1 = "YYYY-MM-DD HH:mm";       
+        var startdate = moment(new Date()).subtract(timediff);
 
         for (let index = 0; index < watchList.length; index++) {
             const element = watchList[index];
             var data  = {
                 "exchange": "NSE",
                 "symboltoken": element.token,
-                "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE 
+                "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE 
                 "fromdate": moment(startdate).format(format1) , 
                 "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
             }
 
             AdminService.getHistoryData(data).then(res => {
                 let histdata = resolveResponse(res,'noPop' );
-                console.log("candle history", histdata); 
+                //console.log("candle history", histdata); 
                 if(histdata && histdata.data && histdata.data.length){
                    
                     var candleData = histdata.data; 
                     candleData.reverse(); 
-    
-                    var data = {
-                        data : candleData, 
-                        token: element.token,
-                        symbol: element.symbol
+                    var  last10Candle = []; 
+                    for (let index = 0; index < 10; index++) {
+                        last10Candle.push( candleData[index])
                     }
-                    AdminService.saveCandleHistory(data).then(storeRes=>{
-                        console.log("storeRes", new Date().toLocaleTimeString(),storeRes); 
-                    }); 
+
+                    this.findTweezerTopPattern(last10Candle,element.symbol);
+
+                    // var data = {
+                    //     data : candleData, 
+                    //     token: element.token,
+                    //     symbol: element.symbol
+                    // }
+                    // AdminService.saveCandleHistory(data).then(storeRes=>{
+                    //     console.log("storeRes", new Date().toLocaleTimeString(),storeRes); 
+                    // }); 
                 
                 }else{
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -118,140 +182,83 @@ class Home extends React.Component{
         }
     }
 
-     findTweezerTopPattern = async() => {
+     findTweezerTopPattern = (histdata,symbol) => {
 
-        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
-       
-        for (let index = 0; index < watchList.length; index++) {
+        if(histdata && histdata.length > 0){
+
+            var candleHist = histdata.reverse(); 
             
-            const format1 = "YYYY-MM-DD HH:mm";
-            var time = moment.duration("20:10:00");
-            var startdate = moment(new Date()).subtract(time);
 
-             console.log("watchlist item",  watchList[index].symbol);
-             var data  = {
-                "exchange": "NSE",
-                "symboltoken": watchList[index].token ,
-                "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE 
-                "fromdate": moment(startdate).format(format1) , 
-                "todate": moment(new Date()).format(format1)
+            var lastTrendCandleLow = candleHist[9][3]; 
+            var firstTrendCandleHigh = candleHist[2][2]; 
+
+            var firstCandle = {
+                open: candleHist[0][1],
+                high: candleHist[0][2],
+                low: candleHist[0][3],
+                close: candleHist[0][4]
             }
-        
-            AdminService.getHistoryData(data).then(res => {
-                let histdata = resolveResponse(res,'noPop' );
-
-                console.log("got candle data",  watchList[index].symbol);
-                if(histdata && histdata.data.length > 0){
-
-                    var candleHist = histdata.data.reverse(); 
-
-                
-                    var lastTrendCandleLow = candleHist[9][3]; 
-                    var firstTrendCandleHigh = candleHist[2][2]; 
-
-                    var firstCandle = {
-                        open: candleHist[0][1],
-                        high: candleHist[0][2],
-                        low: candleHist[0][3],
-                        close: candleHist[0][4]
-                    }
-                    
-                    var secondCandle = {
-                        open: candleHist[1][1],
-                        high: candleHist[1][2],
-                        low: candleHist[1][3],
-                        close: candleHist[1][4]
-                    }
-
-                    var diffPer = (firstTrendCandleHigh - lastTrendCandleLow)*100/lastTrendCandleLow;
-                    console.log("last 8th candle diff% ",  diffPer, "8th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
-                    //uptrend movement 1.5% 
-                    if(diffPer >= 1.5){
-
-                        console.log( 'more than 1.5% up', watchList[index].symbol);
-                        //1st candle green & 2nd candle is red check
-                        if(secondCandle.close > secondCandle.open && firstCandle.open < firstCandle.close){ 
-                          // var candleWickHighDiff = (secondCandle.high - firstCandle.high)*100/secondCandle.high; 
-
-                          console.log( 'making twisser top candlewise', watchList[index].symbol, new Date().toLocaleString());
-
-                            var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
-                            var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
-                            if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
-
-                                console.log('making twisser top close=open || open=close', watchList[index].symbol, new Date().toLocaleString());
-
-                            
-                                highestOfBoth = highestOfBoth + (highestOfBoth*0.16/100); //SL calculation
-                                var stopLossPrice = this.getMinPriceAllowTick(highestOfBoth); 
-                                let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
-                                let quantity = Math.floor(perTradeExposureAmt/lowestOfBoth); 
-
-                                quantity = quantity>0 ? 1 : 0; 
-                                var orderOption = {
-                                    transactiontype: 'SELL',
-                                    tradingsymbol: watchList[index].symbol,
-                                    symboltoken:watchList[index].token,
-                                    buyPrice : 0,
-                                    quantity: quantity, 
-                                    stopLossPrice: stopLossPrice,
-                                    entryBelow : lowestOfBoth
-                                }
-                                if(quantity){
-                                    localStorage.setItem('foundTweezerTop_'+watchList[index].token, JSON.stringify(orderOption)); 
-                                }
-
-                            //     var data  = {
-                            //         "exchange":"NSE",
-                            //         "tradingsymbol": watchList[index].symbol,
-                            //         "symboltoken":watchList[index].token,
-                            //     }
-                            //     AdminService.getLTP(data).then(res => {
-                            //          let data = resolveResponse(res, 'noPop');
-                            //          var LtpData = data && data.data; 
-                            //          if(LtpData && LtpData.ltp && LtpData.ltp  < lowestOfBoth){
-
-                            //             console.log( 'pefect time to sell ', watchList[index].symbol);
-                                        
-                            //             highestOfBoth = highestOfBoth + (highestOfBoth*0.16/100); //SL calculation
-                            //             var stopLossPrice = this.getMinPriceAllowTick(highestOfBoth); 
-                            //             let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
-                            //             let quantity = Math.floor(perTradeExposureAmt/LtpData.ltp); 
-                            //             console.log( watchList[index].symbol + 'ltp '+ LtpData.ltp , "quantity",quantity,"stopLossPrice",stopLossPrice, "perTradeExposureAmt",perTradeExposureAmt ); 
-                            //             var orderOption = {
-                            //                   transactiontype: 'SELL',
-                            //                   tradingsymbol: watchList[index].symbol,
-                            //                   symboltoken:watchList[index].token,
-                            //                   buyPrice : 0,
-                            //                   quantity: quantity, 
-                            //                   stopLossPrice: stopLossPrice
-                            //               }
-                          
-                            //             if(quantity && stopLossPrice){
-                            //              // this.placeOrderMethod(orderOption);   
-                            //             }
-                            //         }
-                            //    })
-
-                            }
-                        }
-                    }
-
-                    
-                    // for (let indexj = 0; indexj < 10; indexj++) {
-                    //     console.log( watchList[index].symbol ," candle history ", candleHist[indexj][0], candleHist[indexj][1]); 
-                        
-                    //     var lastCandle = candleHist[indexj][9]; 
-                    // }
-                }
-            });
-
             
+            var secondCandle = {
+                open: candleHist[1][1],
+                high: candleHist[1][2],
+                low: candleHist[1][3],
+                close: candleHist[1][4]
+            }
 
-            await new Promise(r => setTimeout(r, 500));   
+            var diffPer = (firstTrendCandleHigh - lastTrendCandleLow)*100/lastTrendCandleLow;
+            //uptrend movement 1.5% 
+            if(diffPer >= 1.5){
+
+
+
+                //1st candle green & 2nd candle is red check
+                if(secondCandle.close > secondCandle.open && firstCandle.open < firstCandle.close){ 
+                  // var candleWickHighDiff = (secondCandle.high - firstCandle.high)*100/secondCandle.high; 
+
+                  console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green');
+
+                console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+                console.log(symbol, "histdata",candleHist); 
+                console.log(symbol,'more than 1.5% up');
+                console.log(symbol, 'making twisser 1st green & 2nd red');
+
+                    var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
+                    var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
+                    if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
+
+                        console.log(symbol, 'making twisser top close=open || open=close');
+
+                    
+                        // highestOfBoth = highestOfBoth + (highestOfBoth*0.16/100); //SL calculation
+                        // var stopLossPrice = this.getMinPriceAllowTick(highestOfBoth); 
+                        // let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
+                        // let quantity = Math.floor(perTradeExposureAmt/lowestOfBoth); 
+
+                        // quantity = quantity>0 ? 1 : 0; 
+                        // var orderOption = {
+                        //     transactiontype: 'SELL',
+                        //     tradingsymbol: watchList[index].symbol,
+                        //     symboltoken:watchList[index].token,
+                        //     buyPrice : 0,
+                        //     quantity: quantity, 
+                        //     stopLossPrice: stopLossPrice,
+                        //     entryBelow : lowestOfBoth
+                        // }
+                        // if(quantity){
+                        //     localStorage.setItem('foundTweezerTop_'+watchList[index].token, JSON.stringify(orderOption)); 
+                        // }
+
+                 
+                    }
+                }
+            }
+
         }
 
     }
+
+
     getStoplossFromOrderbook = (row) => {
        var oderbookData = localStorage.getItem('oderbookData'); 
        oderbookData =  JSON.parse(oderbookData);
@@ -346,7 +353,7 @@ class Home extends React.Component{
     }
 
 
-    getSelectedStock(){
+    getMySelectedStock(){
 
         var stop = new Date().toLocaleTimeString() > "15:00:00" ? clearInterval(this.state.selectedStockInteval) : ""; 
  
@@ -365,7 +372,7 @@ class Home extends React.Component{
                      for (let index = 0; index < scandata.length; index++) {
                              var isFound = false; 
                              for (let j = 0; j < this.state.positionList.length; j++) {
-                                  if(this.state.positionList[j].symbolname === scandata[index].symbolName){
+                                  if(this.state.positionList[j].symbolname === scandata[index].symbol){
                                      isFound  = true; 
                                   }
                              }
@@ -379,9 +386,11 @@ class Home extends React.Component{
                                      var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === scandata[index].symbolName);                                
                                     
                                      if(found.length){
-                                         console.log(found[0].symbol, "found",found);      
-                                         localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
-                                         this.historyWiseOrderPlace(found[0].token, found[0].symbol,  scandata[index].symbolName);
+
+                                        var selectedStockwatchList = localStorage.getItem("selectedStockwatchList") ? JSON.parse(localStorage.getItem("selectedStockwatchList")) : []; 
+                                        selectedStockwatchList.push(found[0]); 
+                                        localStorage.setItem('selectedStockwatchList', JSON.stringify(selectedStockwatchList));
+
                                      }
                                 })
                               

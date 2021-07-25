@@ -127,6 +127,7 @@ class MyView extends React.Component{
               //     }
               // }
               if(!foundInWatchlist.length){
+                
                  
                 this.setState({resMessage: [...this.state.resMessage,  index + ". ======================> New Symbol:  "+ element.SYMBOL]})
 
