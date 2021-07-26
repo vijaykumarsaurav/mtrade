@@ -50,28 +50,24 @@ class Home extends React.Component{
         if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
             this.setState({scaninterval :  setInterval(() => {this.getNSETopStock(); }, 5000)}) 
             this.setState({selectedStockInteval :  setInterval(() => {this.getMySelectedStock(); }, 5000)}) 
-
-            
-           // this.setState({candleHistoryInterval :  setInterval(() => {this.getCandleHistoryAndStore(); }, 1000 * 60 * 5)}) 
+       
+            this.setState({selectedStockInteval : setInterval(() => {
+                var time = new Date(); 
+                if(time.getMinutes() % 5 === 0){
+                    this.getCandleHistoryAndStore(); 
+                }
+            }, 1000) }); 
         }
 
-        // this.getPositionData();
-        // this.getNSETopStock();
+    // this.getPositionData();
+    // this.getNSETopStock();
      // this.getCandleHistoryAndStore(); 
 
     //  this.getMySelectedStock();
     this.backTestAnyPattern(); 
     
 
-    // this.setState({selectedStockInteval : setInterval(() => {
-
-    //     var time = new Date(); 
-    //     if(time.getMinutes() % 5 === 0){
-    //         console.log("time", new Date().toLocaleTimeString() , time.getMinutes() % 5)
-    //         this.getCandleHistoryAndStore(); 
-    //     }
-
-    // }, 1000) }); 
+  
 
     
 
@@ -100,18 +96,21 @@ class Home extends React.Component{
 
             AdminService.getHistoryData(data).then(res => {
                 let histdata = resolveResponse(res,'noPop' );
-                console.log("candle history", histdata); 
+                //console.log("candle history", histdata); 
                 if(histdata && histdata.data && histdata.data.length){
                    
                     var candleData = histdata.data; 
                     //candleData.reverse(); 
                     var totalSet = parseInt(candleData.length/10); 
-                    for (let index2 = 0; index2 < candleData.length-10; index2++) {
+                    for (let index2 = 0; index2 < candleData.length-20; index2++) {
                        // var startindex = index2 * 10; 
                         var last10Candle = candleData.slice(index2, index2+10);    
+                        var next10Candle = candleData.slice(index2+10 , index2+20 );    
                         //console.log(index2, last10Candle);
                         if(last10Candle.length)
-                        this.findTweezerTopPattern(last10Candle, element.symbol);
+                        this.findTweezerTopPattern(last10Candle, element.symbol, next10Candle);
+
+
                     }
                 }else{
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -183,7 +182,7 @@ class Home extends React.Component{
         }
     }
 
-     findTweezerTopPattern = (candleHist,symbol) => {
+     findTweezerTopPattern = (candleHist,symbol, next10Candle) => {
 
         
        // console.log("histdata",histdata.length); 
@@ -193,7 +192,6 @@ class Home extends React.Component{
             candleHist = candleHist.reverse(); 
 
             var maxHigh = candleHist[2][2], maxLow = candleHist[2][3]; 
-            
             for (let index = 3; index < candleHist.length; index++) {
                 if(maxHigh < candleHist[index][2])
                 maxHigh = candleHist[index][2];
@@ -248,10 +246,43 @@ class Home extends React.Component{
                         console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
                         console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
 
-                        console.log("candleHist",candleHist); 
+                        console.log("last10Candle",candleHist); 
                         console.log(symbol, 'perfect twisser top done close=open || open=close', );
 
-                    
+                        console.log("next10Candle",next10Candle); 
+                        
+
+                        next10Candle = next10Candle.reverse(); 
+                        
+                        var maxHighTarget = candleHist[2][2], maxLowTarget = candleHist[2][3]; 
+                        for (let indexTarget = 3; indexTarget < next10Candle.length; indexTarget++) {
+                            if(maxHighTarget < next10Candle[indexTarget][2])
+                            maxHighTarget = next10Candle[indexTarget][2];
+                            if(next10Candle[indexTarget][3] < maxLowTarget)
+                            maxLowTarget = next10Candle[indexTarget][3];  
+                        } 
+
+
+                        var twisserTopList = localStorage.getItem("twisserTopList") ? JSON.parse(localStorage.getItem("twisserTopList")) : []; 
+                        
+                        
+                        var foundStock = {
+                            foundAt: new Date( candleHist[0][0]).toString(), 
+                            symbol : symbol, 
+                            sellEntyPrice : lowestOfBoth-lowestOfBoth/50/10, 
+                            stopLoss : highestOfBoth+highestOfBoth/50/20, 
+                            orderActivated: false, 
+                            buyExitPrice : 0,
+                        }
+                        if(maxLowTarget < foundStock.sellEntyPrice ){
+                            foundStock.orderActivated = true;
+                            buyExitPrice = maxLowTarget; 
+                            afterFoundMaxHigherMovement = maxHighTarget
+                        }
+
+                        twisserTopList.push(foundStock); 
+
+                        localStorage.setItem('twisserTopList', JSON.stringify(twisserTopList));
                         // highestOfBoth = highestOfBoth + (highestOfBoth*0.16/100); //SL calculation
                         // var stopLossPrice = this.getMinPriceAllowTick(highestOfBoth); 
                         // let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
