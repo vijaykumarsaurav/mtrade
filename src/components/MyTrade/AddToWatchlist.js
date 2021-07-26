@@ -196,6 +196,10 @@ class MyView extends React.Component{
                 <Grid item xs={12} sm={8}> 
                 <Typography variant="h6">
                    Current Watchlist Count   {this.state.watchlistCount} 
+
+                   &nbsp; &nbsp;   &nbsp; &nbsp;   &nbsp; &nbsp;  
+                   <Button  onClick={() => localStorage.setItem('watchList', [])}>Delete All</Button>    
+
                    <br />
                   </Typography>
                          
@@ -212,6 +216,9 @@ class MyView extends React.Component{
                     <Button variant="contained" color="primary" onClick={() => this.readCsv()}> Add to Watchlist</Button>    &nbsp; &nbsp;
                     <Button variant="contained" color="secondary" onClick={() => this.resetCsv()}>Reset</Button>    
                 &nbsp; &nbsp;   <b>Total Added: {this.state.counter}</b>
+
+
+
                    
                     {/* {this.state.notAddedSymbol? "Already in list: " + this.state.notAddedSymbol : "" }
                     {this.state.addedSymbol? "Added: " + this.state.addedSymbol : "" }

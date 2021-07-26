@@ -64,7 +64,7 @@ async function searchSectorWise(){
                      }
                     console.log(softedData[i].indexSymbol+ ' ' + softedData[i].percentChange + "%  Top stocks : ", JSON.stringify( list)); 
                     if(list.length){
-                     // fetch('http://localhost:8081/saveNSEList/'+JSON.stringify(list)).then(response => console.log(response.statusText)); 
+                      fetch('http://localhost:8081/saveNSEList/'+JSON.stringify(list)).then(response => console.log(response.statusText)); 
                     }
                 }
              

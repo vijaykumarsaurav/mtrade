@@ -164,6 +164,12 @@ export default function PostLoginNavBar(props) {
                                 >
 
                     
+                             <Grid item>
+                                    <Button  autoFocus href={"#/addtowatchlist"}  >
+                                       WatchLit({localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')).length})
+                                    </Button>
+                              </Grid>
+
 
 
                             <Grid item>

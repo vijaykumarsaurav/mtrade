@@ -36,14 +36,14 @@ class Home extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            userName: "",
-            password: "",
+            sumPercentage:0,
             autoSearchList :[],
             isDasable:false,
             isError:false,
             InstrumentLTP : {},
             ifNotBought : true,
             autoSearchTemp : [],
+            twisserTopList : [],
             symboltoken: "", 
             tradingsymbol : "" ,
             buyPrice : 0,
@@ -140,7 +140,12 @@ class Home extends React.Component{
         var userProfile = JSON.parse(localStorage.getItem("userProfile")); 
         var clientcode =   userProfile &&  userProfile.clientcode;
         this.setState({ feedToken : feedToken,clientcode : clientcode  });
+     
+     
+        this.backTestAnyPattern(); 
 
+     //  this.setState({twisserTopList: localStorage.getItem('twisserTopList') && JSON.parse(localStorage.getItem('twisserTopList'))})
+        
             
        wsClint.onopen  = (res) => {
 
@@ -213,6 +218,154 @@ class Home extends React.Component{
         //     })    
         // }, 2000);
       
+    }
+
+    backTestAnyPattern = async() =>{
+
+        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
+        for (let index = 0; index < watchList.length; index++) {
+            const element = watchList[index];
+
+            var data  = {
+                "exchange": "NSE",
+                "symboltoken": element.token,
+                "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment("2021-07-01 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") //moment(this.state.endDate).format(format1) /
+            }
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res,'noPop' );
+                //console.log("candle history", histdata); 
+                if(histdata && histdata.data && histdata.data.length){
+                   
+                    var candleData = histdata.data; 
+                  //  candleData.reverse(); 
+                    var totalSet = parseInt(candleData.length/10); 
+                    for (let index2 = 0; index2 < candleData.length-35; index2++) {
+                       // var startindex = index2 * 10; 
+                        var last10Candle = candleData.slice(index2, index2+10);    
+                        var next10Candle = candleData.slice(index2+10 , index2+35 );    
+                       
+                       // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+
+                        console.log('\n'); //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
+                        if(last10Candle.length >= 10  && new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"){
+                            this.findTweezerTopPattern(last10Candle, element.symbol, next10Candle);
+                        }
+
+                    }
+                }else{
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(" candle data emply"); 
+                }
+            })
+            await new Promise(r => setTimeout(r, 300));  
+        }
+
+    }
+
+    findTweezerTopPattern = (candleHist,symbol, next10Candle) => {
+
+        if(candleHist && candleHist.length > 0){
+
+            candleHist = candleHist.reverse(); 
+           // console.log(symbol, "candleHist",candleHist, new Date().toString()); 
+
+
+            var maxHigh = candleHist[2] && candleHist[2][2], maxLow = candleHist[2] && candleHist[2][3]; 
+            for (let index = 3; index < candleHist.length; index++) {
+                if(maxHigh < candleHist[index][2])
+                maxHigh = candleHist[index][2];
+                if(candleHist[index][3] < maxLow)
+                maxLow = candleHist[index][3];  
+            } 
+            
+
+            var lastTrendCandleLow = candleHist[9][3]; 
+            var firstTrendCandleHigh = candleHist[2][2]; 
+
+            var firstCandle = {
+                time : candleHist[0]  && candleHist[0][0],
+                open: candleHist[0]  && candleHist[0][1],
+                high: candleHist[0]  && candleHist[0][2],
+                low: candleHist[0]  && candleHist[0][3],
+                close: candleHist[0]  && candleHist[0][4]
+            }
+            var secondCandle = {
+                time:candleHist[1] && candleHist[1][0],
+                open: candleHist[1] && candleHist[1][1],
+                high: candleHist[1] && candleHist[1][2],
+                low: candleHist[1] && candleHist[1][3],
+                close: candleHist[1] && candleHist[1][4]
+            }
+            
+           
+
+            var diffPer = (firstTrendCandleHigh - lastTrendCandleLow)*100/lastTrendCandleLow;
+            var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
+            var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
+            //uptrend movement 1.5% 
+        //    console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+
+            
+            if(diffPer >= 1.5 && maxHigh < highestOfBoth && maxLow < lowestOfBoth){
+                //1st candle green & 2nd candle is red check
+                if(secondCandle.open < secondCandle.close && firstCandle.open > firstCandle.close){ 
+               // console.log(symbol, "candleHist",candleHist); 
+              //  console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+              //  console.log(symbol, 'making twisser 1st green & 2nd red' , firstCandle, secondCandle );
+
+                    if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) && Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
+
+                        console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
+                        console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+
+                        console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
+                        console.log("last10Candle",candleHist); 
+                        console.log(symbol, 'perfect twisser top done close=open || open=close', );
+                        console.log("next10Candle",next10Candle); 
+                        
+                        if(next10Candle && next10Candle.length){
+                           // next10Candle = next10Candle.reverse(); 
+                        
+                           var lowestof315 = 0; 
+                            for (let indexTarget = 0; indexTarget < next10Candle.length; indexTarget++) {
+                                if(new Date(next10Candle[indexTarget][0]).toLocaleTimeString()  == "15:15:00"){
+                                    lowestof315 = next10Candle[indexTarget][4];
+                                    break; 
+                                }
+                            } 
+    
+                            var twisserTopList = localStorage.getItem("twisserTopList") ? JSON.parse(localStorage.getItem("twisserTopList")) : []; 
+                            var foundStock = {
+                                foundAt: new Date( candleHist[0][0]).toLocaleString(), 
+                                symbol : symbol, 
+                                sellEntyPrice : (lowestOfBoth - (lowestOfBoth/100/10)).toFixed(2), 
+                                stopLoss : (highestOfBoth + (highestOfBoth/100/10)).toFixed(2), 
+                                orderActivated: false, 
+                                buyExitPrice : 0,
+                            }
+                            if(next10Candle[0][3]  < lowestOfBoth || next10Candle[1][3] < lowestOfBoth || next10Candle[2][3] < lowestOfBoth){
+                                foundStock.orderActivated = true;
+                                foundStock.buyExitPrice = lowestof315; 
+                                foundStock.afterFoundMaxHigherMovement = '';
+                                foundStock.perChange = ((foundStock.sellEntyPrice - foundStock.buyExitPrice)*100/foundStock.sellEntyPrice).toFixed(2);
+                            }
+    
+                            twisserTopList.push(foundStock); 
+
+                            this.setState({twisserTopList : [...this.state.twisserTopList, foundStock]})
+    
+                            localStorage.setItem('twisserTopList', JSON.stringify(twisserTopList));
+                        }
+            
+                    }
+                }
+            }
+
+        }
+
     }
 
     placeOrder = (transactiontype, slmOrderType) => {
@@ -396,6 +549,8 @@ class Home extends React.Component{
         //     secondLavel : "End Date and Time"
         //   }
 
+        var sumPerChange = 0;
+
         return(
             <React.Fragment>
                  <PostLoginNavBar/>
@@ -529,6 +684,61 @@ class Home extends React.Component{
 
                         </Paper>
 
+                        <Paper style={{padding:"10px", overflow:"auto"}} >
+                        <Table  size="small"   aria-label="sticky table" >
+                            <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
+                                <TableRow   variant="head" style={{fontWeight: 'bold'}}>
+
+                                    <TableCell className="TableHeadFormat" align="center">symbol</TableCell>
+                                    <TableCell className="TableHeadFormat" align="center">foundAt</TableCell>
+                                    <TableCell  className="TableHeadFormat" align="center">sellEntyPrice</TableCell>
+                                    <TableCell  className="TableHeadFormat"   align="center">buyExitPrice</TableCell>
+                                    <TableCell  className="TableHeadFormat"   align="center">perChange</TableCell>
+
+
+                                    <TableCell  className="TableHeadFormat" align="center">stopLoss</TableCell>
+                                    <TableCell className="TableHeadFormat" align="center">orderActivated </TableCell>
+
+                                    <TableCell  className="TableHeadFormat"   align="center">afterFoundMaxHigherMovement</TableCell>
+
+                                </TableRow>
+                            </TableHead>
+                            <TableBody style={{width:"",whiteSpace: "nowrap"}}>
+
+
+                                { this.state.twisserTopList ? this.state.twisserTopList.map((row, i) => (
+                                    <TableRow key={i} >
+
+                                        <TableCell align="left">{row.symbol}</TableCell>
+                                        <TableCell align="center">{row.foundAt}</TableCell>
+                                        <TableCell align="center">{row.sellEntyPrice}</TableCell>
+                                        <TableCell align="center">{row.buyExitPrice}</TableCell>
+                                        <TableCell align="center" {...sumPerChange =    sumPerChange + parseFloat(row.perChange || 0) }> <b>{row.perChange}</b></TableCell>
+                                        
+                                        <TableCell align="center">{row.stopLoss}</TableCell>
+                                        <TableCell align="center">{row.orderActivated}</TableCell>
+                                    
+                                        <TableCell align="center">{row.afterFoundMaxHigherMovement}</TableCell>
+                                    
+                                    </TableRow>
+                                )):''}
+
+
+                                <TableRow >
+
+                                <TableCell align="center" colSpan={4}></TableCell>
+                                <TableCell align="center"><b>{sumPerChange.toFixed(2)}</b></TableCell>
+                                <TableCell align="center" colSpan={3}></TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+
+
+
+                        </Paper>
+
+
+                        
 
                         {/* <Position /> */}
                         </Grid>

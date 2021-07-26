@@ -38,7 +38,7 @@ class Home extends React.Component{
         const today = moment().isoWeekday();
         //market hours
         if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
-            this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 2002)}) 
+        //   this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 2002)}) 
           //  this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
         }else{
             clearInterval(this.state.positionInterval);
@@ -48,28 +48,62 @@ class Home extends React.Component{
     
         var scanendTime = moment('3:00pm', 'h:mma');
         if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
-            this.setState({scaninterval :  setInterval(() => {this.getNSETopStock(); }, 5000)}) 
-            this.setState({selectedStockInteval :  setInterval(() => {this.getMySelectedStock(); }, 5000)}) 
-       
-            this.setState({selectedStockInteval : setInterval(() => {
+          //  this.setState({scaninterval :  setInterval(() => {this.getNSETopStock(); }, 5000)}) 
+            //this.setState({selectedStockInteval :  setInterval(() => {this.getMySelectedStock(); }, 5000)}) 
+            
+
+            
+            var tostartInteral =   setInterval(() => {
                 var time = new Date(); 
                 if(time.getMinutes() % 5 === 0){
-                    this.getCandleHistoryAndStore(); 
-                }
-            }, 1000) }); 
-        }
+                    clearInterval(tostartInteral); 
+                    setInterval(() => {
+                        this.getCandleHistoryAndStore(); 
+                     }, 60000 * 5 + 70000 );  
+                } 
+            }, 1000);
+            
+          
+        } 
+
+       // this.getCandleHistoryAndStore(); 
 
     // this.getPositionData();
     // this.getNSETopStock();
-     // this.getCandleHistoryAndStore(); 
+     
 
     //  this.getMySelectedStock();
-    this.backTestAnyPattern(); 
-    
-
-  
 
     
+
+    // setInterval(() => {
+        
+    //     var timediff = moment.duration("00:50:00");
+    //     var startdate = moment(new Date()).subtract(timediff);
+    
+
+    //     var enddiff = moment.duration("00:01:00");
+    //     var enddate = moment(new Date()).add(enddiff);
+
+
+    //     var data  = {
+    //         "exchange": "NSE",
+    //         "symboltoken": 212,
+    //         "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE
+    //         "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm") , 
+    //         "todate": moment(enddate).format("YYYY-MM-DD HH:mm") , //moment(this.state.endDate).format(format1) /
+    //     }
+    
+    //     AdminService.getHistoryData(data).then(res => { 
+    //         let histdata = resolveResponse(res,'noPop' );
+    //         var candleData = histdata.data; 
+    //         candleData.reverse(); 
+    //         console.log( new Date().toLocaleTimeString(),"testlive", candleData[0])
+    //     }); 
+
+    // }, 1000);
+
+   
 
     }
 
@@ -80,50 +114,11 @@ class Home extends React.Component{
         clearInterval(this.state.bankNiftyInterval); 
     }
 
-    backTestAnyPattern = async() =>{
-
-        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
-        for (let index = 0; index < watchList.length; index++) {
-            const element = watchList[index];
-
-            var data  = {
-                "exchange": "NSE",
-                "symboltoken": element.token,
-                "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE 
-                "fromdate": moment("2021-07-01 09:15").format("YYYY-MM-DD HH:mm") , 
-                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") //moment(this.state.endDate).format(format1) /
-            }
-
-            AdminService.getHistoryData(data).then(res => {
-                let histdata = resolveResponse(res,'noPop' );
-                //console.log("candle history", histdata); 
-                if(histdata && histdata.data && histdata.data.length){
-                   
-                    var candleData = histdata.data; 
-                    //candleData.reverse(); 
-                    var totalSet = parseInt(candleData.length/10); 
-                    for (let index2 = 0; index2 < candleData.length-20; index2++) {
-                       // var startindex = index2 * 10; 
-                        var last10Candle = candleData.slice(index2, index2+10);    
-                        var next10Candle = candleData.slice(index2+10 , index2+20 );    
-                        //console.log(index2, last10Candle);
-                        if(last10Candle.length)
-                        this.findTweezerTopPattern(last10Candle, element.symbol, next10Candle);
-
-
-                    }
-                }else{
-                    //localStorage.setItem('NseStock_' + symbol, "");
-                    console.log(" candle data emply"); 
-                }
-            })
-            await new Promise(r => setTimeout(r, 500));  
-        }
-
-    }
+  
 
     getCandleHistoryAndStore = async()=> {
-       
+
+        console.log("getCandleHistoryAndStore called", new Date().toLocaleTimeString()); 
        var stop = new Date().toLocaleTimeString() > "15:00:00" ?  clearInterval(this.state.candleHistoryInterval) : ""; 
        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
        const today = moment().isoWeekday();
@@ -133,9 +128,9 @@ class Home extends React.Component{
         } else if (today === 1 && new Date().toLocaleTimeString() < "10:05:00"){
             timediff = moment.duration("66:00:00");
         }else{
-            timediff = moment.duration("18:00:00");
+            timediff = moment.duration("16:00:00");
         }
-        timediff = moment.duration("52:00:00");
+       // timediff = moment.duration("52:00:00");
 
         const format1 = "YYYY-MM-DD HH:mm";       
         var startdate = moment(new Date()).subtract(timediff);
@@ -145,7 +140,7 @@ class Home extends React.Component{
             var data  = {
                 "exchange": "NSE",
                 "symboltoken": element.token,
-                "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE 
+                "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE  
                 "fromdate": moment(startdate).format(format1) , 
                 "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
             }
@@ -157,12 +152,13 @@ class Home extends React.Component{
                    
                     var candleData = histdata.data; 
                     candleData.reverse(); 
-                    var  last10Candle = []; 
-                    for (let index = 0; index < 10; index++) {
-                        last10Candle.push( candleData[index])
-                    }
 
-                    this.findTweezerTopPattern(last10Candle,element.symbol);
+                    if(candleData && candleData.length >= 10){
+                        var last10Candle = candleData.slice(0, 10);    
+                        this.findTweezerTopPatternLive(last10Candle, element.symbol);
+
+                        //console.log(index+1, element.symbol, 'verifying TT pattern'); 
+                    }
 
                     // var data = {
                     //     data : candleData, 
@@ -178,20 +174,25 @@ class Home extends React.Component{
                     console.log(" candle data emply"); 
                 }
             })
-            await new Promise(r => setTimeout(r, 500));  
+            await new Promise(r => setTimeout(r, 350));  
         }
+
+
     }
 
-     findTweezerTopPattern = (candleHist,symbol, next10Candle) => {
+    findTweezerTopPatternLive = (candleHist,symbol, next10Candle) => {
 
         
-       // console.log("histdata",histdata.length); 
       
         if(candleHist && candleHist.length > 0){
 
-            candleHist = candleHist.reverse(); 
+            //candleHist = candleHist.reverse(); 
 
-            var maxHigh = candleHist[2][2], maxLow = candleHist[2][3]; 
+
+            console.log(symbol, "candleHist",candleHist, new Date().toString()); 
+
+
+            var maxHigh = candleHist[2] && candleHist[2][2], maxLow = candleHist[2] && candleHist[2][3]; 
             for (let index = 3; index < candleHist.length; index++) {
                 if(maxHigh < candleHist[index][2])
                 maxHigh = candleHist[index][2];
@@ -204,85 +205,81 @@ class Home extends React.Component{
             var firstTrendCandleHigh = candleHist[2][2]; 
 
             var firstCandle = {
-                time : candleHist[0][0],
-                open: candleHist[0][1],
-                high: candleHist[0][2],
-                low: candleHist[0][3],
-                close: candleHist[0][4]
+                time : candleHist[0]  && candleHist[0][0],
+                open: candleHist[0]  && candleHist[0][1],
+                high: candleHist[0]  && candleHist[0][2],
+                low: candleHist[0]  && candleHist[0][3],
+                close: candleHist[0]  && candleHist[0][4]
+            }
+            var secondCandle = {
+                time:candleHist[1] && candleHist[1][0],
+                open: candleHist[1] && candleHist[1][1],
+                high: candleHist[1] && candleHist[1][2],
+                low: candleHist[1] && candleHist[1][3],
+                close: candleHist[1] && candleHist[1][4]
             }
             
-            var secondCandle = {
-                time: candleHist[1][0],
-                open: candleHist[1][1],
-                high: candleHist[1][2],
-                low: candleHist[1][3],
-                close: candleHist[1][4]
-            }
+           
 
             var diffPer = (firstTrendCandleHigh - lastTrendCandleLow)*100/lastTrendCandleLow;
             var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
             var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
             //uptrend movement 1.5% 
+        //    console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
 
            
-            if(diffPer >= 1.5 && maxHigh < highestOfBoth && maxLow < lowestOfBoth){
+            //&& maxHigh < highestOfBoth && maxLow < lowestOfBoth
+            if(diffPer >= 1.5){
+                console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+
+                console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
 
                 //1st candle green & 2nd candle is red check
                 if(secondCandle.open < secondCandle.close && firstCandle.open > firstCandle.close){ 
-                  // var candleWickHighDiff = (secondCandle.high - firstCandle.high)*100/secondCandle.high; 
-
                // console.log(symbol, "candleHist",candleHist); 
-
-
               //  console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
-             
               //  console.log(symbol, 'making twisser 1st green & 2nd red' , firstCandle, secondCandle );
 
-                  
                     if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) && Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
 
-
-
+                      
                         console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
                         console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
-
                         console.log("last10Candle",candleHist); 
                         console.log(symbol, 'perfect twisser top done close=open || open=close', );
-
                         console.log("next10Candle",next10Candle); 
                         
-
-                        next10Candle = next10Candle.reverse(); 
+                        if(next10Candle && next10Candle.length){
+                            next10Candle = next10Candle.reverse(); 
                         
-                        var maxHighTarget = candleHist[2][2], maxLowTarget = candleHist[2][3]; 
-                        for (let indexTarget = 3; indexTarget < next10Candle.length; indexTarget++) {
-                            if(maxHighTarget < next10Candle[indexTarget][2])
-                            maxHighTarget = next10Candle[indexTarget][2];
-                            if(next10Candle[indexTarget][3] < maxLowTarget)
-                            maxLowTarget = next10Candle[indexTarget][3];  
-                        } 
-
-
-                        var twisserTopList = localStorage.getItem("twisserTopList") ? JSON.parse(localStorage.getItem("twisserTopList")) : []; 
-                        
-                        
-                        var foundStock = {
-                            foundAt: new Date( candleHist[0][0]).toString(), 
-                            symbol : symbol, 
-                            sellEntyPrice : lowestOfBoth-lowestOfBoth/50/10, 
-                            stopLoss : highestOfBoth+highestOfBoth/50/20, 
-                            orderActivated: false, 
-                            buyExitPrice : 0,
+                            var maxHighTarget = candleHist[2][2], maxLowTarget = candleHist[2][3]; 
+                            for (let indexTarget = 3; indexTarget < next10Candle.length; indexTarget++) {
+                                if(maxHighTarget < next10Candle[indexTarget][2])
+                                maxHighTarget = next10Candle[indexTarget][2];
+                                if(next10Candle[indexTarget][3] < maxLowTarget)
+                                maxLowTarget = next10Candle[indexTarget][3];  
+                            } 
+    
+                            var twisserTopList = localStorage.getItem("twisserTopList") ? JSON.parse(localStorage.getItem("twisserTopList")) : []; 
+                            var foundStock = {
+                                foundAt: new Date( candleHist[0][0]).toString(), 
+                                symbol : symbol, 
+                                sellEntyPrice : lowestOfBoth-lowestOfBoth/50/10, 
+                                stopLoss : highestOfBoth+highestOfBoth/50/20, 
+                                orderActivated: false, 
+                                buyExitPrice : 0,
+                            }
+                            if(maxLowTarget < foundStock.sellEntyPrice ){
+                                foundStock.orderActivated = true;
+                                foundStock.buyExitPrice = maxLowTarget; 
+                                foundStock.afterFoundMaxHigherMovement = maxHighTarget;
+                            }
+    
+                            twisserTopList.push(foundStock); 
+    
+                            localStorage.setItem('twisserTopList', JSON.stringify(twisserTopList));
                         }
-                        if(maxLowTarget < foundStock.sellEntyPrice ){
-                            foundStock.orderActivated = true;
-                            buyExitPrice = maxLowTarget; 
-                            afterFoundMaxHigherMovement = maxHighTarget
-                        }
-
-                        twisserTopList.push(foundStock); 
-
-                        localStorage.setItem('twisserTopList', JSON.stringify(twisserTopList));
+                        
                         // highestOfBoth = highestOfBoth + (highestOfBoth*0.16/100); //SL calculation
                         // var stopLossPrice = this.getMinPriceAllowTick(highestOfBoth); 
                         // let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
@@ -1010,7 +1007,7 @@ class Home extends React.Component{
                             </Typography> 
                         </Grid>
 
-                        <Grid itemType>
+                        <Grid item>
                           <Typography component="h3" >
                             <b> Net P/L </b> <b style={{color:(this.state.todayProfitPnL - this.state.totalBrokerCharges)>0?"darkmagenta":"#00cbcb"}}>{this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2) : ""} </b>
                             </Typography> 
