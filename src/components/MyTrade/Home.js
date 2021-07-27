@@ -331,6 +331,8 @@ class Home extends React.Component{
                         if(next10Candle && next10Candle.length){
                            // next10Candle = next10Candle.reverse(); 
                         
+                           var higherStopLoss =  (highestOfBoth + (highestOfBoth/100/10)).toFixed(2); 
+
                            var squiredOffAt315 = 0, squareOffAt315Time = '';
                             for (let indexTarget = 0; indexTarget < next10Candle.length; indexTarget++) {
                                 if(new Date(next10Candle[indexTarget][0]).toLocaleTimeString()  == "15:15:00"){
@@ -339,13 +341,30 @@ class Home extends React.Component{
                                     break; 
                                 }
                             } 
-                            var lowestOf315 = next10Candle[0][3], lowestSquareOffAt = ''; 
-                            for (let indexTarget2 = 1; indexTarget2 < next10Candle.length; indexTarget2++) {
-                                if(new Date(next10Candle[indexTarget2][0]).toLocaleTimeString()  <= "15:15:00"){
-                                    if(next10Candle[indexTarget2][3] < lowestOf315){
-                                        lowestOf315 = next10Candle[indexTarget2][3];  
-                                        lowestSquareOffAt = next10Candle[indexTarget2][0];  
-                                    }
+                            var lowestOf315 = next10Candle[0][4], lowestSquareOffAt = ''; 
+                            for (let indexTarget2 = 1; indexTarget2 < next10Candle.length; indexTarget2++) {     
+                                if(next10Candle[indexTarget2][4] < lowestOf315){
+                                    lowestOf315 = next10Candle[indexTarget2][4];  
+                                    lowestSquareOffAt = next10Candle[indexTarget2][0];  
+                                }
+                                if(new Date(next10Candle[indexTarget2][0]).toLocaleTimeString() == "15:15:00"){
+                                    break;  
+                                }
+                            } 
+                            var trailingSL = higherStopLoss, trailingSLAT = ''; 
+                            for (let indexTarget3 = 0; indexTarget3 < next10Candle.length; indexTarget3++) {
+                                if(trailingSL > next10Candle[indexTarget3][2]){
+                                    trailingSL = (next10Candle[indexTarget3][2] + (next10Candle[indexTarget3][2]/100/4)).toFixed(2);  
+                                    trailingSLAT = next10Candle[indexTarget3][0];  
+                                }
+                                else{
+                                    trailingSL = (next10Candle[indexTarget3][4]).toFixed(2);  
+                                    trailingSLAT = next10Candle[indexTarget3][0];  
+                                    break; 
+                                }
+
+                                if(new Date(next10Candle[indexTarget3][0]).toLocaleTimeString() == "15:15:00"){
+                                    break;  
                                 }
                             } 
     
@@ -354,19 +373,24 @@ class Home extends React.Component{
                                 foundAt: new Date( candleHist[0][0]).toLocaleString(), 
                                 symbol : symbol, 
                                 sellEntyPrice : (lowestOfBoth - (lowestOfBoth/100/10)).toFixed(2), 
-                                stopLoss : (highestOfBoth + (highestOfBoth/100/10)).toFixed(2), 
+                                stopLoss : higherStopLoss, 
                                 orderActivated: false, 
                                 buyExitPrice : 0,
                             }
+
                             if(next10Candle[0][3]  < lowestOfBoth || next10Candle[1][3] < lowestOfBoth || next10Candle[2][3] < lowestOfBoth){
                                 foundStock.orderActivated = true;
                                 //sqr off at 3:15
-                               foundStock.squareOffAt = new Date( squareOffAt315Time ).toLocaleString();
-                               foundStock.buyExitPrice = squiredOffAt315; 
+                            //   foundStock.squareOffAt = new Date( squareOffAt315Time ).toLocaleString();
+                            //   foundStock.buyExitPrice = squiredOffAt315; 
 
-                               //lowest of 3:15
-                            //    foundStock.squareOffAt = new Date( lowestSquareOffAt ).toLocaleString();
-                            //    foundStock.buyExitPrice = lowestOf315 
+                             //  lowest of 3:15
+                            //   foundStock.squareOffAt = new Date( lowestSquareOffAt ).toLocaleString();
+                            //   foundStock.buyExitPrice = lowestOf315 
+
+                                //trailing till 3:15
+                                foundStock.squareOffAt = new Date( trailingSLAT ).toLocaleString();
+                                foundStock.buyExitPrice = trailingSL 
                                 foundStock.perChange = ((foundStock.sellEntyPrice - foundStock.buyExitPrice)*100/foundStock.sellEntyPrice).toFixed(2);
                             }
     
@@ -706,6 +730,7 @@ class Home extends React.Component{
                             <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
                                 <TableRow   variant="head" style={{fontWeight: 'bold'}}>
 
+                                  <TableCell className="TableHeadFormat" align="center">Sr</TableCell>
                                     <TableCell className="TableHeadFormat" align="center">symbol</TableCell>
                                     <TableCell className="TableHeadFormat" align="center">foundAt</TableCell>
                                     <TableCell  className="TableHeadFormat" align="center">sellEntyPrice</TableCell>
@@ -726,15 +751,17 @@ class Home extends React.Component{
                                 { this.state.twisserTopList ? this.state.twisserTopList.map((row, i) => (
                                    
                                  
-                                 <TableRow key={i} style={{display: row.orderActivated ? 'visible' : 'none'}}>
 
+                                 <TableRow key={i} style={{display: row.orderActivated ? 'visible' : 'none'}}>
+                                      
+                                        <TableCell align="left">{i+1}</TableCell>
                                         <TableCell align="left">{row.symbol}</TableCell>
                                         <TableCell align="center">{row.foundAt}</TableCell>
                                         <TableCell align="center">{row.sellEntyPrice}</TableCell>
                                         <TableCell align="center">{row.buyExitPrice}</TableCell>
                                         <TableCell align="center">{row.squareOffAt}</TableCell>
-                                        <TableCell align="center" {...sumPerChange =    sumPerChange + parseFloat(row.perChange || 0) }> <b>{row.perChange}</b></TableCell>
-                                        
+                                        <TableCell style={{color: row.perChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0) }> <b>{row.perChange}</b></TableCell>
+                                         
                                         <TableCell align="center">{row.stopLoss}</TableCell>
                                         <TableCell align="center">{row.orderActivated ? 'yes' : 'no'}</TableCell>
                                                                         
@@ -747,8 +774,8 @@ class Home extends React.Component{
 
                                 <TableRow >
 
-                                <TableCell align="center" colSpan={5}></TableCell>
-                                <TableCell align="center"><b>{sumPerChange.toFixed(2)}</b></TableCell>
+                                <TableCell align="center" colSpan={6}></TableCell>
+                                <TableCell style={{color: sumPerChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center"><b>{sumPerChange.toFixed(2)}%</b></TableCell>
                                 <TableCell align="center" colSpan={3}></TableCell>
                                 </TableRow>
                             </TableBody>
