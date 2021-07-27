@@ -147,15 +147,15 @@ class Home extends React.Component{
      //  this.setState({twisserTopList: localStorage.getItem('twisserTopList') && JSON.parse(localStorage.getItem('twisserTopList'))})
         
             
-       wsClint.onopen  = (res) => {
+    //    wsClint.onopen  = (res) => {
 
-             this.makeConnection();
-             this.updateSocketWatch(feedToken ,clientcode);
+    //          this.makeConnection();
+    //          this.updateSocketWatch(feedToken ,clientcode);
                 
-            //  setTimeout(function(){
-            //    this.updateSocketWatch(feedToken ,clientcode);
-            //  }, 800);
-       }
+    //         //  setTimeout(function(){
+    //         //    this.updateSocketWatch(feedToken ,clientcode);
+    //         //  }, 800);
+    //    }
 
         wsClint.onmessage = (message) => {
             
@@ -251,7 +251,9 @@ class Home extends React.Component{
 
                         console.log('\n'); //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
                         if(last10Candle.length >= 10  && new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"){
+                          //  console.log(element.symbol, 'findingtime', new Date(candleData[index2][0]).toLocaleTimeString()); 
                             this.findTweezerTopPattern(last10Candle, element.symbol, next10Candle);
+                            
                         }
 
                     }
@@ -329,11 +331,21 @@ class Home extends React.Component{
                         if(next10Candle && next10Candle.length){
                            // next10Candle = next10Candle.reverse(); 
                         
-                           var lowestof315 = 0; 
+                           var squiredOffAt315 = 0, squareOffAt315Time = '';
                             for (let indexTarget = 0; indexTarget < next10Candle.length; indexTarget++) {
                                 if(new Date(next10Candle[indexTarget][0]).toLocaleTimeString()  == "15:15:00"){
-                                    lowestof315 = next10Candle[indexTarget][4];
+                                    squiredOffAt315 = next10Candle[indexTarget][4];
+                                    squareOffAt315Time = next10Candle[indexTarget][0]; 
                                     break; 
+                                }
+                            } 
+                            var lowestOf315 = next10Candle[0][3], lowestSquareOffAt = ''; 
+                            for (let indexTarget2 = 1; indexTarget2 < next10Candle.length; indexTarget2++) {
+                                if(new Date(next10Candle[indexTarget2][0]).toLocaleTimeString()  <= "15:15:00"){
+                                    if(next10Candle[indexTarget2][3] < lowestOf315){
+                                        lowestOf315 = next10Candle[indexTarget2][3];  
+                                        lowestSquareOffAt = next10Candle[indexTarget2][0];  
+                                    }
                                 }
                             } 
     
@@ -348,8 +360,13 @@ class Home extends React.Component{
                             }
                             if(next10Candle[0][3]  < lowestOfBoth || next10Candle[1][3] < lowestOfBoth || next10Candle[2][3] < lowestOfBoth){
                                 foundStock.orderActivated = true;
-                                foundStock.buyExitPrice = lowestof315; 
-                                foundStock.afterFoundMaxHigherMovement = '';
+                                //sqr off at 3:15
+                               foundStock.squareOffAt = new Date( squareOffAt315Time ).toLocaleString();
+                               foundStock.buyExitPrice = squiredOffAt315; 
+
+                               //lowest of 3:15
+                            //    foundStock.squareOffAt = new Date( lowestSquareOffAt ).toLocaleString();
+                            //    foundStock.buyExitPrice = lowestOf315 
                                 foundStock.perChange = ((foundStock.sellEntyPrice - foundStock.buyExitPrice)*100/foundStock.sellEntyPrice).toFixed(2);
                             }
     
@@ -693,13 +710,13 @@ class Home extends React.Component{
                                     <TableCell className="TableHeadFormat" align="center">foundAt</TableCell>
                                     <TableCell  className="TableHeadFormat" align="center">sellEntyPrice</TableCell>
                                     <TableCell  className="TableHeadFormat"   align="center">buyExitPrice</TableCell>
+                                    <TableCell  className="TableHeadFormat"   align="center">squiredOff</TableCell>
+
                                     <TableCell  className="TableHeadFormat"   align="center">perChange</TableCell>
 
 
                                     <TableCell  className="TableHeadFormat" align="center">stopLoss</TableCell>
                                     <TableCell className="TableHeadFormat" align="center">orderActivated </TableCell>
-
-                                    <TableCell  className="TableHeadFormat"   align="center">afterFoundMaxHigherMovement</TableCell>
 
                                 </TableRow>
                             </TableHead>
@@ -707,26 +724,30 @@ class Home extends React.Component{
 
 
                                 { this.state.twisserTopList ? this.state.twisserTopList.map((row, i) => (
-                                    <TableRow key={i} >
+                                   
+                                 
+                                 <TableRow key={i} style={{display: row.orderActivated ? 'visible' : 'none'}}>
 
                                         <TableCell align="left">{row.symbol}</TableCell>
                                         <TableCell align="center">{row.foundAt}</TableCell>
                                         <TableCell align="center">{row.sellEntyPrice}</TableCell>
                                         <TableCell align="center">{row.buyExitPrice}</TableCell>
+                                        <TableCell align="center">{row.squareOffAt}</TableCell>
                                         <TableCell align="center" {...sumPerChange =    sumPerChange + parseFloat(row.perChange || 0) }> <b>{row.perChange}</b></TableCell>
                                         
                                         <TableCell align="center">{row.stopLoss}</TableCell>
-                                        <TableCell align="center">{row.orderActivated}</TableCell>
-                                    
-                                        <TableCell align="center">{row.afterFoundMaxHigherMovement}</TableCell>
-                                    
+                                        <TableCell align="center">{row.orderActivated ? 'yes' : 'no'}</TableCell>
+                                                                        
                                     </TableRow>
+
+
+
                                 )):''}
 
 
                                 <TableRow >
 
-                                <TableCell align="center" colSpan={4}></TableCell>
+                                <TableCell align="center" colSpan={5}></TableCell>
                                 <TableCell align="center"><b>{sumPerChange.toFixed(2)}</b></TableCell>
                                 <TableCell align="center" colSpan={3}></TableCell>
                                 </TableRow>

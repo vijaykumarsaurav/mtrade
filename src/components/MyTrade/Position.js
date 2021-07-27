@@ -54,19 +54,33 @@ class Home extends React.Component{
 
             
             var tostartInteral =   setInterval(() => {
+
+                console.log("1st interval every second", new Date().toLocaleTimeString());
                 var time = new Date(); 
                 if(time.getMinutes() % 5 === 0){
-                    clearInterval(tostartInteral); 
-                    setInterval(() => {
+                    console.log("5th min completed at", new Date().toLocaleTimeString());
+                    console.log("next scan at", new Date(new Date().getTime()+70000).toLocaleTimeString());
+                    
+                    setTimeout(() => {
+                        console.log("set timout at 70sec ", new Date());
                         this.getCandleHistoryAndStore(); 
+                    }, 70000);
+
+                    setInterval(() => {
+                        console.log("2st interval every 5min 10Sec", new Date());
+                        if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
+                            this.getCandleHistoryAndStore(); 
+                        }
                      }, 60000 * 5 + 70000 );  
+
+                     clearInterval(tostartInteral); 
                 } 
             }, 1000);
             
           
         } 
 
-       // this.getCandleHistoryAndStore(); 
+    this.getCandleHistoryAndStore(); 
 
     // this.getPositionData();
     // this.getNSETopStock();
@@ -154,8 +168,10 @@ class Home extends React.Component{
                     candleData.reverse(); 
 
                     if(candleData && candleData.length >= 10){
-                        var last10Candle = candleData.slice(0, 10);    
+                        var last10Candle = candleData.slice(0, 10); 
+                        console.log('',  index+1,  element.symbol)   
                         this.findTweezerTopPatternLive(last10Candle, element.symbol);
+                        this.findTweezerBottomPatternLive(last10Candle, element.symbol);
 
                         //console.log(index+1, element.symbol, 'verifying TT pattern'); 
                     }
@@ -182,14 +198,10 @@ class Home extends React.Component{
 
     findTweezerTopPatternLive = (candleHist,symbol, next10Candle) => {
 
-        
-      
+        console.log("TweezerTop finding", symbol); 
         if(candleHist && candleHist.length > 0){
-
             //candleHist = candleHist.reverse(); 
-
-
-            console.log(symbol, "candleHist",candleHist, new Date().toString()); 
+           // console.log(symbol, "candleHist",candleHist, new Date().toString()); 
 
 
             var maxHigh = candleHist[2] && candleHist[2][2], maxLow = candleHist[2] && candleHist[2][3]; 
@@ -200,7 +212,6 @@ class Home extends React.Component{
                 maxLow = candleHist[index][3];  
             } 
             
-
             var lastTrendCandleLow = candleHist[9][3]; 
             var firstTrendCandleHigh = candleHist[2][2]; 
 
@@ -218,94 +229,110 @@ class Home extends React.Component{
                 low: candleHist[1] && candleHist[1][3],
                 close: candleHist[1] && candleHist[1][4]
             }
-            
-           
-
+        
             var diffPer = (firstTrendCandleHigh - lastTrendCandleLow)*100/lastTrendCandleLow;
             var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
             var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
             //uptrend movement 1.5% 
-        //    console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
-
+    //        console.log(symbol, "last 8 candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh, candleHist);
            
             //&& maxHigh < highestOfBoth && maxLow < lowestOfBoth
             if(diffPer >= 1.5){
-                console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
-
-                console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
-
                 //1st candle green & 2nd candle is red check
                 if(secondCandle.open < secondCandle.close && firstCandle.open > firstCandle.close){ 
                // console.log(symbol, "candleHist",candleHist); 
               //  console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
               //  console.log(symbol, 'making twisser 1st green & 2nd red' , firstCandle, secondCandle );
 
-                    if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) && Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
+                    if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
 
-                      
+                        console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+
+                        console.log('%c' + symbol+ ' perfect twisser top  upside movement'+diffPer +  new Date( candleHist[0][0]).toString(), 'background: red; color: #bada55'); 
+        
+                     
                         console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
                         console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
                         console.log("last10Candle",candleHist); 
                         console.log(symbol, 'perfect twisser top done close=open || open=close', );
                         console.log("next10Candle",next10Candle); 
                         
-                        if(next10Candle && next10Candle.length){
-                            next10Candle = next10Candle.reverse(); 
-                        
-                            var maxHighTarget = candleHist[2][2], maxLowTarget = candleHist[2][3]; 
-                            for (let indexTarget = 3; indexTarget < next10Candle.length; indexTarget++) {
-                                if(maxHighTarget < next10Candle[indexTarget][2])
-                                maxHighTarget = next10Candle[indexTarget][2];
-                                if(next10Candle[indexTarget][3] < maxLowTarget)
-                                maxLowTarget = next10Candle[indexTarget][3];  
-                            } 
-    
-                            var twisserTopList = localStorage.getItem("twisserTopList") ? JSON.parse(localStorage.getItem("twisserTopList")) : []; 
-                            var foundStock = {
-                                foundAt: new Date( candleHist[0][0]).toString(), 
-                                symbol : symbol, 
-                                sellEntyPrice : lowestOfBoth-lowestOfBoth/50/10, 
-                                stopLoss : highestOfBoth+highestOfBoth/50/20, 
-                                orderActivated: false, 
-                                buyExitPrice : 0,
-                            }
-                            if(maxLowTarget < foundStock.sellEntyPrice ){
-                                foundStock.orderActivated = true;
-                                foundStock.buyExitPrice = maxLowTarget; 
-                                foundStock.afterFoundMaxHigherMovement = maxHighTarget;
-                            }
-    
-                            twisserTopList.push(foundStock); 
-    
-                            localStorage.setItem('twisserTopList', JSON.stringify(twisserTopList));
-                        }
-                        
-                        // highestOfBoth = highestOfBoth + (highestOfBoth*0.16/100); //SL calculation
-                        // var stopLossPrice = this.getMinPriceAllowTick(highestOfBoth); 
-                        // let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
-                        // let quantity = Math.floor(perTradeExposureAmt/lowestOfBoth); 
-
-                        // quantity = quantity>0 ? 1 : 0; 
-                        // var orderOption = {
-                        //     transactiontype: 'SELL',
-                        //     tradingsymbol: watchList[index].symbol,
-                        //     symboltoken:watchList[index].token,
-                        //     buyPrice : 0,
-                        //     quantity: quantity, 
-                        //     stopLossPrice: stopLossPrice,
-                        //     entryBelow : lowestOfBoth
-                        // }
-                        // if(quantity){
-                        //     localStorage.setItem('foundTweezerTop_'+watchList[index].token, JSON.stringify(orderOption)); 
-                        // }
-
-                 
+                        // var msg = new SpeechSynthesisUtterance();
+                        // msg.text = 'twisser top in '+symbol.toLowerCase() ; 
+                        // window.speechSynthesis.speak(msg);
                     }
                 }
             }
-
         }
+    }
+    findTweezerBottomPatternLive = (candleHist,symbol, next10Candle) => {
+        console.log("TweezerBottom finding", symbol); 
+        if(candleHist && candleHist.length > 0){
+            //candleHist = candleHist.reverse(); 
+           // console.log(symbol, "candleHist",candleHist, new Date().toString()); 
 
+
+            var maxHigh = candleHist[2] && candleHist[2][2], maxLow = candleHist[2] && candleHist[2][3]; 
+            for (let index = 3; index < candleHist.length; index++) {
+                if(maxHigh < candleHist[index][2])
+                maxHigh = candleHist[index][2];
+                if(candleHist[index][3] < maxLow)
+                maxLow = candleHist[index][3];  
+            } 
+            
+            var last8candleHigh = candleHist[9][2]; 
+            var last8candleLow = candleHist[2][3]; 
+
+            var firstCandle = {
+                time : candleHist[0]  && candleHist[0][0],
+                open: candleHist[0]  && candleHist[0][1],
+                high: candleHist[0]  && candleHist[0][2],
+                low: candleHist[0]  && candleHist[0][3],
+                close: candleHist[0]  && candleHist[0][4]
+            }
+            var secondCandle = {
+                time:candleHist[1] && candleHist[1][0],
+                open: candleHist[1] && candleHist[1][1],
+                high: candleHist[1] && candleHist[1][2],
+                low: candleHist[1] && candleHist[1][3],
+                close: candleHist[1] && candleHist[1][4]
+            }
+        
+            var diffPer = ((last8candleLow - last8candleHigh)*100/last8candleHigh).toFixed(2);
+            var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
+            var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
+            //uptrend movement 1.5%  
+           
+            //&& maxHigh < highestOfBoth && maxLow < lowestOfBoth   
+            if(diffPer <= -1.5){
+
+              
+                //1st candle green & 2nd candle is red check
+                if(secondCandle.open > secondCandle.close && firstCandle.close  > firstCandle.open){ 
+               // console.log(symbol, "candleHist",candleHist); 
+              //  console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", last8candleLow);
+              //  console.log(symbol, 'making twisser 1st green & 2nd red' , firstCandle, secondCandle );
+
+                    if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
+
+                      
+                        console.log(symbol, "last 8 candle diff ",  diffPer+"%", "10th high", last8candleHigh,"3rd low", last8candleLow, candleHist);
+
+                        console.log('%c' + symbol+ ' perfect twisser bottom '+diffPer+"%" + new Date( candleHist[0][0]).toString(), 'background: #222; color: #bada55'); 
+
+                        
+                        console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
+                        console.log("last10Candle",candleHist); 
+                        console.log(symbol, 'perfect twisser bottom done close=open || open=close', new Date( candleHist[0][0]).toString());
+                        console.log("next10Candle",next10Candle); 
+                        
+                        // var msg = new SpeechSynthesisUtterance();
+                        // msg.text = 'twisser bottom in '+symbol.toLowerCase() ; 
+                        // window.speechSynthesis.speak( msg);
+                    }
+                }
+            }
+        }
     }
 
 
@@ -983,7 +1010,7 @@ class Home extends React.Component{
                         </Grid>
                         <Grid item xs={12} sm={3} >
                           <Typography component="h3">
-                            <b>Date: {new Date().toLocaleString()} </b>
+                            <b>Date:: {new Date().toLocaleString()} </b>
                             </Typography> 
                         </Grid>
 
