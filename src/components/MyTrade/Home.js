@@ -230,8 +230,8 @@ class Home extends React.Component{
                 "exchange": "NSE",
                 "symboltoken": element.token,
                 "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                "fromdate": moment("2021-01-01 09:15").format("YYYY-MM-DD HH:mm") , 
-                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") //moment(this.state.endDate).format(format1) /
+                "fromdate": moment("2021-06-01 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate":  moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
             }
 
             AdminService.getHistoryData(data).then(res => {
@@ -399,6 +399,29 @@ class Home extends React.Component{
                                     break;  
                                 }
                             } 
+
+                            //range based target range*1.5% or SL hit profit booking
+                            var rangeSellingPrice = 0, rangeSellingPriceAt = ''; 
+                            for (let indexTarget5 = 0; indexTarget5 < next10Candle.length; indexTarget5++) {
+                                
+                                var rangePriceDiff = (next10Candle[indexTarget5][3] - sellEntyPrice)*100/sellEntyPrice; 
+
+                                if(rangePriceDiff <= -2.5){
+                                    rangeSellingPrice = next10Candle[indexTarget5][3];  
+                                    rangeSellingPriceAt = next10Candle[indexTarget5][0];  
+                                    break; 
+                                }
+                                if(next10Candle[indexTarget5][2] > higherStopLoss){
+                                    rangeSellingPrice = next10Candle[indexTarget5][2];  
+                                    rangeSellingPriceAt = next10Candle[indexTarget5][0];  
+                                    break; 
+                                }
+                                if(new Date(next10Candle[indexTarget5][0]).toLocaleTimeString() == "15:15:00"){
+                                    rangeSellingPrice = next10Candle[indexTarget5][3];  
+                                    rangeSellingPriceAt = next10Candle[indexTarget5][0];  
+                                    break;  
+                                }
+                            } 
     
                             var twisserTopList = localStorage.getItem("twisserTopList") ? JSON.parse(localStorage.getItem("twisserTopList")) : []; 
                             
@@ -420,16 +443,21 @@ class Home extends React.Component{
                             //   foundStock.buyExitPrice = squiredOffAt315; 
 
                              //  lowest of 3:15
-                            //   foundStock.squareOffAt = new Date( lowestSquareOffAt ).toLocaleString();
-                            //   foundStock.buyExitPrice = lowestOf315 
+                                // foundStock.squareOffAt = new Date( lowestSquareOffAt ).toLocaleString();
+                                // foundStock.buyExitPrice = lowestOf315 
 
                                 //trailing till 3:15
                                 // foundStock.squareOffAt = new Date( trailingSLAT ).toLocaleString();
                                 // foundStock.buyExitPrice = trailingSL;
 
                                 //flat profit booking at 0.75%
-                                foundStock.squareOffAt = new Date( flatSellingPriceAt ).toLocaleString();
-                                foundStock.buyExitPrice = flatSellingPrice;
+                                // foundStock.squareOffAt = new Date( flatSellingPriceAt ).toLocaleString();
+                                // foundStock.buyExitPrice = flatSellingPrice;
+
+
+                                  //range based target range*1.5%
+                               foundStock.squareOffAt = new Date( rangeSellingPriceAt ).toLocaleString();
+                               foundStock.buyExitPrice = rangeSellingPrice;
 
                                 foundStock.perChange = ((foundStock.sellEntyPrice - foundStock.buyExitPrice)*100/foundStock.sellEntyPrice).toFixed(2);
                                 twisserTopList.push(foundStock); 
@@ -840,7 +868,7 @@ class Home extends React.Component{
 
 
                                 <TableCell style={{color: sumPerChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center"><b>{sumPerChange.toFixed(2)}%</b></TableCell>
-                               <TableCell style={{color: "#00cbcb"}} align="center"><b>{(sumBrokeragePer).toFixed(2)}%</b></TableCell>
+                               <TableCell style={{color: "#00cbcb"}} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b></TableCell>
                                 <TableCell style={{color: netSumPerChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center"><b>{(netSumPerChange).toFixed(2)}%</b></TableCell>
 
                                 <TableCell style={{color: sumPnlValue > 0 ? "darkmagenta" : "#00cbcb"}} align="center"><b>{(sumPnlValue).toFixed(2)}</b></TableCell>
