@@ -57,7 +57,7 @@ class Home extends React.Component{
 
                 console.log("1st interval every second", new Date().toLocaleTimeString());
                 var time = new Date(); 
-                if(time.getMinutes() % 5 === 0){
+                if(time.getMinutes() % 15 === 0){
                     console.log("5th min completed at", new Date().toLocaleTimeString());
                     console.log("next scan at", new Date(new Date().getTime()+70000).toLocaleTimeString());
                     
@@ -71,7 +71,7 @@ class Home extends React.Component{
                         if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
                             this.getCandleHistoryAndStore(); 
                         }
-                     }, 60000 * 5 + 70000 );  
+                     }, 60000 * 15 + 70000 );  
 
                      clearInterval(tostartInteral); 
                 } 
@@ -137,14 +137,17 @@ class Home extends React.Component{
        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
        const today = moment().isoWeekday();
         var timediff = '';
+
+        
+
         if(new Date().toLocaleTimeString() > "10:05:00"){
             timediff = moment.duration("00:50:00");
         } else if (today === 1 && new Date().toLocaleTimeString() < "10:05:00"){
             timediff = moment.duration("66:00:00");
         }else{
-            timediff = moment.duration("16:00:00");
+            timediff = moment.duration("19:00:00");
         }
-       // timediff = moment.duration("52:00:00");
+        timediff = moment.duration("21:00:00");
 
         const format1 = "YYYY-MM-DD HH:mm";       
         var startdate = moment(new Date()).subtract(timediff);
@@ -154,7 +157,7 @@ class Home extends React.Component{
             var data  = {
                 "exchange": "NSE",
                 "symboltoken": element.token,
-                "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE  
+                "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
                 "fromdate": moment(startdate).format(format1) , 
                 "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
             }
@@ -169,7 +172,7 @@ class Home extends React.Component{
 
                     if(candleData && candleData.length >= 10){
                         var last10Candle = candleData.slice(0, 10); 
-                        console.log('',  index+1,  element.symbol)   
+                        console.log('',  index+1,  element.symbol, 'Time', new Date().toLocaleTimeString());   
                         this.findTweezerTopPatternLive(last10Candle, element.symbol);
                         this.findTweezerBottomPatternLive(last10Candle, element.symbol);
 
@@ -196,12 +199,12 @@ class Home extends React.Component{
 
     }
 
-    findTweezerTopPatternLive = (candleHist,symbol, next10Candle) => {
+    findTweezerTopPatternLive = (candleHist,symbol) => {
 
-        console.log("TweezerTop finding", symbol); 
+     //   console.log("TweezerTop finding", symbol); 
         if(candleHist && candleHist.length > 0){
             //candleHist = candleHist.reverse(); 
-           // console.log(symbol, "candleHist",candleHist, new Date().toString()); 
+           // console.log(symbol, " TweezerTop candleHist",candleHist, new Date().toString()); 
 
 
             var maxHigh = candleHist[2] && candleHist[2][2], maxLow = candleHist[2] && candleHist[2][3]; 
@@ -236,8 +239,8 @@ class Home extends React.Component{
             //uptrend movement 1.5% 
     //        console.log(symbol, "last 8 candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh, candleHist);
            
-            //&& maxHigh < highestOfBoth && maxLow < lowestOfBoth
-            if(diffPer >= 1.5){
+            //
+            if(diffPer >= 1.5 && maxHigh < highestOfBoth && maxLow < lowestOfBoth){
                 //1st candle green & 2nd candle is red check
                 if(secondCandle.open < secondCandle.close && firstCandle.open > firstCandle.close){ 
                // console.log(symbol, "candleHist",candleHist); 
@@ -246,27 +249,26 @@ class Home extends React.Component{
 
                     if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
 
-                        console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+                       // console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
 
-                        console.log('%c' + symbol+ ' perfect twisser top  upside movement'+diffPer +  new Date( candleHist[0][0]).toString(), 'background: red; color: #bada55'); 
+                        console.log('%c' + symbol+ ' perfect twisser top  upside movement'+diffPer +  new Date( candleHist[0][0]).toLocaleTimeString(), 'background: red; color: #bada55'); 
         
                      
-                        console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
-                        console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
-                        console.log("last10Candle",candleHist); 
-                        console.log(symbol, 'perfect twisser top done close=open || open=close', );
-                        console.log("next10Candle",next10Candle); 
+                    //    console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
+                    //    console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
+                        console.log(symbol, "last10Candle",candleHist); 
+                  //      console.log(symbol, 'perfect twisser top done close=open || open=close', );
                         
-                        // var msg = new SpeechSynthesisUtterance();
-                        // msg.text = 'twisser top in '+symbol.toLowerCase() ; 
-                        // window.speechSynthesis.speak(msg);
+                        var msg = new SpeechSynthesisUtterance();
+                        msg.text = 'twisser top in '+symbol.toLowerCase() ; 
+                        window.speechSynthesis.speak(msg);
                     }
                 }
             }
         }
     }
-    findTweezerBottomPatternLive = (candleHist,symbol, next10Candle) => {
-        console.log("TweezerBottom finding", symbol); 
+    findTweezerBottomPatternLive = (candleHist,symbol) => {
+       // console.log("TweezerBottom finding", symbol); 
         if(candleHist && candleHist.length > 0){
             //candleHist = candleHist.reverse(); 
            // console.log(symbol, "candleHist",candleHist, new Date().toString()); 
@@ -303,8 +305,8 @@ class Home extends React.Component{
             var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
             //uptrend movement 1.5%  
            
-            //&& maxHigh < highestOfBoth && maxLow < lowestOfBoth   
-            if(diffPer <= -1.5){
+            //  
+            if(diffPer <= -1.5 && highestOfBoth < maxHigh  && lowestOfBoth < maxLow){
 
               
                 //1st candle green & 2nd candle is red check
@@ -316,19 +318,18 @@ class Home extends React.Component{
                     if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
 
                       
-                        console.log(symbol, "last 8 candle diff ",  diffPer+"%", "10th high", last8candleHigh,"3rd low", last8candleLow, candleHist);
+                        //console.log(symbol, "last 8 candle diff ",  diffPer+"% ", "10th high", last8candleHigh,"3rd low", last8candleLow, candleHist);
 
-                        console.log('%c' + symbol+ ' perfect twisser bottom '+diffPer+"%" + new Date( candleHist[0][0]).toString(), 'background: #222; color: #bada55'); 
+                        console.log('%c' + symbol+ ' perfect twisser bottom downside movement diff '+diffPer+"% " + new Date( candleHist[0][0]).toLocaleTimeString(), 'background: #222; color: #bada55'); 
 
                         
-                        console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
-                        console.log("last10Candle",candleHist); 
-                        console.log(symbol, 'perfect twisser bottom done close=open || open=close', new Date( candleHist[0][0]).toString());
-                        console.log("next10Candle",next10Candle); 
+                     //   console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
+                        console.log(symbol, "last10Candle",candleHist); 
+                      //   console.log(symbol, 'perfect twisser bottom done close=open || open=close', new Date( candleHist[0][0]).toString());
                         
-                        // var msg = new SpeechSynthesisUtterance();
-                        // msg.text = 'twisser bottom in '+symbol.toLowerCase() ; 
-                        // window.speechSynthesis.speak( msg);
+                        var msg = new SpeechSynthesisUtterance();
+                        msg.text = 'twisser bottom in '+symbol.toLowerCase() ; 
+                        window.speechSynthesis.speak( msg);
                     }
                 }
             }

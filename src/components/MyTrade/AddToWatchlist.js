@@ -198,7 +198,7 @@ class MyView extends React.Component{
                    Current Watchlist Count   {this.state.watchlistCount} 
 
                    &nbsp; &nbsp;   &nbsp; &nbsp;   &nbsp; &nbsp;  
-                   <Button  onClick={() => localStorage.setItem('watchList', [])}>Delete All</Button>    
+                   <Button  onClick={() => { localStorage.setItem('watchList', []); window.location.reload();}}>Delete All</Button>    
 
                    <br />
                   </Typography>

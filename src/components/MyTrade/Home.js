@@ -230,7 +230,7 @@ class Home extends React.Component{
                 "exchange": "NSE",
                 "symboltoken": element.token,
                 "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                "fromdate": moment("2021-07-01 09:15").format("YYYY-MM-DD HH:mm") , 
+                "fromdate": moment("2021-01-01 09:15").format("YYYY-MM-DD HH:mm") , 
                 "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") //moment(this.state.endDate).format(format1) /
             }
 
@@ -332,15 +332,24 @@ class Home extends React.Component{
                            // next10Candle = next10Candle.reverse(); 
                         
                            var higherStopLoss =  (highestOfBoth + (highestOfBoth/100/10)).toFixed(2); 
+                           var sellEntyPrice = (lowestOfBoth - (lowestOfBoth/100/10)).toFixed(2); 
 
+                           //flat 3:15 or SL hit squired off 
                            var squiredOffAt315 = 0, squareOffAt315Time = '';
                             for (let indexTarget = 0; indexTarget < next10Candle.length; indexTarget++) {
+                                
+                                if(next10Candle[indexTarget][2] > higherStopLoss){
+                                    squiredOffAt315 = next10Candle[indexTarget][2];  
+                                    squareOffAt315Time = next10Candle[indexTarget][0];  
+                                    break; 
+                                }
                                 if(new Date(next10Candle[indexTarget][0]).toLocaleTimeString()  == "15:15:00"){
                                     squiredOffAt315 = next10Candle[indexTarget][4];
                                     squareOffAt315Time = next10Candle[indexTarget][0]; 
                                     break; 
                                 }
                             } 
+                             //lowest of 3:15 profit booking
                             var lowestOf315 = next10Candle[0][4], lowestSquareOffAt = ''; 
                             for (let indexTarget2 = 1; indexTarget2 < next10Candle.length; indexTarget2++) {     
                                 if(next10Candle[indexTarget2][4] < lowestOf315){
@@ -351,6 +360,8 @@ class Home extends React.Component{
                                     break;  
                                 }
                             } 
+
+                             //trailing profit till of 3:15 
                             var trailingSL = higherStopLoss, trailingSLAT = ''; 
                             for (let indexTarget3 = 0; indexTarget3 < next10Candle.length; indexTarget3++) {
                                 if(trailingSL > next10Candle[indexTarget3][2]){
@@ -362,23 +373,47 @@ class Home extends React.Component{
                                     trailingSLAT = next10Candle[indexTarget3][0];  
                                     break; 
                                 }
-
                                 if(new Date(next10Candle[indexTarget3][0]).toLocaleTimeString() == "15:15:00"){
+                                    break;  
+                                }
+                            } 
+                            //flat 0.75% or SL hit profit booking
+                            var flatSellingPrice = 0, flatSellingPriceAt = ''; 
+                            for (let indexTarget4 = 0; indexTarget4 < next10Candle.length; indexTarget4++) {
+                                
+                                var priceDiff = (next10Candle[indexTarget4][3] - sellEntyPrice)*100/sellEntyPrice; 
+
+                                if(priceDiff < -0.70){
+                                    flatSellingPrice = next10Candle[indexTarget4][3];  
+                                    flatSellingPriceAt = next10Candle[indexTarget4][0];  
+                                    break; 
+                                }
+                                if(next10Candle[indexTarget4][2] > higherStopLoss){
+                                    flatSellingPrice = next10Candle[indexTarget4][2];  
+                                    flatSellingPriceAt = next10Candle[indexTarget4][0];  
+                                    break; 
+                                }
+                                if(new Date(next10Candle[indexTarget4][0]).toLocaleTimeString() == "15:15:00"){
+                                    flatSellingPrice = next10Candle[indexTarget4][3];  
+                                    flatSellingPriceAt = next10Candle[indexTarget4][0];  
                                     break;  
                                 }
                             } 
     
                             var twisserTopList = localStorage.getItem("twisserTopList") ? JSON.parse(localStorage.getItem("twisserTopList")) : []; 
-                            var foundStock = {
-                                foundAt: new Date( candleHist[0][0]).toLocaleString(), 
-                                symbol : symbol, 
-                                sellEntyPrice : (lowestOfBoth - (lowestOfBoth/100/10)).toFixed(2), 
-                                stopLoss : higherStopLoss, 
-                                orderActivated: false, 
-                                buyExitPrice : 0,
-                            }
+                            
 
                             if(next10Candle[0][3]  < lowestOfBoth || next10Candle[1][3] < lowestOfBoth || next10Candle[2][3] < lowestOfBoth){
+                                var foundStock = {
+                                    foundAt: new Date( candleHist[0][0]).toLocaleString(), 
+                                    symbol : symbol, 
+                                    sellEntyPrice : sellEntyPrice, 
+                                    stopLoss : higherStopLoss, 
+                                    orderActivated: false, 
+                                    buyExitPrice : 0,
+                                    brokerageCharges: 0.06,
+                                    quantity : Math.floor(10000/sellEntyPrice),
+                                }
                                 foundStock.orderActivated = true;
                                 //sqr off at 3:15
                             //   foundStock.squareOffAt = new Date( squareOffAt315Time ).toLocaleString();
@@ -389,16 +424,24 @@ class Home extends React.Component{
                             //   foundStock.buyExitPrice = lowestOf315 
 
                                 //trailing till 3:15
-                                foundStock.squareOffAt = new Date( trailingSLAT ).toLocaleString();
-                                foundStock.buyExitPrice = trailingSL 
+                                // foundStock.squareOffAt = new Date( trailingSLAT ).toLocaleString();
+                                // foundStock.buyExitPrice = trailingSL;
+
+                                //flat profit booking at 0.75%
+                                foundStock.squareOffAt = new Date( flatSellingPriceAt ).toLocaleString();
+                                foundStock.buyExitPrice = flatSellingPrice;
+
                                 foundStock.perChange = ((foundStock.sellEntyPrice - foundStock.buyExitPrice)*100/foundStock.sellEntyPrice).toFixed(2);
+                                twisserTopList.push(foundStock); 
+
+                                this.setState({twisserTopList : [...this.state.twisserTopList, foundStock]})
+    
+                              //  localStorage.setItem('twisserTopList', JSON.stringify(twisserTopList));
                             }
     
-                            twisserTopList.push(foundStock); 
+                          
 
-                            this.setState({twisserTopList : [...this.state.twisserTopList, foundStock]})
-    
-                            localStorage.setItem('twisserTopList', JSON.stringify(twisserTopList));
+                           
                         }
             
                     }
@@ -579,6 +622,10 @@ class Home extends React.Component{
         } 
         return averageprice;
     }
+    getNetTotalValue = () => {
+
+
+    }
 
 
     render() {
@@ -590,7 +637,7 @@ class Home extends React.Component{
         //     secondLavel : "End Date and Time"
         //   }
 
-        var sumPerChange = 0;
+        var sumPerChange = 0, sumBrokeragePer =0,netSumPerChange =0, sumPnlValue=0, sumSellEntyPrice=0;
 
         return(
             <React.Fragment>
@@ -730,18 +777,21 @@ class Home extends React.Component{
                             <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
                                 <TableRow   variant="head" style={{fontWeight: 'bold'}}>
 
-                                  <TableCell className="TableHeadFormat" align="center">Sr</TableCell>
-                                    <TableCell className="TableHeadFormat" align="center">symbol</TableCell>
-                                    <TableCell className="TableHeadFormat" align="center">foundAt</TableCell>
-                                    <TableCell  className="TableHeadFormat" align="center">sellEntyPrice</TableCell>
+                                  <TableCell className="TableHeadFormat" align="center">Sr. </TableCell>
+                                    <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
+                                    <TableCell className="TableHeadFormat" align="center">FoundAt</TableCell>
+                                    <TableCell  className="TableHeadFormat" align="center">sellEntyPrice(Qty)</TableCell>
                                     <TableCell  className="TableHeadFormat"   align="center">buyExitPrice</TableCell>
-                                    <TableCell  className="TableHeadFormat"   align="center">squiredOff</TableCell>
+                                    <TableCell  className="TableHeadFormat"   align="center">SquiredOff</TableCell>
+                                    <TableCell  className="TableHeadFormat" align="center">StopLoss</TableCell>
 
-                                    <TableCell  className="TableHeadFormat"   align="center">perChange</TableCell>
+                                    <TableCell  className="TableHeadFormat"   align="center">PnL %</TableCell>
 
+                                    <TableCell className="TableHeadFormat" align="center">Brokerage</TableCell>
 
-                                    <TableCell  className="TableHeadFormat" align="center">stopLoss</TableCell>
-                                    <TableCell className="TableHeadFormat" align="center">orderActivated </TableCell>
+                                    <TableCell  className="TableHeadFormat"   align="center">Net PnL %</TableCell>
+
+                                    <TableCell  className="TableHeadFormat"  title="Qty of 100"  align="center">Net PnL</TableCell>
 
                                 </TableRow>
                             </TableHead>
@@ -752,19 +802,23 @@ class Home extends React.Component{
                                    
                                  
 
-                                 <TableRow key={i} style={{display: row.orderActivated ? 'visible' : 'none'}}>
+                                //    style={{display: row.orderActivated ? 'visible' : 'none'}}
+                                 <TableRow key={i} >
                                       
                                         <TableCell align="left">{i+1}</TableCell>
-                                        <TableCell align="left">{row.symbol}</TableCell>
+                                        <TableCell align="center">{row.symbol}</TableCell>
                                         <TableCell align="center">{row.foundAt}</TableCell>
-                                        <TableCell align="center">{row.sellEntyPrice}</TableCell>
+                                        <TableCell align="center" {...sumSellEntyPrice = sumSellEntyPrice + parseFloat(row.sellEntyPrice * row.quantity) }>{row.sellEntyPrice}({row.quantity})</TableCell>
                                         <TableCell align="center">{row.buyExitPrice}</TableCell>
                                         <TableCell align="center">{row.squareOffAt}</TableCell>
-                                        <TableCell style={{color: row.perChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0) }> <b>{row.perChange}</b></TableCell>
-                                         
                                         <TableCell align="center">{row.stopLoss}</TableCell>
-                                        <TableCell align="center">{row.orderActivated ? 'yes' : 'no'}</TableCell>
-                                                                        
+                                        <TableCell style={{color: row.perChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0) }> <b>{row.perChange}%</b></TableCell>
+                                        <TableCell  style={{color: "#00cbcb"}} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges) }>{row.brokerageCharges}%</TableCell>
+
+                                        <TableCell style={{color: (row.perChange - row.brokerageCharges) > 0 ? "darkmagenta" : "#00cbcb"}} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges) }> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
+                    
+                                        <TableCell {...sumPnlValue = sumPnlValue + ((row.sellEntyPrice * (row.perChange - row.brokerageCharges)/100) * row.quantity)} style={{color: ((row.sellEntyPrice * (row.perChange - row.brokerageCharges)/100) * row.quantity) > 0 ? "darkmagenta" : "#00cbcb"}} align="center" > <b>{((row.sellEntyPrice * (row.perChange - row.brokerageCharges)/100) * row.quantity).toFixed(2)}</b></TableCell>
+
                                     </TableRow>
 
 
@@ -774,12 +828,32 @@ class Home extends React.Component{
 
                                 <TableRow >
 
-                                <TableCell align="center" colSpan={6}></TableCell>
+                                <TableCell align="center">Total</TableCell>
+                                <TableCell align="left"> </TableCell>
+                                <TableCell align="left"> </TableCell>
+
+                                <TableCell align="center"><b>{sumSellEntyPrice.toFixed(2)}</b></TableCell>
+                                <TableCell align="left"> </TableCell>
+                                <TableCell align="left"> </TableCell>
+
+                                <TableCell align="left"> </TableCell>
+
+
                                 <TableCell style={{color: sumPerChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center"><b>{sumPerChange.toFixed(2)}%</b></TableCell>
-                                <TableCell align="center" colSpan={3}></TableCell>
+                               <TableCell style={{color: "#00cbcb"}} align="center"><b>{(sumBrokeragePer).toFixed(2)}%</b></TableCell>
+                                <TableCell style={{color: netSumPerChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center"><b>{(netSumPerChange).toFixed(2)}%</b></TableCell>
+
+                                <TableCell style={{color: sumPnlValue > 0 ? "darkmagenta" : "#00cbcb"}} align="center"><b>{(sumPnlValue).toFixed(2)}</b></TableCell>
+
+                                
                                 </TableRow>
                             </TableBody>
                         </Table>
+
+
+                        <b> Average gross/trade PnL: </b> <b style={{color: netSumPerChange > 0 ? "darkmagenta" : "#00cbcb"}} >{(sumPerChange/this.state.twisserTopList.length).toFixed(2)}%</b>
+
+
 
 
 
