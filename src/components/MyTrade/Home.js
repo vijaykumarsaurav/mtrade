@@ -48,7 +48,7 @@ class Home extends React.Component{
             autoSearchTemp : [],
             backTestResult : [],
             backTestFlag : true,
-            patternType :"",
+            patternType :"NR4",
             symboltoken: "", 
             tradingsymbol : "" ,
             buyPrice : 0,
@@ -72,6 +72,9 @@ class Home extends React.Component{
             this.setState({ autoSearchList : data });
        })
 
+    }
+    onChangePattern = (e) => {
+        this.setState({ [e.target.name]: e.target.value});
     }
 
     myCallback = (date, fromDate) => {
@@ -115,7 +118,7 @@ class Home extends React.Component{
     makeConnection = (feedToken ,clientcode ) => {
 
        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-       console.log("1st Request :- " + firstTime_req);
+     //  console.log("1st Request :- " + firstTime_req);
        wsClint.send(firstTime_req);
     }
 
@@ -202,7 +205,7 @@ class Home extends React.Component{
 
         setInterval(() => {
             var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-            console.log("Request :- " + _req);
+           // console.log("Request :- " + _req);
             wsClint.send(_req);
           //  this.makeConnection(feedToken ,clientcode );
         }, 59000);
@@ -228,9 +231,15 @@ class Home extends React.Component{
     backTestAnyPattern = async() =>{
 
 
+
         if(!this.state.patternType){
             Notify.showError("Select pattern type");
             return;
+        }
+
+        if(this.state.patternType === 'NR4'){
+            this.backTestNR4(); 
+            return; 
         }
 
         this.setState({backTestResult : [], backTestFlag : false}); 
@@ -258,8 +267,6 @@ class Home extends React.Component{
                 if(histdata && histdata.data && histdata.data.length){
                    
                     var candleData = histdata.data; 
-                  //  candleData.reverse(); 
-                    var totalSet = parseInt(candleData.length/10); 
                     for (let index2 = 0; index2 < candleData.length-35; index2++) {
                        // var startindex = index2 * 10; 
                         var last10Candle = candleData.slice(index2, index2+10);    
@@ -278,9 +285,6 @@ class Home extends React.Component{
                                 case 'TweezerBottom':
                                     this.backtestTweezerBottom(last10Candle, element.symbol, next10Candle);       
                                     break;
-                                case 'NR4':
-                                   // this.backtestNR4(last10Candle, element.symbol, next10Candle);      
-                                    break;
                                 default:
                                     break;
                             }
@@ -297,6 +301,98 @@ class Home extends React.Component{
             this.setState({stockTesting:  index+1 + ". " + element.symbol , runningTest: runningTest})
         }
 
+    }
+
+
+    backTestNR4 = async() =>{
+
+        this.setState({backTestResult : [], backTestFlag : false}); 
+
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        var runningTest = 1, sumPercentage =0 ; 
+        for (let index = 0; index < watchList.length; index++) {
+            const element = watchList[index];
+
+            var data  = {
+                "exchange": "NSE",
+                "symboltoken": element.token,
+                "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment(this.state.startDate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate":  moment(this.state.endDate).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+            }
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res,'noPop' );
+                //console.log("candle history", histdata); 
+                if(histdata && histdata.data && histdata.data.length){
+                   
+                    var candleData = histdata.data; 
+                  //  candleData.reverse(); 
+                    for (let index2 = 0; index2 < candleData.length-4; index2++) {
+                       // var startindex = index2 * 10; 
+                        var last4Candle = candleData.slice(index2, index2+4);    
+                       // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+                       
+                       // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+                      
+                        //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
+                        if(last4Candle.length >= 4  && new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"){
+                         
+                            last4Candle.reverse(); 
+                         
+                            var rangeArr=[]; 
+                            last4Candle.forEach(element => {
+                                rangeArr.push(element[2] - element[3]); 
+                            });
+                            var firstElement = rangeArr[0], rgrangeCount = 0; 
+                            rangeArr.forEach(element => {
+                                if(firstElement <= element){
+                                    firstElement = element; 
+                                    rgrangeCount+=1; 
+                                }
+                            });
+
+                          //  console.log(element.symbol, last4Candle, rangeArr, rgrangeCount); 
+                            if(rgrangeCount == 4){
+                                var firstCandle =  last4Candle[0]; 
+                                var next5thCandle = candleData[index2+4]; 
+                                
+                                if(next5thCandle[2] > firstCandle[2]){
+                                    var perChng =  (next5thCandle[4] - firstCandle[2])*100/firstCandle[2];  
+                                    sumPercentage += perChng; 
+                                    console.log(element.symbol,firstCandle[0],"upside", "same day high" , firstCandle[2],"same day low" , firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4],  perChng + '%'); 
+                               
+                                    var foundStock = {
+                                        foundAt: new Date( firstCandle[0]).toLocaleString(), 
+                                        symbol : element.symbol, 
+                                        sellEntyPrice : next5thCandle[4], 
+                                        stopLoss : firstCandle[3], 
+                                        buyExitPrice : firstCandle[2],
+                                        brokerageCharges: 0.06,
+                                        perChange : perChng.toFixed(2),
+                                        squareOffAt : new Date( next5thCandle[0] ).toLocaleString(), 
+                                        quantity : Math.floor(10000/firstCandle[2]),
+                                    }
+                               
+                                    this.setState({backTestResult : [...this.state.backTestResult, foundStock]}); 
+                                    
+                                }
+
+                            }
+                            
+                        }
+                        runningTest=runningTest+candleData.length-35; 
+                    }
+                }else{
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(element.symbol, " candle data emply"); 
+                }
+            })
+            await new Promise(r => setTimeout(r, 300));  
+            this.setState({stockTesting:  index+1 + ". " + element.symbol , runningTest: runningTest})
+        }
+        this.setState({backTestFlag : true});
+        console.log("sumPercentage", sumPercentage)
     }
 
     backtestTweezerTop = (candleHist,symbol, next10Candle) => {
@@ -1054,7 +1150,7 @@ class Home extends React.Component{
                             <Grid item xs={12} sm={4} style={{marginTop: '15px'}}>
                                 <FormControl style={styles.selectStyle}>
                                     <InputLabel htmlFor="Nationality">Pattern Type</InputLabel>
-                                    <Select value={this.state.patternType}  name="patternType" onChange={this.onChange}>
+                                    <Select value={this.state.patternType}  name="patternType" onChange={this.onChangePattern}>
                                         <MenuItem value={"TweezerTop"}>Tweezer Top</MenuItem>
                                         <MenuItem value={"TweezerBottom"}>Tweezer Bottom</MenuItem>
                                         <MenuItem value={"NR4"}>Narrow Range 4</MenuItem>
@@ -1083,8 +1179,9 @@ class Home extends React.Component{
                                   <TableCell className="TableHeadFormat" align="center">Sr. </TableCell>
                                     <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
                                     <TableCell className="TableHeadFormat" align="center">FoundAt</TableCell>
-                                    <TableCell  className="TableHeadFormat" align="center">Sell(Qty)</TableCell>
                                     <TableCell  className="TableHeadFormat"   align="center">Buy</TableCell>
+                                    <TableCell  className="TableHeadFormat" align="center">Sell(Qty)</TableCell>
+                                 
                                     <TableCell  className="TableHeadFormat"   align="center">SquiredOff</TableCell>
                                     <TableCell  className="TableHeadFormat" align="center">StopLoss</TableCell>
 
@@ -1111,8 +1208,9 @@ class Home extends React.Component{
                                         <TableCell align="left">{i+1}</TableCell>
                                         <TableCell align="center">{row.symbol}</TableCell>
                                         <TableCell align="center">{row.foundAt}</TableCell>
-                                        <TableCell align="center" {...sumSellEntyPrice = sumSellEntyPrice + parseFloat(row.sellEntyPrice * row.quantity) }>{row.sellEntyPrice}({row.quantity})</TableCell>
                                         <TableCell align="center">{row.buyExitPrice}</TableCell>
+
+                                        <TableCell align="center" {...sumSellEntyPrice = sumSellEntyPrice + parseFloat(row.sellEntyPrice * row.quantity) }>{row.sellEntyPrice}({row.quantity})</TableCell>
                                         <TableCell align="center">{row.squareOffAt}</TableCell>
                                         <TableCell align="center">{row.stopLoss}</TableCell>
                                         <TableCell style={{color: row.perChange > 0 ? "darkmagenta" : "#00cbcb"}} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0) }> <b>{row.perChange}%</b></TableCell>
