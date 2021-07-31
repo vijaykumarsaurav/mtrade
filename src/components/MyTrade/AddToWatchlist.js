@@ -111,6 +111,7 @@ class MyView extends React.Component{
           let searchResdata =  searchRes.data; 
           var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === element.SYMBOL);                                
          
+         // && element.LTP >= 200
           if(found.length){
 
             

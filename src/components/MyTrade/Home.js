@@ -6,6 +6,7 @@ import AdminService from "../service/AdminService";
 import Grid from '@material-ui/core/Grid';
 import PostLoginNavBar from "../PostLoginNavbar";
 import {resolveResponse} from "../../utils/ResponseHandler";
+import MaterialUIDateTimePicker from '../../utils/MaterialUIDateTimePicker';
 import Paper from '@material-ui/core/Paper';
 import Table from "@material-ui/core/Table";
 import TableHead from "@material-ui/core/TableHead";
@@ -16,11 +17,13 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import * as moment from 'moment';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import Notify from "../../utils/Notify";
 
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import Spinner from "react-spinner-material";
 
 import { w3cwebsocket } from 'websocket'; 
 import pako from 'pako';
@@ -43,7 +46,9 @@ class Home extends React.Component{
             InstrumentLTP : {},
             ifNotBought : true,
             autoSearchTemp : [],
-            twisserTopList : [],
+            backTestResult : [],
+            backTestFlag : true,
+            patternType :"",
             symboltoken: "", 
             tradingsymbol : "" ,
             buyPrice : 0,
@@ -142,9 +147,9 @@ class Home extends React.Component{
         this.setState({ feedToken : feedToken,clientcode : clientcode  });
      
      
-        this.backTestAnyPattern(); 
+      //  this.backTestAnyPattern(); 
 
-     //  this.setState({twisserTopList: localStorage.getItem('twisserTopList') && JSON.parse(localStorage.getItem('twisserTopList'))})
+     //  this.setState({backTestResult: localStorage.getItem('backTestResult') && JSON.parse(localStorage.getItem('backTestResult'))})
         
             
     //    wsClint.onopen  = (res) => {
@@ -222,15 +227,28 @@ class Home extends React.Component{
 
     backTestAnyPattern = async() =>{
 
-        var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
+
+        if(!this.state.patternType){
+            Notify.showError("Select pattern type");
+            return;
+        }
+
+        this.setState({backTestResult : [], backTestFlag : false}); 
+
+        
+        console.log("pattername", this.state.patternType); 
+
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        var runningTest = 1; 
         for (let index = 0; index < watchList.length; index++) {
             const element = watchList[index];
+
 
             var data  = {
                 "exchange": "NSE",
                 "symboltoken": element.token,
                 "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                "fromdate": moment("2021-06-01 09:15").format("YYYY-MM-DD HH:mm") , 
+                "fromdate": moment(this.state.startDate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
                 "todate":  moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
             }
 
@@ -248,14 +266,27 @@ class Home extends React.Component{
                         var next10Candle = candleData.slice(index2+10 , index2+35 );    
                        
                        // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
-
+                      
                         console.log('\n'); //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
                         if(last10Candle.length >= 10  && new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"){
                           //  console.log(element.symbol, 'findingtime', new Date(candleData[index2][0]).toLocaleTimeString()); 
-                            this.findTweezerTopPattern(last10Candle, element.symbol, next10Candle);
+
+                            switch (this.state.patternType) {
+                                case 'TweezerTop':
+                                    this.backtestTweezerTop(last10Candle, element.symbol, next10Candle);
+                                    break;
+                                case 'TweezerBottom':
+                                    this.backtestTweezerBottom(last10Candle, element.symbol, next10Candle);       
+                                    break;
+                                case 'NR4':
+                                   // this.backtestNR4(last10Candle, element.symbol, next10Candle);      
+                                    break;
+                                default:
+                                    break;
+                            }
                             
                         }
-
+                        runningTest=runningTest+candleData.length-35; 
                     }
                 }else{
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -263,11 +294,12 @@ class Home extends React.Component{
                 }
             })
             await new Promise(r => setTimeout(r, 300));  
+            this.setState({stockTesting:  index+1 + ". " + element.symbol , runningTest: runningTest})
         }
 
     }
 
-    findTweezerTopPattern = (candleHist,symbol, next10Candle) => {
+    backtestTweezerTop = (candleHist,symbol, next10Candle) => {
 
         if(candleHist && candleHist.length > 0){
 
@@ -339,7 +371,7 @@ class Home extends React.Component{
                             for (let indexTarget = 0; indexTarget < next10Candle.length; indexTarget++) {
                                 
                                 if(next10Candle[indexTarget][2] > higherStopLoss){
-                                    squiredOffAt315 = next10Candle[indexTarget][2];  
+                                    squiredOffAt315 = higherStopLoss;  
                                     squareOffAt315Time = next10Candle[indexTarget][0];  
                                     break; 
                                 }
@@ -389,7 +421,7 @@ class Home extends React.Component{
                                     break; 
                                 }
                                 if(next10Candle[indexTarget4][2] > higherStopLoss){
-                                    flatSellingPrice = next10Candle[indexTarget4][2];  
+                                    flatSellingPrice = higherStopLoss;  
                                     flatSellingPriceAt = next10Candle[indexTarget4][0];  
                                     break; 
                                 }
@@ -406,13 +438,13 @@ class Home extends React.Component{
                                 
                                 var rangePriceDiff = (next10Candle[indexTarget5][3] - sellEntyPrice)*100/sellEntyPrice; 
 
-                                if(rangePriceDiff <= -2.5){
+                                if(rangePriceDiff <= -1.5){
                                     rangeSellingPrice = next10Candle[indexTarget5][3];  
                                     rangeSellingPriceAt = next10Candle[indexTarget5][0];  
                                     break; 
                                 }
                                 if(next10Candle[indexTarget5][2] > higherStopLoss){
-                                    rangeSellingPrice = next10Candle[indexTarget5][2];  
+                                    rangeSellingPrice = higherStopLoss;  
                                     rangeSellingPriceAt = next10Candle[indexTarget5][0];  
                                     break; 
                                 }
@@ -423,7 +455,7 @@ class Home extends React.Component{
                                 }
                             } 
     
-                            var twisserTopList = localStorage.getItem("twisserTopList") ? JSON.parse(localStorage.getItem("twisserTopList")) : []; 
+                            var backTestResult = localStorage.getItem("backTestResult") ? JSON.parse(localStorage.getItem("backTestResult")) : []; 
                             
 
                             if(next10Candle[0][3]  < lowestOfBoth || next10Candle[1][3] < lowestOfBoth || next10Candle[2][3] < lowestOfBoth){
@@ -450,21 +482,21 @@ class Home extends React.Component{
                                 // foundStock.squareOffAt = new Date( trailingSLAT ).toLocaleString();
                                 // foundStock.buyExitPrice = trailingSL;
 
-                                //flat profit booking at 0.75%
-                                // foundStock.squareOffAt = new Date( flatSellingPriceAt ).toLocaleString();
-                                // foundStock.buyExitPrice = flatSellingPrice;
+                                //flat profit booking at 0.70%
+                                foundStock.squareOffAt = new Date( flatSellingPriceAt ).toLocaleString();
+                                foundStock.buyExitPrice = flatSellingPrice;
 
 
                                   //range based target range*1.5%
-                               foundStock.squareOffAt = new Date( rangeSellingPriceAt ).toLocaleString();
-                               foundStock.buyExitPrice = rangeSellingPrice;
+                            //    foundStock.squareOffAt = new Date( rangeSellingPriceAt ).toLocaleString();
+                            //    foundStock.buyExitPrice = rangeSellingPrice;
 
                                 foundStock.perChange = ((foundStock.sellEntyPrice - foundStock.buyExitPrice)*100/foundStock.sellEntyPrice).toFixed(2);
-                                twisserTopList.push(foundStock); 
+                                backTestResult.push(foundStock); 
 
-                                this.setState({twisserTopList : [...this.state.twisserTopList, foundStock]})
+                                this.setState({backTestResult : [...this.state.backTestResult, foundStock]}); 
     
-                              //  localStorage.setItem('twisserTopList', JSON.stringify(twisserTopList));
+                              //  localStorage.setItem('backTestResult', JSON.stringify(backTestResult));
                             }
     
                           
@@ -478,6 +510,220 @@ class Home extends React.Component{
 
         }
 
+        this.setState({backTestFlag : true});
+    }
+
+    backtestTweezerBottom = (candleHist,symbol, next10Candle) => {
+        if(candleHist && candleHist.length > 0){
+
+            candleHist = candleHist.reverse(); 
+           // console.log(symbol, "candleHist",candleHist, new Date().toString()); 
+
+
+            var maxHigh = candleHist[2] && candleHist[2][2], maxLow = candleHist[2] && candleHist[2][3]; 
+            for (let index = 3; index < candleHist.length; index++) {
+                if(maxHigh < candleHist[index][2])
+                maxHigh = candleHist[index][2];
+                if(candleHist[index][3] < maxLow)
+                maxLow = candleHist[index][3];  
+            } 
+            
+
+            var lastTrendCandleLow = candleHist[9][3]; 
+            var firstTrendCandleHigh = candleHist[2][2]; 
+
+            var firstCandle = {
+                time : candleHist[0]  && candleHist[0][0],
+                open: candleHist[0]  && candleHist[0][1],
+                high: candleHist[0]  && candleHist[0][2],
+                low: candleHist[0]  && candleHist[0][3],
+                close: candleHist[0]  && candleHist[0][4]
+            }
+            var secondCandle = {
+                time:candleHist[1] && candleHist[1][0],
+                open: candleHist[1] && candleHist[1][1],
+                high: candleHist[1] && candleHist[1][2],
+                low: candleHist[1] && candleHist[1][3],
+                close: candleHist[1] && candleHist[1][4]
+            }
+            
+           
+
+            var diffPer = (firstTrendCandleHigh - lastTrendCandleLow)*100/lastTrendCandleLow;
+            var lowestOfBoth = secondCandle.low < firstCandle.low ? secondCandle.low : firstCandle.low;
+            var highestOfBoth = secondCandle.high < firstCandle.high ? secondCandle.high : firstCandle.high;
+            //uptrend movement 1.5% 
+        //    console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+
+            
+        if(diffPer <= -1.5 && highestOfBoth < maxHigh  && lowestOfBoth < maxLow){
+            //1st candle green & 2nd candle is red check
+            if(secondCandle.open > secondCandle.close && firstCandle.close  > firstCandle.open){ 
+                // console.log(symbol, "candleHist",candleHist); 
+              //  console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+              //  console.log(symbol, 'making twisser 1st green & 2nd red' , firstCandle, secondCandle );
+
+                    if(Math.round(secondCandle.close) ==  Math.round(firstCandle.open) || Math.round(secondCandle.open) ==  Math.round(firstCandle.close)){
+
+                        console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
+                        console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
+
+                        console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
+                        console.log("last10Candle",candleHist); 
+                        console.log(symbol, 'perfect twisser top done close=open || open=close', );
+                        console.log("next10Candle",next10Candle); 
+                        
+                        if(next10Candle && next10Candle.length){
+                           // next10Candle = next10Candle.reverse(); 
+                        
+                           var buyEntyPrice =  (highestOfBoth + (highestOfBoth/100/10)).toFixed(2); 
+                           var LowerStopLoss = (lowestOfBoth - (lowestOfBoth/100/10)).toFixed(2); 
+
+                           //flat 3:15 or SL hit squired off 
+                           var squiredOffAt315 = 0, squareOffAt315Time = '';
+                            for (let indexTarget = 0; indexTarget < next10Candle.length; indexTarget++) {
+                                
+                                if(next10Candle[indexTarget][2] < LowerStopLoss){
+                                    squiredOffAt315 = LowerStopLoss;  
+                                    squareOffAt315Time = next10Candle[indexTarget][0];  
+                                    break; 
+                                }
+                                if(new Date(next10Candle[indexTarget][0]).toLocaleTimeString()  == "15:15:00"){
+                                    squiredOffAt315 = next10Candle[indexTarget][4];
+                                    squareOffAt315Time = next10Candle[indexTarget][0]; 
+                                    break; 
+                                }
+                            } 
+                             //highest of 3:15 profit booking
+                            var highestOf315 = next10Candle[0][4], highestSquareOffAt = ''; 
+                            for (let indexTarget2 = 1; indexTarget2 < next10Candle.length; indexTarget2++) {     
+                                if(highestOf315 < next10Candle[indexTarget2][4]){
+                                    highestOf315 = next10Candle[indexTarget2][4];  
+                                    highestSquareOffAt = next10Candle[indexTarget2][0];  
+                                }
+                                if(new Date(next10Candle[indexTarget2][0]).toLocaleTimeString() == "15:15:00"){
+                                    break;  
+                                }
+                            } 
+
+                             //trailing profit till of 3:15 
+                            var trailingSL = LowerStopLoss, trailingSLAT = ''; 
+                            for (let indexTarget3 = 0; indexTarget3 < next10Candle.length; indexTarget3++) {
+                                if(trailingSL > next10Candle[indexTarget3][2]){
+                                    trailingSL = (next10Candle[indexTarget3][2] + (next10Candle[indexTarget3][2]/100/4)).toFixed(2);  
+                                    trailingSLAT = next10Candle[indexTarget3][0];  
+                                }
+                                else{
+                                    trailingSL = (next10Candle[indexTarget3][4]).toFixed(2);  
+                                    trailingSLAT = next10Candle[indexTarget3][0];  
+                                    break; 
+                                }
+                                if(new Date(next10Candle[indexTarget3][0]).toLocaleTimeString() == "15:15:00"){
+                                    break;  
+                                }
+                            } 
+                            //flat 0.75% or SL hit profit booking
+                            var flatSellingPrice = 0, flatSellingPriceAt = ''; 
+                            for (let indexTarget4 = 0; indexTarget4 < next10Candle.length; indexTarget4++) {
+                                
+                                var priceDiff = (next10Candle[indexTarget4][3] - buyEntyPrice)*100/buyEntyPrice; 
+
+                                if(priceDiff > 0.70){
+                                    flatSellingPrice = next10Candle[indexTarget4][3];  
+                                    flatSellingPriceAt = next10Candle[indexTarget4][0];  
+                                    break; 
+                                }
+                                if(next10Candle[indexTarget4][2] > LowerStopLoss){
+                                    flatSellingPrice = LowerStopLoss;  
+                                    flatSellingPriceAt = next10Candle[indexTarget4][0];  
+                                    break; 
+                                }
+                                if(new Date(next10Candle[indexTarget4][0]).toLocaleTimeString() == "15:15:00"){
+                                    flatSellingPrice = next10Candle[indexTarget4][3];  
+                                    flatSellingPriceAt = next10Candle[indexTarget4][0];  
+                                    break;  
+                                }
+                            } 
+
+                            //range based target range*1.5% or SL hit profit booking
+                            var rangeSellingPrice = 0, rangeSellingPriceAt = ''; 
+                            for (let indexTarget5 = 0; indexTarget5 < next10Candle.length; indexTarget5++) {
+                                
+                                var rangePriceDiff = (next10Candle[indexTarget5][3] - buyEntyPrice)*100/buyEntyPrice; 
+
+                                if(rangePriceDiff >= -1.5){
+                                    rangeSellingPrice = next10Candle[indexTarget5][3];  
+                                    rangeSellingPriceAt = next10Candle[indexTarget5][0];  
+                                    break; 
+                                }
+                                if(next10Candle[indexTarget5][2] > LowerStopLoss){
+                                    rangeSellingPrice = LowerStopLoss;  
+                                    rangeSellingPriceAt = next10Candle[indexTarget5][0];  
+                                    break; 
+                                }
+                                if(new Date(next10Candle[indexTarget5][0]).toLocaleTimeString() == "15:15:00"){
+                                    rangeSellingPrice = next10Candle[indexTarget5][3];  
+                                    rangeSellingPriceAt = next10Candle[indexTarget5][0];  
+                                    break;  
+                                }
+                            } 
+    
+                            var backTestResult = localStorage.getItem("backTestResult") ? JSON.parse(localStorage.getItem("backTestResult")) : []; 
+                            
+
+                            if(next10Candle[0][3]  < lowestOfBoth || next10Candle[1][3] < lowestOfBoth || next10Candle[2][3] < lowestOfBoth){
+                                var foundStock = {
+                                    foundAt: new Date( candleHist[0][0]).toLocaleString(), 
+                                    symbol : symbol, 
+                                    sellEntyPrice : 0, 
+                                    stopLoss : LowerStopLoss, 
+                                    orderActivated: false, 
+                                    buyExitPrice : buyEntyPrice,
+                                    brokerageCharges: 0.06,
+                                    quantity : Math.floor(10000/buyEntyPrice),
+                                }
+                                foundStock.orderActivated = true;
+                                //sqr off at 3:15
+                              foundStock.squareOffAt = new Date( squareOffAt315Time ).toLocaleString();
+                              foundStock.sellEntyPrice = squiredOffAt315; 
+
+                             //  lowest of 3:15
+                                // foundStock.squareOffAt = new Date( lowestSquareOffAt ).toLocaleString();
+                                // foundStock.sellEntyPrice = lowestOf315 
+
+                                //trailing till 3:15
+                                // foundStock.squareOffAt = new Date( trailingSLAT ).toLocaleString();
+                                // foundStock.sellEntyPrice = trailingSL;
+
+                                //flat profit booking at 0.70%
+                                // foundStock.squareOffAt = new Date( flatSellingPriceAt ).toLocaleString();
+                                // foundStock.sellEntyPrice = flatSellingPrice;
+
+
+                                  //range based target range*1.5%
+                            //    foundStock.squareOffAt = new Date( rangeSellingPriceAt ).toLocaleString();
+                            //    foundStock.sellEntyPrice = rangeSellingPrice;
+
+                                foundStock.perChange = ((foundStock.sellEntyPrice - foundStock.buyExitPrice)*100/foundStock.sellEntyPrice).toFixed(2);
+                                backTestResult.push(foundStock); 
+
+                                this.setState({backTestResult : [...this.state.backTestResult, foundStock]}); 
+    
+                              //  localStorage.setItem('backTestResult', JSON.stringify(backTestResult));
+                            }
+    
+                          
+
+                           
+                        }
+            
+                    }
+                }
+            }
+
+        }
+        this.setState({backTestFlag : true});
+       
     }
 
     placeOrder = (transactiontype, slmOrderType) => {
@@ -657,13 +903,13 @@ class Home extends React.Component{
 
 
     render() {
-        // const dateParam = {
-        //     myCallback: this.myCallback,
-        //     startDate: '',
-        //     endDate:'', 
-        //     firstLavel : "Start Date and Time", 
-        //     secondLavel : "End Date and Time"
-        //   }
+        const dateParam = {
+            myCallback: this.myCallback,
+            startDate: '',
+            endDate:'', 
+            firstLavel : "Start Date and Time", 
+            secondLavel : "End Date and Time"
+          }
 
         var sumPerChange = 0, sumBrokeragePer =0,netSumPerChange =0, sumPnlValue=0, sumSellEntyPrice=0;
 
@@ -800,7 +1046,36 @@ class Home extends React.Component{
 
                         </Paper>
 
+
+
                         <Paper style={{padding:"10px", overflow:"auto"}} >
+                        <Grid direction="row" container>
+                            
+                            <Grid item xs={12} sm={4} style={{marginTop: '15px'}}>
+                                <FormControl style={styles.selectStyle}>
+                                    <InputLabel htmlFor="Nationality">Pattern Type</InputLabel>
+                                    <Select value={this.state.patternType}  name="patternType" onChange={this.onChange}>
+                                        <MenuItem value={"TweezerTop"}>Tweezer Top</MenuItem>
+                                        <MenuItem value={"TweezerBottom"}>Tweezer Bottom</MenuItem>
+                                        <MenuItem value={"NR4"}>Narrow Range 4</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+
+                            <Grid item xs={12} sm={6}>
+                                <MaterialUIDateTimePicker callbackFromParent={dateParam}/>
+                            </Grid>
+                            
+                            <Grid item xs={12} sm={2} style={{marginTop: '28px'}}> 
+                              {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Back Test</Button> : <Spinner/>} 
+                                <br />  
+                              Stock: {this.state.stockTesting}  Total Test Count: {this.state.runningTest}
+                            </Grid>
+
+                        </Grid>
+
+                       
                         <Table  size="small"   aria-label="sticky table" >
                             <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
                                 <TableRow   variant="head" style={{fontWeight: 'bold'}}>
@@ -808,8 +1083,8 @@ class Home extends React.Component{
                                   <TableCell className="TableHeadFormat" align="center">Sr. </TableCell>
                                     <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
                                     <TableCell className="TableHeadFormat" align="center">FoundAt</TableCell>
-                                    <TableCell  className="TableHeadFormat" align="center">sellEntyPrice(Qty)</TableCell>
-                                    <TableCell  className="TableHeadFormat"   align="center">buyExitPrice</TableCell>
+                                    <TableCell  className="TableHeadFormat" align="center">Sell(Qty)</TableCell>
+                                    <TableCell  className="TableHeadFormat"   align="center">Buy</TableCell>
                                     <TableCell  className="TableHeadFormat"   align="center">SquiredOff</TableCell>
                                     <TableCell  className="TableHeadFormat" align="center">StopLoss</TableCell>
 
@@ -826,7 +1101,7 @@ class Home extends React.Component{
                             <TableBody style={{width:"",whiteSpace: "nowrap"}}>
 
 
-                                { this.state.twisserTopList ? this.state.twisserTopList.map((row, i) => (
+                                { this.state.backTestResult ? this.state.backTestResult.map((row, i) => (
                                    
                                  
 
@@ -879,7 +1154,7 @@ class Home extends React.Component{
                         </Table>
 
 
-                        <b> Average gross/trade PnL: </b> <b style={{color: netSumPerChange > 0 ? "darkmagenta" : "#00cbcb"}} >{(sumPerChange/this.state.twisserTopList.length).toFixed(2)}%</b>
+                        <b> Average gross/trade PnL: </b> <b style={{color: netSumPerChange > 0 ? "darkmagenta" : "#00cbcb"}} >{(sumPerChange/this.state.backTestResult.length).toFixed(2)}%</b>
 
 
 
