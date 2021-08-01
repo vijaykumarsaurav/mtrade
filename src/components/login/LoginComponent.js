@@ -4,13 +4,14 @@ import LoginNavBar from "../LoginNavbar";
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoginNewUI from './LoginNewUI';
+import {resolveResponse} from "../../utils/ResponseHandler";
 
 class LoginComponent extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
             userName: "V193588",
-            password: "Email*1990A", 
+            password: "", 
             isDasable:false,
             isError:false,
             
@@ -107,7 +108,7 @@ class LoginComponent extends React.Component{
             //  alert(JSON.stringify(res));
          //   console.log("res",loginRes); 
 
-             // var data = resolveResponse(res);
+              var data = resolveResponse(loginRes);
               loginRes  = loginRes && loginRes.data; 
             //  console.log("resdata",loginRes); 
               if(loginRes.status && loginRes.message !== 'SUCCESS'){
@@ -123,13 +124,13 @@ class LoginComponent extends React.Component{
 
                     AdminService.getUserData().then(profileRes => {
                        // console.log('profiledata', profileRes); 
-                          //let data = resolveResponse(res);
+                          let data = resolveResponse(profileRes);
                           profileRes =  profileRes && profileRes.data; 
                           if(profileRes.status & profileRes.message === 'SUCCESS'){
                             window.localStorage.setItem("userProfile",JSON.stringify(profileRes.data));
                         //    this.props.history.push('/position');
 
-                            window.location.replace('/#/position')
+                             window.location.replace('/#/home')
                           }
                       })
 

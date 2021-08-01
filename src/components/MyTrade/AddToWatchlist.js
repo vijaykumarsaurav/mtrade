@@ -27,7 +27,7 @@ import {resolveResponse} from "../../utils/ResponseHandler";
 import TextField from "@material-ui/core/TextField";
 
 import Chart from "./Chart";
-import { ContactlessOutlined } from "@material-ui/icons";
+import { ContactlessOutlined, Sync } from "@material-ui/icons";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -59,7 +59,8 @@ class MyView extends React.Component{
             CEoi:0,
             scrollcount : 0,
             resMessage: [],
-            counter:0
+            counter:0,
+            listCount:0
             
             //JSON.parse(localStorage.getItem('optionChainDataBN')).records.data
 
@@ -94,13 +95,14 @@ class MyView extends React.Component{
 
     }
 
-    readCsv = () => {
+    readCsv = async() => {
 
       var list = this.state.addtowatchlist; 
 
       var parsedList =JSON.parse(list) 
       console.log(parsedList.length);
       
+      var newJsonList = []; 
 
       for (let index = 0; index < parsedList.length; index++) {
         const element = parsedList[index];
@@ -112,29 +114,18 @@ class MyView extends React.Component{
           var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === element.SYMBOL);                                
          
          // && element.LTP >= 200
-          if(found.length){
-
-            
+          if(found.length){ 
+            newJsonList.push(found[0]); 
             var watchlist = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
-
-             
-            
               var foundInWatchlist = watchlist.filter(row => row.token  === found[0].token);                                
-              // var isFound = true; 
-              // for(var newList=0; newList < watchlist.length; newList++ ){
-              //     if( watchlist[newList].token == found[0].token){
-              //       isFound = false; 
-              //       break;
-              //     }
-              // }
               if(!foundInWatchlist.length){
-                
-                 
                 this.setState({resMessage: [...this.state.resMessage,  index + ". ======================> New Symbol:  "+ element.SYMBOL]})
 
                 this.setState({watchlistCount : watchlist.length, counter:this.state.counter+1})
                 watchlist.push(found[0]); 
                 localStorage.setItem('watchList', JSON.stringify(watchlist));
+                console.log("fdaata");
+               
               }else{
                 this.setState({watchlistCount : watchlist.length,})
                 this.setState({resMessage: [...this.state.resMessage,  index + ". Already in List:  "+ element.SYMBOL]})
@@ -147,23 +138,24 @@ class MyView extends React.Component{
             this.setState({resMessage: [...this.state.resMessage.reverse()]})
 
           }
-         
-
-          
-       })
         
+       })
 
-
-
+       await new Promise(r => setTimeout(r, 200));  
       }
 
-
-
-
-
-
-
-
+      //"NIFTY PSU BANK".split(' ').join('') // "NIFTYPSUBANK"
+      
+      var data = {
+        listName : parsedList[0].SYMBOL, 
+        listItem : newJsonList 
+      }
+      console.log("newjosnlist:", data);
+      AdminService.addIntoStaticData(data).then(res => {
+        let resdata = resolveResponse(res,'noPop' );
+       // console.log(resdata);
+        this.setState({listName: resdata.listName,listCount: resdata.count})
+      });
       
     }
     resetCsv=()=>{
@@ -216,7 +208,8 @@ class MyView extends React.Component{
 
                     <Button variant="contained" color="primary" onClick={() => this.readCsv()}> Add to Watchlist</Button>    &nbsp; &nbsp;
                     <Button variant="contained" color="secondary" onClick={() => this.resetCsv()}>Reset</Button>    
-                &nbsp; &nbsp;   <b>Total Added: {this.state.counter}</b>
+                &nbsp; &nbsp;   <b>Total Added to Watchlist : {this.state.counter}</b>
+                &nbsp; &nbsp;   <b> Static Data Update: {this.state.listName}({this.state.listCount})</b>
 
 
 

@@ -29,6 +29,7 @@ import { w3cwebsocket } from 'websocket';
 import pako from 'pako';
 import DeleteIcon from '@material-ui/icons/Delete';
 
+
 import Position from './Position'; 
 
 import Tab from './Tab'
@@ -54,7 +55,8 @@ class Home extends React.Component{
             buyPrice : 0,
             quantity : 1,
             producttype : "INTRADAY",
-            symbolList : localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
+            symbolList : localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
+            selectedWatchlist : 'NIFTY 50'
         
         };
         this.myCallback = this.myCallback.bind(this);
@@ -75,6 +77,11 @@ class Home extends React.Component{
     }
     onChangePattern = (e) => {
         this.setState({ [e.target.name]: e.target.value});
+    }
+    onChangeWatchlist = (e) => {
+        this.setState({ [e.target.name]: e.target.value});
+        var staticData = this.state.staticData; 
+        this.setState({symbolList : staticData[e.target.value]});
     }
 
     myCallback = (date, fromDate) => {
@@ -141,6 +148,26 @@ class Home extends React.Component{
 
     
     componentDidMount() {
+     
+        AdminService.getStaticData().then(res => {
+            var data = res.data;
+            //data = JSON.parse(data);   
+            var totalWatchlist =  Object.keys(data); 
+            this.setState({totalWatchlist: totalWatchlist}); 
+            this.setState({staticData: data}); 
+        
+            var watchlist = [];  
+            totalWatchlist.forEach(element => {
+               var mylist =  data[element]; 
+               mylist.forEach(element => {
+                watchlist.push(element); 
+               });
+            });
+
+            localStorage.setItem('watchList', JSON.stringify(watchlist));
+            
+            this.setState({symbolList :data[this.state.selectedWatchlist] });
+        });
 
         var tokens = JSON.parse(localStorage.getItem("userTokens")); 
         var feedToken =   tokens &&  tokens.feedToken;
@@ -148,12 +175,7 @@ class Home extends React.Component{
         var userProfile = JSON.parse(localStorage.getItem("userProfile")); 
         var clientcode =   userProfile &&  userProfile.clientcode;
         this.setState({ feedToken : feedToken,clientcode : clientcode  });
-     
-     
-      //  this.backTestAnyPattern(); 
-
-     //  this.setState({backTestResult: localStorage.getItem('backTestResult') && JSON.parse(localStorage.getItem('backTestResult'))})
-        
+    
             
     //    wsClint.onopen  = (res) => {
 
@@ -247,7 +269,7 @@ class Home extends React.Component{
         
         console.log("pattername", this.state.patternType); 
 
-        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        var watchList = this.state.symbolList; //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
         var runningTest = 1; 
         for (let index = 0; index < watchList.length; index++) {
             const element = watchList[index];
@@ -308,7 +330,7 @@ class Home extends React.Component{
 
         this.setState({backTestResult : [], backTestFlag : false}); 
 
-        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        var watchList = this.state.symbolList //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
         var runningTest = 1, sumPercentage =0 ; 
         for (let index = 0; index < watchList.length; index++) {
             const element = watchList[index];
@@ -947,22 +969,19 @@ class Home extends React.Component{
              }
            
 
-             var list = localStorage.getItem('watchList');
-             if(!list){
-                var data = []; 
-                data.push(fdata); 
-                localStorage.setItem('watchList',  JSON.stringify(data)); 
-             }else{
-                 list = JSON.parse( localStorage.getItem('watchList'));
-                var found = list.filter(row => row.symbol  === values);
-                if(found.length === 0){
-                    list.push(fdata); 
-                    localStorage.setItem('watchList',  JSON.stringify(list)); 
-                }
-               
-             }
-          
-             this.setState({ symbolList : JSON.parse(localStorage.getItem('watchList')), search : "" });
+             var watchlist = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
+             var foundInWatchlist = watchlist.filter(row => row.token  === values);                                
+             if(!foundInWatchlist.length){
+                watchlist.push(fdata); 
+                localStorage.setItem('watchList', JSON.stringify(watchlist));
+                 
+                AdminService.saveWatchListJSON({stock : fdata}).then(res => {
+                  let resdata = resolveResponse(res,'noPop' );
+                  console.log(resdata);
+                });
+              }
+
+            this.setState({ symbolList : JSON.parse(localStorage.getItem('watchList')), search : "" });
             setTimeout(() => {
                 this.updateSocketWatch();
             }, 100);
@@ -992,10 +1011,6 @@ class Home extends React.Component{
         } 
         return averageprice;
     }
-    getNetTotalValue = () => {
-
-
-    }
 
 
     render() {
@@ -1017,7 +1032,6 @@ class Home extends React.Component{
                
                      <Grid item xs={3} sm={3}  > 
                    
-
                          <Autocomplete
                             freeSolo
                             id="free-solo-2-demo"
@@ -1032,7 +1046,7 @@ class Home extends React.Component{
                             <TextField
                                 onChange={this.onChange}
                                 {...params}
-                                label= {"Search Symbol "} 
+                                label= {"Search Symbol (" + this.state.symbolList.length+")"} 
                                 margin="normal"
                                 variant="standard"
                             
@@ -1042,6 +1056,22 @@ class Home extends React.Component{
                             />
                             )}
                         />
+
+                        <div style={{marginLeft: '10px'}}>
+                            <FormControl style={{paddingLeft: '12px'}} style={styles.selectStyle} >
+                                <InputLabel  htmlFor="gender">Select Watchlist</InputLabel>
+                                <Select value={this.state.selectedWatchlist}  name="selectedWatchlist" onChange={this.onChangeWatchlist}>
+                                    {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                                        <MenuItem value={element}>{element}</MenuItem>
+                                    ))
+                                    }
+                                   
+                                </Select>
+                            </FormControl>
+                        
+                        </div>
+                            
+
             
                         <div style={{ overflowY: 'scroll', height: "75vh" }}> 
 

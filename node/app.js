@@ -77,49 +77,94 @@ return;
 });
 
 
-// app.post('/saveScanList', function (req, res) {
-
-//   var name = req.body.name; 
-//   console.log("name",name);
-//   //res.status(200).send(name) ;
-//     var obj = {
-//       table: []
-//    };
-   
-//    const symbolName = name.toUpperCase(); 
-
-//   //  obj.table.push({symbolName: symbolName});
-//   //  var json = JSON.stringify(obj);
-//   //  fs.writeFile('myScan.json', json, 'utf8', function callback(){
-//   //    console.log("added");
-//   //    res.status(200).send(symbolName + "Added") ;
-//   //  });
+app.post('/saveWatchListJSON', function (req, res) {
+  //res.status(200).send(name) ;
   
-  
-//     fs.readFile('myScan.json', 'utf8', function readFileCallback(err, data){
-//         if (err){
-//             console.log(err);
-//         } else {
+  //  obj.table.push({symbolName: symbolName});
+  //  var json = JSON.stringify(obj);
+  //  fs.writeFile('myScan.json', json, 'utf8', function callback(){
+  //    console.log("added");
+  //    res.status(200).send(symbolName + "Added") ;
+  //  });
 
-//         obj = JSON.parse(data); 
-        
-//         obj.table.push({symbolName: symbolName}); //add some data
-//         json = JSON.stringify(obj); //convert it back to json
-//         fs.writeFile('myScan.json', json, 'utf8', function callback(){
-//              console.log("added");
+    var stock = req.body.stock; 
+    console.log("stock",stock);
+    var path = 'myJsonWatchList.json'
+    fs.readFile(path, 'utf8', function readFileCallback(err, data){
+        if (err){
+            console.log(err);
+        } else {
 
-//              var res = {status : 'added'};
-//             // res.setHeader('Content-Type', 'application/json');
+            var watchlist = JSON.parse(data) ? JSON.parse(data) : []; 
+            var found = watchlist.filter(row => row.token  == stock.token);
+            console.log('found',found);
 
-//              res.status(200).send(symbolName + "Added") ;
-//          }); // write it back 
-//     }});
+            if(!found.length ){
+              watchlist.push({stock}); //add some data
+              fs.writeFile(path, JSON.stringify(watchlist), 'utf8', function callback(){
+                 
+                
+                console.log(stock.symbol, 'added');
+      
+                 // var res = {status : 'added'};
+                  // res.setHeader('Content-Type', 'application/json');
+      
+                  res.status(200).send(" Added") ;
+              }); // write it back 
+            }
+          
   
+        }});
   
-   
-//   return;
+
+  return;
     
-//   });
+  });
+
+
+app.post('/addIntoStaticData', function (req, res) {
+  //res.status(200).send(name) ;
+  
+  //  obj.table.push({symbolName: symbolName});
+  //  var json = JSON.stringify(obj);
+  //  fs.writeFile('myScan.json', json, 'utf8', function callback(){
+  //    console.log("added");
+  //    res.status(200).send(symbolName + "Added") ;
+  //  });
+
+   // console.log("body", req.body);
+    var path = '/Users/B0208058/Documents/m-trade/public/staticData.json'
+    fs.readFile(path, 'utf8', function readFileCallback(err, data){
+        if (err){
+            console.log(err);
+        } else {
+
+            var watchlist = JSON.parse(data) ? JSON.parse(data) : {}; 
+            // var found = watchlist.filter(row => row.token  == stock.token);
+            // console.log('found',found);
+            // if(!found.length ){
+            // }
+            
+            watchlist[req.body.listName] = req.body.listItem; 
+
+
+            fs.writeFile(path, JSON.stringify(watchlist), 'utf8', function callback(){
+                   
+              console.log(req.body.listName,  " added/updated ", req.body.listItem.length ); 
+
+               var response = {status : 'Added', listName : req.body.listName, count:  req.body.listItem.length};
+                res.setHeader('Content-Type', 'application/json');
+    
+                res.status(200).send(response) ;
+            }); // write it back 
+          
+  
+        }});
+  
+
+  return;
+    
+  });
 
 app.post('/saveCandleHistory', function (req, res) {
 

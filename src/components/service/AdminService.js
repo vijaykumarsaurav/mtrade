@@ -60,6 +60,18 @@ class AdminService {
      saveWatchList(data) {
         return axios.get('http://localhost:8081/saveWatchList/'+data, '');
      } 
+     addIntoStaticData(data) {
+        return axios.post('http://localhost:8081/addIntoStaticData', data, '');
+     }
+     saveWatchListJSON(data) {
+        return axios.post('http://localhost:8081/saveWatchListJSON', data, '');
+     }
+     getWatchListJSON() {
+        return axios.get('/myJsonWatchList.json', '');
+     } 
+     getStaticData() {
+        return axios.get('/staticData.json', '');
+     } 
      saveCandleHistory(data) {
         return axios.post('http://localhost:8081/saveCandleHistory', data,  '');
      } 

@@ -2,7 +2,7 @@
   "name": "m-trade",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://vijaykumarsaurav.github.io/LearnNew",
+  "homepage": "http://vijaykumarsaurav.github.io/mtrade",
   "dependencies": {
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.4.3",

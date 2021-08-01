@@ -81,7 +81,7 @@ class Home extends React.Component{
           
         } 
 
-    this.getCandleHistoryAndStore(); 
+  //  this.getCandleHistoryAndStore(); 
 
     // this.getPositionData();
     // this.getNSETopStock();
@@ -135,7 +135,7 @@ class Home extends React.Component{
 
         console.log("getCandleHistoryAndStore called", new Date().toLocaleTimeString()); 
        var stop = new Date().toLocaleTimeString() > "15:00:00" ?  clearInterval(this.state.candleHistoryInterval) : ""; 
-       var watchList =   localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
+       var watchList =  localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
        const today = moment().isoWeekday();
         var timediff = '';
 
