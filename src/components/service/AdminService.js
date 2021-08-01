@@ -70,7 +70,7 @@ class AdminService {
         return axios.get('/myJsonWatchList.json', '');
      } 
      getStaticData() {
-        return axios.get('/staticData.json', '');
+        return axios.get('/mtrade/staticData.json', '');
      } 
      saveCandleHistory(data) {
         return axios.post('http://localhost:8081/saveCandleHistory', data,  '');
