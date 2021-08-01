@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/LearnNew/static/css/main.690f9285.chunk.css",
-    "main.js": "/LearnNew/static/js/main.caa02667.chunk.js",
-    "main.js.map": "/LearnNew/static/js/main.caa02667.chunk.js.map",
-    "runtime~main.js": "/LearnNew/static/js/runtime~main.1cb0fa5c.js",
-    "runtime~main.js.map": "/LearnNew/static/js/runtime~main.1cb0fa5c.js.map",
-    "static/css/2.39017165.chunk.css": "/LearnNew/static/css/2.39017165.chunk.css",
-    "static/js/2.88e053e8.chunk.js": "/LearnNew/static/js/2.88e053e8.chunk.js",
-    "static/js/2.88e053e8.chunk.js.map": "/LearnNew/static/js/2.88e053e8.chunk.js.map",
-    "index.html": "/LearnNew/index.html",
-    "precache-manifest.1f544e7cf6e2903161075d085c39b186.js": "/LearnNew/precache-manifest.1f544e7cf6e2903161075d085c39b186.js",
-    "service-worker.js": "/LearnNew/service-worker.js",
-    "static/css/2.39017165.chunk.css.map": "/LearnNew/static/css/2.39017165.chunk.css.map",
-    "static/css/main.690f9285.chunk.css.map": "/LearnNew/static/css/main.690f9285.chunk.css.map",
-    "static/media/mylogo.png": "/LearnNew/static/media/mylogo.92bbdbd4.png"
+    "main.css": "/mtrade/static/css/main.690f9285.chunk.css",
+    "main.js": "/mtrade/static/js/main.caa02667.chunk.js",
+    "main.js.map": "/mtrade/static/js/main.caa02667.chunk.js.map",
+    "runtime~main.js": "/mtrade/static/js/runtime~main.72b3d60e.js",
+    "runtime~main.js.map": "/mtrade/static/js/runtime~main.72b3d60e.js.map",
+    "static/css/2.39017165.chunk.css": "/mtrade/static/css/2.39017165.chunk.css",
+    "static/js/2.88e053e8.chunk.js": "/mtrade/static/js/2.88e053e8.chunk.js",
+    "static/js/2.88e053e8.chunk.js.map": "/mtrade/static/js/2.88e053e8.chunk.js.map",
+    "index.html": "/mtrade/index.html",
+    "precache-manifest.1d5bc5b17a636b56b5cd0bd4563a0d26.js": "/mtrade/precache-manifest.1d5bc5b17a636b56b5cd0bd4563a0d26.js",
+    "service-worker.js": "/mtrade/service-worker.js",
+    "static/css/2.39017165.chunk.css.map": "/mtrade/static/css/2.39017165.chunk.css.map",
+    "static/css/main.690f9285.chunk.css.map": "/mtrade/static/css/main.690f9285.chunk.css.map",
+    "static/media/mylogo.png": "/mtrade/static/media/mylogo.92bbdbd4.png"
   }
 }
