@@ -56,7 +56,10 @@ class Home extends React.Component{
             quantity : 1,
             producttype : "INTRADAY",
             symbolList : localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
-            selectedWatchlist : 'NIFTY 50'
+            selectedWatchlist : 'NIFTY 50',
+            longExitPriceType : 4,
+            shortExitPriceType : 4
+            
         
         };
         this.myCallback = this.myCallback.bind(this);
@@ -312,7 +315,7 @@ class Home extends React.Component{
                             }
                             
                         }
-                        runningTest=runningTest+candleData.length-35; 
+                        runningTest+=candleData.length; 
                     }
                 }else{
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -379,21 +382,47 @@ class Home extends React.Component{
                                 var firstCandle =  last4Candle[0]; 
                                 var next5thCandle = candleData[index2+4]; 
                                 
-                                if(next5thCandle[2] > firstCandle[2]){
-                                    var perChng =  (next5thCandle[4] - firstCandle[2])*100/firstCandle[2];  
+                                //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
+                                var buyentry =  (firstCandle[2] + (firstCandle[2]/100/10)).toFixed(2); 
+
+                                if(next5thCandle[2] > buyentry){
+                                    var perChng =  (next5thCandle[this.state.longExitPriceType] - buyentry)*100/buyentry;  
                                     sumPercentage += perChng; 
                                     console.log(element.symbol,firstCandle[0],"upside", "same day high" , firstCandle[2],"same day low" , firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4],  perChng + '%'); 
                                
                                     var foundStock = {
-                                        foundAt: new Date( firstCandle[0]).toLocaleString(), 
+                                        foundAt: "Long - " + new Date( firstCandle[0]).toLocaleString(), 
                                         symbol : element.symbol, 
-                                        sellEntyPrice : next5thCandle[4], 
+                                        sellEntyPrice : next5thCandle[this.state.longExitPriceType], 
                                         stopLoss : firstCandle[3], 
-                                        buyExitPrice : firstCandle[2],
+                                        buyExitPrice : buyentry,
                                         brokerageCharges: 0.06,
                                         perChange : perChng.toFixed(2),
                                         squareOffAt : new Date( next5thCandle[0] ).toLocaleString(), 
                                         quantity : Math.floor(10000/firstCandle[2]),
+                                    }
+                               
+                                    this.setState({backTestResult : [...this.state.backTestResult, foundStock]}); 
+                                    
+                                }
+                                //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
+                                var sellenty =  (firstCandle[3] - (firstCandle[3]/100/10)).toFixed(2); 
+
+                                if(next5thCandle[3] < sellenty){
+                                    var perChng =  (sellenty - next5thCandle[this.state.shortExitPriceType])*100/firstCandle[3];  
+                                    sumPercentage += perChng; 
+                                    console.log(element.symbol,firstCandle[0],"dowside", "same day high" , firstCandle[2],"same day low" , firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4],  perChng + '%'); 
+                               
+                                    var foundStock = {
+                                        foundAt: "Short - " + new Date( firstCandle[0]).toLocaleString(), 
+                                        symbol : element.symbol, 
+                                        sellEntyPrice : sellenty, 
+                                        stopLoss : firstCandle[2], 
+                                        buyExitPrice : next5thCandle[this.state.shortExitPriceType],
+                                        brokerageCharges: 0.06,
+                                        perChange : perChng.toFixed(2),
+                                        squareOffAt : new Date( next5thCandle[0] ).toLocaleString(), 
+                                        quantity : Math.floor(10000/firstCandle[3]),
                                     }
                                
                                     this.setState({backTestResult : [...this.state.backTestResult, foundStock]}); 
@@ -991,10 +1020,10 @@ class Home extends React.Component{
     }
 
     deleteItemWatchlist = (symbol) => {
-        var list = JSON.parse( localStorage.getItem('watchList'));
+        var list = this.state.symbolList; // JSON.parse( localStorage.getItem('watchList'));
         var index = list.findIndex(data => data.symbol === symbol)
         list.splice(index,1);
-        localStorage.setItem('watchList',  JSON.stringify(list)); 
+      //  localStorage.setItem('watchList',  JSON.stringify(list)); 
         this.setState({ symbolList : list });
     }
 
@@ -1177,7 +1206,7 @@ class Home extends React.Component{
                         <Paper style={{padding:"10px", overflow:"auto"}} >
                         <Grid direction="row" container>
                             
-                            <Grid item xs={12} sm={4} style={{marginTop: '15px'}}>
+                            <Grid item xs={12} sm={2} style={{marginTop: '15px'}}>
                                 <FormControl style={styles.selectStyle}>
                                     <InputLabel htmlFor="Nationality">Pattern Type</InputLabel>
                                     <Select value={this.state.patternType}  name="patternType" onChange={this.onChangePattern}>
@@ -1189,18 +1218,40 @@ class Home extends React.Component{
                             </Grid>
 
 
-                            <Grid item xs={12} sm={6}>
+                            <Grid item xs={12} sm={8}>
                                 <MaterialUIDateTimePicker callbackFromParent={dateParam}/>
                             </Grid>
                             
-                            <Grid item xs={12} sm={2} style={{marginTop: '28px'}}> 
-                              {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Back Test</Button> : <Spinner/>} 
-                                <br />  
-                              Stock: {this.state.stockTesting}  Total Test Count: {this.state.runningTest}
+                            <Grid item xs={12} sm={1} style={{marginTop: '15px'}}>
+                                <FormControl style={styles.selectStyle}>
+                                    <InputLabel>Long Exit</InputLabel>
+                                    <Select value={this.state.longExitPriceType}  name="longExitPriceType" onChange={this.onChangePattern}>
+                                        <MenuItem value={2}>High</MenuItem>
+                                        <MenuItem value={3}>Low</MenuItem>
+                                        <MenuItem value={4}>Close</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={1} style={{marginTop: '15px'}}>
+                                <FormControl style={styles.selectStyle}>
+                                    <InputLabel>Short Exit</InputLabel>
+                                    <Select value={this.state.shortExitPriceType}  name="shortExitPriceType" onChange={this.onChangePattern}>
+                                        <MenuItem value={2}>High</MenuItem>
+                                        <MenuItem value={3}>Low</MenuItem>
+                                        <MenuItem value={4}>Close</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            <Grid item xs={12} sm={12} style={{marginTop: '28px'}}> 
+                              {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Test</Button> : <Spinner/>} 
+                               
+                             &nbsp; Stock: {this.state.stockTesting}  Total Test Count: {this.state.runningTest}
                             </Grid>
 
                         </Grid>
 
+                        <br />
                        
                         <Table  size="small"   aria-label="sticky table" >
                             <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">

@@ -70,6 +70,9 @@ class AdminService {
         return axios.get('/myJsonWatchList.json', '');
      } 
      getStaticData() {
+         if(window.location.hostname== "localhost")
+        return axios.get('/staticData.json', '');
+        else
         return axios.get('/mtrade/staticData.json', '');
      } 
      saveCandleHistory(data) {
