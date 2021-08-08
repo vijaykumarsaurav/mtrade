@@ -416,6 +416,7 @@ class Home extends React.Component {
                                     }
                                     if (Math.floor(10000 / firstCandle[2])){ 
                                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+                                        this.setState({ backTestResult:  this.state.backTestResult.reverse()});
                                     }
 
                                 }
@@ -1274,9 +1275,9 @@ class Home extends React.Component {
                                     <Table size="small" aria-label="sticky table" >
 
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                            <TableRow >
+                                            <TableRow>
 
-                                                <TableCell align="center">Total</TableCell>
+                                                <TableCell align="center">Total Trade Found: {this.state.backTestResult && this.state.backTestResult.length}</TableCell>
                                                 <TableCell align="left"> </TableCell>
                                                 <TableCell align="left"> </TableCell>
 
@@ -1324,7 +1325,7 @@ class Home extends React.Component {
 
 
                                                 //    style={{display: row.orderActivated ? 'visible' : 'none'}}
-                                                <TableRow key={i} >
+                                                <TableRow hover key={i} >
 
                                                     <TableCell align="left">{i + 1}</TableCell>
                                                     <TableCell align="center">{row.symbol}</TableCell>
