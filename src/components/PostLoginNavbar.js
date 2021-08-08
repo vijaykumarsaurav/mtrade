@@ -173,12 +173,12 @@ export default function PostLoginNavBar(props) {
 
 
                             <Grid item>
-                                    <Button variant="contained"  autoFocus href={"#/livefeed"}  color="secondary">
+                                    <Button variant="contained"  autoFocus href={"/mtrade/#/home"}  color="secondary">
                                         Home
                                     </Button>
                               </Grid>
                               <Grid item>
-                                    <Button variant="contained"  autoFocus href={"#/position"}  color="primary">
+                                    <Button variant="contained"  autoFocus href={"/mtrade/#/position"}  color="primary">
                                       Position
                                     </Button>
                               </Grid>
@@ -193,13 +193,13 @@ export default function PostLoginNavBar(props) {
 
 
                                 <Grid item>
-                                    <Button variant="contained"  autoFocus href={"#/order"}  color="primary">
+                                    <Button variant="contained"  autoFocus href={"/mtrade/#/order"}  color="primary">
                                         Order
                                     </Button>
                               </Grid>
 
                               <Grid item>
-                                    <Button variant="contained"  autoFocus href={"#/trade"}  color="primary">
+                                    <Button variant="contained"  autoFocus href={"/mtrade/#/trade"}  color="primary">
                                         Trade
                                     </Button>
                               </Grid>
@@ -207,7 +207,7 @@ export default function PostLoginNavBar(props) {
                             
 
                               <Grid item>
-                                    <Button variant="contained"  autoFocus href={"#/funds"}  color="primary">
+                                    <Button variant="contained"  autoFocus href={"/mtrade/#/funds"}  color="primary">
                                         Funds
                                     </Button>
                               </Grid>

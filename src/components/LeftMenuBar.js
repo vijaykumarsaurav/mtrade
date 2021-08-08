@@ -15,48 +15,48 @@ export const AdminMenuList = (
   <div>
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
-    <ListItem button component='a' href={"#/livefeed"} >  
+    <ListItem button component='a' href={"/mtrade/#/livefeed"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
       <ListItemText primary="Live Feed" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/position"} >  
+    <ListItem button component='a' href={"/mtrade/#/position"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
       <ListItemText primary="Positions" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/funds"} >  
+    <ListItem button component='a' href={"/mtrade/#/funds"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Funds" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/order"} >  
+    <ListItem button component='a' href={"/mtrade/#/order"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Order Book" />
     </ListItem>
-    <ListItem button component='a' href={"#/trade"} >  
+    <ListItem button component='a' href={"/mtrade/#/trade"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Trade Book" />
     </ListItem>
   
-    <ListItem button component='a' href={"#/bn-view"} >  
+    <ListItem button component='a' href={"/mtrade/#/bn-view"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
       <ListItemText primary="NiftyBank View" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/nifty-view"} >  
+    <ListItem button component='a' href={"/mtrade/#/nifty-view"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
@@ -64,14 +64,14 @@ export const AdminMenuList = (
     </ListItem>
 
 
-    <ListItem button component='a' href={"#/sector"} >  
+    <ListItem button component='a' href={"/mtrade/#/sector"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Sector Top" />
     </ListItem>
 
-    <ListItem button component='a' href={"#/test"} >  
+    <ListItem button component='a' href={"/mtrade/#/test"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
@@ -80,7 +80,7 @@ export const AdminMenuList = (
   
 
 
-    <ListItem button component='a' href={"#/addtowatchlist"} >  
+    <ListItem button component='a' href={"/mtrade/#/addtowatchlist"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
