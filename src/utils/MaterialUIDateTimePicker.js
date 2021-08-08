@@ -72,28 +72,32 @@ function MaterialUIPickers(props) {
 
  return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <Grid container justify="space-around">
+      <Grid container>
      
         <KeyboardDateTimePicker
          // disableFuture="true"
           margin="normal"
+          style={{width:"140px"}}
          // required={true}
           id="date-picker-dialog"
           label={'Start Date'}
-          format='dd-MM-yyyy HH:mm:ss'
-          value={selectedStartDate}
+         // format='dd-MM-yyyy HH:mm:ss'
+         format='dd-MM-yyyy'
+         value={selectedStartDate}
           onChange={handleStartDateChange}
           KeyboardButtonProps={{
             'aria-label': 'change date',
           }}
         />
          <KeyboardDateTimePicker
+           style={{width:"140px"}}
         // disableFuture="true"
          margin="normal"
        //  required={true}
          id="date-picker-dialog"
          label={'End Date'}
-         format='dd-MM-yyyy HH:mm:ss'
+       //  format='dd-MM-yyyy HH:mm:ss'
+         format='dd-MM-yyyy'
          value={selectedEndDate}
          onChange={handleEndDateChange}
          KeyboardButtonProps={{

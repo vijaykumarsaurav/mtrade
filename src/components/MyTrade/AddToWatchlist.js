@@ -112,12 +112,13 @@ class MyView extends React.Component{
 
           let searchResdata =  searchRes.data; 
           var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === element.SYMBOL);                                
-         
+        
          // && element.LTP >= 200
           if(found.length){ 
             newJsonList.push(found[0]); 
+         
             var watchlist = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
-              var foundInWatchlist = watchlist.filter(row => row.token  === found[0].token);                                
+              var foundInWatchlist = watchlist.filter(row => row && row.token  === found[0] && found[0].token);                                
               if(!foundInWatchlist.length){
                 this.setState({resMessage: [...this.state.resMessage,  index + ". ======================> New Symbol:  "+ element.SYMBOL]})
 
@@ -141,7 +142,7 @@ class MyView extends React.Component{
         
        })
 
-       await new Promise(r => setTimeout(r, 200));  
+       await new Promise(r => setTimeout(r, 500));  
       }
 
       //"NIFTY PSU BANK".split(' ').join('') // "NIFTYPSUBANK"

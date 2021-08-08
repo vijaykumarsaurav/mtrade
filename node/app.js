@@ -18,10 +18,10 @@ var con = mysql.createConnection({
   database: "mtrade"
 });
 
-con.connect(function(err) {
-  if (err) throw err;
-  console.log("DB Connected!");
-});
+// con.connect(function(err) {
+//   if (err) throw err;
+//   console.log("DB Connected!");
+// });
 
 
 // on the request to root (localhost:3000/)
@@ -133,7 +133,8 @@ app.post('/addIntoStaticData', function (req, res) {
   //  });
 
    // console.log("body", req.body);
-    var path = '/Users/B0208058/Documents/m-trade/public/staticData.json'
+   // var path = '/Users/B0208058/Documents/m-trade/public/staticData.json';
+    var path = 'C:/Users/AkashWay/mtrade/LearnNew/public/staticData.json';
     fs.readFile(path, 'utf8', function readFileCallback(err, data){
         if (err){
             console.log(err);
