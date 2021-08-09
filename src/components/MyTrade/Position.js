@@ -81,7 +81,7 @@ class Home extends React.Component{
           
         } 
 
-  //  this.getCandleHistoryAndStore(); 
+   this.getCandleHistoryAndStore(); 
 
     // this.getPositionData();
     // this.getNSETopStock();

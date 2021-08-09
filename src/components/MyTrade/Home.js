@@ -28,6 +28,7 @@ import Spinner from "react-spinner-material";
 import { w3cwebsocket } from 'websocket';
 import pako from 'pako';
 import DeleteIcon from '@material-ui/icons/Delete';
+import ChartDialog from './ChartDialog'; 
 
 
 import Position from './Position';
@@ -58,7 +59,9 @@ class Home extends React.Component {
             symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
             selectedWatchlist: 'NIFTY 50',
             longExitPriceType: 4,
-            shortExitPriceType: 4
+            shortExitPriceType: 4,
+            candleChartData : []
+            
 
 
         };
@@ -378,9 +381,10 @@ class Home extends React.Component {
 
                             last4Candle.reverse();
 
-                            var rangeArr = [];
+                            var rangeArr = [], candleChartData = []; 
                             last4Candle.forEach(element => {
                                 rangeArr.push(element[2] - element[3]);
+                                candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
                             });
                             var firstElement = rangeArr[0], rgrangeCount = 0;
                             rangeArr.forEach(element => {
@@ -394,6 +398,7 @@ class Home extends React.Component {
                             if (rgrangeCount == 4) {
                                 var firstCandle = last4Candle[0];
                                 var next5thCandle = candleData[index2 + 4];
+                              //  candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
 
                                 //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
                                 var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
@@ -413,6 +418,7 @@ class Home extends React.Component {
                                         perChange: perChng.toFixed(2),
                                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
                                         quantity: Math.floor(10000 / firstCandle[2]),
+                                        candleChartData : candleChartData
                                     }
                                     if (Math.floor(10000 / firstCandle[2])){ 
                                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
@@ -438,6 +444,7 @@ class Home extends React.Component {
                                         perChange: perChng.toFixed(2),
                                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
                                         quantity: Math.floor(10000 / firstCandle[3]),
+                                        candleChartData : candleChartData
                                     }
                                     if(Math.floor(10000 / firstCandle[3])){
                                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
@@ -1057,6 +1064,19 @@ class Home extends React.Component {
         }
         return averageprice;
     }
+    showCandleChart = (candleData) => {
+
+
+        candleData  = candleData.reverse();
+
+        localStorage.setItem('candleChartData', JSON.stringify(candleData))
+    
+        document.getElementById('showCandleChart').click();
+
+       
+
+
+    }
 
 
     render() {
@@ -1068,12 +1088,13 @@ class Home extends React.Component {
             secondLavel: "End Date and Time"
         }
 
+       
         var sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0, sumPnlValue = 0, sumSellEntyPrice = 0;
 
         return (
             <React.Fragment>
                 <PostLoginNavBar />
-
+                <ChartDialog />
                 <Grid direction="row" container>
 
                     <Grid item xs={3} sm={3}  >
@@ -1327,8 +1348,10 @@ class Home extends React.Component {
                                                 //    style={{display: row.orderActivated ? 'visible' : 'none'}}
                                                 <TableRow hover key={i} >
 
-                                                    <TableCell align="left">{i + 1}</TableCell>
-                                                    <TableCell align="center">{row.symbol}</TableCell>
+
+
+                                                    <TableCell align="center">{i + 1}</TableCell>
+                                                    <TableCell align="center"> <Button variant="contained" color="secondary" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData)}>{row.symbol}</Button></TableCell>
                                                     <TableCell align="center">{row.foundAt}</TableCell>
                                                     <TableCell align="center">{row.buyExitPrice}</TableCell>
 
@@ -1386,6 +1409,8 @@ class Home extends React.Component {
 
 
                                 {/* <Position /> */}
+
+              
                             </Grid>
 
 
