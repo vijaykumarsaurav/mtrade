@@ -116,12 +116,12 @@ export default function CustomizedDialogs(props) {
   
   return (
     <div>
-      <Button variant="outlined" id="showCandleChart" color="primary" onClick={handleClickOpen}>
+      <Button variant="outlined" id="showCandleChart" color="primary" style={{display:"none"}} onClick={handleClickOpen}>
         Chart 
       </Button>
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
         <DialogTitle id="customized-dialog-title" onClose={handleClose}>
-        Chart 
+        {localStorage.getItem('cadleChartSymbol')} 
         </DialogTitle>
         <DialogContent dividers id="chart">
 
@@ -133,7 +133,35 @@ export default function CustomizedDialogs(props) {
               width="500"
             /> */}
 
-        <ReactApexChart options={values.candledata.options} series={values.candledata.series} type="candlestick" width={500} height={350} />
+        <ReactApexChart 
+        
+        options={{
+          chart: {
+            type: 'candlestick',
+            height: 350
+          },
+          title: {
+              text: '',
+              align: 'left'
+          },
+          xaxis: {
+              type: 'datetime',
+          },
+          yaxis: {
+              tooltip: {
+              enabled: true
+              }
+          }
+      }}
+
+       series={[{
+        data:  JSON.parse(localStorage.getItem('candleChartData'))
+          
+      }]} 
+
+      type="candlestick" 
+      width={500}
+      height={350} />
 
 
     

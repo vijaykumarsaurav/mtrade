@@ -14,6 +14,8 @@ import TableBody from "@material-ui/core/TableBody";
 import * as moment from 'moment';
 import OrderBook from './Orderbook';
 import TradeConfig from './TradeConfig.json';
+import ChartDialog from './ChartDialog'; 
+
 
 class Home extends React.Component{
     constructor(props) {
@@ -383,7 +385,7 @@ class Home extends React.Component{
                 "symboltoken": element.token,
                 "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
                 "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
-                "todate": moment(enddateLastday).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
             }
 
             AdminService.getHistoryData(data).then(res => {
@@ -395,7 +397,8 @@ class Home extends React.Component{
                      candleData.reverse(); 
 
                      // var startindex = index2 * 10; 
-                     var last4Candle = candleData.slice(0, 4);
+                     var last4Candle = candleData.slice(1, 5);
+                     var last5Candle = candleData.slice(0, 5);
                      // var next10Candle = candleData.slice(index2+5 , index2+35 );    
 
                      // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
@@ -407,7 +410,10 @@ class Home extends React.Component{
                          var rangeArr = [], candleChartData = []; 
                          last4Candle.forEach(element => {
                              rangeArr.push(element[2] - element[3]);
-                             candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
+                         });
+
+                         last5Candle.forEach(element => {
+                            candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
                          });
                          var firstElement = rangeArr[0], rgrangeCount = 0;
                          rangeArr.forEach(element => {
@@ -462,7 +468,8 @@ class Home extends React.Component{
                                         time: new Date( firstCandle[0]).toLocaleString(), 
                                         BuyAt : buyentry, 
                                         SellAt : sellenty,
-                                        orderActivated : orderActivated
+                                        orderActivated : orderActivated,
+                                        candleChartData : candleChartData
                                     }
         
                                     console.log('nr4 scaned',foundData ); 
@@ -495,6 +502,17 @@ class Home extends React.Component{
         }
         this.setState({ backTestFlag: true });
         console.log("sumPercentage", sumPercentage)
+    }
+
+    showCandleChart = (candleData, symbol) => {
+
+
+        candleData  = candleData.reverse();
+
+        localStorage.setItem('candleChartData', JSON.stringify(candleData))
+        localStorage.setItem('cadleChartSymbol', symbol)
+    
+        document.getElementById('showCandleChart').click();
     }
 
     refreshLtpPer = async() => {
@@ -546,7 +564,8 @@ class Home extends React.Component{
 
                         console.log('nr4 updated',foundData ); 
 
-                        this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
+
+                        this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]}); 
 
                         var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                         foundPatternList.push(foundData); 
@@ -1231,7 +1250,7 @@ class Home extends React.Component{
             <React.Fragment>
                  <PostLoginNavBar/>
                      <br />
-                
+                     <ChartDialog />
                     <Grid style={{padding:'5px'}} justify="space-between" direction="row" container>
                         <Grid item >
                             <Typography variant="h6" >
@@ -1422,7 +1441,7 @@ class Home extends React.Component{
                                          {this.state.foundPatternList ? this.state.foundPatternList.map(row => (
                                              <TableRow hover key={row.symboltoken}>
              
-                                                 <TableCell align="left">{row.symbol}</TableCell>
+                                                <TableCell align="center"> <Button style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol}</Button></TableCell>
                                                  <TableCell align="left">{row.pattenName}</TableCell>
                                                  <TableCell align="left">{row.time}</TableCell>
                                                  <TableCell align="left">{row.BuyAt}</TableCell>

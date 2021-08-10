@@ -1064,18 +1064,15 @@ class Home extends React.Component {
         }
         return averageprice;
     }
-    showCandleChart = (candleData) => {
+    showCandleChart = (candleData, symbol) => {
 
 
         candleData  = candleData.reverse();
 
         localStorage.setItem('candleChartData', JSON.stringify(candleData))
+        localStorage.setItem('cadleChartSymbol', symbol)
     
         document.getElementById('showCandleChart').click();
-
-       
-
-
     }
 
 
@@ -1349,9 +1346,8 @@ class Home extends React.Component {
                                                 <TableRow hover key={i} >
 
 
-
                                                     <TableCell align="center">{i + 1}</TableCell>
-                                                    <TableCell align="center"> <Button variant="contained" color="secondary" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData)}>{row.symbol}</Button></TableCell>
+                                                    <TableCell align="center"> <Button style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol}</Button></TableCell>
                                                     <TableCell align="center">{row.foundAt}</TableCell>
                                                     <TableCell align="center">{row.buyExitPrice}</TableCell>
 
