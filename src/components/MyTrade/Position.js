@@ -29,6 +29,7 @@ class Home extends React.Component{
             buyPrice : 0,
             quantity : 1,
             producttype : "INTRADAY",
+            nr4TotalPer : 0
         };
     }
     componentDidMount() {
@@ -81,7 +82,9 @@ class Home extends React.Component{
           
         } 
 
-   this.getCandleHistoryAndStore(); 
+ //  this.getCandleHistoryAndStore(); 
+
+   this.findNR4PatternLive();
 
     // this.getPositionData();
     // this.getNSETopStock();
@@ -263,7 +266,7 @@ class Home extends React.Component{
                         foundPatternList.push(foundData); 
                         localStorage.setItem('foundPatternList', JSON.stringify(foundPatternList));
 
-                        this.setState({foundPatternList: [...this.state.foundPatternList, foundData]})
+                      //  this.setState({foundPatternList: [...this.state.foundPatternList, foundData]})
                     //    console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
                     //    console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
                         console.log(symbol, "last10Candle",candleHist); 
@@ -334,10 +337,10 @@ class Home extends React.Component{
                         var foundData = {
                             symbol : symbol, 
                             pattenName: 'Twisser bottom', 
-                            time: new Date( candleHist[0][0]).toLocaleTimeString(), 
+                            time: new Date( candleHist[0][0]).toLocaleString(), 
                         }
                      
-                        this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
+                     //   this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
 
                         var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                         foundPatternList.push(foundData); 
@@ -356,6 +359,212 @@ class Home extends React.Component{
         }
     }
 
+    findNR4PatternLive = async () => {
+
+        console.log('nr4 scaning starting'); 
+
+        this.setState({ backTestResult: [], backTestFlag: false });
+
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        var runningTest = 1, sumPercentage = 0;
+        for (let index = 0; index < watchList.length; index++) {
+            const element = watchList[index];
+
+            var startdate = ''; 
+           
+            var timediff = moment.duration("240:00:00");
+            startdate = moment(new Date()).subtract(timediff);
+
+            var timediffend = moment.duration("24:00:00");
+            var enddateLastday = moment(new Date()).subtract(timediffend);
+
+            var data = {
+                "exchange": "NSE",
+                "symboltoken": element.token,
+                "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate": moment(enddateLastday).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+            }
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res, 'noPop');
+                //console.log("candle history", histdata); 
+                if (histdata && histdata.data && histdata.data.length) {
+
+                    var candleData = histdata.data;
+                     candleData.reverse(); 
+
+                     // var startindex = index2 * 10; 
+                     var last4Candle = candleData.slice(0, 4);
+                     // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+
+                     // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+
+                     if (last4Candle.length >= 4) {
+
+                        // last4Candle.reverse();
+
+                         var rangeArr = [], candleChartData = []; 
+                         last4Candle.forEach(element => {
+                             rangeArr.push(element[2] - element[3]);
+                             candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
+                         });
+                         var firstElement = rangeArr[0], rgrangeCount = 0;
+                         rangeArr.forEach(element => {
+                             if (firstElement <= element) {
+                                 firstElement = element;
+                                 rgrangeCount += 1;
+                             }
+                         });
+
+                         
+                         if (rgrangeCount == 4) {
+                            console.log(element.symbol, last4Candle, rangeArr, rgrangeCount); 
+
+                            
+                             var firstCandle = last4Candle[0];
+
+                             //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
+                             var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
+
+                             //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
+                             var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
+
+
+                             var data  = {
+                                "exchange":"NSE",
+                                "tradingsymbol": element.symbol,
+                                "symboltoken":element.token,
+                            }
+
+                            AdminService.getLTP(data).then(res => {
+                                let data = resolveResponse(res, 'noPop');
+                                 var LtpData = data && data.data; 
+                                 //console.log(LtpData);
+                                 if(LtpData && LtpData.ltp){
+
+                                    var orderActivated =  <span> {LtpData.ltp} </span>; 
+
+                                    if(LtpData.ltp > buyentry){
+                                      orderActivated =  <span style={{color:'green'}}> Long Ltp: {LtpData.ltp} {((LtpData.ltp - buyentry)*100/buyentry).toFixed(2)}% </span>; 
+                                      this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((LtpData.ltp - buyentry)*100/buyentry) })
+                                    } 
+                                    if(LtpData.ltp < sellenty){
+                                        orderActivated =  <span style={{color:'red'}}> Short Ltp: {LtpData.ltp} {((LtpData.ltp - sellenty)*100/sellenty).toFixed(2)}%</span>; 
+                                        this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((sellenty - LtpData.ltp)*100/sellenty) })
+
+                                    } 
+
+                                    var foundData = {
+                                        symbol : element.symbol, 
+                                        token : element.token, 
+                                        pattenName: 'NR4', 
+                                        time: new Date( firstCandle[0]).toLocaleString(), 
+                                        BuyAt : buyentry, 
+                                        SellAt : sellenty,
+                                        orderActivated : orderActivated
+                                    }
+        
+                                    console.log('nr4 scaned',foundData ); 
+        
+                                    this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
+            
+                                    var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
+                                    foundPatternList.push(foundData); 
+                                    localStorage.setItem('foundPatternList', JSON.stringify(foundPatternList));
+                                
+                                }
+                                
+                           })
+
+
+
+                            
+
+                         }
+
+                     }
+                  
+                } else {
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(element.symbol, " candle data emply");
+                }
+            })
+            await new Promise(r => setTimeout(r, 300));
+            this.setState({ stockTesting: index + 1 + ". " + element.symbol})
+        }
+        this.setState({ backTestFlag: true });
+        console.log("sumPercentage", sumPercentage)
+    }
+
+    refreshLtpPer = async() => {
+
+       this.setState({nr4TotalPer : 0 }); 
+       
+       var foundPatternList = this.state.foundPatternList;
+
+       this.setState({foundPatternList : [] }); 
+
+//       foundPatternList.forEach(element => {
+         for (let index = 0; index < foundPatternList.length; index++) {
+             const element = foundPatternList[index];
+           
+            if(element.pattenName === 'NR4'){
+
+                var data  = {
+                    "exchange":"NSE",
+                    "tradingsymbol": element.symbol,
+                    "symboltoken":element.token,
+                }
+
+                AdminService.getLTP(data).then(res => {
+                    let data = resolveResponse(res, 'noPop');
+                     var LtpData = data && data.data; 
+                     //console.log(LtpData);
+                     if(LtpData && LtpData.ltp){
+
+                        var orderActivated =  <span> {LtpData.ltp} </span>; 
+
+                        if(LtpData.ltp > element.BuyAt){
+                          orderActivated =  <span style={{color:'green'}}> Long Ltp: {LtpData.ltp} {((LtpData.ltp - element.BuyAt)*100/element.BuyAt).toFixed(2)}% </span>; 
+                          this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((LtpData.ltp - element.BuyAt)*100/element.BuyAt) })
+                        } 
+                        if(LtpData.ltp < element.SellAt){
+                            orderActivated =  <span style={{color:'red'}}> Short Ltp: {LtpData.ltp} {((LtpData.ltp - element.SellAt)*100/element.SellAt).toFixed(2)}%</span>; 
+                            this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((element.SellAt - LtpData.ltp)*100/element.SellAt) })
+                        } 
+
+                        var foundData = {
+                            symbol : element.symbol, 
+                            token : element.token, 
+                            pattenName: 'NR4', 
+                            time: new Date().toLocaleString(), 
+                            BuyAt : element.BuyAt, 
+                            SellAt : element.SellAt,
+                            orderActivated : orderActivated
+                        }
+
+                        console.log('nr4 updated',foundData ); 
+
+                        this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
+
+                        var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
+                        foundPatternList.push(foundData); 
+                        localStorage.setItem('foundPatternList', JSON.stringify(foundPatternList));
+                    
+                    }
+                    
+               })
+
+            }
+            await new Promise(r => setTimeout(r, 101));
+
+           
+       }
+
+
+
+    }
 
     getStoplossFromOrderbook = (row) => {
        var oderbookData = localStorage.getItem('oderbookData'); 
@@ -1191,25 +1400,35 @@ class Home extends React.Component{
                         <Paper style={{overflow:"auto", padding:'5px'}} >
                                  
                                  <Table  size="small"   aria-label="sticky table" >
-                                     <TableHead  style={{whiteSpace: "nowrap", backgroundColor: "lightgray" }} variant="head">
+                                     <TableHead  style={{whiteSpace: "nowrap", }} variant="head">
                                          <TableRow key="1"  variant="head" style={{fontWeight: 'bold'}}>
              
                                               
-                                             <TableCell className="TableHeadFormat" align="left">Symbol Found </TableCell>
+                                             <TableCell className="TableHeadFormat" align="left">Symbol Found ({this.state.foundPatternList && this.state.foundPatternList.length}) </TableCell>
                                              <TableCell className="TableHeadFormat" align="left">Patten Name</TableCell>
-                                             <TableCell  className="TableHeadFormat" align="left">Time</TableCell>
-                                                             
+                                             <TableCell  className="TableHeadFormat" align="left">Update Time</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">BuyAt</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">SellAt</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">isActivated Ltp - Total({this.state.nr4TotalPer.toFixed(2)})% &nbsp; 
+                                             <Button variant="contained"  style={{ marginLeft: '20px' }} onClick={() => this.refreshLtpPer()}>Live Refresh</Button>
+
+                                             </TableCell>
+             
+                                          
                                          </TableRow>
                                      </TableHead>
                                      <TableBody style={{width:"",whiteSpace: "nowrap"}}>
              
                                          {this.state.foundPatternList ? this.state.foundPatternList.map(row => (
-                                             <TableRow hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'gray': ""}} >
+                                             <TableRow hover key={row.symboltoken}>
              
                                                  <TableCell align="left">{row.symbol}</TableCell>
                                                  <TableCell align="left">{row.pattenName}</TableCell>
                                                  <TableCell align="left">{row.time}</TableCell>
-                                                
+                                                 <TableCell align="left">{row.BuyAt}</TableCell>
+                                                 <TableCell align="left">{row.SellAt}</TableCell>
+                                                 <TableCell align="left"><b>{row.orderActivated} </b></TableCell>
+
                                              </TableRow>
                                          )):''}
                                      </TableBody>
