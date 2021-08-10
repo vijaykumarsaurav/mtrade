@@ -72,41 +72,7 @@ export default function CustomizedDialogs(props) {
  
 
   const handleClickOpen = () => {
-
-    setTimeout(() => {
-      setOpen(true);
-    }, 1000);
-
-
-    var candledata = {
-      series: [{
-          data: [
-            JSON.parse(localStorage.getItem('candleChartData'))
-            ]
-        }],
-      options: {
-          chart: {
-            type: 'candlestick',
-            height: 350
-          },
-          title: {
-              text: 'CandleStick Chart',
-              align: 'left'
-          },
-          xaxis: {
-              type: 'datetime',
-          },
-          yaxis: {
-              tooltip: {
-              enabled: true
-              }
-          }
-      }
-  }
-
-    setValues({...values, ['candledata'] :  candledata});
-
-    console.log('candledata', values.candledata);
+    setOpen(true);
   };
   const handleClose = () => {
     setOpen(false);

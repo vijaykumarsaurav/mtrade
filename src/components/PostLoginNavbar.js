@@ -192,7 +192,7 @@ export default function PostLoginNavBar(props) {
                               
 
 
-                                <Grid item>
+                                {/* <Grid item>
                                     <Button variant="contained"  autoFocus href={"/mtrade/#/order"}  color="primary">
                                         Order
                                     </Button>
@@ -210,7 +210,7 @@ export default function PostLoginNavBar(props) {
                                     <Button variant="contained"  autoFocus href={"/mtrade/#/funds"}  color="primary">
                                         Funds
                                     </Button>
-                              </Grid>
+                              </Grid> */}
 
                             <Grid item>
                                 <Typography  noWrap>

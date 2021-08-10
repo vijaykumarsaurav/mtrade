@@ -451,10 +451,11 @@ class Home extends React.Component{
                                  //console.log(LtpData);
                                  if(LtpData && LtpData.ltp){
 
+
                                     var orderActivated =  <span> {LtpData.ltp} </span>; 
                                     var quantity = 0, pnlAmount = 0, netPnLAmount=0, perChange, brokerageCharges = 0.06; 
                                     if(LtpData.ltp > buyentry){
-                                      orderActivated =  <span style={{color:'green'}}> Long Ltp: {LtpData.ltp} {((LtpData.ltp - buyentry)*100/buyentry).toFixed(2)}% </span>; 
+                                      orderActivated =  <span style={{color:'green'}}> Long: {LtpData.ltp} ({((LtpData.ltp - buyentry)*100/buyentry).toFixed(2)}%) </span>; 
                                       this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((LtpData.ltp - buyentry)*100/buyentry) })
                                       this.setState({totelActivatedCount : this.state.totelActivatedCount + 1});
                                       
@@ -467,7 +468,7 @@ class Home extends React.Component{
 
                                     } 
                                     if(LtpData.ltp < sellenty){
-                                        orderActivated =  <span style={{color:'red'}}> Short Ltp: {LtpData.ltp} {((LtpData.ltp - sellenty)*100/sellenty).toFixed(2)}%</span>; 
+                                        orderActivated =  <span style={{color:'red'}}> Short: {LtpData.ltp} ({((LtpData.ltp - sellenty)*100/sellenty).toFixed(2)}%)</span>; 
                                         this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((sellenty - LtpData.ltp)*100/sellenty) })
                                         this.setState({totelActivatedCount : this.state.totelActivatedCount + 1});
                                         let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
@@ -477,8 +478,6 @@ class Home extends React.Component{
                                         netPnLAmount = ((sellenty * (perChange - brokerageCharges) / 100) * quantity).toFixed(2);
 
                                     } 
-
-
 
                                     var foundData = {
                                         symbol : element.symbol, 
@@ -497,10 +496,8 @@ class Home extends React.Component{
                                     }
         
                                     console.log('nr4 scaned',foundData ); 
+                                    this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
 
-                                    if(quantity){
-                                        this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
-                                    }
     
                                     var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                                     foundPatternList.push(foundData); 
@@ -1447,7 +1444,7 @@ class Home extends React.Component{
 
                             
 
-                                <Grid        justify="space-between"
+                                <Grid justify="space-between"
                                 container>
                                             <Grid item  >
                                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
