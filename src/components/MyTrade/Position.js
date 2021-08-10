@@ -15,6 +15,7 @@ import * as moment from 'moment';
 import OrderBook from './Orderbook';
 import TradeConfig from './TradeConfig.json';
 import ChartDialog from './ChartDialog'; 
+import EqualizerIcon from '@material-ui/icons/Equalizer';
 
 
 class Home extends React.Component{
@@ -31,7 +32,8 @@ class Home extends React.Component{
             buyPrice : 0,
             quantity : 1,
             producttype : "INTRADAY",
-            nr4TotalPer : 0
+            nr4TotalPer : 0,
+            totelActivatedCount : 0
         };
     }
     componentDidMount() {
@@ -450,16 +452,33 @@ class Home extends React.Component{
                                  if(LtpData && LtpData.ltp){
 
                                     var orderActivated =  <span> {LtpData.ltp} </span>; 
-
+                                    var quantity = 0, pnlAmount = 0, netPnLAmount=0, perChange, brokerageCharges = 0.06; 
                                     if(LtpData.ltp > buyentry){
                                       orderActivated =  <span style={{color:'green'}}> Long Ltp: {LtpData.ltp} {((LtpData.ltp - buyentry)*100/buyentry).toFixed(2)}% </span>; 
                                       this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((LtpData.ltp - buyentry)*100/buyentry) })
+                                      this.setState({totelActivatedCount : this.state.totelActivatedCount + 1});
+                                      
+                                      let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
+                                      quantity = Math.floor(perTradeExposureAmt/buyentry); 
+                                      perChange =  (LtpData.ltp -  buyentry) * 100 / buyentry; 
+                                      pnlAmount =  ((LtpData.ltp -  buyentry) * quantity).toFixed(2); 
+                                      netPnLAmount = ((buyentry * (perChange - brokerageCharges) / 100) * quantity).toFixed(2);
+
+
                                     } 
                                     if(LtpData.ltp < sellenty){
                                         orderActivated =  <span style={{color:'red'}}> Short Ltp: {LtpData.ltp} {((LtpData.ltp - sellenty)*100/sellenty).toFixed(2)}%</span>; 
                                         this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((sellenty - LtpData.ltp)*100/sellenty) })
+                                        this.setState({totelActivatedCount : this.state.totelActivatedCount + 1});
+                                        let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
+                                        quantity = Math.floor(perTradeExposureAmt/sellenty); 
+                                        pnlAmount =  ((sellenty - LtpData.ltp) * quantity).toFixed(2); 
+                                        perChange =  (sellenty - LtpData.ltp) * 100 / sellenty; 
+                                        netPnLAmount = ((sellenty * (perChange - brokerageCharges) / 100) * quantity).toFixed(2);
 
                                     } 
+
+
 
                                     var foundData = {
                                         symbol : element.symbol, 
@@ -469,13 +488,20 @@ class Home extends React.Component{
                                         BuyAt : buyentry, 
                                         SellAt : sellenty,
                                         orderActivated : orderActivated,
-                                        candleChartData : candleChartData
+                                        candleChartData : candleChartData, 
+                                        quantity :  quantity,
+                                        brokerageCharges : brokerageCharges, 
+                                        pnlAmount : pnlAmount,
+                                        netPnLAmount : netPnLAmount,
+                                        perChange : perChange
                                     }
         
                                     console.log('nr4 scaned',foundData ); 
-        
-                                    this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
-            
+
+                                    if(quantity){
+                                        this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
+                                    }
+    
                                     var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                                     foundPatternList.push(foundData); 
                                     localStorage.setItem('foundPatternList', JSON.stringify(foundPatternList));
@@ -1245,6 +1271,7 @@ class Home extends React.Component{
 
     render() {
       
+        var netPnLAmountTotal = 0; 
 
         return(
             <React.Fragment>
@@ -1417,21 +1444,40 @@ class Home extends React.Component{
 
                         <Grid item xs={12} sm={12} >
                         <Paper style={{overflow:"auto", padding:'5px'}} >
+
+                            
+
+                                <Grid        justify="space-between"
+                                container>
+                                            <Grid item  >
+                                                <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                                                 NR4 Trades ({this.state.foundPatternList && this.state.foundPatternList.length}) 
+                                                </Typography> 
+                                            </Grid>
+                                            <Grid item >
+                                                 <Button variant="contained"  style={{ marginLeft: '20px' }} onClick={() => this.refreshLtpPer()}>Live Refresh</Button>
+                                            </Grid>
+                                            
+                                </Grid>
+                            
                                  
                                  <Table  size="small"   aria-label="sticky table" >
                                      <TableHead  style={{whiteSpace: "nowrap", }} variant="head">
                                          <TableRow key="1"  variant="head" style={{fontWeight: 'bold'}}>
              
                                               
-                                             <TableCell className="TableHeadFormat" align="left">Symbol Found ({this.state.foundPatternList && this.state.foundPatternList.length}) </TableCell>
+                                             <TableCell className="TableHeadFormat" align="left">Symbol Found </TableCell>
                                              <TableCell className="TableHeadFormat" align="left">Patten Name</TableCell>
                                              <TableCell  className="TableHeadFormat" align="left">Update Time</TableCell>
                                              <TableCell  className="TableHeadFormat" align="left">BuyAt</TableCell>
                                              <TableCell  className="TableHeadFormat" align="left">SellAt</TableCell>
-                                             <TableCell  className="TableHeadFormat" align="left">isActivated Ltp - Total({this.state.nr4TotalPer.toFixed(2)})% &nbsp; 
-                                             <Button variant="contained"  style={{ marginLeft: '20px' }} onClick={() => this.refreshLtpPer()}>Live Refresh</Button>
+                                             <TableCell  className="TableHeadFormat" align="left">Activated({this.state.totelActivatedCount})  Ltp - Total({this.state.nr4TotalPer.toFixed(2)})%  </TableCell>
 
-                                             </TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">Qty</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">PnL</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">Charges%</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">Net PnL  <b>({localStorage.getItem('netPnLAmountTotal')})</b></TableCell>
+
              
                                           
                                          </TableRow>
@@ -1441,17 +1487,26 @@ class Home extends React.Component{
                                          {this.state.foundPatternList ? this.state.foundPatternList.map(row => (
                                              <TableRow hover key={row.symboltoken}>
              
-                                                <TableCell align="center"> <Button style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol}</Button></TableCell>
+                                                <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
                                                  <TableCell align="left">{row.pattenName}</TableCell>
                                                  <TableCell align="left">{row.time}</TableCell>
                                                  <TableCell align="left">{row.BuyAt}</TableCell>
                                                  <TableCell align="left">{row.SellAt}</TableCell>
                                                  <TableCell align="left"><b>{row.orderActivated} </b></TableCell>
 
+                                                 <TableCell align="left">{row.quantity}</TableCell>
+                                                 <TableCell align="left">{row.pnlAmount}</TableCell>
+                                                 <TableCell align="left">{row.brokerageCharges}</TableCell>
+                                                 <TableCell align="left"  {...netPnLAmountTotal = netPnLAmountTotal + parseFloat(row.netPnLAmount)}><b>{row.netPnLAmount} </b></TableCell>
+
                                              </TableRow>
                                          )):''}
                                      </TableBody>
                                  </Table>
+
+                                 <b style={{float: 'right',marginRight: '80px'}}> Total :   {netPnLAmountTotal.toFixed(2)} </b> 
+
+                               
              
                                  </Paper>
                         </Grid>
