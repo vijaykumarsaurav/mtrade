@@ -99,7 +99,12 @@ class OrderBook extends React.Component{
         
       return(
         <React.Fragment>
-            <PostLoginNavBar/>
+
+
+        {window.location.hash !== "#/position" ?    <PostLoginNavBar/> : ""}
+            
+         
+
             <Paper style={{padding:"10px"}} >
 
             <Grid spacing={1}  direction="row" alignItems="center" container>

@@ -10,6 +10,8 @@ import Home from './MyTrade/Home';
 import MySectorTop from "./MyTrade/MySectorTop";
 
 import Chart from "./MyTrade/Chart";
+import CandleChart from "./MyTrade/CandleChart";
+
 
 import Funds from "./MyTrade/Funds";
 import Orderbook from "./MyTrade/Orderbook";
@@ -32,6 +34,8 @@ const AppRouter = () => {
                     {/* <Route path="/bn-view" component={BankNiftyView}/> */}
                     <Route path="/sector" component={MySectorTop}/>
                     <Route path="/chart" component={Chart}/>
+                    <Route path="/candle-chart" component={CandleChart}/>
+
                     <Route path="/home" component={Home}/>
                     <Route path="/funds" component={Funds}/>
                     <Route path="/order" component={Orderbook}/>

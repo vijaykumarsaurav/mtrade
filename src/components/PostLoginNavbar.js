@@ -20,6 +20,7 @@ import MyLogo from './mylogo.png';
 
 import Button from '@material-ui/core/Button';
 import  InvertColor from '../utils/InvertColor';
+import FoundPatternDialog from '../components/MyTrade/FoundPatternDialog'
 
 const drawerWidth = 240;
 
@@ -163,23 +164,29 @@ export default function PostLoginNavBar(props) {
                                     style={{ color: "white" }}
                                 >
 
+                               <Grid item>
+                               <FoundPatternDialog />
+                              </Grid>
+
+
                     
                              <Grid item>
-                                    <Button  autoFocus href={"#/addtowatchlist"}  >
-                                       WatchLit({localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')).length})
+                                    <Button variant="outlined" color="primary"  autoFocus href={"#/addtowatchlist"}  >
+                                       WList({localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')).length})
                                     </Button>
                               </Grid>
 
 
 
-                            <Grid item>
-                                    <Button variant="contained"  autoFocus href={"/mtrade/#/home"}  color="secondary">
-                                        Home
-                                    </Button>
-                              </Grid>
+                        
                               <Grid item>
                                     <Button variant="contained"  autoFocus href={"/mtrade/#/position"}  color="primary">
                                       Position
+                                    </Button>
+                              </Grid>
+                              <Grid item>
+                                    <Button variant="contained"  autoFocus href={"/mtrade/#/home"}  color="secondary">
+                                        Home
                                     </Button>
                               </Grid>
 
@@ -212,11 +219,11 @@ export default function PostLoginNavBar(props) {
                                     </Button>
                               </Grid> */}
 
-                            <Grid item>
+                            {/* <Grid item>
                                 <Typography  noWrap>
 
                                 <Button color="primary">
-                                <AccountCircle />   {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
+                                  <AccountCircle />   {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
                                 </Button>
 
                                 </Typography> 
@@ -224,7 +231,7 @@ export default function PostLoginNavBar(props) {
                         
 
 
-                            </Grid>
+                            </Grid> */}
 
 
                         </Grid>
@@ -250,6 +257,9 @@ export default function PostLoginNavBar(props) {
                     {/* <img style={{ width: "207px" }} src={MyLogo} /> */}
         
                     <InvertColor />
+
+                    {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
+
                     <IconButton onClick={handleDrawerClose}  >
                         {theme.direction === 'ltr' ? <ChevronLeftIcon style={{ color: "gray" }} /> : <ChevronRightIcon style={{ color: "gray" }} />}
                     </IconButton>

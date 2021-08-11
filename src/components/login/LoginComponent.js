@@ -130,7 +130,7 @@ class LoginComponent extends React.Component{
                             window.localStorage.setItem("userProfile",JSON.stringify(profileRes.data));
                         //    this.props.history.push('/position');
 
-                             window.location.replace('/#/home')
+                             window.location.replace('mtrade/#/home')
                           }
                       })
 

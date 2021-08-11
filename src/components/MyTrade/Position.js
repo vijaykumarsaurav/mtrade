@@ -89,7 +89,10 @@ class Home extends React.Component{
  //  this.getCandleHistoryAndStore(); 
 
    this.findNR4PatternLive();
+   //this.findNR7PatternLive();
 
+
+   
     // this.getPositionData();
     // this.getNSETopStock();
      
@@ -261,10 +264,15 @@ class Home extends React.Component{
 
                         console.log('%c' + symbol+ ' perfect twisser top  upside movement'+diffPer +  new Date( candleHist[0][0]).toLocaleTimeString(), 'background: red; color: #bada55'); 
         
+                        var ttophistCandle  = []; 
+                        candleHist.forEach(element => {
+                            ttophistCandle.push([element[0],element[1],element[2],element[3],element[4]]);   
+                        });
                         var foundData = {
                             symbol : symbol, 
                             pattenName: 'Twisser Top', 
                             time: new Date( candleHist[0][0]).toLocaleTimeString(), 
+                            candleChartData :ttophistCandle 
                         }
                         var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                         foundPatternList.push(foundData); 
@@ -337,11 +345,17 @@ class Home extends React.Component{
                       
                         //console.log(symbol, "last 8 candle diff ",  diffPer+"% ", "10th high", last8candleHigh,"3rd low", last8candleLow, candleHist);
 
+                        var tBophistCandle  = []; 
+                        candleHist.forEach(element => {
+                            tBophistCandle.push([element[0],element[1],element[2],element[3],element[4]]);   
+                        });
+
                         console.log('%c' + symbol+ ' perfect twisser bottom downside movement diff '+diffPer+"% " + new Date( candleHist[0][0]).toLocaleTimeString(), 'background: #222; color: #bada55'); 
                         var foundData = {
                             symbol : symbol, 
                             pattenName: 'Twisser bottom', 
                             time: new Date( candleHist[0][0]).toLocaleString(), 
+                            candleChartData : tBophistCandle
                         }
                      
                      //   this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
@@ -369,12 +383,12 @@ class Home extends React.Component{
 
         this.setState({ backTestResult: [], backTestFlag: false });
 
-        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || []; 
         var runningTest = 1, sumPercentage = 0;
         for (let index = 0; index < watchList.length; index++) {
             const element = watchList[index];
 
-            var startdate = ''; 
+            var startdate = '';
            
             var timediff = moment.duration("240:00:00");
             startdate = moment(new Date()).subtract(timediff);
@@ -392,10 +406,11 @@ class Home extends React.Component{
 
             AdminService.getHistoryData(data).then(res => {
                 let histdata = resolveResponse(res, 'noPop');
+                
                 //console.log("candle history", histdata); 
                 if (histdata && histdata.data && histdata.data.length) {
 
-                    var candleData = histdata.data;
+                    var candleData = histdata.data;var rgrangeCount = 0; 
                      candleData.reverse(); 
 
                      // var startindex = index2 * 10; 
@@ -417,13 +432,20 @@ class Home extends React.Component{
                          last5Candle.forEach(element => {
                             candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
                          });
-                         var firstElement = rangeArr[0], rgrangeCount = 0;
+                         var firstElement = rangeArr[0];
                          rangeArr.forEach(element => {
                              if (firstElement <= element) {
                                  firstElement = element;
                                  rgrangeCount += 1;
                              }
                          });
+
+                         console.log('rgrangeCount',rgrangeCount, element.symbol)
+
+                         var showtestdata = (index + 1) + ". " + element.symbol + ' NR Range: ' + rgrangeCount; 
+
+                        // this.setState({ stockTesting: showtestdata});
+                        document.getElementById('stockTesting').innerHTML = showtestdata; 
 
                          
                          if (rgrangeCount == 4) {
@@ -445,10 +467,12 @@ class Home extends React.Component{
                                 "symboltoken":element.token,
                             }
 
+                            console.log('nr4 ltp',data ); 
+
                             AdminService.getLTP(data).then(res => {
                                 let data = resolveResponse(res, 'noPop');
                                  var LtpData = data && data.data; 
-                                 //console.log(LtpData);
+                                 console.log(LtpData, data);
                                  if(LtpData && LtpData.ltp){
 
 
@@ -521,7 +545,178 @@ class Home extends React.Component{
                 }
             })
             await new Promise(r => setTimeout(r, 300));
-            this.setState({ stockTesting: index + 1 + ". " + element.symbol})
+        }
+        this.setState({ backTestFlag: true });
+        console.log("sumPercentage", sumPercentage)
+    }
+
+    findNR7PatternLive = async () => {
+
+        console.log('nr7 scaning starting'); 
+
+        this.setState({ backTestResult: [], backTestFlag: false });
+
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || []; 
+        var runningTest = 1, sumPercentage = 0;
+        for (let index = 0; index < watchList.length; index++) {
+            const element = watchList[index];
+
+            var startdate = '';
+           
+            var timediff = moment.duration("288:00:00");
+            startdate = moment(new Date()).subtract(timediff);
+
+            var timediffend = moment.duration("24:00:00");
+            var enddateLastday = moment(new Date()).subtract(timediffend);
+
+            var data = {
+                "exchange": "NSE",
+                "symboltoken": element.token,
+                "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+            }
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res, 'noPop');
+                
+                //console.log("candle history", histdata); 
+                if (histdata && histdata.data && histdata.data.length) {
+
+                    var candleData = histdata.data;
+                     candleData.reverse(); 
+
+                     // var startindex = index2 * 10; 
+                     var last7Candle = candleData.slice(1, 8);
+                     var last9Candle = candleData.slice(0, 9);
+                     // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+
+                     // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+
+                     if (last7Candle.length >= 7) {
+
+                        // last7Candle.reverse();
+
+                         var rangeArr = [], candleChartData = []; 
+                         last7Candle.forEach(element => {
+                             rangeArr.push(element[2] - element[3]);
+                         });
+
+                         last9Candle.forEach(element => {
+                            candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
+                         });
+                         var firstElement = rangeArr[0], rgrangeCount = 0; 
+                         rangeArr.forEach(element => {
+                             if (firstElement <= element) {
+                                 firstElement = element;
+                                 rgrangeCount += 1;
+                             }
+                         });
+
+                         var showtestdata = (index + 1) + ". " + element.symbol + ' NR Range: ' + rgrangeCount; 
+
+                      //   this.setState({ stockTesting: showtestdata});
+                      document.getElementById('stockTesting').innerHTML = showtestdata; 
+
+                         console.log(element.symbol, last7Candle, rangeArr, rgrangeCount); 
+
+                         
+                         if (rgrangeCount == 7) {
+
+                            
+                             var firstCandle = last7Candle[0];
+
+                             //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
+                             var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
+
+                             //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
+                             var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
+
+
+                             var data  = {
+                                "exchange":"NSE",
+                                "tradingsymbol": element.symbol,
+                                "symboltoken":element.token,
+                            }
+
+                            console.log('nr4 ltp',data ); 
+
+                            AdminService.getLTP(data).then(res => {
+                                let data = resolveResponse(res, 'noPop');
+                                 var LtpData = data && data.data; 
+                                 console.log(LtpData, data);
+                                 if(LtpData && LtpData.ltp){
+
+
+                                    var orderActivated =  <span> {LtpData.ltp} </span>; 
+                                    var quantity = 0, pnlAmount = 0, netPnLAmount=0, perChange, brokerageCharges = 0.06; 
+                                    if(LtpData.ltp > buyentry){
+                                      orderActivated =  <span style={{color:'green'}}> Long: {LtpData.ltp} ({((LtpData.ltp - buyentry)*100/buyentry).toFixed(2)}%) </span>; 
+                                      this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((LtpData.ltp - buyentry)*100/buyentry) })
+                                      this.setState({totelActivatedCount : this.state.totelActivatedCount + 1});
+                                      
+                                      let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
+                                      quantity = Math.floor(perTradeExposureAmt/buyentry); 
+                                      perChange =  (LtpData.ltp -  buyentry) * 100 / buyentry; 
+                                      pnlAmount =  ((LtpData.ltp -  buyentry) * quantity).toFixed(2); 
+                                      netPnLAmount = ((buyentry * (perChange - brokerageCharges) / 100) * quantity).toFixed(2);
+
+
+                                    } 
+                                    if(LtpData.ltp < sellenty){
+                                        orderActivated =  <span style={{color:'red'}}> Short: {LtpData.ltp} ({((LtpData.ltp - sellenty)*100/sellenty).toFixed(2)}%)</span>; 
+                                        this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((sellenty - LtpData.ltp)*100/sellenty) })
+                                        this.setState({totelActivatedCount : this.state.totelActivatedCount + 1});
+                                        let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
+                                        quantity = Math.floor(perTradeExposureAmt/sellenty); 
+                                        pnlAmount =  ((sellenty - LtpData.ltp) * quantity).toFixed(2); 
+                                        perChange =  (sellenty - LtpData.ltp) * 100 / sellenty; 
+                                        netPnLAmount = ((sellenty * (perChange - brokerageCharges) / 100) * quantity).toFixed(2);
+
+                                    } 
+
+                                    var foundData = {
+                                        symbol : element.symbol, 
+                                        token : element.token, 
+                                        pattenName: 'NR7', 
+                                        time: new Date( firstCandle[0]).toLocaleString(), 
+                                        BuyAt : buyentry, 
+                                        SellAt : sellenty,
+                                        orderActivated : orderActivated,
+                                        candleChartData : candleChartData, 
+                                        quantity :  quantity,
+                                        brokerageCharges : brokerageCharges, 
+                                        pnlAmount : pnlAmount,
+                                        netPnLAmount : netPnLAmount,
+                                        perChange : perChange
+                                    }
+        
+                                    console.log('nr7 scaned',foundData ); 
+                                    this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
+
+    
+                                    var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
+                                    foundPatternList.push(foundData); 
+                                    localStorage.setItem('foundPatternList', JSON.stringify(foundPatternList));
+                                
+                                }
+                                
+                           })
+
+
+
+                            
+
+                         }
+
+                     }
+                  
+                } else {
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(element.symbol, " candle data emply");
+                }
+            })
+            await new Promise(r => setTimeout(r, 300));
         }
         this.setState({ backTestFlag: true });
         console.log("sumPercentage", sumPercentage)
@@ -582,7 +777,13 @@ class Home extends React.Component{
                             time: new Date().toLocaleString(), 
                             BuyAt : element.BuyAt, 
                             SellAt : element.SellAt,
-                            orderActivated : orderActivated
+                            orderActivated : orderActivated,
+                            // quantity : element.quantity,
+                            // brokerageCharges : element.brokerageCharges, 
+                            // pnlAmount : pnlAmount,
+                            // netPnLAmount : netPnLAmount,
+                            // perChange : perChange
+                            
                         }
 
                         console.log('nr4 updated',foundData ); 
@@ -1269,6 +1470,7 @@ class Home extends React.Component{
     render() {
       
         var netPnLAmountTotal = 0; 
+        var foundPatternList = localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')).reverse(); 
 
         return(
             <React.Fragment>
@@ -1448,7 +1650,9 @@ class Home extends React.Component{
                                 container>
                                             <Grid item  >
                                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                                 NR4 Trades ({this.state.foundPatternList && this.state.foundPatternList.length}) 
+                                                 Patterns Founds ({this.state.foundPatternList && this.state.foundPatternList.length})  
+
+                                                <span id="stockTesting" style={{fontSize: "18px", color: 'gray'}}> </span>
                                                 </Typography> 
                                             </Grid>
                                             <Grid item >
@@ -1481,7 +1685,7 @@ class Home extends React.Component{
                                      </TableHead>
                                      <TableBody style={{width:"",whiteSpace: "nowrap"}}>
              
-                                         {this.state.foundPatternList ? this.state.foundPatternList.map(row => (
+                                         {foundPatternList ? foundPatternList.map(row => (
                                              <TableRow hover key={row.symboltoken}>
              
                                                 <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
@@ -1501,7 +1705,7 @@ class Home extends React.Component{
                                      </TableBody>
                                  </Table>
 
-                                 <b style={{float: 'right',marginRight: '80px'}}> Total :   {netPnLAmountTotal.toFixed(2)} </b> 
+                                 <b style={{float: 'left',marginRight: '80px'}}> Total :   {netPnLAmountTotal.toFixed(2)} </b> 
 
                                
              
