@@ -26,14 +26,16 @@ class Home extends React.Component{
             autoSearchList :[],
             InstrumentLTP : {},
             autoSearchTemp : [],
-            foundPatternList: [], 
+            foundPatternList: [], //localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')) || [], 
             symboltoken: "", 
             tradingsymbol : "" ,
             buyPrice : 0,
             quantity : 1,
             producttype : "INTRADAY",
             nr4TotalPer : 0,
-            totelActivatedCount : 0
+            totelActivatedCount : 0,
+            stockTesting : ""
+            
         };
     }
     componentDidMount() {
@@ -86,9 +88,9 @@ class Home extends React.Component{
           
         } 
 
- //  this.getCandleHistoryAndStore(); 
+   this.getCandleHistoryAndStore(); 
 
-   this.findNR4PatternLive();
+   //this.findNR4PatternLive();
    //this.findNR7PatternLive();
 
 
@@ -271,14 +273,14 @@ class Home extends React.Component{
                         var foundData = {
                             symbol : symbol, 
                             pattenName: 'Twisser Top', 
-                            time: new Date( candleHist[0][0]).toLocaleTimeString(), 
+                            time: new Date( candleHist[0][0]).getTime(), 
                             candleChartData :ttophistCandle 
                         }
                         var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                         foundPatternList.push(foundData); 
                         localStorage.setItem('foundPatternList', JSON.stringify(foundPatternList));
 
-                      //  this.setState({foundPatternList: [...this.state.foundPatternList, foundData]})
+                       this.setState({foundPatternList: [...this.state.foundPatternList, foundData]})
                     //    console.log('%c' + new Date( candleHist[0][0]).toString(), 'color: green'); 
                     //    console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);                 
                         console.log(symbol, "last10Candle",candleHist); 
@@ -354,11 +356,11 @@ class Home extends React.Component{
                         var foundData = {
                             symbol : symbol, 
                             pattenName: 'Twisser bottom', 
-                            time: new Date( candleHist[0][0]).toLocaleString(), 
+                            time: new Date( candleHist[0][0]).getTime(), 
                             candleChartData : tBophistCandle
                         }
                      
-                     //   this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
+                       this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]})
 
                         var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                         foundPatternList.push(foundData); 
@@ -440,16 +442,13 @@ class Home extends React.Component{
                              }
                          });
 
-                         console.log('rgrangeCount',rgrangeCount, element.symbol)
+                         console.log(index+1,element.symbol, rgrangeCount); 
+                       //  this.setState({stockTesting :index +" "+ element.symbol })
 
-                         var showtestdata = (index + 1) + ". " + element.symbol + ' NR Range: ' + rgrangeCount; 
-
-                        // this.setState({ stockTesting: showtestdata});
-                        document.getElementById('stockTesting').innerHTML = showtestdata; 
 
                          
                          if (rgrangeCount == 4) {
-                            console.log(element.symbol, last4Candle, rangeArr, rgrangeCount); 
+                            console.log(index+1, element.symbol, last4Candle, rangeArr, rgrangeCount); 
 
                             
                              var firstCandle = last4Candle[0];
@@ -544,7 +543,16 @@ class Home extends React.Component{
                     console.log(element.symbol, " candle data emply");
                 }
             })
+           
+
+         
             await new Promise(r => setTimeout(r, 300));
+
+           // var showtestdata = (index + 1);
+            
+         //   console.log("beforawait", showtestdata, element.symbol);
+
+       //     this.setState({ stockTesting: showtestdata});
         }
         this.setState({ backTestFlag: true });
         console.log("sumPercentage", sumPercentage)
@@ -613,10 +621,6 @@ class Home extends React.Component{
                              }
                          });
 
-                         var showtestdata = (index + 1) + ". " + element.symbol + ' NR Range: ' + rgrangeCount; 
-
-                      //   this.setState({ stockTesting: showtestdata});
-                      document.getElementById('stockTesting').innerHTML = showtestdata; 
 
                          console.log(element.symbol, last7Candle, rangeArr, rgrangeCount); 
 
@@ -716,6 +720,8 @@ class Home extends React.Component{
                     console.log(element.symbol, " candle data emply");
                 }
             })
+            var showtestdata = (index + 1) + ". " + element.symbol; 
+            this.setState({ stockTesting: showtestdata});
             await new Promise(r => setTimeout(r, 300));
         }
         this.setState({ backTestFlag: true });
@@ -1652,7 +1658,7 @@ class Home extends React.Component{
                                                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
                                                  Patterns Founds ({this.state.foundPatternList && this.state.foundPatternList.length})  
 
-                                                <span id="stockTesting" style={{fontSize: "18px", color: 'gray'}}> </span>
+                                                <span id="stockTesting" style={{fontSize: "18px", color: 'gray'}}> {this.state.stockTesting} </span>
                                                 </Typography> 
                                             </Grid>
                                             <Grid item >
@@ -1685,7 +1691,7 @@ class Home extends React.Component{
                                      </TableHead>
                                      <TableBody style={{width:"",whiteSpace: "nowrap"}}>
              
-                                         {foundPatternList ? foundPatternList.map(row => (
+                                         {this.state.foundPatternList ? this.state.foundPatternList.map(row => (
                                              <TableRow hover key={row.symboltoken}>
              
                                                 <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>

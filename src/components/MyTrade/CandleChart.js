@@ -256,6 +256,10 @@ export default function App( props ) {
     text: 'CandleStick Chart',
     align: 'left'
   },
+  colors: {
+    upward: 'darkmagenta',
+    downward: '#00cbcb'
+  },
   xaxis: {
     type: 'datetime'
   },
