@@ -427,7 +427,9 @@ class Home extends React.Component {
                                 var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
 
                                 if (next5thCandle[2] > buyentry) {
-                                    var perChng = (next5thCandle[this.state.longExitPriceType] - buyentry) * 100 / buyentry;
+                                    var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
+                                    var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
+
                                     sumPercentage += perChng;
         
                                     console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
@@ -435,11 +437,13 @@ class Home extends React.Component {
                                     var foundStock = {
                                         foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
                                         symbol: element.symbol,
-                                        sellEntyPrice: next5thCandle[this.state.longExitPriceType],
+                                        sellEntyPrice: next5thCandle[4],
+                                        highAndLow: next5thCandle[2],
                                         stopLoss: firstCandle[3],
                                         buyExitPrice: buyentry,
                                         brokerageCharges: 0.06,
                                         perChange: perChng.toFixed(2),
+                                        perChngOnHighLow: perChngOnHigh.toFixed(2),
                                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
                                         quantity: Math.floor(10000 / firstCandle[2]),
                                         candleChartData : candleChartData
@@ -454,7 +458,9 @@ class Home extends React.Component {
                                 var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
 
                                 if (next5thCandle[3] < sellenty) {
-                                    var perChng = (sellenty - next5thCandle[this.state.shortExitPriceType]) * 100 / firstCandle[3];
+                                    var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
+                                    var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
+
                                     sumPercentage += perChng;
                                     console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
 
@@ -463,9 +469,11 @@ class Home extends React.Component {
                                         symbol: element.symbol,
                                         sellEntyPrice: sellenty,
                                         stopLoss: firstCandle[2],
-                                        buyExitPrice: next5thCandle[this.state.shortExitPriceType],
+                                        buyExitPrice: next5thCandle[4],
+                                        highAndLow: next5thCandle[3],
                                         brokerageCharges: 0.06,
                                         perChange: perChng.toFixed(2),
+                                        perChngOnHighLow: perChngOnLow.toFixed(2),
                                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
                                         quantity: Math.floor(10000 / firstCandle[3]),
                                         candleChartData : candleChartData
@@ -1236,7 +1244,7 @@ class Home extends React.Component {
         }
 
        
-        var sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0, sumPnlValue = 0, totalInvestedValue = 0, totalLongTrade=0, totalShortTrade=0;
+        var sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0,sumPerChangeHighLow =0,  sumPnlValue = 0,sumPnlValueOnHighLow = 0,  totalInvestedValue = 0, totalLongTrade=0, totalShortTrade=0;
 
         return (
             <React.Fragment>
@@ -1448,42 +1456,52 @@ class Home extends React.Component {
                                             <TableRow>
 
                                                 <TableCell style={{ color: localStorage.getItem('sumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPerChange')}%</b></TableCell>
-                                                <TableCell style={{ color: "red" }} align="center"><b>{localStorage.getItem('sumBrokeragePer')}%</b></TableCell>
-                                                <TableCell style={{ color: localStorage.getItem('netSumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('netSumPerChange')}%</b></TableCell>
+                                             
+                                                {/* <TableCell style={{ color: "red" }} align="center"><b>{localStorage.getItem('sumBrokeragePer')}%</b></TableCell>
+                                                <TableCell style={{ color: localStorage.getItem('netSumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('netSumPerChange')}%</b></TableCell> */}
+
 
                                                 <TableCell style={{ color: localStorage.getItem('sumPnlValue') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPnlValue')}</b></TableCell>
+                                               
+                                                <TableCell style={{ color: localStorage.getItem('sumPerChangeHighLow') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPerChangeHighLow')}%</b></TableCell>
+                                                <TableCell style={{ color: localStorage.getItem('sumPnlValueOnHighLow') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPnlValueOnHighLow')}</b></TableCell>
+
+                                                
+
+                                               
                                                 <TableCell align="left" >Total Trade Found: {this.state.backTestResult && this.state.backTestResult.length}</TableCell>
 
 
                                                 <TableCell align="center">Long: {localStorage.getItem('totalLongTrade')} Short:  {this.state.backTestResult && this.state.backTestResult.length - localStorage.getItem('totalLongTrade')}</TableCell>
                                                 <TableCell align="left" colSpan={2}> Total Invested  {localStorage.getItem('totalInvestedValue')}</TableCell>
 
-                                                <TableCell align="center" colSpan={3}> Average gross/trade PnL:  <b style={{ color: netSumPerChange > 0 ? "green" : "red" }} >{(localStorage.getItem('netSumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b></TableCell>
+                                                <TableCell align="center" colSpan={3}> Average gross/trade PnL:  <b style={{ color: (localStorage.getItem('netSumPerChange') / this.state.backTestResult.length) > 0 ? "green" : "red" }} >{(localStorage.getItem('netSumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b></TableCell>
                                            
 
                                             </TableRow>
                                             <TableRow variant="head" style={{ fontWeight: 'bold' }}>
 
 
-                                            <TableCell className="TableHeadFormat" align="center">PnL %</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Close-PnL% </TableCell>
 
-                                            <TableCell className="TableHeadFormat" align="center">Charges</TableCell>
+                                                {/* <TableCell className="TableHeadFormat" align="center">Charges</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Net PnL %</TableCell> */}
 
-                                            <TableCell className="TableHeadFormat" align="center">Net PnL %</TableCell>
+                                                <TableCell className="TableHeadFormat"  align="center">Close-Net PnL </TableCell>
 
-                                            <TableCell className="TableHeadFormat"  align="center">Net PnL</TableCell>
+                                                <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">H/L-PnL% </TableCell>
+                                                <TableCell className="TableHeadFormat"  title="High on long side | Low in short side" align="center">H/L-Net PnL</TableCell>
 
-
-
-                                               
                                                 <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
                                                 <TableCell className="TableHeadFormat" align="left">FoundAt</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Buy</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Sell(Qty)</TableCell>
+                                                <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">High/Low</TableCell>
+
 
                                                 <TableCell className="TableHeadFormat" align="center">SquiredOff</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">StopLoss</TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Sr. </TableCell>
+                                                {/* <TableCell className="TableHeadFormat" align="center">Sr. </TableCell> */}
 
                                              
                                             </TableRow>
@@ -1498,20 +1516,29 @@ class Home extends React.Component {
                                                 //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
                                                 <TableRow hover key={i} >
 
-                                                    <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}> <b>{row.perChange}%</b></TableCell>
-                                                    <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
+                                                    <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
+                                                    {/* <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
                                                     <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "green" : "red" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
-                                                    <TableCell {...sumPnlValue = sumPnlValue + ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" > <b>{((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</b></TableCell>
+                                                   */}
+                                                    <TableCell {...sumPnlValue = sumPnlValue + ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" > {((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
+
+                                                    <TableCell style={{ color: row.perChngOnHighLow > 0 ? "green" : "red" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
+                                                    <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
+
+
 
                                                     <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
 
                                                     <TableCell align="left" style={{ color: row.foundAt.indexOf('Long') == 0  ? "green" : "red" }} {... totalLongTrade = totalLongTrade + (row.foundAt.indexOf('Long') == 0 ? 1 : 0) }>{row.foundAt}</TableCell>
                                                     <TableCell align="center">{row.buyExitPrice}</TableCell>
 
-                                                    <TableCell align="center" {...totalInvestedValue = totalInvestedValue + row.foundAt.indexOf('Long') == 0  ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity) }>{row.sellEntyPrice}({row.quantity})</TableCell>
+                                                    <TableCell align="center" {...totalInvestedValue = totalInvestedValue + (row.foundAt.indexOf('Long') == 0  ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity)) }>{row.sellEntyPrice}({row.quantity})</TableCell>
+                                                    <TableCell  title="High on long side | Low in short side" align="center">{row.highAndLow}</TableCell>
+
                                                     <TableCell align="center">{row.squareOffAt}</TableCell>
+                                                   
                                                     <TableCell align="center">{row.stopLoss}</TableCell>
-                                                    <TableCell align="center">{i + 1}</TableCell>
+                                                    {/* <TableCell align="center">{i + 1}</TableCell> */}
 
                                                 </TableRow>
 
@@ -1522,18 +1549,22 @@ class Home extends React.Component {
 
                                             <TableRow >
 
-                                               <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
-                                                <TableCell style={{ color: "red" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
-                                                <TableCell style={{ color: netSumPerChange > 0 ? "green" : "red" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell>
+                                                <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
+                                               
+                                                {/* <TableCell style={{ color: "red" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
+                                                <TableCell style={{ color: netSumPerChange > 0 ? "green" : "red" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
 
                                                 <TableCell style={{ color: sumPnlValue > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
 
-                                                <TableCell align="left" > {localStorage.setItem('totalLongTrade', totalLongTrade)}</TableCell>
+                                                <TableCell style={{ color: sumPerChangeHighLow > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
+                                                <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
 
-                                                <TableCell align="left"> </TableCell>
 
-                                                <TableCell align="left">   </TableCell>
-                                                <TableCell align="center"><b>{localStorage.setItem('totalInvestedValue', totalInvestedValue.toFixed(2))}</b></TableCell>
+                                                <TableCell align="left" > {localStorage.setItem('totalLongTrade', totalLongTrade)} {localStorage.setItem('totalInvestedValue', totalInvestedValue.toFixed(2))} </TableCell>
+
+                                                <TableCell align="left">{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))} {localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
+
+                                                <TableCell align="left"></TableCell>
 
 
                                                 <TableCell align="left" > </TableCell>
