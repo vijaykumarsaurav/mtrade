@@ -1420,7 +1420,7 @@ class Home extends React.Component {
                                             <MaterialUIDateTimePicker callbackFromParent={dateParam} />
                                         </Grid>
 
-                                        <Grid item xs={12} sm={2} style={{ marginTop: '15px' }}>
+                                        {/* <Grid item xs={12} sm={2} style={{ marginTop: '15px' }}>
                                             <FormControl style={styles.selectStyle}>
                                                 <InputLabel>Long Exit</InputLabel>
                                                 <Select value={this.state.longExitPriceType} name="longExitPriceType" onChange={this.onChangePattern}>
@@ -1439,9 +1439,9 @@ class Home extends React.Component {
                                                     <MenuItem value={4}>Close</MenuItem>
                                                 </Select>
                                             </FormControl>
-                                        </Grid>
+                                        </Grid> */}
 
-                                        <Grid item xs={12} sm={12}>
+                                        <Grid item xs={12} sm={6} style={{ marginTop:'28px'}}>
                                             {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Test</Button> : <> <Button> <Spinner /> &nbsp; &nbsp; Scaning: {this.state.stockTesting}  Total Test Count: {this.state.runningTest}  </Button>  <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button> </> }
 
                                         </Grid>
@@ -1453,7 +1453,7 @@ class Home extends React.Component {
                                     <Table size="small" aria-label="sticky table" >
 
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                            <TableRow>
+                                            <TableRow style={{  background: "lightgray" }}>
 
                                                 <TableCell style={{ color: localStorage.getItem('sumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPerChange')}%</b></TableCell>
                                              
@@ -1489,8 +1489,8 @@ class Home extends React.Component {
 
                                                 <TableCell className="TableHeadFormat"  align="center">Close-Net PnL </TableCell>
 
-                                                <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">H/L-PnL% </TableCell>
-                                                <TableCell className="TableHeadFormat"  title="High on long side | Low in short side" align="center">H/L-Net PnL</TableCell>
+                                                <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">HL_PnL% </TableCell>
+                                                <TableCell className="TableHeadFormat"  title="High on long side | Low in short side" align="center">HL_Net PnL</TableCell>
 
                                                 <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
                                                 <TableCell className="TableHeadFormat" align="left">FoundAt</TableCell>
@@ -1514,7 +1514,7 @@ class Home extends React.Component {
 
 
                                                 //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
-                                                <TableRow hover key={i} >
+                                                <TableRow hover key={i}  >
 
                                                     <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
                                                     {/* <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
@@ -1547,7 +1547,7 @@ class Home extends React.Component {
                                             )) : ''}
 
 
-                                            <TableRow >
+                                            <TableRow style={{  background: "lightgray" }} >
 
                                                 <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
                                                
@@ -1570,6 +1570,7 @@ class Home extends React.Component {
                                                 <TableCell align="left" > </TableCell>
                                                 <TableCell align="left"> </TableCell>
 
+                                                <TableCell align="left"> </TableCell>
                                                 <TableCell align="left"> </TableCell>
 
 

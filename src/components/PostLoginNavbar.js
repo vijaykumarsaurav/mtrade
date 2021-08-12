@@ -170,12 +170,12 @@ export default function PostLoginNavBar(props) {
 
 
                     
-                             <Grid item>
+                             {/* <Grid item>
                                     <Button variant="outlined" color="primary"  autoFocus href={"#/addtowatchlist"}  >
                                        WList({localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')).length})
                                     </Button>
                               </Grid>
-
+ */}
 
 
                         

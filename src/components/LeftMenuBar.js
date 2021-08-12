@@ -84,7 +84,7 @@ export const AdminMenuList = (
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="Add to watchlist" />
+      <ListItemText primary={"Watchlist (" + (localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')).length) + ")"} />
     </ListItem>
   
 

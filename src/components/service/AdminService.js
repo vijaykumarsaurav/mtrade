@@ -70,10 +70,10 @@ class AdminService {
         return axios.get('/myJsonWatchList.json', '');
      } 
      getStaticData() {
-         if(window.location.hostname== "localhost")
-        return axios.get('/staticData.json', '');
-        else
+        if(window.location.hostname == "vijaykumarsaurav.github.io")
         return axios.get('/mtrade/staticData.json', '');
+        else
+        return axios.get('/staticData.json', '');
      } 
      saveCandleHistory(data) {
         return axios.post('http://localhost:8081/saveCandleHistory', data,  '');
