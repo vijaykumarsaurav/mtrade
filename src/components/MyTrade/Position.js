@@ -90,7 +90,7 @@ class Home extends React.Component{
 
    this.getCandleHistoryAndStore(); 
 
-   //this.findNR4PatternLive();
+    this.findNR4PatternLive();
    //this.findNR7PatternLive();
 
 
