@@ -51,14 +51,14 @@ class Home extends React.Component {
             autoSearchTemp: [],
             backTestResult: [],
             backTestFlag: true,
-            patternType: "NR4_SameDay",
+            patternType: "NR4_Daywide_daterage",
             symboltoken: "",
             tradingsymbol: "",
             buyPrice: 0,
             quantity: 1,
             producttype: "INTRADAY",
             symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
-            selectedWatchlist: 'NIFTY 50',
+            selectedWatchlist: 'NIFTY BANK',
             longExitPriceType: 4,
             shortExitPriceType: 4,
             candleChartData : [],
@@ -70,7 +70,6 @@ class Home extends React.Component {
         };
         this.myCallback = this.myCallback.bind(this);
         this.updateSocketWatch = this.updateSocketWatch.bind(this);
-
 
     }
     onChange = (e) => {
@@ -303,6 +302,7 @@ class Home extends React.Component {
             return;
         }
 
+
         if (this.state.patternType === 'NR4_Daywide_daterage') {
 
             var startdate = moment(this.state.startDate);
@@ -332,6 +332,73 @@ class Home extends React.Component {
 
             return;
         }
+
+        // if (this.state.patternType === 'NR4_Daywide_daterage') {
+
+        //     var watchList = this.state.symbolList //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        //     var runningTest = 1, sumPercentage = 0, candleHistory = []; 
+        //     for (let index = 0; index < watchList.length; index++) {
+        //         const element = watchList[index];
+
+        //         if(this.state.stopScaningFlag){
+        //             break;
+        //         }
+
+                    
+        //             var time = moment.duration("240:00:00");
+        //             var startdate = moment(this.state.startDate).subtract(time);
+
+        //             var data = {
+        //                 "exchange": "NSE",
+        //                 "symboltoken": element.token,
+        //                 "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+        //                 "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+        //                 "todate": moment(this.state.endDate).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+        //             }
+        
+        //             AdminService.getHistoryData(data).then(res => {
+        //                 let histdata = resolveResponse(res, 'noPop');
+        //                 //console.log("candle history", histdata); 
+        //                 var candleData = histdata.data;
+        //                 candleData.reverse(); 
+ 
+        //                 console.log("in watchlist loop", element.symbol); 
+
+        //                 var NR4DaywideCandleHistory = localStorage.getItem('NR4DaywideCandleHistory') ? JSON.parse( localStorage.getItem('NR4DaywideCandleHistory') ) : {}; 
+        //                 NR4DaywideCandleHistory[element.symbol] = candleData; 
+
+        //                 localStorage.setItem('NR4DaywideCandleHistory', JSON.stringify(NR4DaywideCandleHistory) );
+
+
+                        
+        //             });
+
+        //             await new Promise(r => setTimeout(r, 350));
+                
+        //     }
+
+           
+        
+
+        //     var startdate = moment(this.state.startDate);
+        //     var enddate = moment(this.state.endDate);
+        //     const currentMoment =startdate; 
+        //     const endMoment = enddate; 
+
+        //     while (currentMoment.isSameOrBefore(endMoment, 'day')) {
+
+        //         console.log(`after saving date Loop at ${currentMoment.format('DD-MM-YYYY')}`);
+        //         this.backTestNR4WithStoredData(currentMoment);
+
+        //         currentMoment.add(1, 'days');
+        //     }
+          
+          
+        //     this.setState({ backTestFlag: true, stopScaningFlag: false });
+
+
+        //     return;
+        // }
 
 
         
@@ -710,6 +777,204 @@ class Home extends React.Component {
         }
     } 
 
+    backTestNR4WithStoredData = (currentMoment) => {
+
+        this.setState({ backTestFlag: false });
+
+        var watchList = this.state.symbolList //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        var runningTest = 1; 
+        for (let index = 0; index < watchList.length; index++) {
+            const element = watchList[index];
+
+            var NR4DaywideCandleHistory = localStorage.getItem('NR4DaywideCandleHistory') ? JSON.parse( localStorage.getItem('NR4DaywideCandleHistory') ) : {};
+
+            
+            let candledata  = NR4DaywideCandleHistory[element.symbol]; 
+
+            
+            candledata.reverse();
+            var histdata = [],counter=0, startFlag=false;   
+
+            for (let index2 = 0; index2 < candledata.length; index2++) {
+                const candledatahist = candledata[index2];
+
+               // console.log(element.symbol, candledatahist, '\n')
+                var finddate = currentMoment.format('YYYY-MM-DD'); 
+                finddate = new Date(finddate);
+
+
+                const candledate = new Date(candledatahist[0]);
+
+                console.log(element.symbol, finddate ,candledate);
+
+        
+                if(finddate.getDate() === candledate.getDate()){
+
+                   var last4Candle = candledata.slice(index2, index2+5);
+
+                    console.log(element.symbol, finddate ,candledate, last4Candle)
+
+                    break; 
+                }
+
+                
+
+                //var dateInMoment = moment(candledatahist && candledatahist[0].format('DD-MM-YYYY'));
+
+
+            
+                // if(counter == 5){
+                //     startFlag = false; 
+                //     break; 
+                // }
+              
+                // if(dateInMoment.isSame(currentMoment) || startFlag){
+                //     histdata.push(candledatahist);   
+
+              //     console.log(element.symbol, candledatahist ,currentMoment.format('DD-MM-YYYY'), )
+
+                //     startFlag = true 
+                //     counter +=1; 
+                // }
+                
+            }
+
+           // console.log(element.symbol, currentMoment.format('DD-MM-YYYY'), histdata)
+        
+
+            // if (histdata && histdata.length >= 4) {
+
+            //     var candleData = histdata;
+            //       candleData.reverse(); 
+                
+            //         // var startindex = index2 * 10; 
+            //         var last4Candle = candleData.slice(1, 5);
+            //         // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+
+            //         // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+
+            //         if (last4Candle.length >= 4) {
+
+            //             //last4Candle.reverse();
+
+            //             var rangeArr = [], candleChartData = []; 
+            //             last4Candle.forEach(element => {
+            //                 rangeArr.push(element[2] - element[3]);
+            //                 candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
+            //             });
+            //             var firstElement = rangeArr[0], rgrangeCount = 0;
+            //             rangeArr.forEach(element => {
+            //                 if (firstElement <= element) {
+            //                     firstElement = element;
+            //                     rgrangeCount += 1;
+            //                 }
+            //             });
+
+            //             if (rgrangeCount == 4) {
+            //                 var firstCandle = last4Candle[0];
+            //                 var next5thCandle = candleData[0];
+            //                 candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
+
+            //                 var currentDate = date.format('DD-MM-YYYY'); 
+
+            //                 var dateWithWlType =  currentDate+' '+ this.state.selectedWatchlist; 
+
+            //                 var backTestResultDateRange = localStorage.getItem("backTestResultDateRange") ? JSON.parse(localStorage.getItem("backTestResultDateRange")) : {};
+            //                 var datewisetrades = backTestResultDateRange[dateWithWlType] ? backTestResultDateRange[dateWithWlType] : []; 
+                          
+            //                 console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle); 
+
+            //                 //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
+            //                 var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
+
+            //                 if (next5thCandle[2] > buyentry) {
+            //                     var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
+            //                     var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
+
+    
+            //                     console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+
+            //                     var foundStock = {
+            //                         foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
+            //                         symbol: element.symbol,
+            //                         sellEntyPrice: next5thCandle[4],
+            //                         highAndLow: next5thCandle[2],
+            //                         stopLoss: firstCandle[3],
+            //                         buyExitPrice: buyentry,
+            //                         brokerageCharges: 0.06,
+            //                         perChange: perChng.toFixed(2),
+            //                         perChngOnHighLow: perChngOnHigh.toFixed(2),
+            //                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+            //                         quantity: Math.floor(10000 / firstCandle[2]),
+            //                         candleChartData : candleChartData
+            //                     }
+            //                     if (Math.floor(10000 / firstCandle[2])){ 
+            //                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+
+            //                         datewisetrades.push(foundStock);
+            //                         backTestResultDateRange[dateWithWlType] = datewisetrades; 
+            //                         localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
+                                      
+                                    
+            //                     }
+
+            //                 }
+            //                 //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
+            //                 var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
+
+            //                 if (next5thCandle[3] < sellenty) {
+            //                     var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
+            //                     var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
+
+            //                     console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+
+            //                     var foundStock = {
+            //                         foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
+            //                         symbol: element.symbol,
+            //                         sellEntyPrice: sellenty,
+            //                         stopLoss: firstCandle[2],
+            //                         buyExitPrice: next5thCandle[4],
+            //                         highAndLow: next5thCandle[3],
+            //                         brokerageCharges: 0.06,
+            //                         perChange: perChng.toFixed(2),
+            //                         perChngOnHighLow: perChngOnLow.toFixed(2),
+            //                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+            //                         quantity: Math.floor(10000 / firstCandle[3]),
+            //                         candleChartData : candleChartData
+            //                     }
+            //                     if(Math.floor(10000 / firstCandle[3])){
+            //                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+
+            //                         datewisetrades.push(foundStock);
+            //                         backTestResultDateRange[dateWithWlType] = datewisetrades; 
+
+            //                         console.log('backTestResultDateRange', backTestResultDateRange);
+            //                         localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
+                                 
+            //                       //  var backTestResultDateRange = localStorage.getItem('backTestResultDateRange') && JSON.parse(localStorage.getItem('backTestResultDateRange')) ; 
+        
+            //                         this.setState({dateAndTypeKeys: Object.keys(backTestResultDateRange), backTestResultDateRange : backTestResultDateRange });
+                        
+            //                     }
+
+
+            //                 }
+
+            //             }
+
+            //         }
+            //         runningTest = runningTest + candleData.length;
+                    
+            // } else {
+            //     //localStorage.setItem('NseStock_' + symbol, "");
+            //    // console.log(element.symbol, " candle data emply");
+            // }
+
+
+          
+            this.setState({ stockTesting: currentMoment.format('YYYY-MM-DD') +' '+ index + 1 + ". " + element.symbol, runningTest: runningTest })
+        }
+    } 
 
     backTestNR4 = async () => {
 
