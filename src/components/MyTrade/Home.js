@@ -1703,6 +1703,8 @@ class Home extends React.Component {
 
         localStorage.setItem('candleChartData', JSON.stringify(candleData))
         localStorage.setItem('cadleChartSymbol', symbol)
+
+        if(insiderow)
         localStorage.setItem('chartInfoDetails', JSON.stringify(insiderow));
 
         
@@ -2168,7 +2170,7 @@ class Home extends React.Component {
                                         {this.state.patternType == 'NR4ForNextDay' ?   
 
                                         <Typography component="h3" variant="h6" color="primary" gutterBottom>
-                                           NR4 For Next Day  ({this.state.NR4ForNextDayResult.length})  at {this.state.endDate && this.state.endDate ? this.state.endDate.toString().substr(0, 25)   : new Date().toString().substr(0, 25)}
+                                           NR4 For Next Day  ({this.state.NR4ForNextDayResult.length})  at {this.state.endDate && this.state.endDate ? this.state.endDate.toString().substr(0, 16)   : new Date().toString().substr(0, 25)}
                                         </Typography> 
                                         : ""}
                                             
@@ -2208,7 +2210,7 @@ class Home extends React.Component {
                                                 <TableCell align="center">{i + 1}</TableCell>
                                                 <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
 
-                                                <TableCell align="left">{row.foundAt}</TableCell>
+                                                <TableCell align="left">{row.foundAt.substr(0, 16)}</TableCell>
                                                 <TableCell align="left" title="based on last one 6 month">  
                                                 
                                                 Total Longs: {row.pastPerferm.totalLongs}<br/>

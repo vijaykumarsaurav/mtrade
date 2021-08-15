@@ -91,7 +91,7 @@ export default function CustomizedDialogs(props) {
         <br />
 
         <span style={{fontSize:'12px'}}>  
-        <b>FoundAt:</b>  {localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).foundAt} &nbsp;&nbsp;
+        <b>FoundAt:</b>  {localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).foundAt.substr(0, 16)} &nbsp;&nbsp;
         <b>Buy: </b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).buyExitPrice} &nbsp;&nbsp;
         <b>Sell: </b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).sellEntyPrice} &nbsp;&nbsp;
         <b>Change %: </b>  {localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).perChange} &nbsp;&nbsp;    <br />
