@@ -285,6 +285,9 @@ class Home extends React.Component {
 
     backTestAnyPattern = async () => {
 
+        this.setState({ backTestResult: [], backTestFlag: false });
+
+
         console.log('this.state.patternType', this.state.patternType)
 
         if (!this.state.patternType) {
@@ -335,6 +338,9 @@ class Home extends React.Component {
 
         // if (this.state.patternType === 'NR4_Daywide_daterage') {
 
+        //     localStorage.setItem('backTestResultDateRange', '');
+
+
         //     var watchList = this.state.symbolList //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
         //     var runningTest = 1, sumPercentage = 0, candleHistory = []; 
         //     for (let index = 0; index < watchList.length; index++) {
@@ -359,20 +365,20 @@ class Home extends React.Component {
         //             AdminService.getHistoryData(data).then(res => {
         //                 let histdata = resolveResponse(res, 'noPop');
         //                 //console.log("candle history", histdata); 
-        //                 var candleData = histdata.data;
-        //                 candleData.reverse(); 
+        //                 var candleData = histdata.data && histdata.data.reverse();
  
-        //                 console.log("in watchlist loop", element.symbol); 
+         
 
         //                 var NR4DaywideCandleHistory = localStorage.getItem('NR4DaywideCandleHistory') ? JSON.parse( localStorage.getItem('NR4DaywideCandleHistory') ) : {}; 
         //                 NR4DaywideCandleHistory[element.symbol] = candleData; 
 
         //                 localStorage.setItem('NR4DaywideCandleHistory', JSON.stringify(NR4DaywideCandleHistory) );
 
-
+        //               //  console.log("in watchlist loop", element.symbol); 
                         
         //             });
 
+        //             this.setState({runningTest  :  element.symbol + " storing candledata" })
         //             await new Promise(r => setTimeout(r, 350));
                 
         //     }
@@ -385,10 +391,14 @@ class Home extends React.Component {
         //     const currentMoment =startdate; 
         //     const endMoment = enddate; 
 
+
         //     while (currentMoment.isSameOrBefore(endMoment, 'day')) {
 
         //         console.log(`after saving date Loop at ${currentMoment.format('DD-MM-YYYY')}`);
+
         //         this.backTestNR4WithStoredData(currentMoment);
+
+
 
         //         currentMoment.add(1, 'days');
         //     }
@@ -777,7 +787,7 @@ class Home extends React.Component {
         }
     } 
 
-    backTestNR4WithStoredData = (currentMoment) => {
+    backTestNR4WithStoredData = async(currentMoment) => {
 
         this.setState({ backTestFlag: false });
 
@@ -792,188 +802,159 @@ class Home extends React.Component {
             let candledata  = NR4DaywideCandleHistory[element.symbol]; 
 
             
-            candledata.reverse();
-            var histdata = [],counter=0, startFlag=false;   
 
-            for (let index2 = 0; index2 < candledata.length; index2++) {
-                const candledatahist = candledata[index2];
+            var histdata = [],counter=0, startFlag=false,findDate = new Date(currentMoment.format('YYYY-MM-DD')); 
 
-               // console.log(element.symbol, candledatahist, '\n')
-                var finddate = currentMoment.format('YYYY-MM-DD'); 
-                finddate = new Date(finddate);
-
-
-                const candledate = new Date(candledatahist[0]);
-
-                console.log(element.symbol, finddate ,candledate);
-
-        
-                if(finddate.getDate() === candledate.getDate()){
-
-                   var last4Candle = candledata.slice(index2, index2+5);
-
-                    console.log(element.symbol, finddate ,candledate, last4Candle)
-
-                    break; 
+            var findindex = ''; 
+            for (var i = 0; i < candledata.length; i++) {
+                if (new Date(candledata[i][0]).getDate() ==  findDate.getDate()) {
+                    findindex = i;
+                    break;
                 }
-
-                
-
-                //var dateInMoment = moment(candledatahist && candledatahist[0].format('DD-MM-YYYY'));
-
-
-            
-                // if(counter == 5){
-                //     startFlag = false; 
-                //     break; 
-                // }
-              
-                // if(dateInMoment.isSame(currentMoment) || startFlag){
-                //     histdata.push(candledatahist);   
-
-              //     console.log(element.symbol, candledatahist ,currentMoment.format('DD-MM-YYYY'), )
-
-                //     startFlag = true 
-                //     counter +=1; 
-                // }
-                
             }
+            
+            histdata = candledata.slice(findindex , findindex + 5); 
+          //  console.log(element.symbol , "find date: ", currentMoment.format('DD-MM-YYYY'),  histdata); 
 
-           // console.log(element.symbol, currentMoment.format('DD-MM-YYYY'), histdata)
         
 
-            // if (histdata && histdata.length >= 4) {
+            if (histdata && histdata.length >= 4) {
 
-            //     var candleData = histdata;
-            //       candleData.reverse(); 
+                var candleData = histdata;
+                //  candleData.reverse(); 
                 
-            //         // var startindex = index2 * 10; 
-            //         var last4Candle = candleData.slice(1, 5);
-            //         // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+                    // var startindex = index2 * 10; 
+                    var last4Candle = candleData.slice(1, 5);
+                    // var next10Candle = candleData.slice(index2+5 , index2+35 );    
 
-            //         // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+                    // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
 
-            //         if (last4Candle.length >= 4) {
+                    if (last4Candle.length >= 4) {
 
-            //             //last4Candle.reverse();
+                        //last4Candle.reverse();
 
-            //             var rangeArr = [], candleChartData = []; 
-            //             last4Candle.forEach(element => {
-            //                 rangeArr.push(element[2] - element[3]);
-            //                 candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
-            //             });
-            //             var firstElement = rangeArr[0], rgrangeCount = 0;
-            //             rangeArr.forEach(element => {
-            //                 if (firstElement <= element) {
-            //                     firstElement = element;
-            //                     rgrangeCount += 1;
-            //                 }
-            //             });
+                        var rangeArr = [], candleChartData = []; 
+                        last4Candle.forEach(element => {
+                            rangeArr.push(element[2] - element[3]);
+                            candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
+                        });
+                        var firstElement = rangeArr[0], rgrangeCount = 0;
+                        rangeArr.forEach(element => {
+                            if (firstElement <= element) {
+                                firstElement = element;
+                                rgrangeCount += 1;
+                            }
+                        });
 
-            //             if (rgrangeCount == 4) {
-            //                 var firstCandle = last4Candle[0];
-            //                 var next5thCandle = candleData[0];
-            //                 candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
+                        if (rgrangeCount == 4) {
+                            var firstCandle = last4Candle[0];
+                            var next5thCandle = candleData[0];
+                            candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
 
-            //                 var currentDate = date.format('DD-MM-YYYY'); 
+                            var currentDate = currentMoment.format('DD-MM-YYYY'); 
 
-            //                 var dateWithWlType =  currentDate+' '+ this.state.selectedWatchlist; 
+                            var dateWithWlType =  currentDate+' '+ this.state.selectedWatchlist; 
 
-            //                 var backTestResultDateRange = localStorage.getItem("backTestResultDateRange") ? JSON.parse(localStorage.getItem("backTestResultDateRange")) : {};
-            //                 var datewisetrades = backTestResultDateRange[dateWithWlType] ? backTestResultDateRange[dateWithWlType] : []; 
+                            var backTestResultDateRange = localStorage.getItem("backTestResultDateRange") ? JSON.parse(localStorage.getItem("backTestResultDateRange")) : {};
+                            var datewisetrades = backTestResultDateRange[dateWithWlType] ? backTestResultDateRange[dateWithWlType] : []; 
                           
-            //                 console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle); 
+                        //    console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle); 
 
-            //                 //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
-            //                 var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
+                            //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
+                            var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
 
-            //                 if (next5thCandle[2] > buyentry) {
-            //                     var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
-            //                     var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
+                            if (next5thCandle[2] > buyentry) {
+                                var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
+                                var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
 
     
-            //                     console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+                                console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
 
-            //                     var foundStock = {
-            //                         foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
-            //                         symbol: element.symbol,
-            //                         sellEntyPrice: next5thCandle[4],
-            //                         highAndLow: next5thCandle[2],
-            //                         stopLoss: firstCandle[3],
-            //                         buyExitPrice: buyentry,
-            //                         brokerageCharges: 0.06,
-            //                         perChange: perChng.toFixed(2),
-            //                         perChngOnHighLow: perChngOnHigh.toFixed(2),
-            //                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
-            //                         quantity: Math.floor(10000 / firstCandle[2]),
-            //                         candleChartData : candleChartData
-            //                     }
-            //                     if (Math.floor(10000 / firstCandle[2])){ 
-            //                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+                                var foundStock = {
+                                    foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
+                                    symbol: element.symbol,
+                                    sellEntyPrice: next5thCandle[4],
+                                    highAndLow: next5thCandle[2],
+                                    stopLoss: firstCandle[3],
+                                    buyExitPrice: buyentry,
+                                    brokerageCharges: 0.06,
+                                    perChange: perChng.toFixed(2),
+                                    perChngOnHighLow: perChngOnHigh.toFixed(2),
+                                    squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+                                    quantity: Math.floor(10000 / firstCandle[2]),
+                                    candleChartData : candleChartData
+                                }
+                                if (Math.floor(10000 / firstCandle[2])){ 
+                                    this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
 
-            //                         datewisetrades.push(foundStock);
-            //                         backTestResultDateRange[dateWithWlType] = datewisetrades; 
-            //                         localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
-                                      
+                                    datewisetrades.push(foundStock);
+                                    backTestResultDateRange[dateWithWlType] = datewisetrades; 
+                                    localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
+                                   // this.setState({dateAndTypeKeys: Object.keys(backTestResultDateRange), backTestResultDateRange : backTestResultDateRange });
+ 
                                     
-            //                     }
+                                }
 
-            //                 }
-            //                 //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
-            //                 var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
+                            }
+                            //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
+                            var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
 
-            //                 if (next5thCandle[3] < sellenty) {
-            //                     var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
-            //                     var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
+                            if (next5thCandle[3] < sellenty) {
+                                var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
+                                var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
 
-            //                     console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+                            //    console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
 
-            //                     var foundStock = {
-            //                         foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
-            //                         symbol: element.symbol,
-            //                         sellEntyPrice: sellenty,
-            //                         stopLoss: firstCandle[2],
-            //                         buyExitPrice: next5thCandle[4],
-            //                         highAndLow: next5thCandle[3],
-            //                         brokerageCharges: 0.06,
-            //                         perChange: perChng.toFixed(2),
-            //                         perChngOnHighLow: perChngOnLow.toFixed(2),
-            //                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
-            //                         quantity: Math.floor(10000 / firstCandle[3]),
-            //                         candleChartData : candleChartData
-            //                     }
-            //                     if(Math.floor(10000 / firstCandle[3])){
-            //                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+                                var foundStock = {
+                                    foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
+                                    symbol: element.symbol,
+                                    sellEntyPrice: sellenty,
+                                    stopLoss: firstCandle[2],
+                                    buyExitPrice: next5thCandle[4],
+                                    highAndLow: next5thCandle[3],
+                                    brokerageCharges: 0.06,
+                                    perChange: perChng.toFixed(2),
+                                    perChngOnHighLow: perChngOnLow.toFixed(2),
+                                    squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+                                    quantity: Math.floor(10000 / firstCandle[3]),
+                                    candleChartData : candleChartData
+                                }
+                                if(Math.floor(10000 / firstCandle[3])){
+                                    this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
 
-            //                         datewisetrades.push(foundStock);
-            //                         backTestResultDateRange[dateWithWlType] = datewisetrades; 
+                                    datewisetrades.push(foundStock);
+                                    backTestResultDateRange[dateWithWlType] = datewisetrades; 
 
-            //                         console.log('backTestResultDateRange', backTestResultDateRange);
-            //                         localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
-                                 
-            //                       //  var backTestResultDateRange = localStorage.getItem('backTestResultDateRange') && JSON.parse(localStorage.getItem('backTestResultDateRange')) ; 
-        
-            //                         this.setState({dateAndTypeKeys: Object.keys(backTestResultDateRange), backTestResultDateRange : backTestResultDateRange });
+                                    console.log('backTestResultDateRange', backTestResultDateRange);
+                                    localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
+                        //            console.log('stored in local')
                         
-            //                     }
+                                }
 
+                           
+                            }
 
-            //                 }
-
-            //             }
-
-            //         }
-            //         runningTest = runningTest + candleData.length;
+                            var backTestResultDateRange = localStorage.getItem('backTestResultDateRange') && JSON.parse(localStorage.getItem('backTestResultDateRange')) ; 
+                            this.setState({dateAndTypeKeys: Object.keys(backTestResultDateRange), backTestResultDateRange : backTestResultDateRange });
                     
-            // } else {
-            //     //localStorage.setItem('NseStock_' + symbol, "");
-            //    // console.log(element.symbol, " candle data emply");
-            // }
+
+                        }
+
+                    }
+                   this.setState({ stockTesting: currentMoment.format('YYYY-MM-DD') +' '+ index + 1 + ". " + element.symbol })
+            
+            } else {
+                //localStorage.setItem('NseStock_' + symbol, "");
+               // console.log(element.symbol, " candle data emply");
+            }
 
 
           
-            this.setState({ stockTesting: currentMoment.format('YYYY-MM-DD') +' '+ index + 1 + ". " + element.symbol, runningTest: runningTest })
         }
+
+        await new Promise(r => setTimeout(r, 10));
+      
+     
     } 
 
     backTestNR4 = async () => {
@@ -1029,13 +1010,15 @@ class Home extends React.Component {
                             if (rgrangeCount == 4) {
                                 var firstCandle = last4Candle[0];
                                 var next5thCandle = candleData[index2 + 4];
-                              //  candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
+                                candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
 
                                 //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
                                 var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
 
                                 if (next5thCandle[2] > buyentry) {
                                     var perChng = (next5thCandle[this.state.longExitPriceType] - buyentry) * 100 / buyentry;
+                                    var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
+
                                     sumPercentage += perChng;
                                     console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
 
@@ -1044,6 +1027,8 @@ class Home extends React.Component {
                                         symbol: element.symbol,
                                         sellEntyPrice: next5thCandle[this.state.longExitPriceType],
                                         stopLoss: firstCandle[3],
+                                        highAndLow: next5thCandle[2],
+                                        perChngOnHighLow : perChngOnHigh.toFixed(2),
                                         buyExitPrice: buyentry,
                                         brokerageCharges: 0.06,
                                         perChange: perChng.toFixed(2),
@@ -1062,6 +1047,8 @@ class Home extends React.Component {
 
                                 if (next5thCandle[3] < sellenty) {
                                     var perChng = (sellenty - next5thCandle[this.state.shortExitPriceType]) * 100 / firstCandle[3];
+                                    var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
+
                                     sumPercentage += perChng;
                                     console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
 
@@ -1069,7 +1056,9 @@ class Home extends React.Component {
                                         foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
                                         symbol: element.symbol,
                                         sellEntyPrice: sellenty,
+                                        perChngOnHighLow : perChngOnLow.toFixed(2),
                                         stopLoss: firstCandle[2],
+                                        highAndLow: next5thCandle[3],
                                         buyExitPrice: next5thCandle[this.state.shortExitPriceType],
                                         brokerageCharges: 0.06,
                                         perChange: perChng.toFixed(2),
@@ -1914,7 +1903,7 @@ class Home extends React.Component {
                                         </Grid> */}
 
                                         <Grid item xs={12} sm={6} style={{ marginTop:'28px'}}>
-                                            {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Test</Button> : <> <Button> <Spinner /> &nbsp; &nbsp; Scaning: {this.state.stockTesting}  Total Test Count: {this.state.runningTest}  </Button>  <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button> </> }
+                                            {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Test</Button> : <> <Button> <Spinner /> &nbsp; &nbsp; Scaning: {this.state.stockTesting}  {this.state.runningTest}  </Button>  <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button> </> }
 
                                         </Grid>
 
