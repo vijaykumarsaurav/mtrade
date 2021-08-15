@@ -88,6 +88,17 @@ export default function CustomizedDialogs(props) {
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
         <DialogTitle id="customized-dialog-title" onClose={handleClose}>
         {localStorage.getItem('cadleChartSymbol')} 
+        <br />
+
+        <span style={{fontSize:'12px'}}>  
+        <b>FoundAt:</b>  {localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).foundAt} &nbsp;&nbsp;
+        <b>Buy: </b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).buyExitPrice} &nbsp;&nbsp;
+        <b>Sell: </b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).sellEntyPrice} &nbsp;&nbsp;
+        <b>Change %: </b>  {localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).perChange} &nbsp;&nbsp;    <br />
+        <b>Change on High/Low %: </b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).perChange} &nbsp;&nbsp;
+        <b>SquareOffAt:</b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).squareOffAt}
+        </span>
+      
         </DialogTitle>
         <DialogContent dividers id="chart">
 
@@ -135,6 +146,8 @@ export default function CustomizedDialogs(props) {
          
         </DialogContent>
         <DialogActions>
+
+
           <Button autoFocus onClick={handleClose} color="primary">
             Close
           </Button>
