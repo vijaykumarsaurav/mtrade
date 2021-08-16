@@ -33,8 +33,14 @@ class Home extends React.Component{
             quantity : 1,
             producttype : "INTRADAY",
             nr4TotalPer : 0,
+            pnlAmountTotal: 0,
+            totalBrokerCharges:'',
+            totalNetProfit: 0, 
             totelActivatedCount : 0,
-            stockTesting : ""
+            totalBrokerChargesNR4: 0,
+            stockTesting : "",
+            perHighLowTotal: 0, 
+            netPnLAmountOnHighlowTotal:0
             
         };
     }
@@ -84,13 +90,23 @@ class Home extends React.Component{
                      clearInterval(tostartInteral); 
                 } 
             }, 1000);
+
+
+        
             
           
         } 
 
-   this.getCandleHistoryAndStore(); 
+        var foundPatternsFromStored = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
 
-    this.findNR4PatternLive();
+
+        setInterval(() => {
+            this.refreshLtpOnFoundPattern(); 
+        },  foundPatternsFromStored.length * 100 + 10000);
+
+  /// this.getCandleHistoryAndStore(); 
+
+   // this.findNR4PatternLive();
    //this.findNR7PatternLive();
 
 
@@ -129,6 +145,11 @@ class Home extends React.Component{
     //     }); 
 
     // }, 1000);
+
+    var backTestResult = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
+
+
+    this.setState({foundPatternList: backTestResult})
 
    
 
@@ -273,7 +294,7 @@ class Home extends React.Component{
                         var foundData = {
                             symbol : symbol, 
                             pattenName: 'Twisser Top', 
-                            time: new Date( candleHist[0][0]).getTime(), 
+                            time: new Date( candleHist[0][0]).toLocaleString(), 
                             candleChartData :ttophistCandle 
                         }
                         var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
@@ -356,7 +377,7 @@ class Home extends React.Component{
                         var foundData = {
                             symbol : symbol, 
                             pattenName: 'Twisser bottom', 
-                            time: new Date( candleHist[0][0]).getTime(), 
+                            time: new Date( candleHist[0][0]).toLocaleString(), 
                             candleChartData : tBophistCandle
                         }
                      
@@ -731,7 +752,7 @@ class Home extends React.Component{
     showCandleChart = (candleData, symbol) => {
 
 
-        candleData  = candleData.reverse();
+        candleData  = candleData &&  candleData.reverse();
 
         localStorage.setItem('candleChartData', JSON.stringify(candleData))
         localStorage.setItem('cadleChartSymbol', symbol)
@@ -739,19 +760,23 @@ class Home extends React.Component{
         document.getElementById('showCandleChart').click();
     }
 
-    refreshLtpPer = async() => {
+    refreshLtpOnFoundPattern = async() => {
 
-       this.setState({nr4TotalPer : 0 }); 
+       this.setState({nr4TotalPer : 0, totalBrokerChargesNR4: 0,totalNetProfit: 0, totelActivatedCount:0, pnlAmountTotal:0,perHighLowTotal : 0,netPnLAmountOnHighlowTotal:0 }); 
+
        
        var foundPatternList = this.state.foundPatternList;
 
        this.setState({foundPatternList : [] }); 
 
+       var foundPatternsFromStored = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
+
+       
 //       foundPatternList.forEach(element => {
-         for (let index = 0; index < foundPatternList.length; index++) {
+         for (let index = 0; index < foundPatternsFromStored.length; index++) {
              const element = foundPatternList[index];
            
-            if(element.pattenName === 'NR4'){
+            if(element && element.pattenName == 'NR4'){
 
                 var data  = {
                     "exchange":"NSE",
@@ -763,40 +788,84 @@ class Home extends React.Component{
                     let data = resolveResponse(res, 'noPop');
                      var LtpData = data && data.data; 
                      //console.log(LtpData);
+                     var quantity = 0, pnlAmount = 0, netPnLAmount=0, brokerageCharges = 0.06,perChange = 0, perChangeOnHighLow =0,netPnLAmountOnHighlow=0; 
                      if(LtpData && LtpData.ltp){
 
                         var orderActivated =  <span> {LtpData.ltp} </span>; 
 
                         if(LtpData.ltp > element.BuyAt){
-                          orderActivated =  <span style={{color:'green'}}> Long Ltp: {LtpData.ltp} {((LtpData.ltp - element.BuyAt)*100/element.BuyAt).toFixed(2)}% </span>; 
-                          this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((LtpData.ltp - element.BuyAt)*100/element.BuyAt) })
+                          perChange = ((LtpData.ltp - element.BuyAt)*100/element.BuyAt);
+                          orderActivated =  <span style={{color:'green'}}> Long: {perChange.toFixed(2)}% </span>; 
+                          quantity = Math.floor(10000 / element.BuyAt);
+                          pnlAmount = (( LtpData.ltp - element.BuyAt ) * quantity);  
+                          brokerageCharges = (((element.BuyAt * quantity) * brokerageCharges/100)*2); 
+                          netPnLAmount =  (pnlAmount -brokerageCharges); 
+                          this.setState({nr4TotalPer : this.state.nr4TotalPer +  perChange });
+                          this.setState({ totalBrokerChargesNR4 : this.state.totalBrokerChargesNR4 + brokerageCharges, totalNetProfit:  this.state.totalNetProfit + netPnLAmount });
+                          this.setState({ totelActivatedCount : this.state.totelActivatedCount + 1, pnlAmountTotal:this.state.pnlAmountTotal +   pnlAmount});
+
+                          perChangeOnHighLow = ((LtpData.high - element.BuyAt)*100/element.BuyAt);
+                          var pnlAmountOnhigh = (( LtpData.high - element.BuyAt ) * quantity);
+                          netPnLAmountOnHighlow =  (pnlAmountOnhigh - brokerageCharges); 
+                          this.setState({ perHighLowTotal : this.state.perHighLowTotal + perChangeOnHighLow, netPnLAmountOnHighlowTotal:this.state.netPnLAmountOnHighlowTotal +   netPnLAmountOnHighlow});
+                        
+
                         } 
                         if(LtpData.ltp < element.SellAt){
-                            orderActivated =  <span style={{color:'red'}}> Short Ltp: {LtpData.ltp} {((LtpData.ltp - element.SellAt)*100/element.SellAt).toFixed(2)}%</span>; 
-                            this.setState({nr4TotalPer : this.state.nr4TotalPer +  ((element.SellAt - LtpData.ltp)*100/element.SellAt) })
+                            perChange =  ((element.SellAt - LtpData.ltp)*100/element.SellAt); 
+                            orderActivated =  <span style={{color:'red'}}> Short: {perChange.toFixed(2)}%</span>; 
+                            quantity = Math.floor(10000 / element.SellAt);
+                            pnlAmount = (( element.SellAt - LtpData.ltp  ) * quantity); 
+                            brokerageCharges = (((element.SellAt * quantity) * brokerageCharges/100)*2); 
+                            netPnLAmount =  (pnlAmount -brokerageCharges); 
+                            this.setState({nr4TotalPer : this.state.nr4TotalPer + perChange });
+                            this.setState({ totelActivatedCount : this.state.totelActivatedCount + 1, pnlAmountTotal:this.state.pnlAmountTotal + pnlAmount  });
+                            this.setState({ totalBrokerChargesNR4 : this.state.totalBrokerChargesNR4 + brokerageCharges,totalNetProfit : this.state.totalNetProfit + netPnLAmount });
+
+                            perChangeOnHighLow = ((element.SellAt - LtpData.low)*100/element.SellAt);
+                            var pnlAmountOnLow = ((element.SellAt - LtpData.low ) * quantity);
+                            netPnLAmountOnHighlow =  (pnlAmountOnLow - brokerageCharges); 
+                            this.setState({ perHighLowTotal : this.state.perHighLowTotal + perChangeOnHighLow, netPnLAmountOnHighlowTotal:this.state.netPnLAmountOnHighlowTotal +   netPnLAmountOnHighlow});
+                       
                         } 
 
+                        var todayChange =  (LtpData.ltp- LtpData.close)*100/LtpData.close; 
                         var foundData = {
-                            symbol : element.symbol, 
+                            symbol :  element.symbol, 
+                            symbolUpdated : LtpData.ltp + "(" + (todayChange).toFixed(2) + ")", 
                             token : element.token, 
                             pattenName: 'NR4', 
-                            time: new Date().toLocaleString(), 
+                            OnHighLowActivated : quantity ?  perChangeOnHighLow.toFixed(2) + "% | " + netPnLAmountOnHighlow.toFixed(2) : "",
+                            time: new Date().toLocaleTimeString(), 
                             BuyAt : element.BuyAt, 
                             SellAt : element.SellAt,
+                            foundAt: element.foundAt,
                             orderActivated : orderActivated,
-                            // quantity : element.quantity,
-                            // brokerageCharges : element.brokerageCharges, 
-                            // pnlAmount : pnlAmount,
-                            // netPnLAmount : netPnLAmount,
-                            // perChange : perChange
-                            
+                            candleChartData : element.candleChartData,
+                            quantity : quantity ? quantity : "",
+                            brokerageCharges : quantity ? brokerageCharges.toFixed(2) : "", 
+                            pnlAmount : pnlAmount ? pnlAmount.toFixed(2) : "",
+                            netPnLAmount : netPnLAmount ? netPnLAmount.toFixed(2) : "",
+                            perChange : perChange,
+                            todayChange:todayChange
                         }
 
                         console.log('nr4 updated',foundData ); 
+                        
+                      
 
+                        this.setState({foundPatternList: [...this.state.foundPatternList, foundData ]}); 
 
-                        this.setState({foundPatternList: [...this.state.foundPatternList,foundData ]}); 
+                        var foundlist = this.state.foundPatternList; 
 
+                          foundlist.sort(function(a,b){
+                            return b.perChange - a.perChange;
+                          });
+
+                          this.setState({foundPatternList: foundlist}); 
+
+                        
+                      
                         var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                         foundPatternList.push(foundData); 
                         localStorage.setItem('foundPatternList', JSON.stringify(foundPatternList));
@@ -810,7 +879,6 @@ class Home extends React.Component{
 
            
        }
-
 
 
     }
@@ -1475,8 +1543,7 @@ class Home extends React.Component{
 
     render() {
       
-        var netPnLAmountTotal = 0; 
-        var foundPatternList = localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')).reverse(); 
+        //var foundPatternList = localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')).reverse(); 
 
         return(
             <React.Fragment>
@@ -1662,7 +1729,7 @@ class Home extends React.Component{
                                                 </Typography> 
                                             </Grid>
                                             <Grid item >
-                                                 <Button variant="contained"  style={{ marginLeft: '20px' }} onClick={() => this.refreshLtpPer()}>Live Refresh</Button>
+                                                 <Button variant="contained"  style={{ marginLeft: '20px' }} onClick={() => this.refreshLtpOnFoundPattern()}>Live Refresh</Button>
                                             </Grid>
                                             
                                 </Grid>
@@ -1673,18 +1740,23 @@ class Home extends React.Component{
                                          <TableRow key="1"  variant="head" style={{fontWeight: 'bold'}}>
              
                                               
-                                             <TableCell className="TableHeadFormat" align="left">Symbol Found </TableCell>
-                                             <TableCell className="TableHeadFormat" align="left">Patten Name</TableCell>
-                                             <TableCell  className="TableHeadFormat" align="left">Update Time</TableCell>
+                                             <TableCell className="TableHeadFormat" align="left">Symbol | Activated({this.state.totelActivatedCount})</TableCell>
+                                     
+
+                                             <TableCell  className="TableHeadFormat" align="left">OnLtp ({this.state.nr4TotalPer.toFixed(2)})%  </TableCell>
+                                           
+                                             <TableCell  className="TableHeadFormat" align="left">Qty</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">PnL({this.state.pnlAmountTotal.toFixed(2)})</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">Fee({this.state.totalBrokerChargesNR4.toFixed(2)})</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">NetPnL({this.state.totalNetProfit.toFixed(2)})</TableCell>
+                                             <TableCell  className="TableHeadFormat" align="left">OnH/L({this.state.perHighLowTotal.toFixed(2)}% | {this.state.netPnLAmountOnHighlowTotal.toFixed(2)})  </TableCell>
+
+                                             <TableCell className="TableHeadFormat" align="left">Patten</TableCell>
+                                             <TableCell className="TableHeadFormat" align="left">FoundAt</TableCell>
                                              <TableCell  className="TableHeadFormat" align="left">BuyAt</TableCell>
                                              <TableCell  className="TableHeadFormat" align="left">SellAt</TableCell>
-                                             <TableCell  className="TableHeadFormat" align="left">Activated({this.state.totelActivatedCount})  Ltp - Total({this.state.nr4TotalPer.toFixed(2)})%  </TableCell>
 
-                                             <TableCell  className="TableHeadFormat" align="left">Qty</TableCell>
-                                             <TableCell  className="TableHeadFormat" align="left">PnL</TableCell>
-                                             <TableCell  className="TableHeadFormat" align="left">Charges%</TableCell>
-                                             <TableCell  className="TableHeadFormat" align="left">Net PnL  <b>({localStorage.getItem('netPnLAmountTotal')})</b></TableCell>
-
+                                             <TableCell className="TableHeadFormat"  align="left">UpdatedAt</TableCell>
              
                                           
                                          </TableRow>
@@ -1694,24 +1766,31 @@ class Home extends React.Component{
                                          {this.state.foundPatternList ? this.state.foundPatternList.map(row => (
                                              <TableRow hover key={row.symboltoken}>
              
-                                                <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
-                                                 <TableCell align="left">{row.pattenName}</TableCell>
-                                                 <TableCell align="left">{row.time}</TableCell>
-                                                 <TableCell align="left">{row.BuyAt}</TableCell>
-                                                 <TableCell align="left">{row.SellAt}</TableCell>
+
+                                                <TableCell align="left"> <Button  variant="contained" style={{ color:  !row.todayChange ?  '' :  row.todayChange > 0 ? 'green' : 'red'  }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} {row.symbolUpdated} <EqualizerIcon /> </Button></TableCell>
+                                              
                                                  <TableCell align="left"><b>{row.orderActivated} </b></TableCell>
+
 
                                                  <TableCell align="left">{row.quantity}</TableCell>
                                                  <TableCell align="left">{row.pnlAmount}</TableCell>
                                                  <TableCell align="left">{row.brokerageCharges}</TableCell>
-                                                 <TableCell align="left"  {...netPnLAmountTotal = netPnLAmountTotal + parseFloat(row.netPnLAmount)}><b>{row.netPnLAmount} </b></TableCell>
+                                                 <TableCell align="left"><b>{row.netPnLAmount} </b></TableCell>
+                                                 <TableCell align="left"><b>{row.OnHighLowActivated} </b></TableCell>
 
+                                                 <TableCell align="left">{row.pattenName}</TableCell>
+
+                                                <TableCell align="left">{row.foundAt && row.foundAt.substr(0,15)}</TableCell>
+
+                                                <TableCell align="left">{row.BuyAt}</TableCell>
+                                                <TableCell align="left">{row.SellAt}</TableCell>
+
+                                                <TableCell align="left">{row.time}</TableCell>
+                                                
                                              </TableRow>
                                          )):''}
                                      </TableBody>
                                  </Table>
-
-                                 <b style={{float: 'left',marginRight: '80px'}}> Total :   {netPnLAmountTotal.toFixed(2)} </b> 
 
                                
              

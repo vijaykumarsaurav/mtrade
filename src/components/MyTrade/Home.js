@@ -35,6 +35,7 @@ import EqualizerIcon from '@material-ui/icons/Equalizer';
 import Position from './Position';
 
 import Tab from './Tab'
+import { NavigateBeforeSharp } from '@material-ui/icons';
 
 const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
 
@@ -64,7 +65,7 @@ class Home extends React.Component {
             candleChartData : [],
             stopScaningFlag : false,
             backTestResultDateRange : [],
-            NR4ForNextDayResult : []
+            FoundPatternList : []
             
 
 
@@ -408,7 +409,7 @@ class Home extends React.Component {
     
     NR4ForNextDay = async () => {
 
-        this.setState({ NR4ForNextDayResult: [], backTestFlag: false });
+        this.setState({ FoundPatternList: [], backTestFlag: false });
 
         var watchList = this.state.symbolList //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
         var runningTest = 1, sumPercentage = 0;
@@ -480,13 +481,16 @@ class Home extends React.Component {
                                 //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
                                 var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
 
+                            
                                 var foundStock = {
                                     foundAt: new Date(firstCandle[0]).toString().substr(0, 25),
                                     symbol: element.symbol,
-                                    sellenty: sellenty,
+                                    token : element.token, 
+                                    pattenName : "NR4", 
+                                    SellAt: sellenty,
                                     high: firstCandle[2],
                                     low: firstCandle[3],
-                                    buyentry: buyentry,
+                                    BuyAt: buyentry,
                                     candleChartData : candleChartData, 
                                     close : firstCandle[4]
                                 }
@@ -1072,23 +1076,25 @@ class Home extends React.Component {
                 }
 
 
-                var data = {
+                var pastPerferm = {
                     totalLongs:totalLongs, 
                     totalShort:totalShort, 
-                    totalLongPer:totalLongPer,
-                    totalShortPer:totalShortPer,
-                    totalLongHighPer:totalLongHighPer, 
-                    totalShortLowPer:totalShortLowPer 
+                    totalLongPer:totalLongPer.toFixed(2),
+                    totalShortPer:totalShortPer.toFixed(2),
+                    totalLongHighPer:totalLongHighPer.toFixed(2),
+                    totalShortLowPer:totalShortLowPer.toFixed(2),
                 }
                 if(foundStock) 
-                foundStock.pastPerferm = data;
+                foundStock.pastPerferm = pastPerferm;
                 foundStock.longCandles = longCandles; 
                 foundStock.shortCandles = shortCandles; 
  
 
                  console.log("foundStock",foundStock); 
                 if (Math.floor(10000 / firstCandle[4])){ 
-                    this.setState({ NR4ForNextDayResult: [...this.state.NR4ForNextDayResult, foundStock] });
+                    this.setState({ FoundPatternList: [...this.state.FoundPatternList, foundStock] });
+
+                    localStorage.setItem('FoundPatternList', JSON.stringify(this.state.FoundPatternList));
                 }
 
             } else {
@@ -1780,7 +1786,7 @@ class Home extends React.Component {
                             {this.state.symbolList && this.state.symbolList.length ? this.state.symbolList.map(row => (
                                 <>
                                     <ListItem button style={{ fontSize: '12px' }} >
-                                        <ListItemText style={{ color: this.state[row.symbol + 'nc'] > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol + 'ltp']} ({this.state[row.symbol + 'nc']}%) <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />
+                                        <ListItemText style={{ color: this.state[row.symbol + 'nc'] > 0 ? '' : "" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol + 'ltp']} ({this.state[row.symbol + 'nc']}%) <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />
                                     </ListItem>
 
                                 </>
@@ -2170,7 +2176,7 @@ class Home extends React.Component {
                                         {this.state.patternType == 'NR4ForNextDay' ?   
 
                                         <Typography component="h3" variant="h6" color="primary" gutterBottom>
-                                           NR4 For Next Day  ({this.state.NR4ForNextDayResult.length})  at {this.state.endDate && this.state.endDate ? this.state.endDate.toString().substr(0, 16)   : new Date().toString().substr(0, 25)}
+                                           NR4 For Next Day  ({this.state.FoundPatternList.length})  at {this.state.endDate && this.state.endDate ? this.state.endDate.toString().substr(0, 16)   : new Date().toString().substr(0, 16)}
                                         </Typography> 
                                         : ""}
                                             
@@ -2201,7 +2207,7 @@ class Home extends React.Component {
                                         
 
                                            
-                                        {this.state.NR4ForNextDayResult ? this.state.NR4ForNextDayResult.map((row, i) => (
+                                        {this.state.FoundPatternList ? this.state.FoundPatternList.map((row, i) => (
 
 
 
@@ -2213,30 +2219,33 @@ class Home extends React.Component {
                                                 <TableCell align="left">{row.foundAt.substr(0, 16)}</TableCell>
                                                 <TableCell align="left" title="based on last one 6 month">  
                                                 
-                                                Total Longs: {row.pastPerferm.totalLongs}<br/>
-                                                Total Longs on Close%: {row.pastPerferm.totalLongPer.toFixed(2)}<br/>
-                                                Total Longs On High%: {row.pastPerferm.totalLongHighPer.toFixed(2)}<br/>
+                                                Total <b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade) <br/>
+                                                Total Longs on High%: {row.pastPerferm.totalLongHighPer}%  ({(row.pastPerferm.totalLongHighPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)<br/>
                                                  {row.longCandles && row.longCandles.map((insiderow, i) => (
-
-                                                        <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}><EqualizerIcon /> </Button>
-
+                                                       <>
+                                                         {/* <Button size="small"  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> <EqualizerIcon /></Button> */}
+                                                     
+                                                        <a style={{textDecoration: 'underline', background: 'lightgray',cursor: 'pointer'}} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> {insiderow.foundAt.substr(7, 10)} </a>  &nbsp;
+                                                        </>
                                                 ))}
 
-                                                <br/><br/>
+                                                <br/>
 
-                                                Total Short : {row.pastPerferm.totalShort}<br/>
-                                                Total Short% : {row.pastPerferm.totalShortPer.toFixed(2)}<br/>
-                                                Total Short On Low% : {row.pastPerferm.totalShortLowPer.toFixed(2)}<br/>
+                                                Total <b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}% per trade) <br/>
+                                                Total Short on Low%: {row.pastPerferm.totalShortLowPer}% ({(row.pastPerferm.totalShortLowPer/row.pastPerferm.totalShort).toFixed(2)}% per trade)<br/>
                                                 {row.shortCandles && row.shortCandles.map((insiderow, i) => (
-
-                                                <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}><EqualizerIcon /> </Button>
-
+                                                <>
+                                                <a style={{textDecoration: 'underline', background: 'lightgray', cursor: 'pointer'}} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> {insiderow.foundAt.substr(7, 10)}  </a> &nbsp;
+                                              
+ 
+                                                </>
                                                 ))}
                                                 
                                                 </TableCell>
+
                                                 
-                                                <TableCell align="left">{row.buyentry}</TableCell>
-                                                <TableCell align="left">{row.sellenty}</TableCell>
+                                                <TableCell align="left">{row.BuyAt}</TableCell>
+                                                <TableCell align="left">{row.SellAt}</TableCell>
                                                 <TableCell align="left">{row.high}</TableCell>
                                                 <TableCell align="left">{row.low}</TableCell>
                                                 <TableCell align="left">{row.close}</TableCell>

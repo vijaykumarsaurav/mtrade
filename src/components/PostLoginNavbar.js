@@ -177,18 +177,18 @@ export default function PostLoginNavBar(props) {
                               </Grid>
  */}
 
-
+                            <Grid item>
+                                    <Button variant="contained"  autoFocus href={"/mtrade/#/home"}  color="primary">
+                                        Home
+                                    </Button>
+                              </Grid>
                         
                               <Grid item>
                                     <Button variant="contained"  autoFocus href={"/mtrade/#/position"}  color="primary">
                                       Position
                                     </Button>
                               </Grid>
-                              <Grid item>
-                                    <Button variant="contained"  autoFocus href={"/mtrade/#/home"}  color="secondary">
-                                        Home
-                                    </Button>
-                              </Grid>
+                           
 
 
                               {/* <Grid item>
