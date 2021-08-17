@@ -94,7 +94,7 @@ export default function CustomizedDialogs(props) {
       </Button>
       <Dialog maxWidth="lg" onClose={handleClose} aria-labelledby="customized-dialog-title" open={open} >
         <DialogTitle id="customized-dialog-title" onClose={handleClose}>
-        {multipleChartData.symbol} 
+        {multipleChartData && multipleChartData.symbol} 
       {/*   <br />
 
         <span style={{fontSize:'12px'}}>  
