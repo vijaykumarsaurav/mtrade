@@ -16,6 +16,7 @@ import OrderBook from './Orderbook';
 import TradeConfig from './TradeConfig.json';
 import ChartDialog from './ChartDialog'; 
 import EqualizerIcon from '@material-ui/icons/Equalizer';
+import Notify from "../../utils/Notify";
 
 
 class Home extends React.Component{
@@ -91,19 +92,19 @@ class Home extends React.Component{
                 } 
             }, 1000);
 
+            var foundPatternsFromStored = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
 
-        
+            setInterval(() => {
+                this.refreshLtpOnFoundPattern(); 
+            },  foundPatternsFromStored.length * 100 + 300000);
+    
             
           
         } 
 
-        var foundPatternsFromStored = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
 
 
-        setInterval(() => {
-            this.refreshLtpOnFoundPattern(); 
-        },  foundPatternsFromStored.length * 100 + 10000);
-
+     
   /// this.getCandleHistoryAndStore(); 
 
    // this.findNR4PatternLive();
@@ -784,7 +785,7 @@ class Home extends React.Component{
                     "symboltoken":element.token,
                 }
 
-                AdminService.getLTP(data).then(res => {
+               AdminService.getLTP(data).then(res => {
                     let data = resolveResponse(res, 'noPop');
                      var LtpData = data && data.data; 
                      //console.log(LtpData);
@@ -872,13 +873,64 @@ class Home extends React.Component{
                     
                     }
                     
+               }).catch(error => {
+                Notify.showError(element.symbol + " ltd data not found!");
                })
 
             }
-            await new Promise(r => setTimeout(r, 101));
-
-           
+            await new Promise(r => setTimeout(r, 101)); 
        }
+
+
+    //    for (let index = 0; index < foundPatternsFromStored.length; index++) {
+    //     const element = foundPatternList[index];
+
+       
+    //     var time = moment.duration("240:00:00");
+    //     var startdate = moment(new Date()).subtract(time);
+
+    //         var data = {
+    //             "exchange": "NSE",
+    //             "symboltoken": element.token,
+    //             "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+    //             "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+    //             "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+    //         }
+
+    //         AdminService.getHistoryData(data).then(res => {
+    //             let histdata = resolveResponse(res, 'noPop');
+    //             //console.log("candle history", histdata); 
+    //             if (histdata && histdata.data && histdata.data.length) {
+
+    //                 var candleData = histdata.data;
+    //                   candleData.reverse(); 
+                    
+    //                     // var startindex = index2 * 10; 
+    //                     var last5Candle = candleData.slice(0, 5);
+                    
+                      
+    //                     var list =  foundPatternsFromStored; 
+    //                     for (let index2 = 0; index2 < list.length; index2++) {
+    //                         const element2 = list[index2];
+    //                         if (element.token === element2.token){
+    //                             list[index2]['candleChartData'] = last5Candle; 
+    //                             localStorage.setItem('FoundPatternList', JSON.stringify(list));
+    //                             break; 
+    //                         }
+                            
+    //                     }
+                        
+    //             } else {
+    //                 //localStorage.setItem('NseStock_' + symbol, "");
+    //                 console.log(element.symbol, " candle data emply");
+    //             }
+    //         }).catch(error => {
+    //             Notify.showError(element.symbol + " Candle data not found!");
+    //         })
+     
+    //    await new Promise(r => setTimeout(r, 350)); 
+    //     }
+
 
 
     }
