@@ -2219,7 +2219,7 @@ class Home extends React.Component {
                                                 <TableCell align="left">{row.foundAt.substr(0, 16)}</TableCell>
                                                 <TableCell align="left" title="based on last one 6 month">  
                                                 
-                                                Total <b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade) <br/>
+                                                <span style={{background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "green" : ""}}> Total <b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)  </span> <br/>
                                                 Total Longs on High%: {row.pastPerferm.totalLongHighPer}%  ({(row.pastPerferm.totalLongHighPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)<br/>
                                                  {row.longCandles && row.longCandles.map((insiderow, i) => (
                                                        <>
@@ -2231,7 +2231,7 @@ class Home extends React.Component {
 
                                                 <br/>
 
-                                                Total <b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}% per trade) <br/>
+                                                <span style={{background: row.pastPerferm.totalShortPer/row.pastPerferm.totalShort >= 1 ? "green" : ""}}> Total <b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}% per trade) </span> <br/>
                                                 Total Short on Low%: {row.pastPerferm.totalShortLowPer}% ({(row.pastPerferm.totalShortLowPer/row.pastPerferm.totalShort).toFixed(2)}% per trade)<br/>
                                                 {row.shortCandles && row.shortCandles.map((insiderow, i) => (
                                                 <>
