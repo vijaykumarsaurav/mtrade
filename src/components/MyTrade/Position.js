@@ -15,6 +15,8 @@ import * as moment from 'moment';
 import OrderBook from './Orderbook';
 import TradeConfig from './TradeConfig.json';
 import ChartDialog from './ChartDialog'; 
+import ChartMultiple from './ChartMultiple'; 
+
 import EqualizerIcon from '@material-ui/icons/Equalizer';
 import Notify from "../../utils/Notify";
 
@@ -761,6 +763,13 @@ class Home extends React.Component{
         document.getElementById('showCandleChart').click();
     }
 
+    showMultipleCandleChart = (row) => {
+        localStorage.setItem('multipleChartData', JSON.stringify(row))
+        document.getElementById('showMultipleChart').click();
+    }
+
+    
+
     refreshLtpOnFoundPattern = async() => {
 
        this.setState({nr4TotalPer : 0, totalBrokerChargesNR4: 0,totalNetProfit: 0, totelActivatedCount:0, pnlAmountTotal:0,perHighLowTotal : 0,netPnLAmountOnHighlowTotal:0 }); 
@@ -831,6 +840,11 @@ class Home extends React.Component{
                         } 
 
                         var todayChange =  (LtpData.ltp- LtpData.close)*100/LtpData.close; 
+
+
+                        var builtupCandle = [new Date(), LtpData.open, LtpData.high, LtpData.low, LtpData.ltp]; 
+                        element.candleChartData.push(builtupCandle);
+
                         var foundData = {
                             symbol :  element.symbol, 
                             symbolUpdated : LtpData.ltp + "(" + (todayChange).toFixed(2) + ")", 
@@ -848,7 +862,8 @@ class Home extends React.Component{
                             pnlAmount : pnlAmount ? pnlAmount.toFixed(2) : "",
                             netPnLAmount : netPnLAmount ? netPnLAmount.toFixed(2) : "",
                             perChange : perChange,
-                            todayChange:todayChange
+                            todayChange:todayChange,
+                            pastPerferm: element.pastPerferm
                         }
 
                         console.log('nr4 updated',foundData ); 
@@ -880,60 +895,8 @@ class Home extends React.Component{
             }
             await new Promise(r => setTimeout(r, 101)); 
        }
-
-
-    //    for (let index = 0; index < foundPatternsFromStored.length; index++) {
-    //     const element = foundPatternList[index];
-
-       
-    //     var time = moment.duration("240:00:00");
-    //     var startdate = moment(new Date()).subtract(time);
-
-    //         var data = {
-    //             "exchange": "NSE",
-    //             "symboltoken": element.token,
-    //             "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-    //             "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
-    //             "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
-    //         }
-
-    //         AdminService.getHistoryData(data).then(res => {
-    //             let histdata = resolveResponse(res, 'noPop');
-    //             //console.log("candle history", histdata); 
-    //             if (histdata && histdata.data && histdata.data.length) {
-
-    //                 var candleData = histdata.data;
-    //                   candleData.reverse(); 
-                    
-    //                     // var startindex = index2 * 10; 
-    //                     var last5Candle = candleData.slice(0, 5);
-                    
-                      
-    //                     var list =  foundPatternsFromStored; 
-    //                     for (let index2 = 0; index2 < list.length; index2++) {
-    //                         const element2 = list[index2];
-    //                         if (element.token === element2.token){
-    //                             list[index2]['candleChartData'] = last5Candle; 
-    //                             localStorage.setItem('FoundPatternList', JSON.stringify(list));
-    //                             break; 
-    //                         }
-                            
-    //                     }
-                        
-    //             } else {
-    //                 //localStorage.setItem('NseStock_' + symbol, "");
-    //                 console.log(element.symbol, " candle data emply");
-    //             }
-    //         }).catch(error => {
-    //             Notify.showError(element.symbol + " Candle data not found!");
-    //         })
-     
-    //    await new Promise(r => setTimeout(r, 350)); 
-    //     }
-
-
-
     }
+
 
     getStoplossFromOrderbook = (row) => {
        var oderbookData = localStorage.getItem('oderbookData'); 
@@ -1601,7 +1564,7 @@ class Home extends React.Component{
             <React.Fragment>
                  <PostLoginNavBar/>
                      <br />
-                     <ChartDialog />
+                     <ChartDialog /> <ChartMultiple />
                     <Grid style={{padding:'5px'}} justify="space-between" direction="row" container>
                         <Grid item >
                             <Typography variant="h6" >
@@ -1793,7 +1756,8 @@ class Home extends React.Component{
              
                                               
                                              <TableCell className="TableHeadFormat" align="left">Symbol | Activated({this.state.totelActivatedCount})</TableCell>
-                                     
+                                             <TableCell  className="TableHeadFormat" align="left">Performance 6M</TableCell>
+
 
                                              <TableCell  className="TableHeadFormat" align="left">OnLtp ({this.state.nr4TotalPer.toFixed(2)})%  </TableCell>
                                            
@@ -1820,7 +1784,13 @@ class Home extends React.Component{
              
 
                                                 <TableCell align="left"> <Button  variant="contained" style={{ color:  !row.todayChange ?  '' :  row.todayChange > 0 ? 'green' : 'red'  }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} {row.symbolUpdated} <EqualizerIcon /> </Button></TableCell>
-                                              
+                                                <TableCell title={row.symbol + " : Open all chart"} align="left" style={{fontSize: '9px', cursor: 'pointer'}} onClick={() => this.showMultipleCandleChart(row)}>
+                                                     <span  style={{ background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "#92f192" : ""}}>{row.pastPerferm.totalLongs}L({row.pastPerferm.totalLongPer}%) | Avg:{(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}%</span> <br/>
+                                                     <span>{row.pastPerferm.totalLongs}LH({row.pastPerferm.totalLongHighPer}%) | Avg: {(row.pastPerferm.totalLongHighPer/row.pastPerferm.totalLongs).toFixed(2)}%</span> <br/>
+                                                     <span style={{background: row.pastPerferm.totalShortPer/row.pastPerferm.totalShort >= 1 ? "#e87b7b" : ""}}>{row.pastPerferm.totalShort}S:{row.pastPerferm.totalShortPer}% | Avg:{(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}%</span> <br/>
+                                                     <span>{row.pastPerferm.totalShort}SL:{row.pastPerferm.totalShortLowPer}% | Avg:{(row.pastPerferm.totalShortLowPer/row.pastPerferm.totalShort).toFixed(2)}%</span> <br/>
+                                                </TableCell>
+
                                                  <TableCell align="left"><b>{row.orderActivated} </b></TableCell>
 
 

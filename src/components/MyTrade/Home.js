@@ -65,7 +65,7 @@ class Home extends React.Component {
             candleChartData : [],
             stopScaningFlag : false,
             backTestResultDateRange : [],
-            FoundPatternList : []
+            FoundPatternList : localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
             
 
 
@@ -2219,8 +2219,8 @@ class Home extends React.Component {
                                                 <TableCell align="left">{row.foundAt.substr(0, 16)}</TableCell>
                                                 <TableCell align="left" title="based on last one 6 month">  
                                                 
-                                                <span style={{background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "green" : ""}}> Total <b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)  </span> <br/>
-                                                Total Longs on High%: {row.pastPerferm.totalLongHighPer}%  ({(row.pastPerferm.totalLongHighPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)<br/>
+                                                <span style={{background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "green" : ""}}><b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)  </span> <br/>
+                                                 Longs on High%: {row.pastPerferm.totalLongHighPer}%  ({(row.pastPerferm.totalLongHighPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)<br/>
                                                  {row.longCandles && row.longCandles.map((insiderow, i) => (
                                                        <>
                                                          {/* <Button size="small"  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> <EqualizerIcon /></Button> */}
@@ -2231,8 +2231,8 @@ class Home extends React.Component {
 
                                                 <br/>
 
-                                                <span style={{background: row.pastPerferm.totalShortPer/row.pastPerferm.totalShort >= 1 ? "green" : ""}}> Total <b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}% per trade) </span> <br/>
-                                                Total Short on Low%: {row.pastPerferm.totalShortLowPer}% ({(row.pastPerferm.totalShortLowPer/row.pastPerferm.totalShort).toFixed(2)}% per trade)<br/>
+                                                <span style={{background: row.pastPerferm.totalShortPer/row.pastPerferm.totalShort >= 1 ? "red" : ""}}><b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}% per trade) </span> <br/>
+                                                Short on Low%: {row.pastPerferm.totalShortLowPer}% ({(row.pastPerferm.totalShortLowPer/row.pastPerferm.totalShort).toFixed(2)}% per trade)<br/>
                                                 {row.shortCandles && row.shortCandles.map((insiderow, i) => (
                                                 <>
                                                 <a style={{textDecoration: 'underline', background: 'lightgray', cursor: 'pointer'}} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> {insiderow.foundAt.substr(7, 10)}  </a> &nbsp;
