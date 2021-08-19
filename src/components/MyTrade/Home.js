@@ -52,7 +52,7 @@ class Home extends React.Component {
             autoSearchTemp: [],
             backTestResult: [],
             backTestFlag: true,
-            patternType: "NR4ForNextDay",
+            patternType: "NR4_SameDay",  //NR4ForNextDay
             symboltoken: "",
             tradingsymbol: "",
             buyPrice: 0,
@@ -65,9 +65,9 @@ class Home extends React.Component {
             candleChartData : [],
             stopScaningFlag : false,
             backTestResultDateRange : [],
+            searchFailed:0,
             FoundPatternList : localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
             
-
 
         };
         this.myCallback = this.myCallback.bind(this);
@@ -208,15 +208,15 @@ class Home extends React.Component {
         this.setState({ feedToken: feedToken, clientcode: clientcode });
 
 
-        //    wsClint.onopen  = (res) => {
+        wsClint.onopen  = (res) => {
 
-        //          this.makeConnection();
-        //          this.updateSocketWatch(feedToken ,clientcode);
+            //  this.makeConnection();
+            //  this.updateSocketWatch(feedToken ,clientcode);
 
-        //         //  setTimeout(function(){
-        //         //    this.updateSocketWatch(feedToken ,clientcode);
-        //         //  }, 800);
-        //    }
+            //  setTimeout(function(){
+            //    this.updateSocketWatch(feedToken ,clientcode);
+            //  }, 800);
+        }
 
         wsClint.onmessage = (message) => {
 
@@ -301,16 +301,17 @@ class Home extends React.Component {
             this.backTestNR4();
             return;
         }
-
-        if (this.state.patternType === 'NR4_SameDay') {
-            this.backTestNR4SameDay();
-            return;
-        }
         if (this.state.patternType === 'NR4ForNextDay') {
             this.NR4ForNextDay();
             return;
         }
 
+
+        if (this.state.patternType === 'NR4_SameDay') {
+            this.backTestNR4SameDay();
+            return;
+        }
+     
 
         if (this.state.patternType === 'NR4_Daywide_daterage') {
 
@@ -514,10 +515,182 @@ class Home extends React.Component {
         this.setState({ backTestFlag: true, stopScaningFlag: false });
     } 
 
+    
+    findShortTraadeOnNextDay =(element, firstCandle, candleChartData, histdataInside)=>{
+        var buyentry = (firstCandle[3] + (firstCandle[3] / 100 / 10));
+        var buyentrySL = (firstCandle[2] + (firstCandle[2] / 100 / 10));
+
+        var resultCandle = [], buyEntryFlag = true,  longTradeFound = {},   elementInside = '', buyHighest = histdataInside[0][3]; 
+
+        console.log(element.symbol, "result candle", histdataInside);
+
+        if (histdataInside && histdataInside.length) {
+            
+            for (let index = 0; index < histdataInside.length; index++) {
+                const candle5min = histdataInside[index];
+                resultCandle.push([new Date(candle5min[0]).getTime(),candle5min[1],candle5min[2],candle5min[3],candle5min[4]]); 
+                if( elementInside[2] <= buyHighest){
+                    buyHighest = elementInside[2]; 
+                }
+            }
+
+            for (let insideIndex = 0; insideIndex < histdataInside.length; insideIndex++) {
+                elementInside = histdataInside[insideIndex];
+
+                if(buyEntryFlag && elementInside[2] < buyentry){
+                    longTradeFound = {
+                        foundAt: "Short-" + new Date(firstCandle[0]).toLocaleString(),
+                        symbol: element.symbol,
+                        sellEntyPrice: buyentry,
+                        stopLoss: buyentrySL,
+                        brokerageCharges: 0.06,
+                        quantity: Math.floor(10000 / buyentry),
+                        candleChartData : candleChartData,
+                    }
+                    buyEntryFlag = false; 
+                }
+                                                          
+               
+
+                var perChange = (buyentry - elementInside[3]) * 100 / buyentry;
+                
+                //trailing sl  
+                // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
+                // }
+
+                //flat 1% profit booking
+                if(!buyEntryFlag && perChange >= 1){
+                    var sellEntyPrice = buyentry - buyentry * 1/100; 
+                    longTradeFound.buyExitPrice = sellEntyPrice;
+                    longTradeFound.perChange = perChange.toFixed(2);
+                    longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                    longTradeFound.exitStatus  = "Flat_1%_Booked"; 
+                    break;
+                }
+
+                if(!buyEntryFlag && elementInside[2] >= buyentrySL){
+                    var perChng = (buyentry - buyentrySL) * 100 / buyentry;
+                    longTradeFound.buyExitPrice = buyentrySL;
+                    longTradeFound.perChange = perChng.toFixed(2);
+                    longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                    longTradeFound.exitStatus  = "SL_Hit"; 
+                    break;
+                }
+             
+            }
+
+            if(!buyEntryFlag && !longTradeFound.sellEntyPrice){
+                var perChng = (elementInside[4] - buyentry) * 100 / buyentry;
+                longTradeFound.buyExitPrice = elementInside[4];
+                longTradeFound.perChange = perChng && perChng.toFixed(2);
+                longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                longTradeFound.exitStatus  = "Market_End"; 
+            }
+
+            if(!buyEntryFlag && Math.floor(100000 / buyentry)){
+                var perChngOnHigh = (buyHighest - buyentry) * 100 / buyentry;
+                longTradeFound.highAndLow = buyHighest;
+                longTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
+                longTradeFound.candleChartDataInside = resultCandle;
+
+                this.setState({ backTestResult: [...this.state.backTestResult, longTradeFound] });
+            }
+
+        }
+
+    }
+
+
+
+    findLongsTraadeOnNextDay =(element, firstCandle, candleChartData, histdataInside)=>{
+        var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10));
+       // var buyentrySL = (firstCandle[3] - (firstCandle[3] / 100 / 10));
+       var buyentrySL = (buyentry - (buyentry*1/100));   //1% SL
+
+        var resultCandle = [], buyEntryFlag = true,  longTradeFound = {},   elementInside = '', buyHighest = histdataInside[0][2]; 
+
+        console.log(element.symbol, "result candle", histdataInside);
+
+        if (histdataInside && histdataInside.length) {
+            
+            for (let index = 0; index < histdataInside.length; index++) {
+                const candle5min = histdataInside[index];
+                resultCandle.push([new Date(candle5min[0]).getTime(),candle5min[1],candle5min[2],candle5min[3],candle5min[4]]); 
+                if(buyHighest < histdataInside[index][2]){
+                    buyHighest = histdataInside[index][2];
+                }
+            }
+
+            for (let insideIndex = 0; insideIndex < histdataInside.length; insideIndex++) {
+                elementInside = histdataInside[insideIndex];
+
+                if(buyEntryFlag && elementInside[2] > buyentry){
+                    longTradeFound = {
+                        foundAt: "Long-" + new Date(elementInside[0]).toLocaleString(),
+                        symbol: element.symbol,
+                        buyExitPrice: buyentry,
+                        stopLoss: buyentrySL,
+                        brokerageCharges: 0.06,
+                        quantity: Math.floor(10000 / buyentry),
+                        candleChartData : candleChartData,
+                    }
+                    buyEntryFlag = false; 
+                }
+                                                          
+               
+
+                var perChange = (elementInside[2] - buyentry) * 100 / buyentry;
+                
+                //trailing sl  
+                // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
+                // }
+
+                //flat 1% profit booking
+                if(!buyEntryFlag && perChange >= 1){
+                    var sellEntyPrice = buyentry + buyentry * 1/100; 
+                    longTradeFound.sellEntyPrice = sellEntyPrice;
+                    longTradeFound.perChange = perChange.toFixed(2);
+                    longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                    longTradeFound.exitStatus  = "Flat_1%_Booked"; 
+                    break;
+                }
+
+                if(!buyEntryFlag && elementInside[3] <= buyentrySL){
+                    var perChng = (buyentrySL - buyentry) * 100 / buyentry;
+                    longTradeFound.sellEntyPrice = buyentrySL;
+                    longTradeFound.perChange = perChng.toFixed(2);
+                    longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                    longTradeFound.exitStatus  = "SL_Hit"; 
+                    break;
+                }
+             
+            } //candle loop end
+
+            if(!buyEntryFlag && !longTradeFound.sellEntyPrice){
+                var perChng = (elementInside[4] - buyentry) * 100 / buyentry;
+                longTradeFound.buyExitPrice = elementInside[4];
+                longTradeFound.perChange = perChng && perChng.toFixed(2);
+                longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                longTradeFound.exitStatus  = "Market_End"; 
+            }
+
+            if(!buyEntryFlag && Math.floor(100000 / buyentry)){
+                var perChngOnHigh = (buyHighest - buyentry) * 100 / buyentry;
+                longTradeFound.highAndLow = buyHighest;
+                longTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
+                longTradeFound.candleChartDataInside = resultCandle;
+
+                this.setState({ backTestResult: [...this.state.backTestResult, longTradeFound] });
+            }
+
+        }
+
+    }
+
 
     backTestNR4SameDay = async () => {
 
-        this.setState({ backTestResult: [], backTestFlag: false });
+        this.setState({ backTestResult: [], backTestFlag: false, searchFailed : 0});
 
         var watchList = this.state.symbolList //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
         var runningTest = 1, sumPercentage = 0;
@@ -553,12 +726,9 @@ class Home extends React.Component {
                         // var startindex = index2 * 10; 
                         var last4Candle = candleData.slice(1, 5);
                         // var next10Candle = candleData.slice(index2+5 , index2+35 );    
-
                         // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
-
                         //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
                         if (last4Candle.length >= 4) {
-
                             //last4Candle.reverse();
 
                             var rangeArr = [], candleChartData = []; 
@@ -579,69 +749,237 @@ class Home extends React.Component {
                                 var next5thCandle = candleData[0];
                                 candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
 
-
                                 console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle); 
-
-                                //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
-                                var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
-
-                                if (next5thCandle[2] > buyentry) {
-                                    var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
-                                    var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
-
-                                    sumPercentage += perChng;
-        
-                                    console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
-
-                                    var foundStock = {
-                                        foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
-                                        symbol: element.symbol,
-                                        sellEntyPrice: next5thCandle[4],
-                                        highAndLow: next5thCandle[2],
-                                        stopLoss: firstCandle[3],
-                                        buyExitPrice: buyentry,
-                                        brokerageCharges: 0.06,
-                                        perChange: perChng.toFixed(2),
-                                        perChngOnHighLow: perChngOnHigh.toFixed(2),
-                                        squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
-                                        quantity: Math.floor(10000 / firstCandle[2]),
-                                        candleChartData : candleChartData
-                                    }
-                                    if (Math.floor(10000 / firstCandle[2])){ 
-                                        this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
-                                    }
-
-                                }
-                                //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
+                           
+                                var start5thdate = moment(next5thCandle[0]).set({"hour": 9, "minute": 15});
+                                var end5thdate = moment(next5thCandle[0]).set({"hour": 15, "minute": 30});
+                            
                                 var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
-
-                                if (next5thCandle[3] < sellenty) {
-                                    var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
-                                    var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
-
-                                    sumPercentage += perChng;
-                                    console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
-
-                                    var foundStock = {
-                                        foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
-                                        symbol: element.symbol,
-                                        sellEntyPrice: sellenty,
-                                        stopLoss: firstCandle[2],
-                                        buyExitPrice: next5thCandle[4],
-                                        highAndLow: next5thCandle[3],
-                                        brokerageCharges: 0.06,
-                                        perChange: perChng.toFixed(2),
-                                        perChngOnHighLow: perChngOnLow.toFixed(2),
-                                        squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
-                                        quantity: Math.floor(10000 / firstCandle[3]),
-                                        candleChartData : candleChartData
-                                    }
-                                    if(Math.floor(10000 / firstCandle[3])){
-                                        this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
-                                    }
+                                var sellentySL = (firstCandle[2] - (firstCandle[2] / 100 / 10)).toFixed(2);
 
 
+                                var data = {
+                                    "exchange": "NSE",
+                                    "symboltoken": element.token,
+                                    "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                                    "fromdate": moment(start5thdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                                    "todate": moment(end5thdate).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
                                 }
+                        
+                                AdminService.getHistoryData(data).then(insideCandleRes => {
+                                    let histdataInside = resolveResponse(insideCandleRes, 'noPop'); 
+                                    histdataInside =  histdataInside && histdataInside.data; 
+
+                                    this.findLongsTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
+                                    this.findShortTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
+
+                                    // var resultCandle = [], buyEntryFlag = true,  sellEntryFlag = true,  longTradeFound = {}, shortTradeFound={},  elementInside = '', buyHighest = 0, sellLowest = 0; 
+
+                                    // console.log(element.symbol, "result candle", histdataInside);
+
+                                    // if (histdataInside && histdataInside.length) {
+                                        
+                                    //     for (let insideIndex = 0; insideIndex < histdataInside.length; insideIndex++) {
+                                    //         elementInside = histdataInside[insideIndex];
+                                    //         resultCandle.push([elementInside[0],elementInside[1],elementInside[2],elementInside[3],elementInside[4]]); 
+
+                                    //         if(buyHighest < elementInside[2]){
+                                    //             buyHighest = elementInside[2]; 
+                                    //         }
+
+                                    //         if(buyEntryFlag && elementInside[2] > buyentry){
+                                    //             longTradeFound = {
+                                    //                 foundAt: "Long-" + new Date(firstCandle[0]).toLocaleString().substr(0,10),
+                                    //                 symbol: element.symbol,
+                                    //                 buyExitPrice: buyentry,
+                                    //                 stopLoss: buyentrySL,
+                                    //                 brokerageCharges: 0.06,
+                                    //                 quantity: Math.floor(10000 / buyentry),
+                                    //                 candleChartData : candleChartData,
+                                    //             }
+                                    //             buyEntryFlag = false; 
+                                    //         }
+                                                                                      
+                                    //         if(longTradeFound && elementInside[3] <= buyentrySL){
+                                    //             var perChng = (elementInside[3] - buyentry) * 100 / buyentry;
+                                    //             longTradeFound.sellEntyPrice = elementInside[3];
+                                    //             longTradeFound.perChange = perChng.toFixed(2);
+                                    //             longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                                    //             longTradeFound.exitStatus  = "SL_Hit"; 
+                                    //             break;
+                                    //         }
+
+                                    //         var longplPerChng = (elementInside[2] - buyentry) * 100 / buyentry;
+                                            
+                                    //         //trailing sl  
+                                    //         // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
+                                    //         // }
+
+                                    //         //flat 1% profit booking
+                                    //         if(longTradeFound && longplPerChng >= 1){
+                                    //             var sellEntyPrice = buyentry + buyentry * 1/100; 
+
+                                    //             var perChng = (elementInside[3] - buyentry) * 100 / buyentry;
+                                    //             longTradeFound.sellEntyPrice = sellEntyPrice;
+                                    //             longTradeFound.perChange = plPerChng.toFixed(2);
+                                    //             longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                                    //             longTradeFound.exitStatus  = "Flat_1%_Booked"; 
+                                    //             break;
+                                    //         }
+
+
+                                    //         //short trade 
+                                    //         if(elementInside[3] >= sellLowest){
+                                    //             sellLowest = elementInside[3]; 
+                                    //         }
+
+                                    //         if(sellEntryFlag && elementInside[2] > buyentry){
+                                    //             shortTradeFound = {
+                                    //                 foundAt: "Short-" + new Date(firstCandle[0]).toLocaleString().substr(0,10),
+                                    //                 symbol: element.symbol,
+                                    //                 sellEntyPrice: sellenty, 
+                                    //                 stopLoss: sellentySL,
+                                    //                 brokerageCharges: 0.06,
+                                    //                 quantity: Math.floor(10000 / sellenty),
+                                    //                 candleChartData : candleChartData,
+                                    //             }
+                                    //             sellEntryFlag = false; 
+                                    //         }
+                                                                                      
+                                    //         if(shortTradeFound && elementInside[2] >= sellentySL){
+                                    //             var perChng = (sellenty - elementInside[2]) * 100 / sellenty;
+                                    //             shortTradeFound.buyExitPrice = elementInside[2];
+                                    //             shortTradeFound.perChange = perChng.toFixed(2);
+                                    //             shortTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                                    //             shortTradeFound.exitStatus  = "SL_Hit"; 
+                                    //             break;
+                                    //         }
+
+                                    //         var plPerChng = (sellenty - elementInside[3]) * 100 / sellenty;
+                                            
+                                    //         //trailing sl  
+                                    //         // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
+                                    //         // }
+
+                                    //         //flat 1% profit booking
+                                    //         if(shortTradeFound && plPerChng >= 1){
+                                    //             var buyExitPrice = sellenty - sellenty * 1/100; 
+
+                                    //             var perChng = (sellenty - elementInside[3]) * 100 / sellenty;
+                                    //             shortTradeFound.buyExitPrice = buyExitPrice;
+                                    //             shortTradeFound.perChange = plPerChng.toFixed(2);
+                                    //             shortTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                                    //             shortTradeFound.exitStatus  = "Flat_1%_Booked"; 
+                                    //             break;
+                                    //         }
+
+
+                                    //     }
+
+                                    //     if(longTradeFound && !longTradeFound.sellEntyPrice){
+                                    //         var perChng = (elementInside[4] - buyentry) * 100 / buyentry;
+                                    //         longTradeFound.buyExitPrice = elementInside[4];
+                                    //         longTradeFound.perChange = perChng && perChng.toFixed(2);
+                                    //         longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                                    //         longTradeFound.exitStatus  = "Market_End"; 
+                                    //     }
+                                    //     var perChngOnHigh = (buyHighest - buyentry) * 100 / buyentry;
+                                    //     longTradeFound.highAndLow = buyHighest;
+                                    //     longTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
+                                    //     longTradeFound.candleChartDataInside = resultCandle;
+
+                                    //     if(longTradeFound && Math.floor(100000 / buyentry)){
+                                    //         this.setState({ backTestResult: [...this.state.backTestResult, longTradeFound] });
+                                    //     }
+
+
+                                    //     if(shortTradeFound && !shortTradeFound.buyExitPrice){
+                                    //         var perChng = (sellenty - elementInside[4]) * 100 / sellenty;
+                                    //         shortTradeFound.buyExitPrice = elementInside[4];
+                                    //         shortTradeFound.perChange = perChng && perChng.toFixed(2);
+                                    //         shortTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                                    //         shortTradeFound.exitStatus  = "Market_End"; 
+                                    //     }
+                                    //     var perChngOnHigh = (sellenty - sellLowest) * 100 / buyentry;
+                                    //     shortTradeFound.highAndLow = buyHighest;
+                                    //     shortTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
+                                    //     shortTradeFound.candleChartDataInside = resultCandle;
+
+                                    //     if(shortTradeFound && Math.floor(100000 / sellenty)){
+                                    //         this.setState({ backTestResult: [...this.state.backTestResult, shortTradeFound] });
+                                    //     }
+
+
+                                    //     console.log("shortTradeFound" , shortTradeFound); 
+                
+
+
+                                    // }
+
+
+                        
+                                }).catch(error => {
+                                    Notify.showError(element.symbol + " FIVE_MINUTE Candle data not found!");
+                                    this.setState({searchFailed : this.state.searchFailed +1})
+                                });
+
+
+                               
+                                // var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
+                                // if (next5thCandle[2] > buyentry) {
+                                //     var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
+                                //     var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
+
+                                //     sumPercentage += perChng;
+        
+                                //     console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+
+                                //     var foundStock = {
+                                //         foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
+                                //         symbol: element.symbol,
+                                //         sellEntyPrice: next5thCandle[4],
+                                //         highAndLow: next5thCandle[2],
+                                //         stopLoss: firstCandle[3],
+                                //         buyExitPrice: buyentry,
+                                //         brokerageCharges: 0.06,
+                                //         perChange: perChng.toFixed(2),
+                                //         perChngOnHighLow: perChngOnHigh.toFixed(2),
+                                //         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+                                //         quantity: Math.floor(10000 / firstCandle[2]),
+                                //         candleChartData : candleChartData,
+                                //     }
+                                //     if (Math.floor(10000 / firstCandle[2])){ 
+                                //         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+                                //     }
+                                // }
+                                // var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
+                                // if (next5thCandle[3] < sellenty) {
+                                //     var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
+                                //     var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
+
+                                //     sumPercentage += perChng;
+                                //     console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+
+                                //     var foundStock = {
+                                //         foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
+                                //         symbol: element.symbol,
+                                //         sellEntyPrice: sellenty,
+                                //         stopLoss: firstCandle[2],
+                                //         buyExitPrice: next5thCandle[4],
+                                //         highAndLow: next5thCandle[3],
+                                //         brokerageCharges: 0.06,
+                                //         perChange: perChng.toFixed(2),
+                                //         perChngOnHighLow: perChngOnLow.toFixed(2),
+                                //         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+                                //         quantity: Math.floor(10000 / firstCandle[3]),
+                                //         candleChartData : candleChartData
+                                //     }
+                                //     if(Math.floor(10000 / firstCandle[3])){
+                                //         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+                                //     }
+
+
+                                // }
 
                             }
 
@@ -651,10 +989,17 @@ class Home extends React.Component {
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
                     console.log(element.symbol, " candle data emply");
+                    Notify.showError(element.symbol + " FIVE_MINUTE candle data emply!");
+                    this.setState({searchFailed : this.state.searchFailed +1})
+
                 }
-            })
+            }).catch(error => {
+                Notify.showError(element.symbol + " 1 day Candle data not found!");
+                this.setState({searchFailed : this.state.searchFailed +1})
+
+            });
             await new Promise(r => setTimeout(r, 305));
-            this.setState({ backTestResult:  this.state.backTestResult.reverse()}); 
+         //   this.setState({ backTestResult:  this.state.backTestResult.reverse()}); 
             this.setState({ stockTesting: index + 1 + ". " + element.symbol, runningTest: runningTest })
         }
         this.setState({ backTestFlag: true, stopScaningFlag: false });
@@ -1705,13 +2050,27 @@ class Home extends React.Component {
     showCandleChart = (candleData, symbol, insiderow) => {
 
 
-        candleData  = candleData.reverse();
+        candleData  = candleData && candleData.reverse();
 
         localStorage.setItem('candleChartData', JSON.stringify(candleData))
         localStorage.setItem('cadleChartSymbol', symbol)
 
         if(insiderow)
         localStorage.setItem('chartInfoDetails', JSON.stringify(insiderow));
+
+        
+        document.getElementById('showCandleChart').click();
+    }
+
+    showCandleBothChart = (row) => {
+        var candleChartData = row.candleChartData && row.candleChartData.reverse();
+        localStorage.setItem('candleChartData', JSON.stringify(candleChartData))
+        localStorage.setItem('cadleChartSymbol', row.symbol)
+
+        var candleChartDataInside = row.candleChartDataInside;
+
+        if(candleChartDataInside)
+        localStorage.setItem('candleChartDataInside', JSON.stringify(candleChartDataInside));
 
         
         document.getElementById('showCandleChart').click();
@@ -1736,7 +2095,7 @@ class Home extends React.Component {
                 <ChartDialog />
                 <Grid direction="row" container>
 
-                    <Grid item xs={12} sm={2}  >
+                    <Grid item xs={12} sm={3}  >
 
                         <Autocomplete
                             freeSolo
@@ -1800,7 +2159,7 @@ class Home extends React.Component {
 
 
 
-                    <Grid item xs={12} sm={10}>
+                    <Grid item xs={12} sm={9}>
 
 
                         <Grid direction="row" alignItems="center" container>
@@ -1909,6 +2268,7 @@ class Home extends React.Component {
 
                                         <Grid item xs={12} sm={6} style={{ marginTop:'28px'}}>
                                             {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <> <Button> <Spinner /> &nbsp; &nbsp; Scaning: {this.state.stockTesting}  {this.state.runningTest}  </Button>  <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button> </> }
+                                            SearchFailed:{this.state.searchFailed}
 
                                         </Grid>
 
@@ -1940,7 +2300,7 @@ class Home extends React.Component {
                                                 <TableCell align="center">Long: {localStorage.getItem('totalLongTrade')} Short:  {this.state.backTestResult && this.state.backTestResult.length - localStorage.getItem('totalLongTrade')}</TableCell>
                                                 <TableCell align="left" colSpan={2}> Total Invested  {localStorage.getItem('totalInvestedValue')}</TableCell>
 
-                                                <TableCell align="center" colSpan={3}> Average gross/trade PnL:  <b style={{ color: (localStorage.getItem('sumPerChange') / this.state.backTestResult.length) > 0 ? "green" : "red" }} >{(localStorage.getItem('sumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b></TableCell>
+                                                <TableCell align="center" colSpan={4}> Average gross/trade PnL:  <b style={{ color: (localStorage.getItem('sumPerChange') / this.state.backTestResult.length) > 0 ? "green" : "red" }} >{(localStorage.getItem('sumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b></TableCell>
                                         
 
                                             </TableRow>
@@ -1958,13 +2318,16 @@ class Home extends React.Component {
                                                 <TableCell className="TableHeadFormat"  title="High on long side | Low in short side" align="center">HLNet PnL</TableCell>
 
                                                 <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
-                                                <TableCell className="TableHeadFormat" align="left">FoundAt</TableCell>
+                                                <TableCell className="TableHeadFormat" align="left">EntryTaken</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">SquiredOffAt</TableCell>
+
+                                                <TableCell className="TableHeadFormat" align="center">ExitStatus</TableCell>
+                                                
                                                 <TableCell className="TableHeadFormat" align="center">Buy</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Sell(Qty)</TableCell>
                                                 <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">High/Low</TableCell>
 
 
-                                                <TableCell className="TableHeadFormat" align="center">SquiredOffAt</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">StopLoss</TableCell>
                                                 {/* <TableCell className="TableHeadFormat" align="center">Sr. </TableCell> */}
 
@@ -1992,15 +2355,18 @@ class Home extends React.Component {
 
 
 
-                                            <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
+                                            <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleBothChart(row)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
 
-                                            <TableCell align="left" style={{ color: row.foundAt.indexOf('Long') == 0  ? "green" : "red" }} {... totalLongTrade = totalLongTrade + (row.foundAt.indexOf('Long') == 0 ? 1 : 0) }>{row.foundAt}</TableCell>
+                                            <TableCell align="left" style={{ color: row.foundAt && row.foundAt.indexOf('Long') == 0  ? "green" : "red" }} {... totalLongTrade = totalLongTrade + ( row.foundAt && row.foundAt.indexOf('Long') == 0 ? 1 : 0) }>{row.foundAt}</TableCell>
+                                            <TableCell align="center">{row.squareOffAt}</TableCell>
+
+                                            <TableCell align="center">{row.exitStatus}</TableCell>
+
                                             <TableCell align="center">{row.buyExitPrice}</TableCell>
 
-                                            <TableCell align="center" {...totalInvestedValue = totalInvestedValue + (row.foundAt.indexOf('Long') == 0  ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity)) }>{row.sellEntyPrice}({row.quantity})</TableCell>
+                                            <TableCell align="center" {...totalInvestedValue = totalInvestedValue + (row.foundAt && row.foundAt.indexOf('Long') == 0  ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity)) }>{row.sellEntyPrice}({row.quantity})</TableCell>
                                             <TableCell  title="High on long side | Low in short side" align="center">{row.highAndLow}</TableCell>
 
-                                            <TableCell align="center">{row.squareOffAt}</TableCell>
                                             
                                             <TableCell align="center">{row.stopLoss}</TableCell>
                                             {/* <TableCell align="center">{i + 1}</TableCell> */}
@@ -2035,6 +2401,7 @@ class Home extends React.Component {
                                         <TableCell align="left" > </TableCell>
                                         <TableCell align="left"> </TableCell>
 
+                                        <TableCell align="left"> </TableCell>
                                         <TableCell align="left"> </TableCell>
                                         <TableCell align="left"> </TableCell>
 
@@ -2219,7 +2586,7 @@ class Home extends React.Component {
                                                 <TableCell align="left">{row.foundAt.substr(0, 16)}</TableCell>
                                                 <TableCell align="left" title="based on last one 6 month">  
                                                 
-                                                <span style={{background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "green" : ""}}><b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)  </span> <br/>
+                                                <span style={{background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "#92f192" : ""}}><b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)  </span> <br/>
                                                  Longs on High%: {row.pastPerferm.totalLongHighPer}%  ({(row.pastPerferm.totalLongHighPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)<br/>
                                                  {row.longCandles && row.longCandles.map((insiderow, i) => (
                                                        <>
@@ -2231,7 +2598,7 @@ class Home extends React.Component {
 
                                                 <br/>
 
-                                                <span style={{background: row.pastPerferm.totalShortPer/row.pastPerferm.totalShort >= 1 ? "red" : ""}}><b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}% per trade) </span> <br/>
+                                                <span style={{background: row.pastPerferm.totalShortPer/row.pastPerferm.totalShort >= 1 ? "#e87b7b" : ""}}><b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}% per trade) </span> <br/>
                                                 Short on Low%: {row.pastPerferm.totalShortLowPer}% ({(row.pastPerferm.totalShortLowPer/row.pastPerferm.totalShort).toFixed(2)}% per trade)<br/>
                                                 {row.shortCandles && row.shortCandles.map((insiderow, i) => (
                                                 <>

@@ -847,7 +847,7 @@ class Home extends React.Component{
 
                         var foundData = {
                             symbol :  element.symbol, 
-                            symbolUpdated : LtpData.ltp + "(" + (todayChange).toFixed(2) + ")", 
+                            symbolUpdated : LtpData.ltp + "(" + (todayChange).toFixed(2) + "%)", 
                             token : element.token, 
                             pattenName: 'NR4', 
                             OnHighLowActivated : quantity ?  perChangeOnHighLow.toFixed(2) + "% | " + netPnLAmountOnHighlow.toFixed(2) : "",
@@ -1785,10 +1785,13 @@ class Home extends React.Component{
 
                                                 <TableCell align="left"> <Button  variant="contained" style={{ color:  !row.todayChange ?  '' :  row.todayChange > 0 ? 'green' : 'red'  }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} {row.symbolUpdated} <EqualizerIcon /> </Button></TableCell>
                                                 <TableCell title={row.symbol + " : Open all chart"} align="left" style={{fontSize: '9px', cursor: 'pointer'}} onClick={() => this.showMultipleCandleChart(row)}>
-                                                     <span  style={{ background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "#92f192" : ""}}>{row.pastPerferm.totalLongs}L({row.pastPerferm.totalLongPer}%) | Avg:{(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}%</span> <br/>
+                                                   {row.pastPerferm ? <>
+                                                    <span  style={{ background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "#92f192" : ""}}>{row.pastPerferm.totalLongs}L({row.pastPerferm.totalLongPer}%) | Avg:{(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}%</span> <br/>
                                                      <span>{row.pastPerferm.totalLongs}LH({row.pastPerferm.totalLongHighPer}%) | Avg: {(row.pastPerferm.totalLongHighPer/row.pastPerferm.totalLongs).toFixed(2)}%</span> <br/>
                                                      <span style={{background: row.pastPerferm.totalShortPer/row.pastPerferm.totalShort >= 1 ? "#e87b7b" : ""}}>{row.pastPerferm.totalShort}S:{row.pastPerferm.totalShortPer}% | Avg:{(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}%</span> <br/>
                                                      <span>{row.pastPerferm.totalShort}SL:{row.pastPerferm.totalShortLowPer}% | Avg:{(row.pastPerferm.totalShortLowPer/row.pastPerferm.totalShort).toFixed(2)}%</span> <br/>
+                                                    </> : ""}
+                                                  
                                                 </TableCell>
 
                                                  <TableCell align="left"><b>{row.orderActivated} </b></TableCell>

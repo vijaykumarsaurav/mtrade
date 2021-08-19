@@ -139,6 +139,36 @@ export default function CustomizedDialogs(props) {
           />
 
 
+          <ReactApexChart 
+            options={{
+                      chart: {
+                        type: 'candlestick',
+                        height: 350
+                      },
+                      title: {
+                          text: '',
+                          align: 'left'
+                      },
+                      xaxis: {
+                          type: 'datetime',
+                      },
+                      yaxis: {
+                          tooltip: {
+                          enabled: true
+                          }
+                      }
+                  }}
+                  series={[{
+                    data:  JSON.parse(localStorage.getItem('candleChartDataInside'))
+                      
+                  }]} 
+                  type="candlestick" 
+                  width={500}
+                  height={350} 
+          />
+
+
+
     
          
          
