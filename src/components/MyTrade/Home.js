@@ -518,7 +518,9 @@ class Home extends React.Component {
     
     findShortTraadeOnNextDay =(element, firstCandle, candleChartData, histdataInside)=>{
         var buyentry = (firstCandle[3] + (firstCandle[3] / 100 / 10));
-        var buyentrySL = (firstCandle[2] + (firstCandle[2] / 100 / 10));
+       // var buyentrySL = (firstCandle[2] + (firstCandle[2] / 100 / 10));
+        var buyentrySL = (buyentry + (buyentry*1/100));   //1% SL
+
 
         var resultCandle = [], buyEntryFlag = true,  longTradeFound = {},   elementInside = '', buyHighest = histdataInside[0][3]; 
 
@@ -2096,7 +2098,7 @@ class Home extends React.Component {
                 <ChartDialog />
                 <Grid direction="row" container>
 
-                    <Grid item xs={12} sm={3}  >
+                    <Grid item xs={12} sm={2}  >
 
                         <Autocomplete
                             freeSolo
@@ -2160,7 +2162,7 @@ class Home extends React.Component {
 
 
 
-                    <Grid item xs={12} sm={9}>
+                    <Grid item xs={12} sm={10}>
 
 
                         <Grid direction="row" alignItems="center" container>
