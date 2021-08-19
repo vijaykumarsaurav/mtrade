@@ -529,15 +529,16 @@ class Home extends React.Component {
             for (let index = 0; index < histdataInside.length; index++) {
                 const candle5min = histdataInside[index];
                 resultCandle.push([new Date(candle5min[0]).getTime(),candle5min[1],candle5min[2],candle5min[3],candle5min[4]]); 
-                if( elementInside[2] <= buyHighest){
-                    buyHighest = elementInside[2]; 
+                if(candle5min[2] < buyHighest){
+                    buyHighest = candle5min[3]; 
                 }
+               
             }
 
             for (let insideIndex = 0; insideIndex < histdataInside.length; insideIndex++) {
                 elementInside = histdataInside[insideIndex];
 
-                if(buyEntryFlag && elementInside[2] < buyentry){
+                if(buyEntryFlag && elementInside[3] < buyentry){
                     longTradeFound = {
                         foundAt: "Short-" + new Date(firstCandle[0]).toLocaleString(),
                         symbol: element.symbol,
@@ -588,7 +589,7 @@ class Home extends React.Component {
             }
 
             if(!buyEntryFlag && Math.floor(100000 / buyentry)){
-                var perChngOnHigh = (buyHighest - buyentry) * 100 / buyentry;
+                var perChngOnHigh = (buyentry - buyHighest) * 100 / buyentry;
                 longTradeFound.highAndLow = buyHighest;
                 longTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
                 longTradeFound.candleChartDataInside = resultCandle;
