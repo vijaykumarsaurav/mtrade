@@ -517,7 +517,7 @@ class Home extends React.Component {
 
     
     findShortTraadeOnNextDay =(element, firstCandle, candleChartData, histdataInside)=>{
-        var buyentry = (firstCandle[3] + (firstCandle[3] / 100 / 10));
+        var buyentry = (firstCandle[3] - (firstCandle[3] / 100 / 10));
        // var buyentrySL = (firstCandle[2] + (firstCandle[2] / 100 / 10));
         var buyentrySL = (buyentry + (buyentry*1/100));   //1% SL
 
@@ -541,13 +541,14 @@ class Home extends React.Component {
                 elementInside = histdataInside[insideIndex];
 
                 if(buyEntryFlag && elementInside[3] < buyentry){
+                    console.log(element.symbol, "taken short enty", elementInside[3] );
                     longTradeFound = {
-                        foundAt: "Short-" + new Date(firstCandle[0]).toLocaleString(),
+                        foundAt: "Short-" + new Date(elementInside[0]).toLocaleString(),
                         symbol: element.symbol,
                         sellEntyPrice: buyentry,
                         stopLoss: buyentrySL,
                         brokerageCharges: 0.06,
-                        quantity: Math.floor(10000 / buyentry),
+                        quantity: Math.floor(100000 / buyentry),
                         candleChartData : candleChartData,
                     }
                     buyEntryFlag = false; 
@@ -556,25 +557,28 @@ class Home extends React.Component {
                
 
                 var perChange = (buyentry - elementInside[3]) * 100 / buyentry;
-                
+                console.log(element.symbol, "perChange", perChange );
+
                 //trailing sl  
                 // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
                 // }
 
                 //flat 1% profit booking
                 if(!buyEntryFlag && perChange >= 1){
+
                     var sellEntyPrice = buyentry - buyentry * 1/100; 
                     longTradeFound.buyExitPrice = sellEntyPrice;
-                    longTradeFound.perChange = perChange.toFixed(2);
+                    longTradeFound.perChange = perChange;
                     longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
                     longTradeFound.exitStatus  = "Flat_1%_Booked"; 
                     break;
                 }
+                console.log(element.symbol, "high", elementInside[2] );
 
                 if(!buyEntryFlag && elementInside[2] >= buyentrySL){
                     var perChng = (buyentry - buyentrySL) * 100 / buyentry;
                     longTradeFound.buyExitPrice = buyentrySL;
-                    longTradeFound.perChange = perChng.toFixed(2);
+                    longTradeFound.perChange = perChng;
                     longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
                     longTradeFound.exitStatus  = "SL_Hit"; 
                     break;
@@ -585,15 +589,15 @@ class Home extends React.Component {
             if(!buyEntryFlag && !longTradeFound.sellEntyPrice){
                 var perChng = (elementInside[4] - buyentry) * 100 / buyentry;
                 longTradeFound.buyExitPrice = elementInside[4];
-                longTradeFound.perChange = perChng && perChng.toFixed(2);
+                longTradeFound.perChange = perChng;
                 longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
                 longTradeFound.exitStatus  = "Market_End"; 
             }
 
-            if(!buyEntryFlag && Math.floor(100000 / buyentry)){
+            if(!buyEntryFlag && Math.floor(100000 / buyentry) && longTradeFound.buyExitPrice){
                 var perChngOnHigh = (buyentry - buyHighest) * 100 / buyentry;
                 longTradeFound.highAndLow = buyHighest;
-                longTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
+                longTradeFound.perChngOnHighLow = perChngOnHigh;
                 longTradeFound.candleChartDataInside = resultCandle;
 
                 this.setState({ backTestResult: [...this.state.backTestResult, longTradeFound] });
@@ -612,7 +616,6 @@ class Home extends React.Component {
 
         var resultCandle = [], buyEntryFlag = true,  longTradeFound = {},   elementInside = '', buyHighest = histdataInside[0][2]; 
 
-        console.log(element.symbol, "result candle", histdataInside);
 
         if (histdataInside && histdataInside.length) {
             
@@ -634,7 +637,7 @@ class Home extends React.Component {
                         buyExitPrice: buyentry,
                         stopLoss: buyentrySL,
                         brokerageCharges: 0.06,
-                        quantity: Math.floor(10000 / buyentry),
+                        quantity: Math.floor(100000 / buyentry),
                         candleChartData : candleChartData,
                     }
                     buyEntryFlag = false; 
@@ -652,7 +655,7 @@ class Home extends React.Component {
                 if(!buyEntryFlag && perChange >= 1){
                     var sellEntyPrice = buyentry + buyentry * 1/100; 
                     longTradeFound.sellEntyPrice = sellEntyPrice;
-                    longTradeFound.perChange = perChange.toFixed(2);
+                    longTradeFound.perChange = perChange;
                     longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
                     longTradeFound.exitStatus  = "Flat_1%_Booked"; 
                     break;
@@ -661,7 +664,7 @@ class Home extends React.Component {
                 if(!buyEntryFlag && elementInside[3] <= buyentrySL){
                     var perChng = (buyentrySL - buyentry) * 100 / buyentry;
                     longTradeFound.sellEntyPrice = buyentrySL;
-                    longTradeFound.perChange = perChng.toFixed(2);
+                    longTradeFound.perChange = perChng;
                     longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
                     longTradeFound.exitStatus  = "SL_Hit"; 
                     break;
@@ -672,16 +675,17 @@ class Home extends React.Component {
             if(!buyEntryFlag && !longTradeFound.sellEntyPrice){
                 var perChng = (elementInside[4] - buyentry) * 100 / buyentry;
                 longTradeFound.buyExitPrice = elementInside[4];
-                longTradeFound.perChange = perChng && perChng.toFixed(2);
+                longTradeFound.perChange = perChng;
                 longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
                 longTradeFound.exitStatus  = "Market_End"; 
             }
 
-            if(!buyEntryFlag && Math.floor(100000 / buyentry)){
+            if(!buyEntryFlag && Math.floor(100000 / buyentry)  && longTradeFound.buyExitPrice){
                 var perChngOnHigh = (buyHighest - buyentry) * 100 / buyentry;
                 longTradeFound.highAndLow = buyHighest;
-                longTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
+                longTradeFound.perChngOnHighLow = perChngOnHigh;
                 longTradeFound.candleChartDataInside = resultCandle;
+                console.log(element.symbol, "longTradeFound",longTradeFound);
 
                 this.setState({ backTestResult: [...this.state.backTestResult, longTradeFound] });
             }
@@ -757,14 +761,10 @@ class Home extends React.Component {
                                 var start5thdate = moment(next5thCandle[0]).set({"hour": 9, "minute": 15});
                                 var end5thdate = moment(next5thCandle[0]).set({"hour": 15, "minute": 30});
                             
-                                var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
-                                var sellentySL = (firstCandle[2] - (firstCandle[2] / 100 / 10)).toFixed(2);
-
-
                                 var data = {
                                     "exchange": "NSE",
                                     "symboltoken": element.token,
-                                    "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                                    "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
                                     "fromdate": moment(start5thdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
                                     "todate": moment(end5thdate).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
                                 }
@@ -775,150 +775,6 @@ class Home extends React.Component {
 
                                     this.findLongsTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
                                     this.findShortTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
-
-                                    // var resultCandle = [], buyEntryFlag = true,  sellEntryFlag = true,  longTradeFound = {}, shortTradeFound={},  elementInside = '', buyHighest = 0, sellLowest = 0; 
-
-                                    // console.log(element.symbol, "result candle", histdataInside);
-
-                                    // if (histdataInside && histdataInside.length) {
-                                        
-                                    //     for (let insideIndex = 0; insideIndex < histdataInside.length; insideIndex++) {
-                                    //         elementInside = histdataInside[insideIndex];
-                                    //         resultCandle.push([elementInside[0],elementInside[1],elementInside[2],elementInside[3],elementInside[4]]); 
-
-                                    //         if(buyHighest < elementInside[2]){
-                                    //             buyHighest = elementInside[2]; 
-                                    //         }
-
-                                    //         if(buyEntryFlag && elementInside[2] > buyentry){
-                                    //             longTradeFound = {
-                                    //                 foundAt: "Long-" + new Date(firstCandle[0]).toLocaleString().substr(0,10),
-                                    //                 symbol: element.symbol,
-                                    //                 buyExitPrice: buyentry,
-                                    //                 stopLoss: buyentrySL,
-                                    //                 brokerageCharges: 0.06,
-                                    //                 quantity: Math.floor(10000 / buyentry),
-                                    //                 candleChartData : candleChartData,
-                                    //             }
-                                    //             buyEntryFlag = false; 
-                                    //         }
-                                                                                      
-                                    //         if(longTradeFound && elementInside[3] <= buyentrySL){
-                                    //             var perChng = (elementInside[3] - buyentry) * 100 / buyentry;
-                                    //             longTradeFound.sellEntyPrice = elementInside[3];
-                                    //             longTradeFound.perChange = perChng.toFixed(2);
-                                    //             longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                                    //             longTradeFound.exitStatus  = "SL_Hit"; 
-                                    //             break;
-                                    //         }
-
-                                    //         var longplPerChng = (elementInside[2] - buyentry) * 100 / buyentry;
-                                            
-                                    //         //trailing sl  
-                                    //         // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
-                                    //         // }
-
-                                    //         //flat 1% profit booking
-                                    //         if(longTradeFound && longplPerChng >= 1){
-                                    //             var sellEntyPrice = buyentry + buyentry * 1/100; 
-
-                                    //             var perChng = (elementInside[3] - buyentry) * 100 / buyentry;
-                                    //             longTradeFound.sellEntyPrice = sellEntyPrice;
-                                    //             longTradeFound.perChange = plPerChng.toFixed(2);
-                                    //             longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                                    //             longTradeFound.exitStatus  = "Flat_1%_Booked"; 
-                                    //             break;
-                                    //         }
-
-
-                                    //         //short trade 
-                                    //         if(elementInside[3] >= sellLowest){
-                                    //             sellLowest = elementInside[3]; 
-                                    //         }
-
-                                    //         if(sellEntryFlag && elementInside[2] > buyentry){
-                                    //             shortTradeFound = {
-                                    //                 foundAt: "Short-" + new Date(firstCandle[0]).toLocaleString().substr(0,10),
-                                    //                 symbol: element.symbol,
-                                    //                 sellEntyPrice: sellenty, 
-                                    //                 stopLoss: sellentySL,
-                                    //                 brokerageCharges: 0.06,
-                                    //                 quantity: Math.floor(10000 / sellenty),
-                                    //                 candleChartData : candleChartData,
-                                    //             }
-                                    //             sellEntryFlag = false; 
-                                    //         }
-                                                                                      
-                                    //         if(shortTradeFound && elementInside[2] >= sellentySL){
-                                    //             var perChng = (sellenty - elementInside[2]) * 100 / sellenty;
-                                    //             shortTradeFound.buyExitPrice = elementInside[2];
-                                    //             shortTradeFound.perChange = perChng.toFixed(2);
-                                    //             shortTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                                    //             shortTradeFound.exitStatus  = "SL_Hit"; 
-                                    //             break;
-                                    //         }
-
-                                    //         var plPerChng = (sellenty - elementInside[3]) * 100 / sellenty;
-                                            
-                                    //         //trailing sl  
-                                    //         // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
-                                    //         // }
-
-                                    //         //flat 1% profit booking
-                                    //         if(shortTradeFound && plPerChng >= 1){
-                                    //             var buyExitPrice = sellenty - sellenty * 1/100; 
-
-                                    //             var perChng = (sellenty - elementInside[3]) * 100 / sellenty;
-                                    //             shortTradeFound.buyExitPrice = buyExitPrice;
-                                    //             shortTradeFound.perChange = plPerChng.toFixed(2);
-                                    //             shortTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                                    //             shortTradeFound.exitStatus  = "Flat_1%_Booked"; 
-                                    //             break;
-                                    //         }
-
-
-                                    //     }
-
-                                    //     if(longTradeFound && !longTradeFound.sellEntyPrice){
-                                    //         var perChng = (elementInside[4] - buyentry) * 100 / buyentry;
-                                    //         longTradeFound.buyExitPrice = elementInside[4];
-                                    //         longTradeFound.perChange = perChng && perChng.toFixed(2);
-                                    //         longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                                    //         longTradeFound.exitStatus  = "Market_End"; 
-                                    //     }
-                                    //     var perChngOnHigh = (buyHighest - buyentry) * 100 / buyentry;
-                                    //     longTradeFound.highAndLow = buyHighest;
-                                    //     longTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
-                                    //     longTradeFound.candleChartDataInside = resultCandle;
-
-                                    //     if(longTradeFound && Math.floor(100000 / buyentry)){
-                                    //         this.setState({ backTestResult: [...this.state.backTestResult, longTradeFound] });
-                                    //     }
-
-
-                                    //     if(shortTradeFound && !shortTradeFound.buyExitPrice){
-                                    //         var perChng = (sellenty - elementInside[4]) * 100 / sellenty;
-                                    //         shortTradeFound.buyExitPrice = elementInside[4];
-                                    //         shortTradeFound.perChange = perChng && perChng.toFixed(2);
-                                    //         shortTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                                    //         shortTradeFound.exitStatus  = "Market_End"; 
-                                    //     }
-                                    //     var perChngOnHigh = (sellenty - sellLowest) * 100 / buyentry;
-                                    //     shortTradeFound.highAndLow = buyHighest;
-                                    //     shortTradeFound.perChngOnHighLow = perChngOnHigh.toFixed(2);
-                                    //     shortTradeFound.candleChartDataInside = resultCandle;
-
-                                    //     if(shortTradeFound && Math.floor(100000 / sellenty)){
-                                    //         this.setState({ backTestResult: [...this.state.backTestResult, shortTradeFound] });
-                                    //     }
-
-
-                                    //     console.log("shortTradeFound" , shortTradeFound); 
-                
-
-
-                                    // }
-
 
                         
                                 }).catch(error => {
