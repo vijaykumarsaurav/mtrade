@@ -21,6 +21,8 @@ import OrderStatusLive from "./MyTrade/OrderStatusLive";
 import Position from "./MyTrade/Position";
 
 import AddToWatchlist from "./MyTrade/AddToWatchlist";
+import SectorHeatMap from "./MyTrade/SectorHeatMap";
+
 
 const AppRouter = () => {
 
@@ -44,7 +46,8 @@ const AppRouter = () => {
                     <Route path="/order-status-live" component={OrderStatusLive}/>
                     <Route path="/position" component={Position}/>
                     <Route path="/addtowatchlist" component={AddToWatchlist}/>
-                    
+                    <Route path="/sector-heat-map" component={SectorHeatMap}/>
+
            
                     <Route path="*" component={LoginComponent} />
                     

@@ -19,7 +19,7 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import MyLogo from './mylogo.png';
 
 import Button from '@material-ui/core/Button';
-import  InvertColor from '../utils/InvertColor';
+import InvertColor from '../utils/InvertColor';
 import FoundPatternDialog from '../components/MyTrade/FoundPatternDialog'
 
 const drawerWidth = 240;
@@ -89,9 +89,9 @@ export default function PostLoginNavBar(props) {
 
     const [values] = React.useState({
         acquisitionCount: '',
-        resubmitCount:''
+        resubmitCount: ''
     });
-    
+
 
 
     const classes = useStyles();
@@ -113,7 +113,7 @@ export default function PostLoginNavBar(props) {
 
     var userProfile = localStorage.getItem("userProfile")
     userProfile = userProfile && JSON.parse(userProfile);
-    
+
     return (
 
         <div className={classes.root}>
@@ -137,66 +137,75 @@ export default function PostLoginNavBar(props) {
                         <MenuIcon />
                     </IconButton>
 
-                        <Grid
-                                justify="space-between"
-                                container
-                            >
+                    <Grid
+                        justify="space-between"
+                        container
+                    >
                         <Grid item >
-                        {/* <Typography variant="h6" noWrap>
+                            {/* <Typography variant="h6" noWrap>
                           M-Trade
                          </Typography> */}
-                           <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
+                            <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
                         </Grid>
 
                         <Grid item >
-                        <Typography variant="h6" noWrap>
-                        {localStorage.getItem('BankLtpltp')}
-                         </Typography>
-                         
+                            <Typography variant="h6" noWrap>
+                                {localStorage.getItem('BankLtpltp')}
+                            </Typography>
+
                         </Grid>
 
                         <Grid item >
 
-                                <Grid
-                                    container
-                                    spacing={1}
-                                    direction="row"
-                                    style={{ color: "white" }}
-                                >
+                            <Grid
+                                container
+                                spacing={1}
+                                direction="row"
+                                style={{ color: "white" }}
+                            >
 
-                               <Grid item>
-                               <FoundPatternDialog />
-                              </Grid>
+                                <Grid item>
+                                    <Button variant="outlined" color="primary" href={"/mtrade/#/sector-heat-map"}>
+                                        Sector Hit Map
+                                    </Button>
+                                </Grid>
 
 
-                    
-                             {/* <Grid item>
+                                <Grid item>
+                                    <FoundPatternDialog />
+                                </Grid>
+
+
+
+
+
+                                {/* <Grid item>
                                     <Button variant="outlined" color="primary"  autoFocus href={"#/addtowatchlist"}  >
                                        WList({localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')).length})
                                     </Button>
                               </Grid>
  */}
 
-                            <Grid item>
-                                    <Button variant="contained"  autoFocus href={"/mtrade/#/home"}  color="primary">
+                                <Grid item>
+                                    <Button variant="contained" autoFocus href={"/mtrade/#/home"} color="primary">
                                         Home
                                     </Button>
-                              </Grid>
-                        
-                              <Grid item>
-                                    <Button variant="contained"  autoFocus href={"/mtrade/#/position"}  color="primary">
-                                      Position
+                                </Grid>
+
+                                <Grid item>
+                                    <Button variant="contained" autoFocus href={"/mtrade/#/position"} color="primary">
+                                        Position
                                     </Button>
-                              </Grid>
-                           
+                                </Grid>
 
 
-                              {/* <Grid item>
+
+                                {/* <Grid item>
                                     <Button variant="contained"  autoFocus href={"#/order-status-live"}  color="secondary">
                                         Order Status Live
                                     </Button>
                               </Grid> */}
-                              
+
 
 
                                 {/* <Grid item>
@@ -219,7 +228,7 @@ export default function PostLoginNavBar(props) {
                                     </Button>
                               </Grid> */}
 
-                            {/* <Grid item>
+                                {/* <Grid item>
                                 <Typography  noWrap>
 
                                 <Button color="primary">
@@ -234,13 +243,13 @@ export default function PostLoginNavBar(props) {
                             </Grid> */}
 
 
-                        </Grid>
+                            </Grid>
 
 
 
                         </Grid>
 
-                        </Grid>
+                    </Grid>
 
                 </Toolbar>
             </AppBar>
@@ -255,7 +264,7 @@ export default function PostLoginNavBar(props) {
             >
                 <div className={classes.drawerHeader}>
                     {/* <img style={{ width: "207px" }} src={MyLogo} /> */}
-        
+
                     <InvertColor />
 
                     {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
@@ -265,7 +274,7 @@ export default function PostLoginNavBar(props) {
                     </IconButton>
                 </div>
 
-            
+
 
                 <Divider />
                 <List>{Menu.AdminMenuList}</List>
@@ -276,7 +285,7 @@ export default function PostLoginNavBar(props) {
                 <Divider />
                 <List>{Menu.LogoutMenu}</List>
 
-                
+
             </Drawer>
             <main
                 className={clsx(classes.content, {

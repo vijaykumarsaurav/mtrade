@@ -90,6 +90,35 @@ class MyView extends React.Component{
         //        }
         //    })
 
+        AdminService.getStaticData().then(res => {
+          var data = res.data;
+          //data = JSON.parse(data);   
+          localStorage.setItem('staticData', JSON.stringify(data));
+
+          var totalWatchlist = Object.keys(data);
+          this.setState({ totalWatchlist: totalWatchlist });
+          localStorage.setItem('totalWatchlist', JSON.stringify(totalWatchlist));
+
+          this.setState({ staticData: data });
+
+          var watchlist = [];
+          totalWatchlist.forEach(element => {
+
+              var mylist = data[element];
+              mylist.forEach(element2 => {
+                  var foundInWatchlist = watchlist.filter(row => row.token === element2.token);
+                  if (!foundInWatchlist.length) {
+                      watchlist.push(element2);
+                  }
+              });
+          });
+
+          localStorage.setItem('watchList', JSON.stringify(watchlist));
+
+      });
+
+
+
         var list = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
         this.setState({watchlistCount : list.length})
 

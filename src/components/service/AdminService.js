@@ -99,6 +99,14 @@ class AdminService {
     //     return axios.get(apiConstant.'', AuthService.getHeader());
     //  }
 
+    getIndiceStock(index){
+        return axios.get(apiConstant.getIndiceStockApi+index, '');
+    }
+
+    getAllIndices(){
+        return axios.get(apiConstant.allIndices, '');
+    }
+
 }
 
 

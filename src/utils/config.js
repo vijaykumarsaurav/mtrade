@@ -15,6 +15,9 @@ export const GetLTPAPI = 'https://apiconnect.angelbroking.com/rest/secure/angelb
 export const getCandleData = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData'; 
 export const getPosition =  'https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/getPosition';
 	
-export const getScannedStocks =  'http://localhost:8081/getScannedStocks'	
-export const getNseTopStocks =  'http://localhost:8081/getNseTopStocks'	
-export const getSelectedStock =  'http://localhost:8081/getSelectedStock'	
+export const getScannedStocks =  'http://localhost:8081/getScannedStocks';	
+export const getNseTopStocks =  'http://localhost:8081/getNseTopStocks';
+export const getSelectedStock =  'http://localhost:8081/getSelectedStock';	
+
+export const allIndices =  'https://www.nseindia.com/api/allIndices';	
+export const getIndiceStockApi =  'https://www.nseindia.com/api/equity-stockIndices?index=';	

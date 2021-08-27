@@ -79,7 +79,7 @@ export default function CustomizedDialogs(props) {
   return (
     <div>
       <Button variant="outlined" color="primary" onClick={handleClickOpen}>
-        Patterns ({foundPatternList && foundPatternList.length})
+        Patterns {foundPatternList && foundPatternList.length}
       </Button>
       <ChartDialog />
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>

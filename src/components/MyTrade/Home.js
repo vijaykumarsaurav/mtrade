@@ -59,6 +59,8 @@ class Home extends React.Component {
             quantity: 1,
             producttype: "INTRADAY",
             symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
+            totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
+            staticData : localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             selectedWatchlist: 'NIFTY BANK',
             longExitPriceType: 4,
             shortExitPriceType: 4,
@@ -67,7 +69,6 @@ class Home extends React.Component {
             backTestResultDateRange : [],
             searchFailed:0,
             FoundPatternList : localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
-            
 
         };
         this.myCallback = this.myCallback.bind(this);
@@ -102,7 +103,6 @@ class Home extends React.Component {
         this.setState({ symbolList: staticData[e.target.value] });
         if (e.target.value == "selectall") {
             this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) });
-
 
         }
 
@@ -147,15 +147,21 @@ class Home extends React.Component {
         return newarray.join('');
     }
 
-    makeConnection = (feedToken, clientcode) => {
+    makeConnection = () => {
 
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
         //  console.log("1st Request :- " + firstTime_req);
         wsClint.send(firstTime_req);
+
+        this.updateSocketWatch();
+
     }
 
-    updateSocketWatch = (feedToken, clientcode) => {
+    updateSocketWatch = () => {
 
+        
+
+        
         var channel = this.state.symbolList.map(element => {
             return 'nse_cm|' + element.token;
         });
@@ -168,100 +174,69 @@ class Home extends React.Component {
             "user": this.state.clientcode,
             "acctid": this.state.clientcode
         }
+
+        console.log("update watech", sbin); 
         wsClint.send(JSON.stringify(sbin));
     }
 
 
     componentDidMount() {
 
-        AdminService.getStaticData().then(res => {
-            var data = res.data;
-            //data = JSON.parse(data);   
-            var totalWatchlist = Object.keys(data);
-            this.setState({ totalWatchlist: totalWatchlist });
-            this.setState({ staticData: data });
-
-            var watchlist = [];
-            totalWatchlist.forEach(element => {
-
-                var mylist = data[element];
-                mylist.forEach(element2 => {
-                    var foundInWatchlist = watchlist.filter(row => row.token === element2.token);
-                    if (!foundInWatchlist.length) {
-                        watchlist.push(element2);
-                    }
-                });
-
-               
-            });
-
-            localStorage.setItem('watchList', JSON.stringify(watchlist));
-
-            this.setState({ symbolList: data[this.state.selectedWatchlist] });
-        });
+        this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] });
 
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
-
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
         var clientcode = userProfile && userProfile.clientcode;
         this.setState({ feedToken: feedToken, clientcode: clientcode });
 
 
-        wsClint.onopen  = (res) => {
+        var beginningTime = moment('9:15am', 'h:mma');
+        var endTime = moment('3:30pm', 'h:mma');
+        const friday = 5; // for friday
+        var currentTime = moment(new Date(), "h:mma");
+        const today = moment().isoWeekday();
+        //market hours
+        if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
+      
 
-            //  this.makeConnection();
-            //  this.updateSocketWatch(feedToken ,clientcode);
+            wsClint.onopen  = (res) => {
+                this.makeConnection();
+                this.updateSocketWatch();
+           }
+   
+           wsClint.onmessage = (message) => {
+               var decoded = window.atob(message.data);
+               var data = this.decodeWebsocketData(pako.inflate(decoded));
+               var liveData = JSON.parse(data);
+               var symbolListArray = this.state.symbolList; 
+               this.state.symbolList && this.state.symbolList.forEach((element, index)  => {
+                   var foundLive = liveData.filter(row => row.tk == element.token);
+                   if(foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc){
+                       symbolListArray[index].ltp = foundLive[0].ltp; 
+                       symbolListArray[index].nc = foundLive[0].nc; 
+                       console.log("foundLive", foundLive);
+                   }
+               });
+               symbolListArray && symbolListArray.sort(function (a, b) {
+                   return  b.nc - a.nc;
+               });
+               this.setState({symbolList : symbolListArray}); 
+           }
+   
+           wsClint.onerror = (e) => {
+               console.log("socket error", e);
+           }
+   
+           setInterval(() => {
+               this.makeConnection();
+               var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
+               // console.log("Request :- " + _req);
+               wsClint.send(_req);
+           }, 59000);
 
-            //  setTimeout(function(){
-            //    this.updateSocketWatch(feedToken ,clientcode);
-            //  }, 800);
+
         }
-
-        wsClint.onmessage = (message) => {
-
-
-            var decoded = window.atob(message.data);
-            var data = this.decodeWebsocketData(pako.inflate(decoded));
-            var liveData = JSON.parse(data);
-
-            this.state.symbolList && this.state.symbolList.forEach(element => {
-
-                var foundLive = liveData.filter(row => row.tk == element.token);
-
-
-                if (foundLive.length > 0 && foundLive[0].ltp)
-                    this.setState({ [element.symbol + 'ltp']: foundLive.length > 0 && foundLive[0].ltp })
-                if (foundLive.length > 0 && foundLive[0].cng)
-                    this.setState({ [element.symbol + 'nc']: foundLive.length > 0 && foundLive[0].nc })
-
-                var foundTweezerTop = localStorage.getItem('foundTweezerTop_' + element.token) && JSON.parse(localStorage.getItem('foundTweezerTop' + element.token));
-
-                if (foundTweezerTop && foundTweezerTop.symboltoken == element.token) {
-
-                    if (foundTweezerTop.entryBelow < foundLive[0].ltp) {
-                        console.log('TweezerTop ', foundTweezerTop.tradingsymbol, "entry found at ", foundLive[0].ltp);
-                        this.setState({ tradingsymbol: foundTweezerTop.tradingsymbol, symboltoken: foundTweezerTop.symboltoken, buyPrice: 0, producttype: 'INTRADAY', quantity: foundTweezerTop.quantity })
-                        //    this.placeOrder('SELL', "BUY"); 
-
-                    }
-
-                }
-
-            });
-
-        }
-
-        wsClint.onerror = (e) => {
-            console.log("socket error", e);
-        }
-
-        setInterval(() => {
-            var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-            // console.log("Request :- " + _req);
-            wsClint.send(_req);
-            //  this.makeConnection(feedToken ,clientcode );
-        }, 59000);
 
 
         var list = localStorage.getItem('watchList');
@@ -611,10 +586,12 @@ class Home extends React.Component {
 
     findLongsTraadeOnNextDay =(element, firstCandle, candleChartData, histdataInside)=>{
         var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10));
-       // var buyentrySL = (firstCandle[3] - (firstCandle[3] / 100 / 10));
-       var buyentrySL = (buyentry - (buyentry*1/100));   //1% SL
+//        var buyentrySL = (firstCandle[3] - (firstCandle[3] / 100 / 10));
+   //    var buyentrySL = (buyentry - (buyentry*1/100));   //1% SL
+       var buyentrySL = (buyentry - (buyentry*0.3/100));   //0.3% SL
 
-        var resultCandle = [], buyEntryFlag = true,  longTradeFound = {},   elementInside = '', buyHighest = histdataInside[0][2]; 
+
+        var resultCandle = [], buyEntryFlag = true, firstTimeTrail = true, trailCount =0,  longTradeFound = {},   elementInside = '', buyHighest = histdataInside[0][2]; 
 
 
         if (histdataInside && histdataInside.length) {
@@ -647,21 +624,70 @@ class Home extends React.Component {
 
                 var perChange = (elementInside[2] - buyentry) * 100 / buyentry;
                 
-                //trailing sl  
-                // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
+            
+                //flat 1% profit booking
+                // if(!buyEntryFlag && perChange >= 1){
+                //     var sellEntyPrice = buyentry + buyentry * 1/100; 
+                //     longTradeFound.sellEntyPrice = sellEntyPrice;
+                //     longTradeFound.perChange = perChange;
+                //     longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                //     longTradeFound.exitStatus  = "Flat_1%_Booked"; 
+                //     break;
                 // }
 
-                //flat 1% profit booking
-                if(!buyEntryFlag && perChange >= 1){
-                    var sellEntyPrice = buyentry + buyentry * 1/100; 
-                    longTradeFound.sellEntyPrice = sellEntyPrice;
-                    longTradeFound.perChange = perChange;
-                    longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                    longTradeFound.exitStatus  = "Flat_1%_Booked"; 
-                    break;
+                if(!buyEntryFlag){
+
+                        if(firstTimeTrail && perChange >= 0.7){
+                            trailCount +=1;
+                            var minPrice =  buyentry + (buyentry * 0.1/100);
+                            longTradeFound.sellEntyPrice = minPrice;
+                            longTradeFound.perChange = (minPrice - buyentry) * 100 / buyentry;
+                            longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                            longTradeFound.exitStatus  = "Trail by 0.1% "+trailCount + "time"; 
+                            firstTimeTrail = false; 
+                        }else{ 
+                            var lastTriggerprice =  longTradeFound.sellEntyPrice; 
+                            var perchngfromTriggerPrice = ((elementInside[2] - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
+                           
+                            var buyExitPricePer =  longTradeFound.buyExitPrice; 
+                            var buyExitPriceMinRange = ((elementInside[2] - buyExitPricePer)*100/buyExitPricePer).toFixed(2);   
+                           
+                            if(perchngfromTriggerPrice > 0.7){
+                                    trailCount +=1;
+                                    minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
+                                    longTradeFound.sellEntyPrice = minPrice;
+                                    longTradeFound.perChange = (minPrice - buyentry) * 100 / buyentry;
+                                    longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                                    longTradeFound.exitStatus  = "Trail by 0.25% "+trailCount + "time"; 
+                                   
+                            }else if(buyExitPriceMinRange >= 0.3 && buyExitPriceMinRange <= 0.4){
+                                trailCount +=1;
+                                minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
+                                longTradeFound.sellEntyPrice = minPrice;
+                                longTradeFound.perChange = (minPrice - buyentry) * 100 / buyentry;
+                                longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                                longTradeFound.exitStatus  = "Min range 0.3 -0.4% "+trailCount + "time"; 
+                                break; 
+                            }
+
+                        }
+
+                        
+
+
+
+
+                        if(elementInside[3] <= longTradeFound.sellEntyPrice){
+                            console.log(element.symbol, "trail hit elementInside[3] <= sellEntyPrice", elementInside[3] , longTradeFound.sellEntyPrice,  new Date(elementInside[0]).toLocaleString()); 
+                            break; 
+                        }
+
                 }
 
+                
                 if(!buyEntryFlag && elementInside[3] <= buyentrySL){
+                    console.log(element.symbol, "SL hit elementInside[3] <= buyentrySL", elementInside[3] , buyentrySL,  new Date(elementInside[0]).toLocaleString()); 
+
                     var perChng = (buyentrySL - buyentry) * 100 / buyentry;
                     longTradeFound.sellEntyPrice = buyentrySL;
                     longTradeFound.perChange = perChng;
@@ -774,7 +800,7 @@ class Home extends React.Component {
                                     histdataInside =  histdataInside && histdataInside.data; 
 
                                     this.findLongsTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
-                                    this.findShortTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
+                                   // this.findShortTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
 
                         
                                 }).catch(error => {
@@ -1772,6 +1798,8 @@ class Home extends React.Component {
 
     LoadSymbolDetails = (name) => {
 
+        console.log("this.state.symbolList", this.state.symbolList);
+
         var token = '';
         for (let index = 0; index < this.state.symbolList.length; index++) {
             if (this.state.symbolList[index].symbol === name) {
@@ -1877,9 +1905,7 @@ class Home extends React.Component {
             }
 
             this.setState({ symbolList: JSON.parse(localStorage.getItem('watchList')), search: "" });
-            setTimeout(() => {
-                this.updateSocketWatch();
-            }, 100);
+            this.updateSocketWatch();
 
         }
 
@@ -2004,7 +2030,7 @@ class Home extends React.Component {
                             {this.state.symbolList && this.state.symbolList.length ? this.state.symbolList.map(row => (
                                 <>
                                     <ListItem button style={{ fontSize: '12px' }} >
-                                        <ListItemText style={{ color: this.state[row.symbol + 'nc'] > 0 ? '' : "" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {this.state[row.symbol + 'ltp']} ({this.state[row.symbol + 'nc']}%) <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />
+                                        <ListItemText style={{ color: !row.nc  || row.nc == 0 ? "" : row.nc > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {row.ltp} ({row.nc}%) <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />
                                     </ListItem>
 
                                 </>

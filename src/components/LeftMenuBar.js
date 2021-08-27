@@ -8,18 +8,18 @@ import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
 import AdminService from "./service/AdminService";
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 //import RouterComponent from '../RouterComponent'; 
-
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 export const AdminMenuList = (
 
   <div>
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
-    <ListItem button component='a' href={"/mtrade/#/livefeed"} >  
+    <ListItem button component='a' href={"/mtrade/#/sector-heat-map"} >  
       <ListItemIcon>
-        <EmojiEmotionsIcon />
+        <ShowChartIcon />
       </ListItemIcon>
-      <ListItemText primary="Live Feed" />
+      <ListItemText primary="Sector Heat Map" />
     </ListItem>
 
     <ListItem button component='a' href={"/mtrade/#/position"} >  
@@ -71,12 +71,12 @@ export const AdminMenuList = (
       <ListItemText primary="Sector Top" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/test"} >  
+    {/* <ListItem button component='a' href={"/mtrade/#/test"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Exprement - Research" />
-    </ListItem>
+    </ListItem> */}
   
 
 

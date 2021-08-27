@@ -134,7 +134,15 @@ app.post('/addIntoStaticData', function (req, res) {
 
    // console.log("body", req.body);
    // var path = '/Users/B0208058/Documents/m-trade/public/staticData.json';
-    var path = 'C:/Users/AkashWay/mtrade/LearnNew/public/staticData.json';
+
+   
+   var path = __dirname.split('/')
+   path.pop(); 
+   console.log(__dirname, path); 
+   path = path && path.join('/'); 
+   path = path + "/public/staticData.json"; 
+
+//    var path = 'C:/Users/AkashWay/mtrade/LearnNew/public/staticData.json';
     fs.readFile(path, 'utf8', function readFileCallback(err, data){
         if (err){
             console.log(err);
