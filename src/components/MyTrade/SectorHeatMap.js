@@ -13,13 +13,17 @@ import { connect } from "react-redux";
 import { setPackLoaded } from "../../action";
 import Spinner from "react-spinner-material";
 import * as moment from 'moment';
-
+import { resolveResponse } from "../../utils/ResponseHandler";
 import "./ViewStyle.css";
 import MyDialog from './MyDialog'
 import Notify from "../../utils/Notify";
 import PostLoginNavBar from "../PostLoginNavbar";
 import pako from 'pako';
 import { w3cwebsocket } from 'websocket';
+import ChartDialog from './ChartDialog'; 
+import LineChart from "./LineChart";
+import ReactApexChart from "react-apexcharts";
+
 
 const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
 
@@ -32,7 +36,10 @@ class MyView extends React.Component {
             // sectorList: [],
             stopnview: '',
             indexTimeStamp: '',
-            sectorList: JSON.parse(localStorage.getItem('sorteIndexList')),
+            refreshFlag:true, 
+            refreshFlagCandle: true, 
+            sectorStockList : localStorage.getItem('sectorStockList') && JSON.parse(localStorage.getItem('sectorStockList')) || [],
+            sectorList:   localStorage.getItem('sectorList') && JSON.parse(localStorage.getItem('sectorList')) || [],
             watchList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
             staticData : localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
         }
@@ -41,7 +48,7 @@ class MyView extends React.Component {
 
     componentDidMount() {
 
-        this.loadPackList();
+      //  this.loadPackList();
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
@@ -69,9 +76,9 @@ class MyView extends React.Component {
                var liveData = JSON.parse(data);
                var sectorList = this.state.sectorList; 
                
-               this.state.sectorList && this.state.sectorList.forEach((element, index)  => {
+               this.state.sectorList && this.state.sectorList.forEach((outerEelement, index)  => {
 
-                    element.stockList.forEach((element, stockIndex) => {
+                    outerEelement.stockList.forEach((element, stockIndex) => {
                         var foundLive = liveData.filter(row => row.tk == element.token);
                         if(foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc){
                             sectorList[index].stockList[stockIndex].ltp = foundLive[0].ltp; 
@@ -88,6 +95,8 @@ class MyView extends React.Component {
                });
               
                this.setState({sectorList : sectorList}); 
+               localStorage.setItem('sectorList', JSON.stringify(sectorList)); 
+
            }
    
            wsClint.onerror = (e) => {
@@ -100,6 +109,14 @@ class MyView extends React.Component {
                // console.log("Request :- " + _req);
                wsClint.send(_req);
            }, 59000);
+           
+           setInterval(() => {
+             this.loadPackList(); 
+           }, 120000);
+
+           setInterval(() => {
+            this.refreshSectorCandle(); 
+          }, 60000 * 5);
 
 
         }
@@ -108,7 +125,203 @@ class MyView extends React.Component {
 
     }
 
-    decodeWebsocketData = (array) => {
+    
+    
+
+    loadPackList() {
+
+        this.setState({ indexTimeStamp: '' })
+        this.setState({refreshFlag : false}); 
+
+
+        AdminService.getAllIndices()
+            .then((res) => {
+                if (res.data) {
+
+                    var data = res.data;
+
+                    this.setState({ indexTimeStamp: data.timestamp })
+
+                    var foundSectors = data.data.filter(row => row.key === "SECTORAL INDICES");
+                    var softedData = foundSectors.sort(function (a, b) { return b.percentChange - a.percentChange });
+                
+                    // this.speckIt("1st sector is " + softedData[0].indexSymbol + ' ' + softedData[0].percentChange + '%');
+                    // this.speckIt("2nd sector is " + softedData[1].indexSymbol + ' ' + softedData[1].percentChange + '%');
+                    // this.speckIt("3rd sector is " + softedData[2].indexSymbol + ' ' + softedData[2].percentChange + '%');            
+                    for (let i = 0; i < softedData.length; i++) {
+                        var sectorStocks = this.state.staticData[softedData[i].index]; 
+                        softedData[i].stockList = sectorStocks;
+                        for (let index = 0; index < sectorStocks.length; index++) {
+                            var foundInWatchlist = this.state.sectorStockList.filter(row => row.token  == sectorStocks[index].token);                                
+                            if(!foundInWatchlist.length){
+                                this.setState({ sectorStockList: [...this.state.sectorStockList, sectorStocks[index]] });
+                            }
+                        }
+                    }
+
+                    
+
+                    this.setState({ sectorList: softedData});
+                    localStorage.setItem('sectorList', JSON.stringify(softedData)); 
+
+                    console.log("softedData", softedData); 
+                    this.refreshSectorLtp(); 
+                }
+
+            })
+            .catch((reject) => {
+                Notify.showError("All Indices API Failed" + <br /> + reject);
+                this.speckIt("All Indices API Failed");
+                this.setState({refreshFlag : true}); 
+
+            })
+
+        
+    }
+
+
+    refreshSectorLtp = async() => {
+
+        this.setState({refreshFlag : false,  failedCount : 0}); 
+
+        var sectorStockList =  this.state.sectorStockList; 
+
+        console.log("sectorStockList", this.state.sectorStockList.length);
+
+
+        for (let index = 0; index < this.state.sectorStockList.length; index++) {
+
+            var data  = {
+                "exchange":"NSE",
+                "tradingsymbol": this.state.sectorStockList[index].symbol,
+                "symboltoken":this.state.sectorStockList[index].token,
+            }
+
+            this.setState({ stockUpdate: index+1 + ". " + this.state.sectorStockList[index].symbol }); 
+
+           AdminService.getLTP(data).then(res => {
+                let data = resolveResponse(res, 'noPop');
+                 var LtpData = data && data.data; 
+                 
+              //   console.log(this.state.sectorStockList[index].symbol, this.state.sectorStockList[index].token, LtpData);
+
+                 if(LtpData.ltp){
+                    var todayChange =  (LtpData.ltp - LtpData.open)*100/LtpData.open;   //close
+                     sectorStockList[index].ltp = LtpData.ltp; 
+                     sectorStockList[index].nc = todayChange.toFixed(2); 
+                     sectorStockList[index].cng =  (LtpData.ltp - LtpData.open).toFixed(2); 
+                 } 
+
+                 var sectorList = this.state.sectorList; 
+                 this.state.sectorList && this.state.sectorList.forEach((outerEelement, index)  => {
+                     outerEelement.stockList.forEach((element, stockIndex) => {
+                         var foundLive = sectorStockList.filter(row => row.token == element.token);
+                         console.log(this.state.sectorStockList[index].symbol, this.state.sectorStockList[index].token, foundLive);
+                         
+                         if(foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc){
+                             sectorList[index].stockList[stockIndex].ltp = foundLive[0].ltp; 
+                             sectorList[index].stockList[stockIndex].nc = foundLive[0].nc; 
+                             sectorList[index].stockList[stockIndex].cng = foundLive[0].cng; 
+                         } 
+                     }); 
+                     sectorList[index].stockList.sort(function (a, b) {
+                         return  b.nc - a.nc;
+                     });
+                });
+                this.setState({ sectorList: sectorList });  
+                localStorage.setItem('sectorList', JSON.stringify(sectorList)); 
+
+                
+           }).catch(error => {
+            this.setState({ failedCount:  this.state.failedCount + 1 + " Ltp failed " }); 
+
+            Notify.showError(this.state.sectorStockList[index].symbol + " ltd data not found!");
+           })
+
+            await new Promise(r => setTimeout(r, 101)); 
+       }
+
+       this.setState({  refreshFlag : true }); 
+     }
+
+
+     refreshSectorCandle = async() => {
+
+        this.setState({refreshFlagCandle : false}); 
+
+        var sectorStockList =  this.state.sectorStockList; 
+
+        console.log("sectorStockList", this.state.sectorStockList.length);
+
+
+        for (let index = 0; index < this.state.sectorStockList.length; index++) {
+            var beginningTime = moment('9:15am', 'h:mma');
+
+            const format1 = "YYYY-MM-DD HH:mm";
+            var beginningTime = moment('9:15am', 'h:mma').format(format1);
+
+            console.log("beginningTime", beginningTime); 
+
+            var time = moment.duration("28:10:00");
+            var startdate = moment(new Date()).subtract(time);
+
+            var data = {
+                "exchange": "NSE",
+                "symboltoken": this.state.sectorStockList[index].token,
+                "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+            }
+
+            this.setState({ stockUpdate: index+1 + ". " + this.state.sectorStockList && this.state.sectorStockList[index].symbol }); 
+
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res, 'noPop');
+                //console.log("candle history", histdata); 
+                if (histdata && histdata.data && histdata.data.length) {
+
+                    var candleData = histdata.data;
+                    var candleChartData = []; 
+                    candleData.forEach(element => {
+                        candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
+                    });
+
+
+                    if(candleData.length > 0){     
+
+                         sectorStockList[index].candleChartData = candleChartData; 
+                         var sectorList = this.state.sectorList; 
+                         this.state.sectorList && this.state.sectorList.forEach((outerEelement, index)  => {
+                             outerEelement.stockList.forEach((element, stockIndex) => {
+                                 var foundLive = sectorStockList.filter(row => row.token == element.token);
+                                 
+                                 if(foundLive.length){
+                                     sectorList[index].stockList[stockIndex].candleChartData = foundLive[0].candleChartData; 
+                                 } 
+                             }); 
+                        });
+                        this.setState({ sectorList: sectorList });  
+                        localStorage.setItem('sectorList', JSON.stringify(sectorList)); 
+                     } 
+    
+                } else {
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(this.state.sectorStockList[index].symbol , "  emply candle found");
+                }
+            }).catch(error => {
+                this.setState({ failedCount:  (this.state.failedCount + 1) + " candle failed " }); 
+
+                Notify.showError(this.state.sectorStockList[index].symbol + " candle failed!");
+            })
+
+            await new Promise(r => setTimeout(r, 350)); 
+       }
+
+       this.setState({  refreshFlagCandle : true }); 
+     }
+
+     decodeWebsocketData = (array) => {
         var newarray = [];
         try {
             for (var i = 0; i < array.length; i++) {
@@ -127,6 +340,21 @@ class MyView extends React.Component {
 
         this.updateSocketWatch();
 
+    }
+
+    showCandleChart = (candleData, symbol, price, change) => {
+
+
+      //  candleData  = candleData && candleData.reverse();
+
+        localStorage.setItem('candleChartData', JSON.stringify(candleData)); 
+        localStorage.setItem('cadleChartSymbol', symbol); 
+        localStorage.setItem('candlePriceShow', price); 
+        localStorage.setItem('candleChangeShow', change); 
+
+        if(candleData && candleData.length > 0){
+            document.getElementById('showCandleChart').click();
+        }
     }
 
     updateSocketWatch = () => {
@@ -151,102 +379,6 @@ class MyView extends React.Component {
     }
 
 
-    loadPackList() {
-
-
-        AdminService.getAllIndices()
-            .then((res) => {
-                if (res.data) {
-
-                    var data = res.data;
-
-                    this.setState({ indexTimeStamp: data.timestamp })
-
-                    var foundSectors = data.data.filter(row => row.key === "SECTORAL INDICES");
-                    var softedData = foundSectors.sort(function (a, b) { return b.percentChange - a.percentChange });
-                
-                    // this.speckIt("1st sector is " + softedData[0].indexSymbol + ' ' + softedData[0].percentChange + '%');
-                    // this.speckIt("2nd sector is " + softedData[1].indexSymbol + ' ' + softedData[1].percentChange + '%');
-                    // this.speckIt("3rd sector is " + softedData[2].indexSymbol + ' ' + softedData[2].percentChange + '%');            
-                    
-                    for (let i = 0; i < softedData.length; i++) {
-                        softedData[i].stockList = this.state.staticData[softedData[i].index];
-                    }
-
-                    this.setState({ sectorList: softedData });
-                    localStorage.setItem('sorteIndexList', JSON.stringify(softedData));
-
-                    // this.getIndicesStocks(softedData[0].indexSymbol,0);
-                    // this.getIndicesStocks(softedData[1].indexSymbol,1);
-                    // this.getIndicesStocks(softedData[2].indexSymbol,2);
-
-
-                }
-
-            })
-            .catch((reject) => {
-
-                Notify.showError("All Indices API Failed" + <br /> + reject);
-                this.speckIt("All Indices API Failed");
-
-            })
-    }
-
-
-    getIndicesStocks = (indexSymbol, index) => {
-
-
-
-        AdminService.getIndiceStock(indexSymbol)
-            .then((res) => {
-                console.log(res.data)
-
-                var resdata = res.data;
-                Notify.showSuccess("Success, Top is" + resdata.data[1].symbol);
-                this.speckIt("1st top " + indexSymbol + " stock is " + resdata.data[1].symbol.toLocaleLowerCase() + ' high of ' + resdata.data[1].pChange + "%");
-                this.speckIt("2nd top " + indexSymbol + " stock is " + resdata.data[2].symbol.toLocaleLowerCase() + ' high of ' + resdata.data[2].pChange + "%");
-                this.speckIt("3rd top " + indexSymbol + " stock is " + resdata.data[3].symbol.toLocaleLowerCase() + ' high of ' + resdata.data[3].pChange + "%");
-
-
-                if (resdata) {
-                    localStorage.setItem(indexSymbol, JSON.stringify(resdata));
-
-
-
-                    if (document.getElementById('topDate_' + index)) {
-                        document.getElementById('topDate_' + index).innerHTML = resdata.timestamp.substring(12, 23);
-                    }
-                    var percent = 0;
-
-                    if (document.getElementById('top1_' + index)) {
-                        percent = resdata.data[1].pChange > 0 ? '<span style="color:green">' + resdata.data[1].pChange + '</span>' : '<span style="color:red">' + resdata.data[1].pChange + '</span>';
-                        document.getElementById('top1_' + index).innerHTML = resdata.data[1].symbol + ' ' + resdata.data[1].lastPrice + '(' + percent + ')';
-                    }
-                    if (document.getElementById('top2_' + index)) {
-                        percent = resdata.data[2].pChange > 0 ? '<span style="color:green">' + resdata.data[2].pChange + '</span>' : '<span style="color:red">' + resdata.data[2].pChange + '</span>';
-                        document.getElementById('top2_' + index).innerHTML = resdata.data[2].symbol + ' ' + resdata.data[2].lastPrice + '(' + percent + ')';
-                    }
-                    if (document.getElementById('top3_' + index)) {
-                        percent = resdata.data[3].pChange > 0 ? '<span style="color:green">' + resdata.data[3].pChange + '</span>' : '<span style="color:red">' + resdata.data[3].pChange + '</span>';
-                        document.getElementById('top3_' + index).innerHTML = resdata.data[3].symbol + ' ' + resdata.data[3].lastPrice + '(' + percent + ')';
-                    }
-                    if (document.getElementById('top4_' + index)) {
-                        percent = resdata.data[4].pChange > 0 ? '<span style="color:green">' + resdata.data[4].pChange + '</span>' : '<span style="color:red">' + resdata.data[4].pChange + '</span>';
-                        document.getElementById('top4_' + index).innerHTML = resdata.data[4].symbol + ' ' + resdata.data[4].lastPrice + '(' + percent + ')';
-                    }
-                    if (document.getElementById('top5_' + index)) {
-                        percent = resdata.data[5].pChange > 0 ? '<span style="color:green">' + resdata.data[5].pChange + '</span>' : '<span style="color:red">' + resdata.data[5].pChange + '</span>';
-                        document.getElementById('top5_' + index).innerHTML = resdata.data[5].symbol + ' ' + resdata.data[5].lastPrice + '(' + percent + ')';
-                    }
-                }
-
-            })
-            .catch((reject) => {
-                Notify.showError(indexSymbol + " Failed" + <br /> + reject);
-                this.speckIt(indexSymbol + " API Failed ");
-            })
-
-    }
 
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value });
@@ -258,53 +390,37 @@ class MyView extends React.Component {
         //  window.speechSynthesis.speak(msg);
     }
 
-    
-    getPercentageColor = (pct) => {
-            var percentColors = [
-                { pct: 0.0, color: { r: 0xff, g: 0x00, b: 0 } },
-                { pct: 0.5, color: { r: 0xff, g: 0xff, b: 0 } },
-                { pct: 1.0, color: { r: 0x00, g: 0xff, b: 0 } } ];
-
-        for (var i = 1; i < percentColors.length - 1; i++) {
-            if (pct < percentColors[i].pct) {
-                break;
-            }
-        }
-        var lower = percentColors[i - 1];
-        var upper = percentColors[i];
-        var range = upper.pct - lower.pct;
-        var rangePct = (pct - lower.pct) / range;
-        var pctLower = 1 - rangePct;
-        var pctUpper = rangePct;
-        var color = {
-            r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
-            g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
-            b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
-        };
-        return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
-        // or output as hex if preferred
-    };
-
+    getPercentageColor =(percent) => {
+        percent =   percent  * 100; 
+        var  r = percent<50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
+        var g = percent>50 ? 255 : Math.floor((percent*2)*255/100);
+        return 'rgb('+r+','+g+',0)';
+    }
 
     render() {
-        console.log("sectorList", this.state.sectorList)
-
-
-        console.log("staticData", this.state.staticData)
+       // console.log("sectorList", this.state.sectorList)
+     //   console.log("sectorStockList", this.state.sectorStockList)
 
         return (
             <React.Fragment>
                 <PostLoginNavBar />
 
+                <ChartDialog />
 
 
 
-
-                <Grid direction="row" container className="flexGrow" spacing={2} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
+                <Grid direction="row" container className="flexGrow" spacing={1} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
                     <Grid item xs={12} sm={12} >
                         <Typography component="h3" variant="h6" color="primary" >
-                            Sectors at {this.state.indexTimeStamp}
+                            Sectors Stocks({this.state.sectorStockList.length}) at {this.state.indexTimeStamp}   
+                            {this.state.refreshFlag ? <Button variant="contained" onClick={() =>   this.loadPackList()}>Live Ltp</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </> }
+                            {this.state.failedCount} 
+
+
+                            {this.state.refreshFlagCandle ? <Button variant="contained" onClick={() =>   this.refreshSectorCandle()}>Refresh Candle</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </> }
+
                         </Typography>
+                        
                     </Grid>
 
 
@@ -314,24 +430,58 @@ class MyView extends React.Component {
                       
                         <Grid item xs={12} sm={3}>
 
-                            <Paper style={{ padding: '10px'}}> 
+                            <Paper style={{ padding: '10px', background: "lightgray"}}> 
 
                            
-                            <Typography style={{color: this.getPercentageColor(indexdata.percentChange)}}>
-                                    {indexdata.index + " " + indexdata.last}({indexdata.percentChange})
+                            <Typography>
+                                    {indexdata.index + " " + indexdata.last}({indexdata.percentChange}%) 
                              </Typography>
 
                             
-                            <Grid direction="row" container className="flexGrow" spacing={1} style={{  }}>
+                            <Grid  direction="row" container className="flexGrow"  spacing={1} >
 
                             
                                 {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
-                                        <Paper style={{ padding: '10px', background: this.getPercentageColor(sectorItem.cng)}} > 
-                                            <Grid item xs={12} sm={3} >
-                                                {sectorItem.name} {sectorItem.ltp}<br/>
-                                                {sectorItem.cng}({sectorItem.nc}) 
+                                        
+                                            <Grid item  xs={12} sm={6} >
+                                                <Paper  style={{cursor: 'pointer' , textAlign: "center", background: this.getPercentageColor(sectorItem.cng)}} > 
+
+                                                    {/* {sectorItem.cng} */}
+                                                    <span onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp,sectorItem.nc )}  style={{background: this.getPercentageColor(sectorItem.cng)}}>  {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%) </span> 
+                                                    {/* <LineChart candleChartData={sectorItem.candleChartData}/> */}
+
+                                                    <ReactApexChart 
+                                                        options={{
+                                                                chart: {
+                                                                    type: 'candlestick',
+                                                                  //  height: 40
+
+                                                                },
+                                                                title: {
+                                                                    text: '',
+                                                                    align: 'left'
+                                                                },
+                                                                xaxis: {
+                                                                    type: 'datetime',
+                                                                },
+                                                                yaxis: {
+                                                                    tooltip: {
+                                                                    enabled: true
+                                                                    }
+                                                                }
+                                                            }}
+                                                            series={[{
+                                                                data:  sectorItem.candleChartData 
+                                                                
+                                                            }]} 
+                                                            type="candlestick" 
+                                                           // width={100}
+                                                           // height={40} 
+                                                    />
+
+                                                </Paper>
                                             </Grid>
-                                        </Paper>
+                                      
                                   ))
                                 }
 

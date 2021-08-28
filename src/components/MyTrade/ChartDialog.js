@@ -87,17 +87,18 @@ export default function CustomizedDialogs(props) {
       </Button>
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
         <DialogTitle id="customized-dialog-title" onClose={handleClose}>
-        {localStorage.getItem('cadleChartSymbol')} 
+        {localStorage.getItem('cadleChartSymbol')}   {localStorage.getItem('candlePriceShow')}  ({localStorage.getItem('candleChangeShow')}%)
         <br />
 
-        <span style={{fontSize:'12px'}}>  
+        {localStorage.getItem('chartInfoDetails') ? <span style={{fontSize:'12px'}}>  
         <b>FoundAt:</b>  {localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).foundAt.substr(0, 16)} &nbsp;&nbsp;
         <b>Buy: </b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).buyExitPrice} &nbsp;&nbsp;
         <b>Sell: </b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).sellEntyPrice} &nbsp;&nbsp;
         <b>Change %: </b>  {localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).perChange} &nbsp;&nbsp;    <br />
         <b>Change on High/Low %: </b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).perChange} &nbsp;&nbsp;
         <b>SquareOffAt:</b>{localStorage.getItem('chartInfoDetails') && JSON.parse(localStorage.getItem('chartInfoDetails')).squareOffAt}
-        </span>
+        </span> : ""}
+        
       
         </DialogTitle>
         <DialogContent dividers id="chart">
@@ -130,7 +131,7 @@ export default function CustomizedDialogs(props) {
                       }
                   }}
                   series={[{
-                    data:  JSON.parse(localStorage.getItem('candleChartData'))
+                    data:  localStorage.getItem('candleChartData') && JSON.parse(localStorage.getItem('candleChartData'))
                       
                   }]} 
                   type="candlestick" 
@@ -139,33 +140,34 @@ export default function CustomizedDialogs(props) {
           />
 
 
-          <ReactApexChart 
-            options={{
-                      chart: {
-                        type: 'candlestick',
-                        height: 350
-                      },
-                      title: {
-                          text: '',
-                          align: 'left'
-                      },
-                      xaxis: {
-                          type: 'datetime',
-                      },
-                      yaxis: {
-                          tooltip: {
-                          enabled: true
-                          }
-                      }
-                  }}
-                  series={[{
-                    data:  JSON.parse(localStorage.getItem('candleChartDataInside'))
-                      
-                  }]} 
+                  { localStorage.getItem('candleChartDataInside') ? <ReactApexChart 
+                    options={{
+                              chart: {
+                                type: 'candlestick',
+                                height: 350
+                              },
+                              title: {
+                                  text: '',
+                                  align: 'left'
+                              },
+                              xaxis: {
+                                  type: 'datetime',
+                              },
+                              yaxis: {
+                                  tooltip: {
+                                  enabled: true
+                                  }
+                              }
+                          }}
+                          series={[{
+                            data:  localStorage.getItem('candleChartDataInside') && JSON.parse(localStorage.getItem('candleChartDataInside'))
+                              
+                          }]} 
                   type="candlestick" 
                   width={500}
                   height={350} 
-          />
+          />: ""}
+          
 
 
 
