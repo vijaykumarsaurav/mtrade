@@ -103,7 +103,7 @@ export default function SignIn(props) {
             label="Remember me"
           /> */}
           <Button
-            type="button"
+            type="submit"
             fullWidth
             variant="contained"
             color="primary"

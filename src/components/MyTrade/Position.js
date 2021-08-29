@@ -94,6 +94,8 @@ class Home extends React.Component{
                 } 
             }, 1000);
 
+
+
             var foundPatternsFromStored = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
 
             setInterval(() => {
@@ -1249,23 +1251,26 @@ class Home extends React.Component{
                        // console.log("candle history", histdata); 
                         if(histdata && histdata.data && histdata.data.length){
                            
+                           
                             var candleData = histdata.data, clossest =0, lowerest=0, highestHigh = 0, lowestLow=0; 
                             candleData.reverse(); 
-
+                            lowestLow = candleData[0][3]; 
+                            highestHigh = candleData[0][2]; 
                             if(candleData && candleData.length>0){
                                 for (let index = 0; index < 20; index++) {
                                     if(candleData[index]){
                                         clossest += candleData[index][4]; //close  
                                         lowerest += candleData[index][3];  //low
-                                        if(candleData[index][4] > highestHigh ){
-                                            highestHigh = candleData[index][4];  
+                                        if(candleData[index][2] > highestHigh){
+                                            console.log( index, highestHigh,  candleData[index][2]); 
+                                            highestHigh = candleData[index][2];  
                                         }
-                                        if(lowestLow < candleData[index][3]){
+                                        if(candleData[index][3] <= lowestLow){
                                             lowestLow = candleData[index][3];  
                                         }
                                     }
-                                    
                                 }
+
 
                                 let devideLen = candleData.length > 20 ? 20 : candleData.length; 
     
@@ -1309,55 +1314,7 @@ class Home extends React.Component{
        // await new Promise(r => setTimeout(r, 2000)); 
     }
 
-    onSelectItem = (event, values) =>{
-    
-        var autoSearchTemp = JSON.parse( localStorage.getItem('autoSearchTemp')); 
-        if(autoSearchTemp.length> 0){
-            var fdata = '';       
-             for (let index = 0; index < autoSearchTemp.length; index++) {
-                console.log("fdata", autoSearchTemp[index].symbol); 
-                if( autoSearchTemp[index].symbol === values){
-                 fdata = autoSearchTemp[index];
-                 break;
-                }  
-             }
-           
-             var list = localStorage.getItem('watchList');
-             if(!list){
-                var data = []; 
-                data.push(fdata); 
-                localStorage.setItem('watchList',  JSON.stringify(data)); 
-             }else{
-                list = JSON.parse( localStorage.getItem('watchList'));
-                var found = list.filter(row => row.symbol  === values);
-                if(found.length === 0){
-                    list.push(fdata); 
-                    localStorage.setItem('watchList',  JSON.stringify(list)); 
-                }
-               
-             }
-          
-            setTimeout(() => {
-                this.updateSocketWatch();
-            }, 100);
-            
-        }
-     
-    }
-
-    getAveragePrice =(orderId) => {
-
-       var  oderbookData = localStorage.getItem('oderbookData');
-       var averageprice = 0; 
-        for (let index = 0; index < oderbookData.length; index++) {
-           if(oderbookData[index].orderid ===  'orderId'){
-            averageprice =oderbookData[index].averageprice 
-            this.setState({ averageprice : averageprice });
-            break;
-           }
-        } 
-        return averageprice;
-    }
+  
 
     cancelOrderOfSame = (row) =>  {
        
@@ -1515,14 +1472,26 @@ class Home extends React.Component{
         return minPrice; 
     }
 
-    getPercentage = (avgPrice,  ltp , row) =>  {
+    getPercentage = (totalbuyavgprice, totalsellavgprice,  ltp , row) =>  {
 
-        avgPrice =  parseFloat(avgPrice); 
-        var percentChange = ((ltp - avgPrice)*100/avgPrice).toFixed(2); 
+        totalbuyavgprice =  parseFloat(totalbuyavgprice); 
+        totalsellavgprice =  parseFloat(totalsellavgprice); 
 
-      //  console.log(row.symbolname,  'chng %',percentChange);
-         if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange > 0.7){
-                var minPrice =  avgPrice + (avgPrice * 0.1/100);
+
+
+        var percentChange = 0; 
+        if(totalbuyavgprice){
+            percentChange =  ((ltp - totalbuyavgprice)*100/totalbuyavgprice); 
+        }
+        if(totalsellavgprice){
+            percentChange =  ((totalsellavgprice - ltp)*100/totalsellavgprice); 
+        }
+       
+         if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.7){
+                if(totalbuyavgprice)   
+                var minPrice =  totalbuyavgprice + (totalbuyavgprice * 0.1/100);
+                if(totalsellavgprice)   
+                var minPrice =  totalsellavgprice - (totalsellavgprice * 0.1/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrderMethod(row, minPrice);
          }else{
@@ -1534,9 +1503,14 @@ class Home extends React.Component{
                 minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrderMethod(row, minPrice);
+           }else if(percentChange >= 0.3){
+                this.squareOff(row); 
            }
+          
 
          }
+
+
 
         let sqrOffbeginningTime = moment('3:14pm', 'h:mma');
         let sqrOffendTime = moment('3:15pm', 'h:mma');
@@ -1548,9 +1522,9 @@ class Home extends React.Component{
                 this.squareOff(row); 
                 console.log("Sqr off called for",row.symbolname);  
             }
-            
-
         }
+
+
 
         return percentChange;
     }
@@ -1669,7 +1643,7 @@ class Home extends React.Component{
                                     {/* {(localStorage.getItem('lastTriggerprice_'+row.symboltoken))} */}
                                     <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'darkmagenta' : '#00cbcb'}}><b>{row.pnl}</b></TableCell>
                                     <TableCell align="left">
-                                        { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice, row.ltp, row) : ""} 
+                                        { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice,row.totalsellavgprice, row.ltp, row) : ""} 
                                         {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
                                       </TableCell> 
                                     <TableCell align="left">{row.ltp}</TableCell>

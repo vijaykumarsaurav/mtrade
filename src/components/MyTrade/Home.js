@@ -26,17 +26,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Spinner from "react-spinner-material";
 
 import { w3cwebsocket } from 'websocket';
-import pako from 'pako';
 import DeleteIcon from '@material-ui/icons/Delete';
 import ChartDialog from './ChartDialog'; 
 import EqualizerIcon from '@material-ui/icons/Equalizer';
-
-
-import Position from './Position';
-
-import Tab from './Tab'
-import { NavigateBeforeSharp } from '@material-ui/icons';
-
+import pako from 'pako';
 const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
 
 class Home extends React.Component {
@@ -2003,7 +1996,7 @@ class Home extends React.Component {
                                     name="search"
                                     value={this.state.search}
                                     InputProps={{ ...params.InputProps, type: 'search' }}
-                                />
+                                /> 
                             )}
                         />
 
@@ -2049,7 +2042,7 @@ class Home extends React.Component {
 
                         <Grid direction="row" alignItems="center" container>
 
-                           <Grid style={{display:"none"}} direction="row" alignItems="center" container>
+                           <Grid style={{display:"visible"}} direction="row" alignItems="center" container>
     
                             <Grid item xs={10} sm={5}>
                                 <Typography variant="h5"  >

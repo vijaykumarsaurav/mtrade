@@ -24,12 +24,14 @@ export default function App( props ) {
   
 
   const chartData = {
+    
     labels: timeDate,
     datasets: [
       {
-       // label: "Line chart",
+        label: "",
         data: closeData,
         fill: true,
+        borderColor:  props.percentChange > 0 ? "green" : "red",
        // backgroundColor: "rgba(75,192,192,0.2)",
         //borderColor: ""
       },
@@ -54,7 +56,10 @@ export default function App( props ) {
     ]
   };
   const options = {
-    maintainAspectRatio: false,	// Don't maintain w/h ratio
+    maintainAspectRatio: false,
+    legend: {
+      display: false
+    }
   } 
 
   return (

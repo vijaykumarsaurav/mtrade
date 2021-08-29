@@ -82,7 +82,7 @@ export default function CustomizedDialogs(props) {
   
   return (
     <div>
-      <Button variant="outlined" id="showCandleChart" color="primary" style={{display:"visible"}} onClick={handleClickOpen}>
+      <Button variant="outlined" id="showCandleChart" color="primary" style={{display:"none"}} onClick={handleClickOpen}>
         Chart 
       </Button>
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
@@ -111,7 +111,7 @@ export default function CustomizedDialogs(props) {
               width="500"
             /> */}
 
-        <ReactApexChart 
+          {localStorage.getItem('candleChartData') ?   <ReactApexChart 
             options={{
                       chart: {
                         type: 'candlestick',
@@ -137,35 +137,35 @@ export default function CustomizedDialogs(props) {
                   type="candlestick" 
                   width={500}
                   height={350} 
-          />
+          /> : ""}
 
 
-                  { localStorage.getItem('candleChartDataInside') ? <ReactApexChart 
-                    options={{
-                              chart: {
-                                type: 'candlestick',
-                                height: 350
-                              },
-                              title: {
-                                  text: '',
-                                  align: 'left'
-                              },
-                              xaxis: {
-                                  type: 'datetime',
-                              },
-                              yaxis: {
-                                  tooltip: {
-                                  enabled: true
-                                  }
-                              }
-                          }}
-                          series={[{
-                            data:  localStorage.getItem('candleChartDataInside') && JSON.parse(localStorage.getItem('candleChartDataInside'))
-                              
-                          }]} 
-                  type="candlestick" 
-                  width={500}
-                  height={350} 
+            { localStorage.getItem('candleChartDataInside') ? <ReactApexChart 
+              options={{
+                        chart: {
+                          type: 'candlestick',
+                          height: 350
+                        },
+                        title: {
+                            text: '',
+                            align: 'left'
+                        },
+                        xaxis: {
+                            type: 'datetime',
+                        },
+                        yaxis: {
+                            tooltip: {
+                            enabled: true
+                            }
+                        }
+                    }}
+                    series={[{
+                      data:  localStorage.getItem('candleChartDataInside') && JSON.parse(localStorage.getItem('candleChartDataInside'))
+                        
+                    }]} 
+            type="candlestick" 
+            width={500}
+            height={350} 
           />: ""}
           
 
