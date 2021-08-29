@@ -82,7 +82,7 @@ export default function CustomizedDialogs(props) {
   
   return (
     <div>
-      <Button variant="outlined" id="showCandleChart" color="primary" style={{display:"none"}} onClick={handleClickOpen}>
+      <Button variant="outlined" id="showCandleChart" color="primary" style={{display:"visible"}} onClick={handleClickOpen}>
         Chart 
       </Button>
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>

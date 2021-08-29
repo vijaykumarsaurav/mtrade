@@ -15,7 +15,7 @@ export default function App( props ) {
     for (let index = 0; index < candleChartData.length; index++) {
       if(candleChartData[index]){
         closeData.push(candleChartData[index][4]); 
-        timeDate.push(candleChartData[index][0].substring(19,11)); 
+        timeDate.push(new Date(candleChartData[index][0]).getHours() + ":" +new Date(candleChartData[index][0]).getMinutes() ); 
       }
     
     }
@@ -27,9 +27,9 @@ export default function App( props ) {
     labels: timeDate,
     datasets: [
       {
-        label: "Line chart",
+       // label: "Line chart",
         data: closeData,
-        fill: false,
+        fill: true,
        // backgroundColor: "rgba(75,192,192,0.2)",
         //borderColor: ""
       },
@@ -60,6 +60,7 @@ export default function App( props ) {
   return (
     <div className="App">
       <Line data={chartData} options={options} />
+      
     </div>
   );
 }

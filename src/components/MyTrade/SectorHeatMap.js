@@ -48,6 +48,8 @@ class MyView extends React.Component {
 
     componentDidMount() {
 
+
+
       //  this.loadPackList();
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
@@ -114,10 +116,6 @@ class MyView extends React.Component {
              this.loadPackList(); 
            }, 120000);
 
-           setInterval(() => {
-            this.refreshSectorCandle(); 
-          }, 60000 * 5);
-
 
         }
 
@@ -138,7 +136,7 @@ class MyView extends React.Component {
             .then((res) => {
                 if (res.data) {
 
-                    var data = res.data;
+                    var data = res.data, sectorStockList = []; 
 
                     this.setState({ indexTimeStamp: data.timestamp })
 
@@ -155,6 +153,7 @@ class MyView extends React.Component {
                             var foundInWatchlist = this.state.sectorStockList.filter(row => row.token  == sectorStocks[index].token);                                
                             if(!foundInWatchlist.length){
                                 this.setState({ sectorStockList: [...this.state.sectorStockList, sectorStocks[index]] });
+                                sectorStockList.push(sectorStocks[index]); 
                             }
                         }
                     }
@@ -163,6 +162,8 @@ class MyView extends React.Component {
 
                     this.setState({ sectorList: softedData});
                     localStorage.setItem('sectorList', JSON.stringify(softedData)); 
+                    localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList)); 
+
 
                     console.log("softedData", softedData); 
                     this.refreshSectorLtp(); 
@@ -233,7 +234,7 @@ class MyView extends React.Component {
 
                 
            }).catch(error => {
-            this.setState({ failedCount:  this.state.failedCount + 1 + " Ltp failed " }); 
+            this.setState({ failedCount:  this.state.failedCount + 1}); 
 
             Notify.showError(this.state.sectorStockList[index].symbol + " ltd data not found!");
            })
@@ -262,7 +263,7 @@ class MyView extends React.Component {
 
             console.log("beginningTime", beginningTime); 
 
-            var time = moment.duration("28:10:00");
+            var time = moment.duration("47:10:00");
             var startdate = moment(new Date()).subtract(time);
 
             var data = {
@@ -273,7 +274,7 @@ class MyView extends React.Component {
                 "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
             }
 
-            this.setState({ stockUpdate: index+1 + ". " + this.state.sectorStockList && this.state.sectorStockList[index].symbol }); 
+            this.setState({ stockCandleUpdate: index+1 + ". " + this.state.sectorStockList && this.state.sectorStockList[index].symbol }); 
 
 
             AdminService.getHistoryData(data).then(res => {
@@ -414,10 +415,11 @@ class MyView extends React.Component {
                         <Typography component="h3" variant="h6" color="primary" >
                             Sectors Stocks({this.state.sectorStockList.length}) at {this.state.indexTimeStamp}   
                             {this.state.refreshFlag ? <Button variant="contained" onClick={() =>   this.loadPackList()}>Live Ltp</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </> }
-                            {this.state.failedCount} 
+                            {this.state.failedCount ? this.state.failedCount + "Failed" : ""} 
 
+                            &nbsp;
 
-                            {this.state.refreshFlagCandle ? <Button variant="contained" onClick={() =>   this.refreshSectorCandle()}>Refresh Candle</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </> }
+                            {this.state.refreshFlagCandle ? <Button variant="contained" onClick={() =>   this.refreshSectorCandle()}>Refresh Candle</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockCandleUpdate}  </Button> </> }
 
                         </Typography>
                         
@@ -430,11 +432,11 @@ class MyView extends React.Component {
                       
                         <Grid item xs={12} sm={3}>
 
-                            <Paper style={{ padding: '10px', background: "lightgray"}}> 
+                            <Paper style={{ padding: '10px', background : "lightgray"}}> 
 
                            
-                            <Typography>
-                                    {indexdata.index + " " + indexdata.last}({indexdata.percentChange}%) 
+                            <Typography style={{textAlign: "center"}}>
+                                  <b> {index + 1}. {indexdata.index + " " + indexdata.last}({indexdata.percentChange}%) </b> 
                              </Typography>
 
                             
@@ -444,13 +446,17 @@ class MyView extends React.Component {
                                 {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
                                         
                                             <Grid item  xs={12} sm={6} >
-                                                <Paper  style={{cursor: 'pointer' , textAlign: "center", background: this.getPercentageColor(sectorItem.cng)}} > 
+                                                <Paper  onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp,sectorItem.nc )} style={{cursor: 'pointer' , textAlign: "center"}} > 
 
                                                     {/* {sectorItem.cng} */}
-                                                    <span onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp,sectorItem.nc )}  style={{background: this.getPercentageColor(sectorItem.cng)}}>  {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%) </span> 
-                                                    {/* <LineChart candleChartData={sectorItem.candleChartData}/> */}
+                                                   <Typography style={{background: this.getPercentageColor(sectorItem.cng), fontSize: '14px'}}>
+                                                        {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%) 
+                                                    </Typography>
 
-                                                    <ReactApexChart 
+                                                
+                                                   {sectorItem.candleChartData ? <LineChart candleChartData={sectorItem.candleChartData}/> : ""}   
+
+                                                    {/* <ReactApexChart 
                                                         options={{
                                                                 chart: {
                                                                     type: 'candlestick',
@@ -477,7 +483,7 @@ class MyView extends React.Component {
                                                             type="candlestick" 
                                                            // width={100}
                                                            // height={40} 
-                                                    />
+                                                    /> */}
 
                                                 </Paper>
                                             </Grid>
