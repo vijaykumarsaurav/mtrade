@@ -55,7 +55,7 @@ class Home extends React.Component{
         const today = moment().isoWeekday();
         //market hours
         if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
-        //   this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 2002)}) 
+            this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 2002)}) 
           //  this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
         }else{
             clearInterval(this.state.positionInterval);
@@ -1504,7 +1504,21 @@ class Home extends React.Component{
                 minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrderMethod(row, minPrice);
            }else if(percentChange >= 0.3){
-                this.squareOff(row); 
+
+                if(!localStorage.getItem('squiredOff'+row.symboltoken)){
+
+                    localStorage.setItem('squiredOff'+row.symboltoken, 'yes');
+                    this.squareOff(row); 
+
+                    var msg = new SpeechSynthesisUtterance();
+                    msg.text = row.symbolname +' squired Off Success at ' + percentChange.toFixed(2) + '%'; 
+                    window.speechSynthesis.speak(msg);
+
+                    console.log("Sqr off called for 0.3% ",row.symbolname);  
+
+                }
+
+                
            }
           
 
@@ -1526,7 +1540,7 @@ class Home extends React.Component{
 
 
 
-        return percentChange;
+        return percentChange.toFixed(2);
     }
 
 
@@ -1561,19 +1575,19 @@ class Home extends React.Component{
                        
                         <Grid item >
                           <Typography component="h3"  >
-                            <b> Charges</b> <b style={{color:"#00cbcb"}}>-{this.state.totalBrokerCharges} </b>
+                            <b> Charges</b> <b style={{color:"red"}}>-{this.state.totalBrokerCharges} </b>
                             </Typography> 
                         </Grid>
                         
                         <Grid item  >
                           <Typography component="h3"   >
-                            <b>  P/L </b> <b style={{color:this.state.todayProfitPnL>0?"darkmagenta":"#00cbcb"}}>{this.state.todayProfitPnL} </b>
+                            <b>  P/L </b> <b style={{color:this.state.todayProfitPnL>0?"green":"red"}}>{this.state.todayProfitPnL} </b>
                             </Typography> 
                         </Grid>
 
                         <Grid item>
                           <Typography component="h3" >
-                            <b> Net P/L </b> <b style={{color:(this.state.todayProfitPnL - this.state.totalBrokerCharges)>0?"darkmagenta":"#00cbcb"}}>{this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2) : ""} </b>
+                            <b> Net P/L </b> <b style={{color:(this.state.todayProfitPnL - this.state.totalBrokerCharges)>0?"green":"red"}}>{this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2) : ""} </b>
                             </Typography> 
                         </Grid>
                         
@@ -1623,7 +1637,7 @@ class Home extends React.Component{
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
 
                             {this.state.positionList ? this.state.positionList.map(row => (
-                                <TableRow hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'gray': ""}} >
+                                <TableRow hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'lightgray': ""}} >
 
                                     <TableCell style={{paddingLeft:"3px"}} align="left">&nbsp; <a rel="noopener noreferrer" target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}>{row.tradingsymbol.split('-')[0]}</a> </TableCell>
                                     {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
@@ -1641,7 +1655,7 @@ class Home extends React.Component{
 
                                     
                                     {/* {(localStorage.getItem('lastTriggerprice_'+row.symboltoken))} */}
-                                    <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'darkmagenta' : '#00cbcb'}}><b>{row.pnl}</b></TableCell>
+                                    <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'green' : 'red'}}><b>{row.pnl}</b></TableCell>
                                     <TableCell align="left">
                                         { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice,row.totalsellavgprice, row.ltp, row) : ""} 
                                         {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
@@ -1674,7 +1688,7 @@ class Home extends React.Component{
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">{this.state.totalMaxPnL}</TableCell>
                                 
-                                <TableCell className="TableHeadFormat" align="left" style={{color: parseFloat( this.state.todayProfitPnL ) > 0 ?  'darkmagenta' : '#00cbcb'}}>{this.state.todayProfitPnL} </TableCell>
+                                <TableCell className="TableHeadFormat" align="left" style={{color: parseFloat( this.state.todayProfitPnL ) > 0 ?  'green' : 'red'}}>{this.state.todayProfitPnL} </TableCell>
  
                                 <TableCell className="TableHeadFormat" align="left">
                                     
@@ -1698,7 +1712,7 @@ class Home extends React.Component{
 
                   
 
-                        <Grid item xs={12} sm={12} >
+                        <Grid item xs={12} sm={12}  style={{height: '500px', overflow:"auto"}}>
                              <OrderBook/>
                         </Grid>
 

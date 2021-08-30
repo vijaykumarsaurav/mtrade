@@ -25,7 +25,7 @@ import LineChart from "./LineChart";
 import ReactApexChart from "react-apexcharts";
 import TradeConfig from './TradeConfig.json';
 
-const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+const wsClintSectorUpdate = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
 
 class MyView extends React.Component {
 
@@ -49,7 +49,7 @@ class MyView extends React.Component {
 
 
 
-        //  this.loadPackList();
+        this.loadPackList();
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
@@ -66,16 +66,18 @@ class MyView extends React.Component {
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
 
 
-            wsClint.onopen = (res) => {
+            wsClintSectorUpdate.onopen = (res) => {
                 this.makeConnection();
                 this.updateSocketWatch();
             }
 
-            wsClint.onmessage = (message) => {
+            wsClintSectorUpdate.onmessage = (message) => {
                 var decoded = window.atob(message.data);
                 var data = this.decodeWebsocketData(pako.inflate(decoded));
                 var liveData = JSON.parse(data);
                 var sectorList = this.state.sectorList;
+
+              //  console.log("sector live data", liveData);
 
                 this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
 
@@ -86,7 +88,7 @@ class MyView extends React.Component {
                             sectorList[index].stockList[stockIndex].nc = foundLive[0].nc;
                             sectorList[index].stockList[stockIndex].cng = foundLive[0].cng;
 
-                            console.log("foundLive", foundLive);
+                           
                         }
                     });
                     sectorList[index].stockList.sort(function (a, b) {
@@ -95,20 +97,22 @@ class MyView extends React.Component {
 
                 });
 
+
+
                 this.setState({ sectorList: sectorList });
                 localStorage.setItem('sectorList', JSON.stringify(sectorList));
 
             }
 
-            wsClint.onerror = (e) => {
+            wsClintSectorUpdate.onerror = (e) => {
                 console.log("socket error", e);
             }
 
             setInterval(() => {
                 this.makeConnection();
                 var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-                // console.log("Request :- " + _req);
-                wsClint.send(_req);
+                // console.log("Connection sectior top hb Request :- " + _req);
+                wsClintSectorUpdate.send(_req);
             }, 59000);
 
             setInterval(() => {
@@ -127,7 +131,7 @@ class MyView extends React.Component {
                     
                     setTimeout(() => {
                         console.log("set timout at 70sec ", new Date());
-                        this.this.refreshSectorCandle()(); 
+                        this.refreshSectorCandle(); 
                     }, 70000);
 
                     setInterval(() => {
@@ -245,7 +249,7 @@ class MyView extends React.Component {
                 }
 
                 
-                //quantity = quantity>0 ? 1 : 0; 
+                quantity = quantity>0 ? 1 : 0; 
                 console.log(symbol, "  quantity can be order ", quantity);
                 if(quantity){
                     const format1 = "YYYY-MM-DD HH:mm";
@@ -366,6 +370,8 @@ class MyView extends React.Component {
                     this.setState({ indexTimeStamp: data.timestamp })
 
                     var foundSectors = data.data.filter(row => row.key === "SECTORAL INDICES");
+
+
                     var softedData = foundSectors.sort(function (a, b) { return b.percentChange - a.percentChange });
 
                     // this.speckIt("1st sector is " + softedData[0].indexSymbol + ' ' + softedData[0].percentChange + '%');
@@ -432,10 +438,10 @@ class MyView extends React.Component {
                 //   console.log(this.state.sectorStockList[index].symbol, this.state.sectorStockList[index].token, LtpData);
 
                 if (LtpData.ltp) {
-                    var todayChange = (LtpData.ltp - LtpData.open) * 100 / LtpData.open;   //close
+                    var todayChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;   //close
                     sectorStockList[index].ltp = LtpData.ltp;
                     sectorStockList[index].nc = todayChange.toFixed(2);
-                    sectorStockList[index].cng = (LtpData.ltp - LtpData.open).toFixed(2);
+                    sectorStockList[index].cng = (LtpData.ltp - LtpData.close).toFixed(2);
                 }
 
                 var sectorList = this.state.sectorList;
@@ -489,7 +495,7 @@ class MyView extends React.Component {
                 "exchange": "NSE",
                 "symboltoken": this.state.sectorStockList[index].token,
                 "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "fromdate": moment(beginningTime).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
                 "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
             }
 
@@ -555,8 +561,8 @@ class MyView extends React.Component {
     makeConnection = () => {
 
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-        //  console.log("1st Request :- " + firstTime_req);
-        wsClint.send(firstTime_req);
+        console.log("Connection sectior top firstTime_req :- " + firstTime_req);
+        wsClintSectorUpdate.send(firstTime_req);
 
         this.updateSocketWatch();
 
@@ -595,7 +601,7 @@ class MyView extends React.Component {
         }
 
         console.log("update watech", updateWatch);
-        wsClint.send(JSON.stringify(updateWatch));
+        wsClintSectorUpdate.send(JSON.stringify(updateWatch));
     }
 
 

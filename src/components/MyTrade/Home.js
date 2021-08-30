@@ -1989,7 +1989,7 @@ class Home extends React.Component {
                                 <TextField
                                     onChange={this.onChange}
                                     {...params}
-                                    label={"Search Symbol (" + this.state.symbolList.length + ")"}
+                                    label={"Search Symbol"}
                                     margin="normal"
                                     variant="standard"
 
