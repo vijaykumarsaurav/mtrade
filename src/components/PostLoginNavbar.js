@@ -267,7 +267,10 @@ export default function PostLoginNavBar(props) {
 
                     <InvertColor />
 
-                    {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
+                    {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : ''}
+                    ({userProfile && userProfile.clientcode ? userProfile.clientcode : ''})
+
+                    
 
                     <IconButton onClick={handleDrawerClose}  >
                         {theme.direction === 'ltr' ? <ChevronLeftIcon style={{ color: "gray" }} /> : <ChevronRightIcon style={{ color: "gray" }} />}

@@ -55,7 +55,7 @@ class Home extends React.Component{
         const today = moment().isoWeekday();
         //market hours
         if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
-            this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 2002)}) 
+            this.setState({positionInterval :  setInterval(() => {this.getPositionData(); }, 1001)}) 
           //  this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
         }else{
             clearInterval(this.state.positionInterval);
@@ -162,9 +162,9 @@ class Home extends React.Component{
 
 
     componentWillUnmount() {
-        clearInterval(this.state.positionInterval);
-        clearInterval(this.state.scaninterval);
-        clearInterval(this.state.bankNiftyInterval); 
+        //clearInterval(this.state.positionInterval);
+       // clearInterval(this.state.scaninterval);
+      //  clearInterval(this.state.bankNiftyInterval); 
     }
 
   
@@ -913,6 +913,19 @@ class Home extends React.Component{
        });
        return data; 
     }
+    getStoplossForSELLFromOrderbook = (row) => {
+        var oderbookData = localStorage.getItem('oderbookData'); 
+        oderbookData =  JSON.parse(oderbookData);
+        var stopLoss = 0; 
+        var data = {}; 
+        oderbookData.forEach(element => {
+         if(element.status === "trigger pending" && element.symboltoken === row.symboltoken){
+             data.stopLoss = element.triggerprice + "("+ ((row.buyavgprice-element.triggerprice)*100/row.buyavgprice).toFixed(2) + "%)"; 
+             data.maxLossAmount = ((element.triggerprice-row.buyavgprice)* parseInt(row.netqty)).toFixed(2); 
+         }
+        });
+        return data; 
+     }
     getPositionData = async() => {
      //   document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
         var maxPnL = 0, totalMaxPnL = 0; 
@@ -923,6 +936,11 @@ class Home extends React.Component{
                 this.setState({ positionList : positionList}); 
                  var todayProfitPnL=0, totalbuyvalue=0, totalsellvalue=0, totalQtyTraded=0, allbuyavgprice=0,allsellavgprice=0,totalPercentage=0;
                   positionList.forEach(element => {
+
+                    if(element.producttype == "DELIVERY"){
+                        return ""; 
+                    }
+
                     var percentPnL =((parseFloat(element.sellavgprice)-parseFloat(element.buyavgprice))*100/parseFloat(element.buyavgprice)).toFixed(2); 
                     todayProfitPnL+= parseFloat( element.pnl); 
                     totalbuyvalue+=parseFloat( element.totalbuyvalue); 
@@ -932,8 +950,12 @@ class Home extends React.Component{
                     allsellavgprice+=parseFloat(element.sellavgprice); 
                     element.percentPnL=percentPnL;
                     totalPercentage+= parseFloat( percentPnL); 
+                    if(element.totalsellavgprice)
+
                     var slData  = this.getStoplossFromOrderbook(element) ; 
                     element.stopLoss = element.totalsellavgprice === "0.00" ? slData.stopLoss : element.totalsellavgprice + "("+ ((element.totalsellavgprice-element.totalbuyavgprice)*100/element.totalbuyavgprice).toFixed(2) + "%)"; 
+               
+                  
                     element.stopLossAmount = slData.maxLossAmount; 
                     totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;                     
                 }); 
@@ -1347,7 +1369,7 @@ class Home extends React.Component{
             "price": 0,
             "squareoff":"0",
             "stoploss":"0",
-            "quantity": row.buyqty,
+            "quantity": row.buyqty > 0 ? row.buyqty :  row.sellqty > 0 ? row.sellqty : 0,
         }
 
         // if(window.confirm("Squire Off!!! Sure?")){
@@ -1477,8 +1499,6 @@ class Home extends React.Component{
         totalbuyavgprice =  parseFloat(totalbuyavgprice); 
         totalsellavgprice =  parseFloat(totalsellavgprice); 
 
-
-
         var percentChange = 0; 
         if(totalbuyavgprice){
             percentChange =  ((ltp - totalbuyavgprice)*100/totalbuyavgprice); 
@@ -1586,8 +1606,9 @@ class Home extends React.Component{
                         </Grid>
 
                         <Grid item>
-                          <Typography component="h3" >
+                          <Typography component="h3"  {...window.document.title = "PnL:" + (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2)}>
                             <b> Net P/L </b> <b style={{color:(this.state.todayProfitPnL - this.state.totalBrokerCharges)>0?"green":"red"}}>{this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2) : ""} </b>
+                            
                             </Typography> 
                         </Grid>
                         
@@ -1637,36 +1658,39 @@ class Home extends React.Component{
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
 
                             {this.state.positionList ? this.state.positionList.map(row => (
-                                <TableRow hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'lightgray': ""}} >
 
-                                    <TableCell style={{paddingLeft:"3px"}} align="left">&nbsp; <a rel="noopener noreferrer" target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}>{row.tradingsymbol.split('-')[0]}</a> </TableCell>
-                                    {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
-                                    {/* <TableCell align="left">{row.producttype}</TableCell> */}
-                                 
-                                    <TableCell align="left">{row.totalbuyavgprice}</TableCell>
-                                    {/* <TableCell align="left">{row.totalbuyvalue}</TableCell> */}
 
-                                    <TableCell align="left">{row.totalsellavgprice}</TableCell>
-                                    <TableCell align="left">{row.buyqty}</TableCell>
-                                    <TableCell align="left">{row.netqty}</TableCell>
-                                    {/* <TableCell align="left">{row.totalsellvalue}</TableCell> */}
-                                    <TableCell align="left"> {row.stopLoss}</TableCell> 
-                                    <TableCell align="left"> {row.stopLossAmount}</TableCell> 
+                                row.producttype !== 'DELIVERY' ? <TableRow  hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'lightgray': ""}} >
 
-                                    
-                                    {/* {(localStorage.getItem('lastTriggerprice_'+row.symboltoken))} */}
-                                    <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'green' : 'red'}}><b>{row.pnl}</b></TableCell>
-                                    <TableCell align="left">
-                                        { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice,row.totalsellavgprice, row.ltp, row) : ""} 
-                                        {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
-                                      </TableCell> 
-                                    <TableCell align="left">{row.ltp}</TableCell>
-                                  
-                                    <TableCell align="left">
-                                        {row.netqty !== "0" ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
-                                    </TableCell>
+                                <TableCell style={{paddingLeft:"3px"}} align="left">&nbsp; <a rel="noopener noreferrer" target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}>{row.tradingsymbol.split('-')[0]}</a> </TableCell>
+                                {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
+                                {/* <TableCell align="left">{row.producttype}</TableCell> */}
+                             
+                                <TableCell align="left">{row.totalbuyavgprice}</TableCell>
+                                {/* <TableCell align="left">{row.totalbuyvalue}</TableCell> */}
 
-                                </TableRow>
+                                <TableCell align="left">{row.totalsellavgprice}</TableCell>
+                                <TableCell align="left">{row.buyqty}</TableCell>
+                                <TableCell align="left">{row.netqty}</TableCell>
+                                {/* <TableCell align="left">{row.totalsellvalue}</TableCell> */}
+                                <TableCell align="left"> {row.stopLoss}</TableCell> 
+                                <TableCell align="left"> {row.stopLossAmount}</TableCell> 
+
+                                
+                                {/* {(localStorage.getItem('lastTriggerprice_'+row.symboltoken))} */}
+                                <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'green' : 'red'}}><b>{row.pnl}</b></TableCell>
+                                <TableCell align="left">
+                                    { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice,row.totalsellavgprice, row.ltp, row) : ""} 
+                                    {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
+                                  </TableCell> 
+                                <TableCell align="left">{row.ltp}</TableCell>
+                              
+                                <TableCell align="left">
+                                    {row.netqty !== "0" ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
+                                </TableCell>
+
+                            </TableRow> : ""
+                                
                             )):''}
 
                                 <TableRow   variant="head" style={{fontWeight: 'bold', backgroundColor: "lightgray"}}>
@@ -1712,7 +1736,7 @@ class Home extends React.Component{
 
                   
 
-                        <Grid item xs={12} sm={12}  style={{height: '500px', overflow:"auto"}}>
+                        <Grid item xs={12} sm={12}  style={{height: '300px', overflow:"auto"}}>
                              <OrderBook/>
                         </Grid>
 
