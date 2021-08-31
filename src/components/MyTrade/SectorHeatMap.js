@@ -840,7 +840,7 @@ class MyView extends React.Component {
 
                                                 {/* {sectorItem.cng} */}
                                                 <Typography style={{ background: this.getPercentageColor(sectorItem.cng), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc && sectorItem.nc.toFixed(2)}%)
+                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%)
                                                 </Typography>
 
 
