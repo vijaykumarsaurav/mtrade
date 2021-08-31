@@ -24,7 +24,7 @@ import ChartDialog from './ChartDialog';
 import LineChart from "./LineChart";
 import ReactApexChart from "react-apexcharts";
 import TradeConfig from './TradeConfig.json';
-
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 const wsClintSectorUpdate = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
 
 class MyView extends React.Component {
@@ -340,6 +340,7 @@ class MyView extends React.Component {
                                 }else{
                                     Notify.showError(symbol+ " stoploss is > 1.5% Rejected");
                                     console.log(symbol + " its not fullfilled"); 
+
                                 }
                             }
 
@@ -395,8 +396,7 @@ class MyView extends React.Component {
                     for (let i = 0; i < softedData.length; i++) {
 
                         
-                        if(softedData[i].percentChange > 0.75){
-                           
+                        if(softedData[i].percentChange >= 0.75 || softedData[i].percentChange <= 0.75){
                             var sectorStocks = this.state.staticData[softedData[i].index];
                             softedData[i].stockList = sectorStocks;
 
@@ -410,8 +410,7 @@ class MyView extends React.Component {
 
                             this.setState({ sectorList: softedData });
                             localStorage.setItem('sectorList', JSON.stringify(softedData));
-                            localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));
-                                
+                            localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));    
                          }
 
                         
@@ -441,11 +440,17 @@ class MyView extends React.Component {
 
     }
 
+    updateLTPMannually = (index) => {
 
-    refreshSectorLtp = async (sectorStocks) => {
+        var sectorStocks = this.state.staticData[index];
+        this.refreshSectorLtp(sectorStocks,index); 
+    }
 
 
-        console.log("sectorStocks",sectorStocks,  new Date())
+    refreshSectorLtp = async (sectorStocks,index) => {
+
+
+    //    console.log("sectorStocks",sectorStocks,  new Date())
         this.setState({ refreshFlag: false, failedCount: 0 });
         var sectorUpdate = []; 
         var sectorStockList = this.state.sectorStockList;
@@ -458,7 +463,7 @@ class MyView extends React.Component {
                 "symboltoken": sectorStocks[index].token,
             }
 
-            this.setState({ stockUpdate: index + 1 + ". " + sectorStocks[index].symbol });
+         //   this.setState({ stockUpdate: index + 1 + ". " + sectorStocks[index].symbol });
 
             AdminService.getLTP(data).then(res => {
                 let data = resolveResponse(res, 'noPop');
@@ -467,13 +472,14 @@ class MyView extends React.Component {
          
                 if (LtpData.symboltoken == sectorStocks[index].token) {
 
-                    //console.log(index + 1 , sectorStocks[index].symbol , LtpData);
+                  //  console.log(index + 1 , sectorStocks[index].symbol , LtpData);
 
                     var todayChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;   //close
                     var indexData = sectorStocks[index]; 
                     indexData.ltp = LtpData.ltp;
                     indexData.nc = todayChange;
                     indexData.cng = (LtpData.ltp - LtpData.close);
+                    sectorUpdate.push(indexData); 
                 }
 
             }).catch(error => {
@@ -484,9 +490,103 @@ class MyView extends React.Component {
               //  Notify.showError(sectorStocks[index].symbol + " ltd data not found!");
             })
 
+           
+
             await new Promise(r => setTimeout(r, 101));
+
+           
         }
+      
+        
+        if(index){
+            this.state.sectorList.forEach((element, i) => {
+                if(element.index == index){
+                    this.state.sectorList[i].stockList = sectorUpdate; 
+                    this.state.sectorList[i].isStocksLtpUpdted = true; 
+                    this.setState({ sectorList: this.state.sectorList  });
+                    return; 
+                }
+            });
+        }
+
         this.setState({ refreshFlag: true });
+       
+    }
+
+
+    
+
+    refreshSectorCandleManually = async (index) => {
+
+        var sectorStocks = this.state.staticData[index];
+        this.refreshSectorLtp(sectorStocks,index); 
+
+
+        this.setState({ refreshFlagCandle: false });
+        console.log("sectorStockList", index);
+
+
+        for (let index = 0; index < sectorStocks.length; index++) {
+            var beginningTime = moment('9:15am', 'h:mma');
+            var time = moment.duration("12:00:00");
+            var startdate = moment(new Date()).subtract(time);
+
+            var data = {
+                "exchange": "NSE",
+                "symboltoken": sectorStocks[index].token,
+                "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment(beginningTime).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+            }
+
+            this.setState({ stockCandleUpdate: index + 1 + ". " + sectorStocks && sectorStocks[index].symbol });
+
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res, 'noPop');
+                //console.log("candle history", histdata); 
+                if (histdata && histdata.data && histdata.data.length) {
+
+                    var candleData = histdata.data;
+                    var candleChartData = [];
+                    candleData.forEach(element => {
+                        candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                    });
+
+                    if (candleData.length > 0) {
+                        sectorStocks[index].candleChartData = candleChartData;
+                    }
+
+                } else {
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(sectorStocks[index].symbol, "  emply candle found");
+                }
+            }).catch(error => {
+                this.setState({ failedCount: this.state.failedCount + 1 });
+                Notify.showError(sectorStocks[index].symbol + " candle failed!");
+            })
+
+            await new Promise(r => setTimeout(r, 350));
+        }
+
+
+        if(index){
+            this.state.sectorList.forEach((element, i) => {
+                if(element.index == index){
+                    this.state.sectorList[i].stockList = sectorStocks; 
+                    this.setState({ sectorList: this.state.sectorList  });
+                    return; 
+                }
+            });
+        }
+
+
+        this.setState({ refreshFlagCandle: true });
+
+
+        
+
+        console.log("sectorStockswithcandle",sectorStocks); 
     }
 
 
@@ -633,7 +733,7 @@ class MyView extends React.Component {
     speckIt = (text) => {
         var msg = new SpeechSynthesisUtterance();
         msg.text = text.toString();
-        //  window.speechSynthesis.speak(msg);
+        window.speechSynthesis.speak(msg);
     }
 
     getPercentageColor = (percent) => {
@@ -644,33 +744,39 @@ class MyView extends React.Component {
     }
 
     render() {
-    
-    
+
         this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
             outerEelement.stockList && outerEelement.stockList.sort(function (a, b) {
                 return b.nc - a.nc;
             });
         });
 
-        this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
-            
-            if(outerEelement.percentChange > 0.75){
-                outerEelement.stockList && outerEelement.stockList.forEach((element, index2) => {
 
-                    if(index2 < 2){
-                      //  console.log("Top",index2,  outerEelement.index,  element); 
+        let sqrOffbeginningTime = moment('9:15am', 'h:mma');
+        let sqrOffendTime = moment('03:00pm', 'h:mma');
+        let sqrOffcurrentTime = moment(new Date(), "h:mma");
+        if(sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)){
+            this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
+                if(outerEelement.percentChange > 0.75 && outerEelement.isStocksLtpUpdted){
+                    outerEelement.stockList && outerEelement.stockList.forEach((element, index2) => {
+                        if(index2 < 2){
+                            var autoTradeTopList = localStorage.getItem('autoTradeTopList') && JSON.parse(localStorage.getItem('autoTradeTopList')) || []; 
+                            var isThere = autoTradeTopList.filter(row => row.token === element.token);
+                            if(!isThere.length){
+                                element.foundAt = new Date().toLocaleString(); 
+                                autoTradeTopList.push(element); 
+                                localStorage.setItem('autoTradeTopList', JSON.stringify(autoTradeTopList)); 
+                                console.log(element.name + " of "+ outerEelement.index + " Added")
+                                this.speckIt(element.name + " Added"); 
+                            }
+                        }
+    
+                    });
+                }
+            });
+        }
 
-
-                    }
-
-                });
-            }
-           
-           
-        });
-
-
-      
+       
 
         return (
             <React.Fragment>
@@ -689,13 +795,17 @@ class MyView extends React.Component {
 
                             &nbsp;
 
-                            {this.state.refreshFlagCandle ? <Button variant="contained" onClick={() => this.refreshSectorCandle()}>Refresh Candle</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockCandleUpdate}  </Button> </>}
-                            &nbsp;
+                            {/* {this.state.refreshFlagCandle ? <Button variant="contained" onClick={() => this.refreshSectorCandle()}>Refresh Candle</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockCandleUpdate}  </Button> </>}
+                            &nbsp; */}
 
                             <Button variant="contained" onClick={() => this.makeConnection()}> WS Refresh</Button> 
+
+                            
                         
 
                         </Typography>
+
+                        {localStorage.getItem('autoTradeTopList')}
 
                     </Grid>
 
@@ -706,12 +816,18 @@ class MyView extends React.Component {
 
                         <Grid item xs={12} sm={3}>
 
-                            <Paper style={{ padding: '10px', background: "lightgray" }}>
+                            <Paper style={{ padding: '10px', background: "lightgray",textAlign: "center" }}>
 
 
-                                <Typography style={{ textAlign: "center" }}>
-                                    <b> {index + 1}. {indexdata.index + " " + indexdata.last}({indexdata.percentChange}%) </b>
-                                </Typography>
+                                 <Button  size="small" variant="contained"  title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}> 
+                                     <b> {index + 1}. {indexdata.index + " " + indexdata.last}({indexdata.percentChange}%) </b>   
+
+                                </Button>  
+                                &nbsp;
+
+                                <Button  size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshSectorCandleManually(indexdata.index)}> 
+                                  <ShowChartIcon />
+                                </Button>  
 
 
                                 <Grid direction="row" container className="flexGrow" spacing={1} >
@@ -724,7 +840,7 @@ class MyView extends React.Component {
 
                                                 {/* {sectorItem.cng} */}
                                                 <Typography style={{ background: this.getPercentageColor(sectorItem.cng), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%)
+                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc && sectorItem.nc.toFixed(2)}%)
                                                 </Typography>
 
 
