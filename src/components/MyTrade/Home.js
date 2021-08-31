@@ -194,8 +194,8 @@ class Home extends React.Component {
       
 
             wsClint.onopen  = (res) => {
-                this.makeConnection();
-                this.updateSocketWatch();
+              //  this.makeConnection();
+              //  this.updateSocketWatch();
            }
    
            wsClint.onmessage = (message) => {

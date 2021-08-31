@@ -25,7 +25,7 @@ import LineChart from "./LineChart";
 import ReactApexChart from "react-apexcharts";
 import TradeConfig from './TradeConfig.json';
 
-//const wsClintSectorUpdate = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+const wsClintSectorUpdate = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
 
 class MyView extends React.Component {
 
@@ -51,7 +51,7 @@ class MyView extends React.Component {
 
 
 
-        this.loadPackList();
+      //  this.loadPackList();
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
@@ -68,54 +68,52 @@ class MyView extends React.Component {
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
 
 
-            // wsClintSectorUpdate.onopen = (res) => {
-            //     this.makeConnection();
-            //     this.updateSocketWatch();
-            // }
+            wsClintSectorUpdate.onopen = (res) => {
+                this.makeConnection();
+                this.updateSocketWatch();
+            }
 
-            // wsClintSectorUpdate.onmessage = (message) => {
-            //     var decoded = window.atob(message.data);
-            //     var data = this.decodeWebsocketData(pako.inflate(decoded));
-            //     var liveData = JSON.parse(data);
-            //     var sectorList = this.state.sectorList;
+            wsClintSectorUpdate.onmessage = (message) => {
+                var decoded = window.atob(message.data);
+                var data = this.decodeWebsocketData(pako.inflate(decoded));
+                var liveData = JSON.parse(data);
+                var sectorList = this.state.sectorList;
 
-            //   //  console.log("sector live data", liveData);
+                console.log("sector live data", liveData);
 
-            //     this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
+                this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
 
-            //         outerEelement.stockList.forEach((element, stockIndex) => {
-            //             var foundLive = liveData.filter(row => row.tk == element.token);
-            //             if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
-            //                 sectorList[index].stockList[stockIndex].ltp = foundLive[0].ltp;
-            //                 sectorList[index].stockList[stockIndex].nc = foundLive[0].nc;
-            //                 sectorList[index].stockList[stockIndex].cng = foundLive[0].cng;
+                    outerEelement.stockList && outerEelement.stockList.forEach((element, stockIndex) => {
+                        var foundLive = liveData.filter(row => row.tk == element.token);
+                        if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
+                            sectorList[index].stockList[stockIndex].ltp = foundLive[0].ltp;
+                            sectorList[index].stockList[stockIndex].nc = foundLive[0].nc;
+                            sectorList[index].stockList[stockIndex].cng = foundLive[0].cng;
+                        }
+                    });
+                    sectorList[index].stockList && sectorList[index].stockList.sort(function (a, b) {
+                        return b.nc - a.nc;
+                    });
 
-                           
-            //             }
-            //         });
-            //         sectorList[index].stockList.sort(function (a, b) {
-            //             return b.nc - a.nc;
-            //         });
-
-            //     });
+                });
 
 
 
-            //     this.setState({ sectorList: sectorList });
-            //     localStorage.setItem('sectorList', JSON.stringify(sectorList));
+                this.setState({ sectorList: sectorList });
+                localStorage.setItem('sectorList', JSON.stringify(sectorList));
 
-            // }
+            }
 
-            // wsClintSectorUpdate.onerror = (e) => {
-            //     console.log("socket error", e);
-            // }
+            wsClintSectorUpdate.onerror = (e) => {
+                console.log("socket error", e);
+            }
 
-            // setInterval(() => {
-            //     this.makeConnection();
-            //     var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-            //     // console.log("Connection sectior top hb Request :- " + _req);
-            //     wsClintSectorUpdate.send(_req);
-            // }, 59000);
+            setInterval(() => {
+                this.makeConnection();
+                var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
+                // console.log("Connection sectior top hb Request :- " + _req);
+                wsClintSectorUpdate.send(_req);
+            }, 59000);
 
             setInterval(() => {
                 this.loadPackList();
@@ -395,26 +393,34 @@ class MyView extends React.Component {
                    }
 
                     for (let i = 0; i < softedData.length; i++) {
-                        var sectorStocks = this.state.staticData[softedData[i].index];
-                        softedData[i].stockList = sectorStocks;
 
-                        for (let index = 0; index < sectorStocks.length; index++) {
-                            var foundInWatchlist = this.state.sectorStockList.filter(row => row.token == sectorStocks[index].token);
-                            if (!foundInWatchlist.length) {
-                                this.setState({ sectorStockList: [...this.state.sectorStockList, sectorStocks[index]] });
-                                sectorStockList.push(sectorStocks[index]);
+                        
+                        if(softedData[i].percentChange > 0.75){
+                           
+                            var sectorStocks = this.state.staticData[softedData[i].index];
+                            softedData[i].stockList = sectorStocks;
+
+                            for (let index = 0; index < sectorStocks.length; index++) {
+                                var foundInWatchlist = this.state.sectorStockList.filter(row => row.token == sectorStocks[index].token);
+                                if (!foundInWatchlist.length) {
+                                    this.setState({ sectorStockList: [...this.state.sectorStockList, sectorStocks[index]] });
+                                    sectorStockList.push(sectorStocks[index]);
+                                }
                             }
-                        }
 
-                         this.setState({ sectorList: softedData });
-                        localStorage.setItem('sectorList', JSON.stringify(softedData));
-                        localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));
+                            this.setState({ sectorList: softedData });
+                            localStorage.setItem('sectorList', JSON.stringify(softedData));
+                            localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));
+                                
+                         }
+
+                        
 
                          if(softedData[i].percentChange > 0.75){
                             updateLtpOnInterval(this, sectorStocks);
-
                          }
 
+                        
                   
                     }
 
@@ -426,10 +432,12 @@ class MyView extends React.Component {
             .catch((reject) => {
                 Notify.showError("All Indices API Failed" + <br /> + reject);
                 this.speckIt("All Indices API Failed");
-                this.setState({ refreshFlag: true });
 
             })
 
+            
+          //  this.makeConnection();
+            this.setState({ refreshFlag: true });
 
     }
 
@@ -524,7 +532,7 @@ class MyView extends React.Component {
                         sectorStockList[index].candleChartData = candleChartData;
                         var sectorList = this.state.sectorList;
                         this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
-                            outerEelement.stockList.forEach((element, stockIndex) => {
+                            outerEelement.stockList && outerEelement.stockList.forEach((element, stockIndex) => {
                                 var foundLive = sectorStockList.filter(row => row.token == element.token);
 
                                 if (foundLive.length) {
@@ -563,15 +571,15 @@ class MyView extends React.Component {
         return newarray.join('');
     }
 
-    // makeConnection = () => {
+    makeConnection = () => {
 
-    //     var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-    //     console.log("Connection sectior top firstTime_req :- " + firstTime_req);
-    //     wsClintSectorUpdate.send(firstTime_req);
+        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
+        console.log("Connection sectior top firstTime_req :- " + firstTime_req);
+        wsClintSectorUpdate.send(firstTime_req);
 
-    //     this.updateSocketWatch();
+        this.updateSocketWatch();
 
-    // }
+    }
 
     showCandleChart = (candleData, symbol, price, change) => {
 
@@ -588,26 +596,33 @@ class MyView extends React.Component {
         }
     }
 
-    // updateSocketWatch = () => {
+    updateSocketWatch = () => {
 
-    //     var channel = this.state.sectorList.map(element => {
-    //         element.stockList.map(stock => {
-    //             return 'nse_cm|' + stock.token;
-    //         });
-    //     });
+        
 
-    //     channel = channel.join('&');
-    //     var updateWatch = {
-    //         "task": "mw",
-    //         "channel": channel,
-    //         "token": this.state.feedToken,
-    //         "user": this.state.clientcode,
-    //         "acctid": this.state.clientcode
-    //     }
+        var channel = []; 
+        this.state.sectorList.forEach(element => {
+            if(element.percentChange >= 0.75){
+                element.stockList && element.stockList.forEach(stock => {
+                    channel.push( 'nse_cm|' + stock.token ); 
+                });
+            }
+        });
+        
 
-    //     console.log("update watech", updateWatch);
-    //     wsClintSectorUpdate.send(JSON.stringify(updateWatch));
-    // }
+        if (channel && channel.length){
+            var updateWatch = {
+                "task": "mw",
+                "channel": channel.join('&'),
+                "token": this.state.feedToken,
+                "user": this.state.clientcode,
+                "acctid": this.state.clientcode
+            }
+    
+            console.log("update watech", updateWatch);
+            wsClintSectorUpdate.send(JSON.stringify(updateWatch));
+        }
+    }
 
 
 
@@ -643,7 +658,7 @@ class MyView extends React.Component {
                 outerEelement.stockList && outerEelement.stockList.forEach((element, index2) => {
 
                     if(index2 < 2){
-                        console.log("Top",index2,  outerEelement.index,  element); 
+                      //  console.log("Top",index2,  outerEelement.index,  element); 
 
 
                     }
@@ -675,6 +690,10 @@ class MyView extends React.Component {
                             &nbsp;
 
                             {this.state.refreshFlagCandle ? <Button variant="contained" onClick={() => this.refreshSectorCandle()}>Refresh Candle</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockCandleUpdate}  </Button> </>}
+                            &nbsp;
+
+                            <Button variant="contained" onClick={() => this.makeConnection()}> WS Refresh</Button> 
+                        
 
                         </Typography>
 
@@ -705,7 +724,7 @@ class MyView extends React.Component {
 
                                                 {/* {sectorItem.cng} */}
                                                 <Typography style={{ background: this.getPercentageColor(sectorItem.cng), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc && sectorItem.nc.toFixed(2)}%)
+                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%)
                                                 </Typography>
 
 
