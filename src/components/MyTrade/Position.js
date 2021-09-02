@@ -16,9 +16,10 @@ import OrderBook from './Orderbook';
 import TradeConfig from './TradeConfig.json';
 import ChartDialog from './ChartDialog'; 
 import ChartMultiple from './ChartMultiple'; 
-
+import RefreshIcon from '@material-ui/icons/Refresh';
 import EqualizerIcon from '@material-ui/icons/Equalizer';
 import Notify from "../../utils/Notify";
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 
 class Home extends React.Component{
@@ -72,7 +73,7 @@ class Home extends React.Component{
             
             var tostartInteral =   setInterval(() => {
 
-                console.log("1st interval every second", new Date().toLocaleTimeString());
+               // console.log("1st interval every second", new Date().toLocaleTimeString());
                 var time = new Date(); 
                 if(time.getMinutes() % 15 === 0){
                     console.log("5th min completed at", new Date().toLocaleTimeString());
@@ -754,6 +755,48 @@ class Home extends React.Component{
         console.log("sumPercentage", sumPercentage)
     }
 
+    refreshCandleChartManually = async (row) => {
+
+        var beginningTime = moment('9:15am', 'h:mma');
+        var time = moment.duration("12:00:00");
+        var startdate = moment(new Date()).subtract(time);
+
+        var data = {
+            "exchange": "NSE",
+            "symboltoken": row.symboltoken,
+            "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+            "fromdate": moment(beginningTime).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+            "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+        }
+        AdminService.getHistoryData(data).then(res => {
+            let histdata = resolveResponse(res, 'noPop');
+            //console.log("candle history", histdata); 
+            if (histdata && histdata.data && histdata.data.length) {
+
+                var candleChartData = []; 
+                histdata.data.forEach(element => {
+                    candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                });
+
+                
+                localStorage.setItem('candleChangeShow', ((row.ltp - row.close)*100/row.close).toFixed(2)); 
+
+
+                localStorage.setItem('candleChartData', JSON.stringify(candleChartData))
+                localStorage.setItem('cadleChartSymbol', row.symbolname); 
+                document.getElementById('showCandleChart').click();
+
+            } else {
+                //localStorage.setItem('NseStock_' + symbol, "");
+                console.log(row.symboltoken, "  emply candle found");
+            }
+        }).catch(error => {
+            this.setState({ failedCount: this.state.failedCount + 1 });
+            Notify.showError(row.symboltoken + " candle failed!");
+        })
+
+    }
+
     showCandleChart = (candleData, symbol) => {
 
 
@@ -926,6 +969,39 @@ class Home extends React.Component{
         });
         return data; 
      }
+     getHighLowPercentage = async() => {
+
+        if(!this.state.positionList.length){
+            Notify.showError("First Refresh Position")
+        }
+                
+        this.state.positionList.forEach((element, index)=> {
+            if(element.producttype == "DELIVERY"){
+                return ""; 
+            }
+        
+            var data  = {
+                "exchange":"NSE",
+                "tradingsymbol": element.tradingsymbol,
+                "symboltoken":element.symboltoken,
+            }
+            AdminService.getLTP(data).then(res => {
+                let data = resolveResponse(res, 'noPop');
+                 var LtpData = data && data.data; 
+                 //console.log(LtpData);
+                 if(LtpData && LtpData.ltp){
+                    element.close = LtpData.close;
+                    element.high = LtpData.high;
+                    element.low = LtpData.low;
+                 }
+                
+           })
+
+        }); 
+        setTimeout(() => {
+            this.setState({ positionList : this.state.positionList}); 
+        }, 2000);
+     }
     getPositionData = async() => {
      //   document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
         var maxPnL = 0, totalMaxPnL = 0; 
@@ -965,7 +1041,8 @@ class Home extends React.Component{
 
                 this.setState({totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL : totalMaxPnL.toFixed(2)}); 
             }
-       })
+       })   
+
     }
    
     getNSETopStock(){
@@ -1507,38 +1584,32 @@ class Home extends React.Component{
             percentChange =  ((totalsellavgprice - ltp)*100/totalsellavgprice); 
         }
        
-         if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.7){
+         if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.4){
                 if(totalbuyavgprice)   
-                var minPrice =  totalbuyavgprice + (totalbuyavgprice * 0.1/100);
+                var minPrice =  totalbuyavgprice + (totalbuyavgprice * 0.2/100);
                 if(totalsellavgprice)   
-                var minPrice =  totalsellavgprice - (totalsellavgprice * 0.1/100);
+                var minPrice =  totalsellavgprice - (totalsellavgprice * 0.2/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrderMethod(row, minPrice);
          }else{
-           //var lastTriggerprice =  this.state['lastTriggerprice_'+row.symboltoken]; 
            var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
            var perchngfromTriggerPrice = ((ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
-        //   console.log(row.symbolname, 'chng form Trigger Price',perchngfromTriggerPrice);
-           if(perchngfromTriggerPrice > 0.7){
-                minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
+           if(perchngfromTriggerPrice > 0.6){
+                minPrice =  lastTriggerprice + (lastTriggerprice * 0.3/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrderMethod(row, minPrice);
-           }else if(percentChange >= 0.3){
+           }
+           else if(percentChange >= 0.3 && percentChange <= 0.4){
 
                 if(!localStorage.getItem('squiredOff'+row.symboltoken)){
-
                     localStorage.setItem('squiredOff'+row.symboltoken, 'yes');
                     this.squareOff(row); 
-
                     var msg = new SpeechSynthesisUtterance();
                     msg.text = row.symbolname +' squired Off Success at ' + percentChange.toFixed(2) + '%'; 
                     window.speechSynthesis.speak(msg);
-
                     console.log("Sqr off called for 0.3% ",row.symbolname);  
 
                 }
-
-                
            }
           
 
@@ -1615,6 +1686,9 @@ class Home extends React.Component{
                         <Grid item  >
                             <Button  type="number" variant="contained" style={{float:"right"}} onClick={() => this.getPositionData()}>Refresh</Button>    
                         </Grid>
+                        <Grid item  >
+                            <Button  type="number" variant="contained" style={{float:"right"}} onClick={() => this.getHighLowPercentage()}><RefreshIcon /> H/L</Button>    
+                        </Grid>
                 </Grid>
                
                  <Grid style={{padding:'5px'}}  spacing={1}  direction="row" alignItems="center" container>
@@ -1628,26 +1702,30 @@ class Home extends React.Component{
                             <TableRow key="1"  variant="head" style={{fontWeight: 'bold'}}>
 
                                 {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
-                                <TableCell style={{paddingLeft:"3px"}} className="TableHeadFormat" align="left">&nbsp;Trading symbol</TableCell>
+                                <TableCell style={{paddingLeft:"3px"}} className="TableHeadFormat" align="left">&nbsp;Symbol</TableCell>
                                 {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left">Product type</TableCell> */}
   
-                                <TableCell  className="TableHeadFormat" align="left">Average Buy Price</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Avg Buy</TableCell>
                                 {/* <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell> */}
 
-                                <TableCell  className="TableHeadFormat" align="left">Average Sell Price</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Avg Sell </TableCell>
                                 {/* <TableCell  className="TableHeadFormat" align="left">Total Sell value</TableCell> */}
-                                <TableCell className="TableHeadFormat" align="left">Bought Qty</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">Qty Taken</TableCell>
                                 
                                 <TableCell  className="TableHeadFormat" align="left">Net Qty</TableCell>
 
                                 <TableCell  className="TableHeadFormat" align="left">Trailing SL</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">Max Locked P/L</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">Max P/L</TableCell>
 
                                 
                                 <TableCell className="TableHeadFormat" align="left">P/L </TableCell>
                                 <TableCell className="TableHeadFormat" align="left">Chng % </TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">LTP</TableCell>
+
+                                <TableCell  className="TableHeadFormat" align="left">Closing%</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">HighLow%</TableCell>
+
         
     
 
@@ -1662,7 +1740,14 @@ class Home extends React.Component{
 
                                 row.producttype !== 'DELIVERY' ? <TableRow  hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'lightgray': ""}} >
 
-                                <TableCell style={{paddingLeft:"3px"}} align="left">&nbsp; <a rel="noopener noreferrer" target="_blank" href={"https://chartink.com/stocks/"+row.tradingsymbol.split('-')[0]+".html"}>{row.tradingsymbol.split('-')[0]}</a> </TableCell>
+                                    {/* href={"https://chartink.com/stocks/"+row.symbolname+".html" */}
+                                <TableCell align="left">
+                                    
+                                    <Button  style={{ color: (row.ltp -row.close)*100/row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} > 
+                                            {row.symbolname} {row.ltp}({((row.ltp -row.close)*100/row.close).toFixed(2)}%) <ShowChartIcon />
+                                    </Button>  
+                                
+                                </TableCell>
                                 {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                 {/* <TableCell align="left">{row.producttype}</TableCell> */}
                              
@@ -1670,7 +1755,7 @@ class Home extends React.Component{
                                 {/* <TableCell align="left">{row.totalbuyvalue}</TableCell> */}
 
                                 <TableCell align="left">{row.totalsellavgprice}</TableCell>
-                                <TableCell align="left">{row.buyqty}</TableCell>
+                                <TableCell align="left">{row.buyqty || row.sellqty}</TableCell>
                                 <TableCell align="left">{row.netqty}</TableCell>
                                 {/* <TableCell align="left">{row.totalsellvalue}</TableCell> */}
                                 <TableCell align="left"> {row.stopLoss}</TableCell> 
@@ -1681,10 +1766,20 @@ class Home extends React.Component{
                                 <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'green' : 'red'}}><b>{row.pnl}</b></TableCell>
                                 <TableCell align="left">
                                     { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice,row.totalsellavgprice, row.ltp, row) : ""} 
-                                    {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
+                                    {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}%
                                   </TableCell> 
                                 <TableCell align="left">{row.ltp}</TableCell>
+
+
+                                <TableCell align="left">{((row.ltp - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2)}%</TableCell>
                               
+                              {row.totalbuyavgprice ? 
+                              <TableCell title="Buy Side  High" align="left">{row.high}({row.high ? ((row.high - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2) +"%" : "Refresh H/L"}) </TableCell>
+                                : 
+                               <TableCell title="Sell Side Low" align="left">{row.low}({row.low ? ((row.totalsellavgprice - row.low)*100/row.totalsellavgprice).toFixed(2) +"%"  : "Refresh H/L"}) </TableCell>
+                            }
+
+
                                 <TableCell align="left">
                                     {row.netqty !== "0" ? <Button size={'small'}  type="number" variant="contained" color="Secondary"  onClick={() => this.squareOff(row)}>Square Off</Button>  : ""}  
                                 </TableCell>
@@ -1716,12 +1811,19 @@ class Home extends React.Component{
  
                                 <TableCell className="TableHeadFormat" align="left">
                                     
-                                {new Date().toLocaleTimeString() > "15:15:00" ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) : ""}
+                                {new Date().toLocaleTimeString() > "15:15:00" ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) +"%" : ""}
                     
                                 </TableCell>
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
 
                                 <TableCell  className="TableHeadFormat" align="left"></TableCell>
+                                
+
+                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
+                                
+
+                                <TableCell  className="TableHeadFormat" align="left"></TableCell>
+                                
 
                                 </TableRow>
 

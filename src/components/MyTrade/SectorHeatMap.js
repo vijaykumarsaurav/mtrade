@@ -43,13 +43,10 @@ class MyView extends React.Component {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
         }
         this.refreshSectorCandle = this.refreshSectorCandle.bind(this);
-
-
     }
 
     componentDidMount() {
-
-
+       // window.location.reload(); 
 
       //  this.loadPackList();
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
@@ -73,39 +70,52 @@ class MyView extends React.Component {
                 this.updateSocketWatch();
             }
 
+
             wsClintSectorUpdate.onmessage = (message) => {
                 var decoded = window.atob(message.data);
                 var data = this.decodeWebsocketData(pako.inflate(decoded));
                 var liveData = JSON.parse(data);
-                var sectorList = this.state.sectorList;
 
-                console.log("sector live data", liveData);
+               console.log("sector live data", liveData);
+               window.document.title = "Sector Live WS: " + liveData.length; 
 
                 this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
 
                     outerEelement.stockList && outerEelement.stockList.forEach((element, stockIndex) => {
                         var foundLive = liveData.filter(row => row.tk == element.token);
                         if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
-                            sectorList[index].stockList[stockIndex].ltp = foundLive[0].ltp;
-                            sectorList[index].stockList[stockIndex].nc = foundLive[0].nc;
-                            sectorList[index].stockList[stockIndex].cng = foundLive[0].cng;
+                            this.state.sectorList[index].stockList[stockIndex].ltp = foundLive[0].ltp;
+                            this.state.sectorList[index].stockList[stockIndex].nc = foundLive[0].nc;
+                            this.state.sectorList[index].stockList[stockIndex].cng = foundLive[0].cng;
+                            this.state.sectorList[index].stockList[stockIndex].ltt = foundLive[0].ltt;
+                            
+                            this.state.sectorList[index].isStocksLtpUpdted = true; 
                         }
                     });
-                    sectorList[index].stockList && sectorList[index].stockList.sort(function (a, b) {
-                        return b.nc - a.nc;
-                    });
-
                 });
 
+                this.setState({ sectorList: this.state.sectorList  });
+                // this.setState({ sectorList: sectorList });
+                // localStorage.setItem('sectorList', JSON.stringify(sectorList));
 
-
-                this.setState({ sectorList: sectorList });
-                localStorage.setItem('sectorList', JSON.stringify(sectorList));
+                // if(index){
+                //     this.state.sectorList.forEach((element, i) => {
+                //         if(element.index == index){
+                //             this.state.sectorList[i].stockList = sectorUpdate; 
+                //             this.state.sectorList[i].isStocksLtpUpdted = true; 
+                //             this.setState({ sectorList: this.state.sectorList  });
+                //             return; 
+                //         }
+                //     });
+                // }
 
             }
 
+
+
             wsClintSectorUpdate.onerror = (e) => {
                 console.log("socket error", e);
+                window.location.reload(); 
             }
 
             setInterval(() => {
@@ -144,11 +154,28 @@ class MyView extends React.Component {
 
 
 
+        }else{
+            wsClintSectorUpdate.close();
         }
 
 
 
     }
+
+    getTodayOrder = () => {
+        AdminService.retrieveOrderBook()
+        .then((res) => {
+            let data = resolveResponse(res, "noPop");
+            if(data && data.data){
+                var orderlist = data.data; 
+                  orderlist.sort(function(a,b){
+                    return new Date(b.updatetime) - new Date(a.updatetime);
+                  });
+                localStorage.setItem('oderbookData', JSON.stringify( orderlist ));                        
+            }
+        });
+    }
+
 
     placeSLMOrder = (slmOption) => {
         
@@ -174,10 +201,8 @@ class MyView extends React.Component {
             if(data.status  && data.message === 'SUCCESS'){
                 this.setState({ orderid : data.data && data.data.orderid });
                // this.updateOrderList(); 
-               var msg = new SpeechSynthesisUtterance();
-               msg.text = 'hey Vijay, '+ slmOption.tradingsymbol; 
-               window.speechSynthesis.speak(msg);
-
+               this.speckIt('hey Vijay, '+ slmOption.tradingsymbol + " buy order placed"); 
+               this.getTodayOrder(); 
                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
             }
         })
@@ -204,6 +229,7 @@ class MyView extends React.Component {
             let data = resolveResponse(res);
           //  console.log(data);   
             if(data.status  && data.message === 'SUCCESS'){
+                this.speckIt(orderOption.tradingsymbol + " Added"); 
                 this.setState({ orderid : data.data && data.data.orderid });
                 if(orderOption.stopLossPrice){
                     this.placeSLMOrder(orderOption);
@@ -226,17 +252,18 @@ class MyView extends React.Component {
     }
 
 
-    historyWiseOrderPlace = (sectorItem, orderType) => {
+    historyWiseOrderPlace = (sectorItem, orderType, isAutomatic) => {
 
 
         var token = sectorItem.token; 
         var symbol = sectorItem.symbol; 
-
-        if(!window.confirm(orderType + " "+ symbol+ " Are you sure ? ")){
-            return; 
+        
+        if(isAutomatic != "Automatic") {
+            if(!window.confirm(orderType + " "+ symbol+ " Are you sure ? ")){
+                return; 
+            }
         }
-
-
+       
         var ltpdata  = {"exchange":"NSE","tradingsymbol": symbol,"symboltoken":token,}
         AdminService.getLTP(ltpdata).then(res => {
             let ltpres = resolveResponse(res, 'noPop');
@@ -335,7 +362,7 @@ class MyView extends React.Component {
                                     quantity: quantity, 
                                     stopLossPrice: stoploss
                                 }
-                                if(stoplossPer <= 1.5){ 
+                                if(quantity){ 
                                    this.placeOrderMethod(orderOption);
                                 }else{
                                     Notify.showError(symbol+ " stoploss is > 1.5% Rejected");
@@ -410,14 +437,14 @@ class MyView extends React.Component {
 
                             this.setState({ sectorList: softedData });
                             localStorage.setItem('sectorList', JSON.stringify(softedData));
-                            localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));    
+                            localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));   
+                            
+                            updateLtpOnInterval(this, sectorStocks);
                          }
 
                         
 
-                         if(softedData[i].percentChange > 0.75){
-                            updateLtpOnInterval(this, sectorStocks);
-                         }
+                        
 
                         
                   
@@ -434,8 +461,6 @@ class MyView extends React.Component {
 
             })
 
-            
-          //  this.makeConnection();
             this.setState({ refreshFlag: true });
 
     }
@@ -675,10 +700,11 @@ class MyView extends React.Component {
 
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
         console.log("Connection sectior top firstTime_req :- " + firstTime_req);
+      
+        if (!wsClintSectorUpdate) return;
         wsClintSectorUpdate.send(firstTime_req);
 
         this.updateSocketWatch();
-
     }
 
     showCandleChart = (candleData, symbol, price, change) => {
@@ -719,7 +745,7 @@ class MyView extends React.Component {
                 "acctid": this.state.clientcode
             }
     
-            console.log("update watech", updateWatch);
+            console.log("update watch channel", updateWatch);
             wsClintSectorUpdate.send(JSON.stringify(updateWatch));
         }
     }
@@ -753,7 +779,7 @@ class MyView extends React.Component {
 
 
         let sqrOffbeginningTime = moment('9:15am', 'h:mma');
-        let sqrOffendTime = moment('03:00pm', 'h:mma');
+        let sqrOffendTime = moment('03:30pm', 'h:mma');
         let sqrOffcurrentTime = moment(new Date(), "h:mma");
         if(sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)){
             this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
@@ -766,8 +792,9 @@ class MyView extends React.Component {
                                 element.foundAt = new Date().toLocaleString(); 
                                 autoTradeTopList.push(element); 
                                 localStorage.setItem('autoTradeTopList', JSON.stringify(autoTradeTopList)); 
-                                console.log(element.name + " of "+ outerEelement.index + " Added")
-                                this.speckIt(element.name + " Added"); 
+                                console.log(element.name + " is on top  " + (index2+1) + new Date().toLocaleString());
+                                this.speckIt(element.name + " is on top  " + (index2+1)); 
+                              //  this.historyWiseOrderPlace(element , 'BUY', "Automatic"); 
                             }
                         }
     
@@ -775,8 +802,6 @@ class MyView extends React.Component {
                 }
             });
         }
-
-       
 
         return (
             <React.Fragment>
@@ -805,7 +830,7 @@ class MyView extends React.Component {
 
                         </Typography>
 
-                        {localStorage.getItem('autoTradeTopList')}
+                        {/* {localStorage.getItem('autoTradeTopList')} */}
 
                     </Grid>
 
@@ -840,7 +865,7 @@ class MyView extends React.Component {
 
                                                 {/* {sectorItem.cng} */}
                                                 <Typography style={{ background: this.getPercentageColor(sectorItem.cng), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%)
+                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%)  Time: {sectorItem.ltt && sectorItem.ltt.substr(10 ,  10)} 
                                                 </Typography>
 
 
@@ -880,6 +905,7 @@ class MyView extends React.Component {
 
                                                 <Typography style={{ background: 'gray'}}>
                                                     <Button size="small" variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={() => this.historyWiseOrderPlace(sectorItem , 'BUY')}>Buy</Button>
+                                                   
                                                     <Button size="small" variant="contained" color="secondary" style={{ marginLeft: '20px' }} onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL')}>Sell</Button>
 
                                                 </Typography>

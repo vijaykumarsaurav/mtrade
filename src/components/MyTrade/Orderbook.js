@@ -105,22 +105,24 @@ class OrderBook extends React.Component{
             
          
 
-            <Paper style={{padding:"10px"}} >
 
-            <Grid spacing={1}  direction="row" alignItems="center" container>
-                            <Grid item xs={12} sm={6} >
-                                <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                Oders Details ({this.state.oderbookData.length}) 
-                                </Typography> 
-                            </Grid>
-                            <Grid item xs={12} sm={6} >
-                                <Button id="orderRefresh"  type="number" variant="contained"  style={{float:"right"}} onClick={() => this.getTodayOrder()}>Refresh</Button>    
-                            </Grid>
-                            
-                </Grid>
-            
+                <Grid spacing={1}  direction="row" alignItems="center" container>
+                                <Grid item xs={12} sm={6} >
+                                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                                    Oders Details ({this.state.oderbookData.length}) 
+                                    </Typography> 
+                                </Grid>
+                                <Grid item xs={12} sm={6} >
+                                    <Button id="orderRefresh"  type="number" variant="contained"  style={{float:"right"}} onClick={() => this.getTodayOrder()}>Refresh</Button>    
+                                </Grid>
+                                
+                    </Grid>
+                
             <Grid direction="row" alignItems="center" container>
             <Grid item xs={12} sm={12} >
+
+                     <Paper style={{padding:"10px"}} >
+
                      <Table  size="small"  style={{width:"100%"}}  aria-label="sticky table" >
                
                         <TableHead style={{whiteSpace: "nowrap"}} variant="head">
@@ -173,8 +175,6 @@ class OrderBook extends React.Component{
                                 
                                     <TableCell align="center">{row.averageprice}</TableCell>
 
-                                
-
                                     <TableCell align="center">
                                         {row.orderstatus === 'trigger pending' ? 
                                         <TextField style={{textAlign:'center', width:'50px'}} id="price"  value={this.state.price === 0 ? row.price : this.state.price}  name="price" onChange={this.onChange}/>
@@ -203,10 +203,11 @@ class OrderBook extends React.Component{
                             )):<Spinner/>}
                         </TableBody>
                     </Table>
+                    </Paper>    
                 </Grid>
-                            
+                 
                </Grid>    
-            </Paper>
+           
             </React.Fragment> 
         )
     }

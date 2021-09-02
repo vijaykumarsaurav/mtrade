@@ -164,7 +164,7 @@ export default function PostLoginNavBar(props) {
                                 style={{ color: "white" }}
                             >
 
-                                <Grid item>
+                                <Grid item> 
                                     <Button variant="outlined" color="primary" href={"/mtrade/#/sector-heat-map"}>
                                         Sector Hit Map
                                     </Button>
