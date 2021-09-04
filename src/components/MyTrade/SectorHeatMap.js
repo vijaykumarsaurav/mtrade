@@ -37,6 +37,7 @@ class MyView extends React.Component {
             indexTimeStamp: '',
             refreshFlag: true,
             refreshFlagCandle: true,
+            buyButtonClicked : true,
             sectorStockList: localStorage.getItem('sectorStockList') && JSON.parse(localStorage.getItem('sectorStockList')) || [],
             sectorList: localStorage.getItem('sectorList') && JSON.parse(localStorage.getItem('sectorList')) || [],
             watchList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
@@ -66,8 +67,8 @@ class MyView extends React.Component {
 
 
             wsClintSectorUpdate.onopen = (res) => {
-                this.makeConnection();
-                this.updateSocketWatch();
+            //    this.makeConnection();
+             //   this.updateSocketWatch();
             }
 
 
@@ -76,7 +77,7 @@ class MyView extends React.Component {
                 var data = this.decodeWebsocketData(pako.inflate(decoded));
                 var liveData = JSON.parse(data);
 
-               console.log("sector live data", liveData);
+             //  console.log("sector live data", liveData);
                window.document.title = "Sector Live WS: " + liveData.length; 
 
                 this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
@@ -119,7 +120,7 @@ class MyView extends React.Component {
             }
 
             setInterval(() => {
-                this.makeConnection();
+             //   this.makeConnection();
                 var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
                 // console.log("Connection sectior top hb Request :- " + _req);
                 wsClintSectorUpdate.send(_req);
@@ -504,6 +505,9 @@ class MyView extends React.Component {
                     indexData.ltp = LtpData.ltp;
                     indexData.nc = todayChange;
                     indexData.cng = (LtpData.ltp - LtpData.close);
+                    indexData.ltt = new Date().toLocaleString();
+
+
                     sectorUpdate.push(indexData); 
                 }
 
@@ -794,7 +798,7 @@ class MyView extends React.Component {
                                 localStorage.setItem('autoTradeTopList', JSON.stringify(autoTradeTopList)); 
                                 console.log(element.name + " is on top  " + (index2+1) + new Date().toLocaleString());
                                 this.speckIt(element.name + " is on top  " + (index2+1)); 
-                              //  this.historyWiseOrderPlace(element , 'BUY', "Automatic"); 
+                             //   this.historyWiseOrderPlace(element , 'BUY', "Automatic"); 
                             }
                         }
     
@@ -904,7 +908,9 @@ class MyView extends React.Component {
                                                 /> : ""} */}
 
                                                 <Typography style={{ background: 'gray'}}>
-                                                    <Button size="small" variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={() => this.historyWiseOrderPlace(sectorItem , 'BUY')}>Buy</Button>
+                                                  
+                                                  
+                                                  {this.state.buyButtonClicked ?  <Button size="small" variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={() => this.historyWiseOrderPlace(sectorItem , 'BUY')}>Buy</Button> : <Spinner /> }
                                                    
                                                     <Button size="small" variant="contained" color="secondary" style={{ marginLeft: '20px' }} onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL')}>Sell</Button>
 

@@ -35,7 +35,7 @@ class Home extends React.Component{
             tradingsymbol : "" ,
             buyPrice : 0,
             quantity : 1,
-            producttype : "INTRADAY",
+            producttype : "DELIVERY",
             nr4TotalPer : 0,
             pnlAmountTotal: 0,
             totalBrokerCharges:'',
@@ -924,8 +924,6 @@ class Home extends React.Component{
                           });
 
                           this.setState({foundPatternList: foundlist}); 
-
-                        
                       
                         var foundPatternList = localStorage.getItem("foundPatternList") ? JSON.parse(localStorage.getItem("foundPatternList")) : []; 
                         foundPatternList.push(foundData); 
@@ -974,8 +972,10 @@ class Home extends React.Component{
         if(!this.state.positionList.length){
             Notify.showError("First Refresh Position")
         }
-                
-        this.state.positionList.forEach((element, index)=> {
+
+        for (let index = 0; index < this.state.positionList.length; index++) {
+            const element = this.state.positionList[index];
+            
             if(element.producttype == "DELIVERY"){
                 return ""; 
             }
@@ -990,17 +990,16 @@ class Home extends React.Component{
                  var LtpData = data && data.data; 
                  //console.log(LtpData);
                  if(LtpData && LtpData.ltp){
-                    element.close = LtpData.close;
-                    element.high = LtpData.high;
-                    element.low = LtpData.low;
+                    this.state.positionList[index].high= LtpData.high;
+                    this.state.positionList[index].low= LtpData.low;
                  }
                 
            })
+           await new Promise(r => setTimeout(r, 100)); 
+           this.setState({ positionList : this.state.positionList}); 
 
-        }); 
-        setTimeout(() => {
-            this.setState({ positionList : this.state.positionList}); 
-        }, 2000);
+        }
+
      }
     getPositionData = async() => {
      //   document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
@@ -1009,7 +1008,8 @@ class Home extends React.Component{
             let data = resolveResponse(res, 'noPop');
              var positionList = data && data.data;
              if (positionList && positionList.length>0){
-                this.setState({ positionList : positionList}); 
+
+                
                  var todayProfitPnL=0, totalbuyvalue=0, totalsellvalue=0, totalQtyTraded=0, allbuyavgprice=0,allsellavgprice=0,totalPercentage=0;
                   positionList.forEach(element => {
 
@@ -1037,9 +1037,22 @@ class Home extends React.Component{
                 }); 
                 this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
                 this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2) , totalPercentage: totalPercentage    }); 
-                this.setState({ totalBrokerCharges: ((totalbuyvalue + totalsellvalue) * 0.25/100).toFixed(2)});                
+                
+                var brokerageOnlyCharges = ((totalbuyvalue + totalsellvalue) * 0.25/100); 
+                var allCharges = brokerageOnlyCharges + brokerageOnlyCharges * 25/100; 
+                this.setState({ totalBrokerCharges: allCharges.toFixed(2)});                
 
                 this.setState({totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL : totalMaxPnL.toFixed(2)}); 
+
+
+                positionList.sort(function(a,b){
+                    return (b.netqty - a.netqty);
+                    
+                   //return b.netqty && (b.ltp - b.totalbuyvalue)*100/b.totalbuyvalue -  b.netqty && (a.ltp - a.totalbuyvalue)*100/a.totalbuyvalue;
+                });
+
+                this.setState({ positionList : positionList}); 
+
             }
        })   
 
@@ -1293,7 +1306,7 @@ class Home extends React.Component{
             "quantity":orderOption.quantity,
             "ordertype": orderOption.buyPrice  === 0 ? "MARKET" : "LIMIT", 
             "price": orderOption.buyPrice,
-            "producttype": "INTRADAY",//"DELIVERY",
+            "producttype": "DELIVERY",//"DELIVERY",
             "duration":"DAY",
             "squareoff":"0",
             "stoploss":"0",
@@ -1438,15 +1451,15 @@ class Home extends React.Component{
             "variety":"NORMAL",
             "tradingsymbol": row.tradingsymbol,
             "symboltoken":row.symboltoken,
-            "transactiontype":row.buyqty > 0 ? 'SELL' : "BUY", 
+            "transactiontype":row.netqty > 0 ? 'SELL' : "BUY", 
             "exchange": row.exchange, 
             "ordertype": "MARKET", 
-            "producttype": row.producttype, //"INTRADAY",//"DELIVERY",
+            "producttype": row.producttype, //"DELIVERY",//"DELIVERY",
             "duration":"DAY",
             "price": 0,
             "squareoff":"0",
             "stoploss":"0",
-            "quantity": row.buyqty > 0 ? row.buyqty :  row.sellqty > 0 ? row.sellqty : 0,
+            "quantity": Math.abs(row.netqty),
         }
 
         // if(window.confirm("Squire Off!!! Sure?")){
@@ -1487,7 +1500,7 @@ class Home extends React.Component{
             "quantity": slmOption.quantity,
             "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY", 
             "exchange": 'NSE', 
-            "producttype": "INTRADAY",//"DELIVERY",
+            "producttype": "DELIVERY",//"DELIVERY",
             "duration":"DAY",
             "price": 0,
             "squareoff":"0",
@@ -1538,7 +1551,7 @@ class Home extends React.Component{
             "duration": "DAY",
             "price":  0,
             "triggerprice": parseFloat( minPrice ),
-            "quantity":row.buyqty,
+            "quantity": Math.abs(row.netqty),
             "tradingsymbol": row.tradingsymbol,
             "symboltoken": row.symboltoken,
             "exchange": row.exchange
@@ -1551,10 +1564,10 @@ class Home extends React.Component{
           
             if(data.status  && data.message ===  'SUCCESS'){
               //  this.setState({ ['lastTriggerprice_' + row.symboltoken]:  parseFloat(minPrice)})
-              msg.text = row.tradingsymbol +' modified '+data.message
-              window.speechSynthesis.speak(msg);
+              msg.text = row.tradingsymbol +' modified '+data.message;
+           //   window.speechSynthesis.speak(msg);
               localStorage.setItem('firstTimeModify'+row.symboltoken, 'No');
-                localStorage.setItem('lastTriggerprice_' + row.symboltoken, parseFloat(minPrice));
+              localStorage.setItem('lastTriggerprice_' + row.symboltoken, parseFloat(minPrice));
             }
         })
     }
@@ -1571,49 +1584,78 @@ class Home extends React.Component{
         return minPrice; 
     }
 
-    getPercentage = (totalbuyavgprice, totalsellavgprice,  ltp , row) =>  {
+    getPercentage = (row) =>  {
 
-        totalbuyavgprice =  parseFloat(totalbuyavgprice); 
-        totalsellavgprice =  parseFloat(totalsellavgprice); 
-
-        var percentChange = 0; 
-        if(totalbuyavgprice){
-            percentChange =  ((ltp - totalbuyavgprice)*100/totalbuyavgprice); 
+        if(row.netqty > 0){
+            var percentChange =  ((row.ltp - row.buyavgprice)*100/row.buyavgprice); 
+            if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.4){
+                var minPrice =  row.buyavgprice + (row.buyavgprice * 0.25/100);
+                minPrice = this.getMinPriceAllowTick(minPrice); 
+                this.modifyOrderMethod(row, minPrice);
+            }else{
+                var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
+                var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
+                if(perchngfromTriggerPrice >= 0.6){
+                     minPrice =  lastTriggerprice + (lastTriggerprice * 0.2/100);
+                     minPrice = this.getMinPriceAllowTick(minPrice); 
+                     this.modifyOrderMethod(row, minPrice);
+                }
+              }
         }
-        if(totalsellavgprice){
-            percentChange =  ((totalsellavgprice - ltp)*100/totalsellavgprice); 
+
+
+        if(row.netqty < 0){
+            var percentChange =  ((row.ltp - row.sellavgprice)*100/row.sellavgprice); 
+            if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange <= 0.4){
+                var minPrice =  row.sellavgprice - (row.sellavgprice * 0.25/100);
+                minPrice = this.getMinPriceAllowTick(minPrice); 
+                this.modifyOrderMethod(row, minPrice);
+            }else{
+              
+                var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
+                var perchngfromTriggerPrice = ((lastTriggerprice - row.ltp)*100/lastTriggerprice).toFixed(2);   
+                if(perchngfromTriggerPrice <= 0.6){
+                     minPrice =  lastTriggerprice + (lastTriggerprice * 0.2/100);
+                     minPrice = this.getMinPriceAllowTick(minPrice); 
+                     this.modifyOrderMethod(row, minPrice);
+                }
+              }
         }
        
-         if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.4){
-                if(totalbuyavgprice)   
-                var minPrice =  totalbuyavgprice + (totalbuyavgprice * 0.2/100);
-                if(totalsellavgprice)   
-                var minPrice =  totalsellavgprice - (totalsellavgprice * 0.2/100);
-                minPrice = this.getMinPriceAllowTick(minPrice); 
-                this.modifyOrderMethod(row, minPrice);
-         }else{
-           var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
-           var perchngfromTriggerPrice = ((ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
-           if(perchngfromTriggerPrice > 0.6){
-                minPrice =  lastTriggerprice + (lastTriggerprice * 0.3/100);
-                minPrice = this.getMinPriceAllowTick(minPrice); 
-                this.modifyOrderMethod(row, minPrice);
-           }
-           else if(percentChange >= 0.3 && percentChange <= 0.4){
+        //  if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.5){
+        //         if(totalbuyavgprice)   
+        //         var minPrice =  totalbuyavgprice + (totalbuyavgprice * 0.2/100);
+        //         if(totalsellavgprice)   
+        //         var minPrice =  totalsellavgprice - (totalsellavgprice * 0.2/100);
+        //         minPrice = this.getMinPriceAllowTick(minPrice); 
+        //         this.modifyOrderMethod(row, minPrice);
+        //  }else{
+        //    var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
+        //    var perchngfromTriggerPrice = ((ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
+        //    if(perchngfromTriggerPrice > 0.6){
+        //         minPrice =  lastTriggerprice + (lastTriggerprice * 0.3/100);
+        //         minPrice = this.getMinPriceAllowTick(minPrice); 
+        //         this.modifyOrderMethod(row, minPrice);
+        //    }
+        //    else if(percentChange >= 0.3 && percentChange <= 0.4){
 
-                if(!localStorage.getItem('squiredOff'+row.symboltoken)){
-                    localStorage.setItem('squiredOff'+row.symboltoken, 'yes');
-                    this.squareOff(row); 
-                    var msg = new SpeechSynthesisUtterance();
-                    msg.text = row.symbolname +' squired Off Success at ' + percentChange.toFixed(2) + '%'; 
-                    window.speechSynthesis.speak(msg);
-                    console.log("Sqr off called for 0.3% ",row.symbolname);  
+        //         // if(!localStorage.getItem('squiredOff'+row.symboltoken)){
+        //         //     localStorage.setItem('squiredOff'+row.symboltoken, 'yes');
+        //         //     this.squareOff(row); 
+        //         //     var msg = new SpeechSynthesisUtterance();
+        //         //     msg.text = row.symbolname +' squired Off Success at ' + percentChange.toFixed(2) + '%'; 
+        //         //     window.speechSynthesis.speak(msg);
+        //         //     console.log("Sqr off called for 0.3% ",row.symbolname);  
+        //         // }
 
-                }
-           }
-          
-
-         }
+        //         if(totalbuyavgprice)   
+        //         var minPrice =  totalbuyavgprice + (totalbuyavgprice * 0.3/100);
+        //         if(totalsellavgprice)   
+        //         var minPrice =  totalsellavgprice - (totalsellavgprice * 0.3/100);
+        //         minPrice = this.getMinPriceAllowTick(minPrice); 
+        //         this.modifyOrderMethod(row, minPrice);
+        //    }
+        //  }
 
 
 
@@ -1628,8 +1670,6 @@ class Home extends React.Component{
                 console.log("Sqr off called for",row.symbolname);  
             }
         }
-
-
 
         return percentChange.toFixed(2);
     }
@@ -1698,7 +1738,7 @@ class Home extends React.Component{
                     <Paper style={{overflow:"auto", padding:'5px'}} >
                                  
                     <Table  size="small"   aria-label="sticky table" >
-                        <TableHead  style={{whiteSpace: "nowrap", backgroundColor: "lightgray" }} variant="head">
+                        <TableHead  style={{whiteSpace: "nowrap", backgroundColor: "" }} variant="head">
                             <TableRow key="1"  variant="head" style={{fontWeight: 'bold'}}>
 
                                 {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
@@ -1738,13 +1778,13 @@ class Home extends React.Component{
                             {this.state.positionList ? this.state.positionList.map(row => (
 
 
-                                row.producttype !== 'DELIVERY' ? <TableRow  hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'lightgray': ""}} >
+                                row.producttype !== 'DELIVERY1' ? <TableRow  hover key={row.symboltoken} style={{background : row.netqty !== '0'? 'lightgray': ""}} >
 
                                     {/* href={"https://chartink.com/stocks/"+row.symbolname+".html" */}
                                 <TableCell align="left">
                                     
-                                    <Button  style={{ color: (row.ltp -row.close)*100/row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} > 
-                                            {row.symbolname} {row.ltp}({((row.ltp -row.close)*100/row.close).toFixed(2)}%) <ShowChartIcon />
+                                    <Button style={{ color: (row.ltp - row.close)*100/row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} > 
+                                            {row.symbolname} {row.ltp} ({((row.ltp - row.close)*100/row.close).toFixed(2)}%) <ShowChartIcon />
                                     </Button>  
                                 
                                 </TableCell>
@@ -1765,19 +1805,24 @@ class Home extends React.Component{
                                 {/* {(localStorage.getItem('lastTriggerprice_'+row.symboltoken))} */}
                                 <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'green' : 'red'}}><b>{row.pnl}</b></TableCell>
                                 <TableCell align="left">
-                                    { row.netqty !== '0' ? this.getPercentage(row.totalbuyavgprice,row.totalsellavgprice, row.ltp, row) : ""} 
-                                    {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}%
+                                    { row.netqty !== '0' ? this.getPercentage(row) : ""} 
+                                    {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
                                   </TableCell> 
                                 <TableCell align="left">{row.ltp}</TableCell>
 
 
-                                <TableCell align="left">{((row.ltp - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2)}%</TableCell>
                               
-                              {row.totalbuyavgprice ? 
-                              <TableCell title="Buy Side  High" align="left">{row.high}({row.high ? ((row.high - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2) +"%" : "Refresh H/L"}) </TableCell>
+                                {row.totalbuyavgprice ? 
+                                <TableCell align="left">{((row.ltp - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2)}%</TableCell>
                                 : 
-                               <TableCell title="Sell Side Low" align="left">{row.low}({row.low ? ((row.totalsellavgprice - row.low)*100/row.totalsellavgprice).toFixed(2) +"%"  : "Refresh H/L"}) </TableCell>
-                            }
+                                <TableCell align="left">{((row.totalsellavgprice - row.ltp)*100/row.totalsellavgprice).toFixed(2)}%</TableCell>
+                               }
+
+                                {row.totalbuyavgprice ? 
+                                <TableCell title="Buy Side  High" align="left">{row.high}({row.high ? ((row.high - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2) +"%" : "Refresh H/L"}) </TableCell>
+                                    : 
+                                <TableCell title="Sell Side Low" align="left">{row.low}({row.low ? ((row.totalsellavgprice - row.low)*100/row.totalsellavgprice).toFixed(2) +"%"  : "Refresh H/L"}) </TableCell>
+                                }
 
 
                                 <TableCell align="left">
@@ -1788,7 +1833,7 @@ class Home extends React.Component{
                                 
                             )):''}
 
-                                <TableRow   variant="head" style={{fontWeight: 'bold', backgroundColor: "lightgray"}}>
+                                <TableRow   variant="head" style={{fontWeight: 'bold', backgroundColor: ""}}>
 
                                 {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
