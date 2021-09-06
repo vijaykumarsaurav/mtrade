@@ -15,6 +15,7 @@ import TableBody from "@material-ui/core/TableBody";
 import ReactApexChart from "react-apexcharts";
 import { data } from 'jquery';
 
+import LineChart from "./LineChart";
 
 
 const styles = (theme) => ({
@@ -168,10 +169,9 @@ export default function CustomizedDialogs(props) {
             height={350} 
           />: ""}
           
-
-
-
-    
+          {/* below line chart 
+          {localStorage.getItem('candleChartData') && localStorage.getItem('vwapDataChart') ? <LineChart candleChartData={JSON.parse(localStorage.getItem('candleChartData'))} percentChange={localStorage.getItem('candleChangeShow')} vwapDataChart={JSON.parse(localStorage.getItem('vwapDataChart'))}/>: ""}
+           */}
          
          
         </DialogContent>

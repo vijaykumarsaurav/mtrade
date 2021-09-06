@@ -9,6 +9,8 @@ export default function App( props ) {
 
 
   var candleChartData =  props.candleChartData; 
+  var vwapDataChart =  props.vwapDataChart; 
+
   var closeData = [], timeDate = []; 
 
   if(candleChartData){
@@ -21,28 +23,26 @@ export default function App( props ) {
     }
   }
 
-  
 
   const chartData = {
     
     labels: timeDate,
     datasets: [
       {
-        label: "",
+        label: "Price",
         data: closeData,
         fill: true,
         borderColor:  props.percentChange > 0 ? "green" : "red",
        // backgroundColor: "rgba(75,192,192,0.2)",
         //borderColor: ""
       },
-      // {
-      //   label: "Call",
-      //   data: callData,
-      //   fill: true,
-      //   backgroundColor:  "rgba(75,192,192,0.1)",
-      //   borderColor: "red",
-        
-      // },
+      {
+        label: "Vwap",
+        data: vwapDataChart,
+        fill: true,
+      //  backgroundColor:  "blue",
+        borderColor: "blue",
+      },
       // {
       //   label: "Diff",
       //   data: diffData,

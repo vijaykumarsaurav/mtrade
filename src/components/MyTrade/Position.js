@@ -1526,7 +1526,7 @@ class Home extends React.Component{
 
     getOpenPeningOrderId =(symboltoken) => {
 
-        var oderbookData = JSON.parse(localStorage.getItem('oderbookData'));
+        var oderbookData = localStorage.getItem('oderbookData') && JSON.parse(localStorage.getItem('oderbookData'));
         var data = {}; 
          for (let index = 0; index < oderbookData.length; index++) {
             if(oderbookData[index].symboltoken === symboltoken && oderbookData[index].transactiontype ===  "SELL"){
@@ -1538,10 +1538,8 @@ class Home extends React.Component{
          return data;
      }
     modifyOrderMethod = (row, minPrice) => {
-        //console.log(this.state.triggerprice);
-
         var orderData = this.getOpenPeningOrderId(row.symboltoken); 
-        console.log("orderid", this.state.orderData);
+        console.log("modifyOrderMethod", row,  "minPrice", minPrice);
 
         var data = {
             "variety" : "STOPLOSS",
@@ -1587,6 +1585,7 @@ class Home extends React.Component{
     getPercentage = (row) =>  {
 
         if(row.netqty > 0){
+            row.buyavgprice = parseFloat(row.buyavgprice);             
             var percentChange =  ((row.ltp - row.buyavgprice)*100/row.buyavgprice); 
             if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.4){
                 var minPrice =  row.buyavgprice + (row.buyavgprice * 0.25/100);
@@ -1594,7 +1593,7 @@ class Home extends React.Component{
                 this.modifyOrderMethod(row, minPrice);
             }else{
                 var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
-                var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
+                var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice)*100/lastTriggerprice);   
                 if(perchngfromTriggerPrice >= 0.6){
                      minPrice =  lastTriggerprice + (lastTriggerprice * 0.2/100);
                      minPrice = this.getMinPriceAllowTick(minPrice); 
@@ -1605,6 +1604,7 @@ class Home extends React.Component{
 
 
         if(row.netqty < 0){
+            row.sellavgprice = parseFloat(row.sellavgprice);             
             var percentChange =  ((row.ltp - row.sellavgprice)*100/row.sellavgprice); 
             if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange <= 0.4){
                 var minPrice =  row.sellavgprice - (row.sellavgprice * 0.25/100);
@@ -1613,7 +1613,7 @@ class Home extends React.Component{
             }else{
               
                 var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
-                var perchngfromTriggerPrice = ((lastTriggerprice - row.ltp)*100/lastTriggerprice).toFixed(2);   
+                var perchngfromTriggerPrice = ((lastTriggerprice - row.ltp)*100/lastTriggerprice);   
                 if(perchngfromTriggerPrice <= 0.6){
                      minPrice =  lastTriggerprice + (lastTriggerprice * 0.2/100);
                      minPrice = this.getMinPriceAllowTick(minPrice); 

@@ -39,6 +39,7 @@
     "react-toastify": "^5.3.2",
     "redux-form": "^8.3.7",
     "redux-thunk": "^2.3.0",
+    "technicalindicators": "^3.1.0",
     "vwap": "0.0.2",
     "websocket": "^1.0.34"
   },

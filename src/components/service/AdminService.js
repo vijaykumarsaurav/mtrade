@@ -104,7 +104,13 @@ class AdminService {
     }
 
     getAllIndices(){
-        return axios.get(apiConstant.allIndices, '');
+       var sessionId =  Math.random().toString(36).substr(2, 9);
+       var CookieExpireDate = new Date();
+       CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
+       document.cookie = "sessionId=" + sessionId + ";expires=" + CookieExpireDate + ";domain=www.nseindia.com;path=/";
+
+
+        return axios.get(apiConstant.allIndices);
     }
 
 }

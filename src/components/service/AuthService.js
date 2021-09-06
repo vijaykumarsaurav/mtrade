@@ -52,6 +52,19 @@ class AuthService {
         } }
     }
 
+    getNSESessionHeader(sessionId) {
+        return { 'headers': {
+            'sessionId': sessionId, 
+            'Accept':'application/json',
+      //      'Access-Control-Allow-Headers': "x-csrf-token",
+       //     'x-csrf-token':'dWsWEZqGaGd6RfARb33LKjPDdyuGUUrgi8Z4qvsB' 
+            // 'sec-fetch-mode': 'cors',
+            // 'origin': 'localhost',
+
+            
+        } }
+    }
+
 }
 
 export default new AuthService();

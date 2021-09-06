@@ -25,6 +25,12 @@ import LineChart from "./LineChart";
 import ReactApexChart from "react-apexcharts";
 import TradeConfig from './TradeConfig.json';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import vwap from 'vwap';
+import { SMA, RSI, VWAP } from 'technicalindicators';
+
+
+
+
 const wsClintSectorUpdate = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
 
 class MyView extends React.Component {
@@ -37,7 +43,6 @@ class MyView extends React.Component {
             indexTimeStamp: '',
             refreshFlag: true,
             refreshFlagCandle: true,
-            buyButtonClicked : true,
             sectorStockList: localStorage.getItem('sectorStockList') && JSON.parse(localStorage.getItem('sectorStockList')) || [],
             sectorList: localStorage.getItem('sectorList') && JSON.parse(localStorage.getItem('sectorList')) || [],
             watchList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
@@ -47,9 +52,9 @@ class MyView extends React.Component {
     }
 
     componentDidMount() {
-       // window.location.reload(); 
+        // window.location.reload(); 
 
-      //  this.loadPackList();
+        //  this.loadIndexesList();
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
@@ -67,8 +72,8 @@ class MyView extends React.Component {
 
 
             wsClintSectorUpdate.onopen = (res) => {
-            //    this.makeConnection();
-             //   this.updateSocketWatch();
+                // this.makeConnection();
+                // this.updateSocketWatch();
             }
 
 
@@ -77,8 +82,8 @@ class MyView extends React.Component {
                 var data = this.decodeWebsocketData(pako.inflate(decoded));
                 var liveData = JSON.parse(data);
 
-             //  console.log("sector live data", liveData);
-               window.document.title = "Sector Live WS: " + liveData.length; 
+                //  console.log("sector live data", liveData);
+                window.document.title = "Sector Live WS: " + liveData.length;
 
                 this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
 
@@ -89,13 +94,13 @@ class MyView extends React.Component {
                             this.state.sectorList[index].stockList[stockIndex].nc = foundLive[0].nc;
                             this.state.sectorList[index].stockList[stockIndex].cng = foundLive[0].cng;
                             this.state.sectorList[index].stockList[stockIndex].ltt = foundLive[0].ltt;
-                            
-                            this.state.sectorList[index].isStocksLtpUpdted = true; 
+
+                            this.state.sectorList[index].isStocksLtpUpdted = true;
                         }
                     });
                 });
 
-                this.setState({ sectorList: this.state.sectorList  });
+                this.setState({ sectorList: this.state.sectorList });
                 // this.setState({ sectorList: sectorList });
                 // localStorage.setItem('sectorList', JSON.stringify(sectorList));
 
@@ -116,22 +121,22 @@ class MyView extends React.Component {
 
             wsClintSectorUpdate.onerror = (e) => {
                 console.log("socket error", e);
-                window.location.reload(); 
+                window.location.reload();
             }
 
-            setInterval(() => {
-             //   this.makeConnection();
-                var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-                // console.log("Connection sectior top hb Request :- " + _req);
-                wsClintSectorUpdate.send(_req);
-            }, 59000);
+            // setInterval(() => {
+            //     this.makeConnection();
+            //     var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
+            //     // console.log("Connection sectior top hb Request :- " + _req);
+            //     wsClintSectorUpdate.send(_req);
+            // }, 59000);
 
             setInterval(() => {
-                this.loadPackList();
+                this.loadIndexesList();
             }, 120000);
 
 
-             
+
             // var tostartInteral =  setInterval(() => {
 
             //     console.log("1st interval every second", new Date().toLocaleTimeString());
@@ -139,7 +144,7 @@ class MyView extends React.Component {
             //     if(time.getMinutes() % 5 === 0){
             //         console.log("5th min completed at", new Date().toLocaleTimeString());
             //         console.log("next scan at", new Date(new Date().getTime()+70000).toLocaleTimeString());
-                    
+
             //         setTimeout(() => {
             //             console.log("set timout at 70sec ", new Date());
             //            this.refreshSectorCandle(); 
@@ -155,8 +160,8 @@ class MyView extends React.Component {
 
 
 
-        }else{
-            wsClintSectorUpdate.close();
+        } else {
+            // wsClintSectorUpdate.close();
         }
 
 
@@ -165,74 +170,74 @@ class MyView extends React.Component {
 
     getTodayOrder = () => {
         AdminService.retrieveOrderBook()
-        .then((res) => {
-            let data = resolveResponse(res, "noPop");
-            if(data && data.data){
-                var orderlist = data.data; 
-                  orderlist.sort(function(a,b){
-                    return new Date(b.updatetime) - new Date(a.updatetime);
-                  });
-                localStorage.setItem('oderbookData', JSON.stringify( orderlist ));                        
-            }
-        });
+            .then((res) => {
+                let data = resolveResponse(res, "noPop");
+                if (data && data.data) {
+                    var orderlist = data.data;
+                    orderlist.sort(function (a, b) {
+                        return new Date(b.updatetime) - new Date(a.updatetime);
+                    });
+                    localStorage.setItem('oderbookData', JSON.stringify(orderlist));
+                }
+            });
     }
 
 
     placeSLMOrder = (slmOption) => {
-        
+
         var data = {
-            "triggerprice":slmOption.stopLossPrice,
+            "triggerprice": slmOption.stopLossPrice,
             "tradingsymbol": slmOption.tradingsymbol,
             "symboltoken": slmOption.symboltoken,
             "quantity": slmOption.quantity,
-            "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY", 
-            "exchange": 'NSE', 
+            "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
+            "exchange": 'NSE',
             "producttype": "INTRADAY",//"DELIVERY",
-            "duration":"DAY",
+            "duration": "DAY",
             "price": 0,
-            "squareoff":"0",
-            "stoploss":"0",
-            "ordertype":"STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
-            "variety" : "STOPLOSS"
+            "squareoff": "0",
+            "stoploss": "0",
+            "ordertype": "STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
+            "variety": "STOPLOSS"
         }
-        console.log("SLM option data", data); 
+        console.log("SLM option data", data);
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
-          //  console.log(data);   
-            if(data.status  && data.message === 'SUCCESS'){
-                this.setState({ orderid : data.data && data.data.orderid });
-               // this.updateOrderList(); 
-               this.speckIt('hey Vijay, '+ slmOption.tradingsymbol + " buy order placed"); 
-               this.getTodayOrder(); 
-               document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
+            //  console.log(data);   
+            if (data.status && data.message === 'SUCCESS') {
+                this.setState({ orderid: data.data && data.data.orderid });
+                // this.updateOrderList(); 
+                this.speckIt('hey Vijay, ' + slmOption.tradingsymbol + " buy order placed");
+                this.getTodayOrder();
+                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
             }
         })
     }
 
-    placeOrderMethod = (orderOption) => { 
-       
+    placeOrderMethod = (orderOption) => {
+
         var data = {
-            "transactiontype":orderOption.transactiontype,//BUY OR SELL
+            "transactiontype": orderOption.transactiontype,//BUY OR SELL
             "tradingsymbol": orderOption.tradingsymbol,
-            "symboltoken":orderOption.symboltoken,
-            "quantity":orderOption.quantity,
-            "ordertype": orderOption.buyPrice  === 0 ? "MARKET" : "LIMIT", 
+            "symboltoken": orderOption.symboltoken,
+            "quantity": orderOption.quantity,
+            "ordertype": orderOption.buyPrice === 0 ? "MARKET" : "LIMIT",
             "price": orderOption.buyPrice,
             "producttype": "INTRADAY",//"DELIVERY",
-            "duration":"DAY",
-            "squareoff":"0",
-            "stoploss":"0",
-            "exchange":"NSE",
-            "variety":"NORMAL"
+            "duration": "DAY",
+            "squareoff": "0",
+            "stoploss": "0",
+            "exchange": "NSE",
+            "variety": "NORMAL"
         }
         console.log("place order option", data);
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
-          //  console.log(data);   
-            if(data.status  && data.message === 'SUCCESS'){
-                this.speckIt(orderOption.tradingsymbol + " Added"); 
-                this.setState({ orderid : data.data && data.data.orderid });
-                if(orderOption.stopLossPrice){
+            //  console.log(data);   
+            if (data.status && data.message === 'SUCCESS') {
+                this.speckIt(orderOption.tradingsymbol + " Added");
+                this.setState({ orderid: data.data && data.data.orderid });
+                if (orderOption.stopLossPrice) {
                     this.placeSLMOrder(orderOption);
                 }
             }
@@ -240,158 +245,168 @@ class MyView extends React.Component {
     }
 
     getMinPriceAllowTick = (minPrice) => {
-        minPrice =  minPrice.toFixed(2); 
-       // console.log("minPrice",minPrice); 
-        var wholenumber = parseInt( minPrice.split('.')[0]);
-      //  console.log("wholenumber",wholenumber); 
-        var decimal =  parseFloat( minPrice.split('.')[1]);
-       // console.log("decimal",decimal); 
-        var tickedecimal =  decimal-decimal%5; 
-        minPrice = parseFloat( wholenumber + '.'+tickedecimal); 
-     //   console.log("minPricexxxx",minPrice); 
-        return minPrice; 
+        minPrice = minPrice.toFixed(2);
+        // console.log("minPrice",minPrice); 
+        var wholenumber = parseInt(minPrice.split('.')[0]);
+        //  console.log("wholenumber",wholenumber); 
+        var decimal = parseFloat(minPrice.split('.')[1]);
+        // console.log("decimal",decimal); 
+        var tickedecimal = decimal - decimal % 5;
+        minPrice = parseFloat(wholenumber + '.' + tickedecimal);
+        //   console.log("minPricexxxx",minPrice); 
+        return minPrice;
     }
 
 
-    historyWiseOrderPlace = (sectorItem, orderType, isAutomatic) => {
+    historyWiseOrderPlace = (sectorItem, orderType, isAutomatic, spinnerIndex) => {
 
 
-        var token = sectorItem.token; 
-        var symbol = sectorItem.symbol; 
-        
-        if(isAutomatic != "Automatic") {
-            if(!window.confirm(orderType + " "+ symbol+ " Are you sure ? ")){
-                return; 
+        this.setState({ [spinnerIndex]: true })
+
+        var token = sectorItem.token;
+        var symbol = sectorItem.symbol;
+
+        if (isAutomatic != "Automatic") {
+            if (!window.confirm(orderType + " " + symbol + " Are you sure ? ")) {
+                return;
             }
         }
-       
-        var ltpdata  = {"exchange":"NSE","tradingsymbol": symbol,"symboltoken":token,}
+
+        var ltpdata = { "exchange": "NSE", "tradingsymbol": symbol, "symboltoken": token, }
         AdminService.getLTP(ltpdata).then(res => {
             let ltpres = resolveResponse(res, 'noPop');
-                var LtpData = ltpres && ltpres.data; 
-                console.log(symbol, " ltd data ", LtpData);
-                let quantity =0; 
-                if(LtpData && LtpData.ltp){
-                    let perTradeExposureAmt =  TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100; 
-                     quantity = Math.floor(perTradeExposureAmt/LtpData.ltp); 
+            var LtpData = ltpres && ltpres.data;
+            console.log(symbol, " ltd data ", LtpData);
+            let quantity = 0;
+            if (LtpData && LtpData.ltp) {
+                let perTradeExposureAmt = TradeConfig.totalCapital * TradeConfig.perTradeExposurePer / 100;
+                quantity = Math.floor(perTradeExposureAmt / LtpData.ltp);
+            }
+
+
+            quantity = quantity > 0 ? 1 : 0;
+            console.log(symbol, "  quantity can be order ", quantity);
+
+            if (quantity) {
+                const format1 = "YYYY-MM-DD HH:mm";
+                var beginningTime = moment('9:15am', 'h:mma').format(format1);
+
+                console.log("beginningTime", beginningTime);
+
+                var time = moment.duration("54:10:00");  //21:10:00"
+                var startdate = moment(new Date()).subtract(time);
+                var data = {
+                    "exchange": "NSE",
+                    "symboltoken": token,
+                    "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE 
+                    "fromdate": moment(startdate).format(format1),
+                    "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
                 }
 
-                
-                quantity = quantity>0 ? 1 : 0; 
-                console.log(symbol, "  quantity can be order ", quantity);
-                Notify.showError( quantity +"  quantity |  "+symbol +" "+ orderType+ " Rejected");
+                AdminService.getHistoryData(data).then(res => {
+                    let histdata = resolveResponse(res, 'noPop');
+                    // console.log("candle history", histdata); 
+                    if (histdata && histdata.data && histdata.data.length) {
 
-                if(quantity){
-                    const format1 = "YYYY-MM-DD HH:mm";
-                    var beginningTime = moment('9:15am', 'h:mma').format(format1);
-
-                    console.log("beginningTime", beginningTime); 
-                    
-                    var time = moment.duration("54:10:00");  //21:10:00"
-                    var startdate = moment(new Date()).subtract(time);
-                    var data  = {
-                        "exchange": "NSE",
-                        "symboltoken": token ,
-                        "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE 
-                        "fromdate": moment(startdate).format(format1) , 
-                        "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
-                    }
-                
-                    AdminService.getHistoryData(data).then(res => {
-                        let histdata = resolveResponse(res,'noPop' );
-                       // console.log("candle history", histdata); 
-                        if(histdata && histdata.data && histdata.data.length){
-                           
-                            var candleData = histdata.data, clossest =0, lowerest=0, highestHigh = 0, lowestLow=0, highestsum=0; 
-                            candleData.reverse(); 
-                            lowestLow = candleData[0][3]; 
-                            highestHigh = candleData[0][2]; 
-                            if(candleData && candleData.length>0){
-                                for (let index = 0; index < 20; index++) {
-                                    if(candleData[index]){
-                                        clossest += candleData[index][4]; //close  
-                                        lowerest += candleData[index][3];  //low
-                                        highestsum += candleData[index][2];  //low
-                                        if(candleData[index][2] > highestHigh){
-                                            console.log( index, highestHigh,  candleData[index][2]); 
-                                            highestHigh = candleData[index][2];  
-                                        }
-                                        if(candleData[index][3] <= lowestLow){
-                                            lowestLow = candleData[index][3];  
-                                        }
+                        var candleData = histdata.data, clossest = 0, lowerest = 0, highestHigh = 0, lowestLow = 0, highestsum = 0;
+                        candleData.reverse();
+                        lowestLow = candleData[0][3];
+                        highestHigh = candleData[0][2];
+                        if (candleData && candleData.length > 0) {
+                            for (let index = 0; index < 20; index++) {
+                                if (candleData[index]) {
+                                    clossest += candleData[index][4]; //close  
+                                    lowerest += candleData[index][3];  //low
+                                    highestsum += candleData[index][2];  //low
+                                    if (candleData[index][2] > highestHigh) {
+                                        console.log(index, highestHigh, candleData[index][2]);
+                                        highestHigh = candleData[index][2];
                                     }
-                                }
-
-                                let devideLen = candleData.length > 20 ? 20 : candleData.length; 
-    
-                                var bbmiddleValue = clossest/devideLen; 
-                                var bblowerValue = lowerest/devideLen; 
-                                var bbhigerValue = highestsum/devideLen; 
-                                
-                                var stoploss = 0, stoplossPer = 0; 
-
-                                if(orderType == "BUY"){
-                                    stoploss = bblowerValue - (highestHigh - lowestLow)*3/100;  
-                                    stoploss = this.getMinPriceAllowTick(stoploss); 
-                                    stoplossPer = (LtpData.ltp - stoploss)*100/LtpData.ltp; 
-
-                                    console.log(symbol,orderType,  " LTP ",LtpData.ltp ); 
-                                    console.log(symbol + "highestHigh:",highestHigh,  "lowestLow", lowestLow, "stoploss after tick:", stoploss , "stoploss%", stoplossPer);
-                                    console.log(symbol + "  close avg middle ", bbmiddleValue,  "lowerest avg", bblowerValue, "bbhigerValue", bbhigerValue );
-                                
-                                }
-
-
-                                if(orderType == "SELL"){
-                                    stoploss = bbhigerValue + (highestHigh - lowestLow)*3/100;  
-                                    stoploss = this.getMinPriceAllowTick(stoploss); 
-                                    stoplossPer = (stoploss - LtpData.ltp)*100/LtpData.ltp; 
-
-                                    console.log(symbol,orderType,  " LTP ",LtpData.ltp ); 
-                                    console.log(symbol + "highestHigh:",highestHigh,  "lowestLow", lowestLow, "stoploss after tick:", stoploss , "stoploss%", stoplossPer);
-                                    console.log(symbol + "  close avg middle ", bbmiddleValue,  "lowerest avg", bblowerValue, "bbhigerValue", bbhigerValue );
-                                
-                                }
-
-                               
-                              
-                                var orderOption = {
-                                    transactiontype: orderType,
-                                    tradingsymbol: symbol,
-                                    symboltoken:token,
-                                    buyPrice : 0,
-                                    quantity: quantity, 
-                                    stopLossPrice: stoploss
-                                }
-                                if(quantity){ 
-                                   this.placeOrderMethod(orderOption);
-                                }else{
-                                    Notify.showError(symbol+ " stoploss is > 1.5% Rejected");
-                                    console.log(symbol + " its not fullfilled"); 
-
+                                    if (candleData[index][3] <= lowestLow) {
+                                        lowestLow = candleData[index][3];
+                                    }
                                 }
                             }
 
-                           
-                        }else{
-                            //localStorage.setItem('NseStock_' + symbol, "");
-                            Notify.showError(symbol+ " candle data emply");
-                            console.log(symbol + " candle data emply"); 
-                        }
-                    })
+                            let devideLen = candleData.length > 20 ? 20 : candleData.length;
 
-                }
+                            var bbmiddleValue = clossest / devideLen;
+                            var bblowerValue = lowerest / devideLen;
+                            var bbhigerValue = highestsum / devideLen;
+
+                            var stoploss = 0, stoplossPer = 0;
+
+                            if (orderType == "BUY") {
+                                stoploss = bblowerValue - (highestHigh - lowestLow) * 3 / 100;
+                                stoploss = this.getMinPriceAllowTick(stoploss);
+                                stoplossPer = (LtpData.ltp - stoploss) * 100 / LtpData.ltp;
+
+                                console.log(symbol, orderType, " LTP ", LtpData.ltp);
+                                console.log(symbol + "highestHigh:", highestHigh, "lowestLow", lowestLow, "stoploss after tick:", stoploss, "stoploss%", stoplossPer);
+                                console.log(symbol + "  close avg middle ", bbmiddleValue, "lowerest avg", bblowerValue, "bbhigerValue", bbhigerValue);
+
+                            }
+
+
+                            if (orderType == "SELL") {
+                                stoploss = bbhigerValue + (highestHigh - lowestLow) * 3 / 100;
+                                stoploss = this.getMinPriceAllowTick(stoploss);
+                                stoplossPer = (stoploss - LtpData.ltp) * 100 / LtpData.ltp;
+
+                                console.log(symbol, orderType, " LTP ", LtpData.ltp);
+                                console.log(symbol + "highestHigh:", highestHigh, "lowestLow", lowestLow, "stoploss after tick:", stoploss, "stoploss%", stoplossPer);
+                                console.log(symbol + "  close avg middle ", bbmiddleValue, "lowerest avg", bblowerValue, "bbhigerValue", bbhigerValue);
+
+                            }
+
+
+
+                            var orderOption = {
+                                transactiontype: orderType,
+                                tradingsymbol: symbol,
+                                symboltoken: token,
+                                buyPrice: 0,
+                                quantity: quantity,
+                                stopLossPrice: stoploss
+                            }
+                            if (quantity) {
+
+                                //  this.placeOrderMethod(orderOption);
+                                this.setState({ [spinnerIndex]: false })
+
+                            } else {
+                                Notify.showError(symbol + " stoploss is > 1.5% Rejected");
+                                console.log(symbol + " its not fullfilled");
+
+                            }
+                        }
+
+
+                    } else {
+                        //localStorage.setItem('NseStock_' + symbol, "");
+                        Notify.showError(symbol + " candle data emply");
+                        console.log(symbol + " candle data emply");
+                        this.setState({ [spinnerIndex]: true })
+                    }
+                })
+
+            }else{
+                Notify.showError(quantity + "  quantity |  " + symbol + " " + orderType + " Rejected");
+                this.setState({ [spinnerIndex]: false })
+            }
+        }).catch(function(error){
+            this.setState({ [spinnerIndex]: true })
         })
-       // await new Promise(r => setTimeout(r, 2000)); 
+        // await new Promise(r => setTimeout(r, 2000)); 
     }
 
 
 
 
-    loadPackList() {
+    loadIndexesList() {
 
         this.setState({ indexTimeStamp: '' })
-        this.setState({ refreshFlag: false ,  failedCount: 0 });
+        this.setState({ refreshFlag: false, failedCount: 0 });
 
 
         AdminService.getAllIndices()
@@ -410,21 +425,21 @@ class MyView extends React.Component {
                     // this.speckIt("1st sector is " + softedData[0].indexSymbol + ' ' + softedData[0].percentChange + '%');
                     // this.speckIt("2nd sector is " + softedData[1].indexSymbol + ' ' + softedData[1].percentChange + '%');
                     // this.speckIt("3rd sector is " + softedData[2].indexSymbol + ' ' + softedData[2].percentChange + '%');         
-                    
+
                     function sleep(ms) {
                         return new Promise(resolve => setTimeout(resolve, ms));
                     }
-                    var updateLtpOnInterval = async(ref, sectorStocks) => {
-                        if(sectorStocks && sectorStocks.length){
-                            ref.refreshSectorLtp(sectorStocks); 
+                    var updateLtpOnInterval = async (ref, sectorStocks) => {
+                        if (sectorStocks && sectorStocks.length) {
+                            ref.refreshSectorLtp(sectorStocks);
                         }
-                       await sleep(sectorStocks/10 * 1500);
-                   }
+                        await sleep(sectorStocks / 10 * 1500);
+                    }
 
                     for (let i = 0; i < softedData.length; i++) {
 
-                        
-                        if(softedData[i].percentChange >= 0.75 || softedData[i].percentChange <= 0.75){
+
+                        if (softedData[i].percentChange >= 0.75 || softedData[i].percentChange <= 0.75) {
                             var sectorStocks = this.state.staticData[softedData[i].index];
                             softedData[i].stockList = sectorStocks;
 
@@ -438,20 +453,20 @@ class MyView extends React.Component {
 
                             this.setState({ sectorList: softedData });
                             localStorage.setItem('sectorList', JSON.stringify(softedData));
-                            localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));   
-                            
-                            updateLtpOnInterval(this, sectorStocks);
-                         }
+                            localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));
 
-                        
+                            // updateLtpOnInterval(this, sectorStocks);
+                        }
 
-                        
 
-                        
-                  
+
+
+
+
+
                     }
 
-                  //  console.log("softedData", softedData);
+                    //  console.log("softedData", softedData);
                     //this.refreshSectorLtp();
                 }
 
@@ -462,23 +477,23 @@ class MyView extends React.Component {
 
             })
 
-            this.setState({ refreshFlag: true });
+        this.setState({ refreshFlag: true });
 
     }
 
     updateLTPMannually = (index) => {
 
         var sectorStocks = this.state.staticData[index];
-        this.refreshSectorLtp(sectorStocks,index); 
+        this.refreshSectorLtp(sectorStocks, index);
     }
 
 
-    refreshSectorLtp = async (sectorStocks,index) => {
+    refreshSectorLtp = async (sectorStocks, index) => {
 
 
-    //    console.log("sectorStocks",sectorStocks,  new Date())
+        //    console.log("sectorStocks",sectorStocks,  new Date())
         this.setState({ refreshFlag: false, failedCount: 0 });
-        var sectorUpdate = []; 
+        var sectorUpdate = [];
         var sectorStockList = this.state.sectorStockList;
 
         for (let index = 0; index < sectorStocks.length; index++) {
@@ -489,66 +504,66 @@ class MyView extends React.Component {
                 "symboltoken": sectorStocks[index].token,
             }
 
-         //   this.setState({ stockUpdate: index + 1 + ". " + sectorStocks[index].symbol });
+            //   this.setState({ stockUpdate: index + 1 + ". " + sectorStocks[index].symbol });
 
             AdminService.getLTP(data).then(res => {
                 let data = resolveResponse(res, 'noPop');
                 var LtpData = data && data.data;
 
-         
+
                 if (LtpData.symboltoken == sectorStocks[index].token) {
 
-                  //  console.log(index + 1 , sectorStocks[index].symbol , LtpData);
+                    //  console.log(index + 1 , sectorStocks[index].symbol , LtpData);
 
                     var todayChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;   //close
-                    var indexData = sectorStocks[index]; 
+                    var indexData = sectorStocks[index];
                     indexData.ltp = LtpData.ltp;
                     indexData.nc = todayChange;
                     indexData.cng = (LtpData.ltp - LtpData.close);
                     indexData.ltt = new Date().toLocaleString();
 
 
-                    sectorUpdate.push(indexData); 
+                    sectorUpdate.push(indexData);
                 }
 
             }).catch(error => {
                 this.setState({ failedCount: this.state.failedCount + 1 });
 
-                console.log(sectorStocks[index].symbol , error); 
+                console.log(sectorStocks[index].symbol, error);
 
-              //  Notify.showError(sectorStocks[index].symbol + " ltd data not found!");
+                //  Notify.showError(sectorStocks[index].symbol + " ltd data not found!");
             })
 
-           
+
 
             await new Promise(r => setTimeout(r, 101));
 
-           
+
         }
-      
-        
-        if(index){
+
+
+        if (index) {
             this.state.sectorList.forEach((element, i) => {
-                if(element.index == index){
-                    this.state.sectorList[i].stockList = sectorUpdate; 
-                    this.state.sectorList[i].isStocksLtpUpdted = true; 
-                    this.setState({ sectorList: this.state.sectorList  });
-                    return; 
+                if (element.index == index) {
+                    this.state.sectorList[i].stockList = sectorUpdate;
+                    this.state.sectorList[i].isStocksLtpUpdted = true;
+                    this.setState({ sectorList: this.state.sectorList });
+                    return;
                 }
             });
         }
 
         this.setState({ refreshFlag: true });
-       
+
     }
 
 
-    
+
 
     refreshSectorCandleManually = async (index) => {
 
         var sectorStocks = this.state.staticData[index];
-        this.refreshSectorLtp(sectorStocks,index); 
+        this.refreshSectorLtp(sectorStocks, index);
 
 
         this.setState({ refreshFlagCandle: false });
@@ -577,14 +592,45 @@ class MyView extends React.Component {
                 if (histdata && histdata.data && histdata.data.length) {
 
                     var candleData = histdata.data;
-                    var candleChartData = [];
-                    candleData.forEach(element => {
+                    var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [];
+                    candleData.forEach((element, index) => {
                         candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                        vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
+                        closeingData.push(element[4]);
+                        highData.push(element[2]);
+                        lowData.push(element[3]);
+                        openData.push(element[3]);
+                        valumeData.push(element[5]);
+
                     });
+
+                    // var sma = SMA.calculate({period : 10, values : closeingData});
+                    // console.log(sectorStocks[index].symbol,"SMA", sma);
+
+
+                    var inputRSI = { values: closeingData, period: 14 };
+                    var lastRsiValue = RSI.calculate(inputRSI)
+                    console.log(sectorStocks[index].symbol, "lastRsiValue", lastRsiValue[lastRsiValue.length - 1]);
+
+
+                    var inputVWAP = {
+                        open: openData,
+                        high: highData,
+                        low: lowData,
+                        close: closeingData,
+                        volume: valumeData
+                    };
+
 
                     if (candleData.length > 0) {
                         sectorStocks[index].candleChartData = candleChartData;
+                        sectorStocks[index].vwapValue = vwap(vwapdata);
+                        sectorStocks[index].vwapDataChart = VWAP.calculate(inputVWAP);
+                        sectorStocks[index].lastRsiValue = lastRsiValue[lastRsiValue.length - 1];
                     }
+
+                    console.log(sectorStocks[index].symbol, sectorStocks[index]);
+
 
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -599,12 +645,12 @@ class MyView extends React.Component {
         }
 
 
-        if(index){
+        if (index) {
             this.state.sectorList.forEach((element, i) => {
-                if(element.index == index){
-                    this.state.sectorList[i].stockList = sectorStocks; 
-                    this.setState({ sectorList: this.state.sectorList  });
-                    return; 
+                if (element.index == index) {
+                    this.state.sectorList[i].stockList = sectorStocks;
+                    this.setState({ sectorList: this.state.sectorList });
+                    return;
                 }
             });
         }
@@ -613,9 +659,9 @@ class MyView extends React.Component {
         this.setState({ refreshFlagCandle: true });
 
 
-        
 
-        console.log("sectorStockswithcandle",sectorStocks); 
+
+        console.log("sectorStockswithcandle", sectorStocks);
     }
 
 
@@ -704,15 +750,14 @@ class MyView extends React.Component {
 
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
         console.log("Connection sectior top firstTime_req :- " + firstTime_req);
-      
+
         if (!wsClintSectorUpdate) return;
         wsClintSectorUpdate.send(firstTime_req);
 
         this.updateSocketWatch();
     }
 
-    showCandleChart = (candleData, symbol, price, change) => {
-
+    showCandleChart = (candleData, symbol, price, change, vwapDataChart) => {
 
         //  candleData  = candleData && candleData.reverse();
 
@@ -720,6 +765,9 @@ class MyView extends React.Component {
         localStorage.setItem('cadleChartSymbol', symbol);
         localStorage.setItem('candlePriceShow', price);
         localStorage.setItem('candleChangeShow', change);
+        localStorage.setItem('vwapDataChart', vwapDataChart);
+
+
 
         if (candleData && candleData.length > 0) {
             document.getElementById('showCandleChart').click();
@@ -728,19 +776,19 @@ class MyView extends React.Component {
 
     updateSocketWatch = () => {
 
-        
 
-        var channel = []; 
+
+        var channel = [];
         this.state.sectorList.forEach(element => {
-            if(element.percentChange >= 0.75){
+            if (element.percentChange >= 0.75) {
                 element.stockList && element.stockList.forEach(stock => {
-                    channel.push( 'nse_cm|' + stock.token ); 
+                    channel.push('nse_cm|' + stock.token);
                 });
             }
         });
-        
 
-        if (channel && channel.length){
+
+        if (channel && channel.length) {
             var updateWatch = {
                 "task": "mw",
                 "channel": channel.join('&'),
@@ -748,7 +796,7 @@ class MyView extends React.Component {
                 "user": this.state.clientcode,
                 "acctid": this.state.clientcode
             }
-    
+
             console.log("update watch channel", updateWatch);
             wsClintSectorUpdate.send(JSON.stringify(updateWatch));
         }
@@ -785,23 +833,23 @@ class MyView extends React.Component {
         let sqrOffbeginningTime = moment('9:15am', 'h:mma');
         let sqrOffendTime = moment('03:30pm', 'h:mma');
         let sqrOffcurrentTime = moment(new Date(), "h:mma");
-        if(sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)){
+        if (sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)) {
             this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
-                if(outerEelement.percentChange > 0.75 && outerEelement.isStocksLtpUpdted){
+                if (outerEelement.percentChange > 0.75 && outerEelement.isStocksLtpUpdted) {
                     outerEelement.stockList && outerEelement.stockList.forEach((element, index2) => {
-                        if(index2 < 2){
-                            var autoTradeTopList = localStorage.getItem('autoTradeTopList') && JSON.parse(localStorage.getItem('autoTradeTopList')) || []; 
+                        if (index2 < 2) {
+                            var autoTradeTopList = localStorage.getItem('autoTradeTopList') && JSON.parse(localStorage.getItem('autoTradeTopList')) || [];
                             var isThere = autoTradeTopList.filter(row => row.token === element.token);
-                            if(!isThere.length){
-                                element.foundAt = new Date().toLocaleString(); 
-                                autoTradeTopList.push(element); 
-                                localStorage.setItem('autoTradeTopList', JSON.stringify(autoTradeTopList)); 
-                                console.log(element.name + " is on top  " + (index2+1) + new Date().toLocaleString());
-                                this.speckIt(element.name + " is on top  " + (index2+1)); 
-                             //   this.historyWiseOrderPlace(element , 'BUY', "Automatic"); 
+                            if (!isThere.length) {
+                                element.foundAt = new Date().toLocaleString();
+                                autoTradeTopList.push(element);
+                                localStorage.setItem('autoTradeTopList', JSON.stringify(autoTradeTopList));
+                                console.log(element.name + " is on top  " + (index2 + 1) + new Date().toLocaleString());
+                                this.speckIt(element.name + " is on top  " + (index2 + 1));
+                                //  this.historyWiseOrderPlace(element , 'BUY', "Automatic"); 
                             }
                         }
-    
+
                     });
                 }
             });
@@ -819,7 +867,7 @@ class MyView extends React.Component {
                     <Grid item xs={12} sm={12} >
                         <Typography component="h3" variant="h6" color="primary" >
                             Sectors Stocks({this.state.sectorStockList.length}) at {this.state.indexTimeStamp}
-                            {this.state.refreshFlag ? <Button variant="contained" onClick={() => this.loadPackList()}>Live Ltp</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </>}
+                            {this.state.refreshFlag ? <Button variant="contained" onClick={() => this.loadIndexesList()}>Live Ltp</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </>}
                             {this.state.failedCount ? this.state.failedCount + "Failed" : ""}
 
                             &nbsp;
@@ -827,10 +875,10 @@ class MyView extends React.Component {
                             {/* {this.state.refreshFlagCandle ? <Button variant="contained" onClick={() => this.refreshSectorCandle()}>Refresh Candle</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockCandleUpdate}  </Button> </>}
                             &nbsp; */}
 
-                            <Button variant="contained" onClick={() => this.makeConnection()}> WS Refresh</Button> 
+                            <Button variant="contained" onClick={() => this.makeConnection()}> WS Refresh</Button>
 
-                            
-                        
+
+
 
                         </Typography>
 
@@ -845,18 +893,18 @@ class MyView extends React.Component {
 
                         <Grid item xs={12} sm={3}>
 
-                            <Paper style={{ padding: '10px', background: "lightgray",textAlign: "center" }}>
+                            <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
 
 
-                                 <Button  size="small" variant="contained"  title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}> 
-                                     <b> {index + 1}. {indexdata.index + " " + indexdata.last}({indexdata.percentChange}%) </b>   
+                                <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
+                                    <b> {index + 1}. {indexdata.index + " " + indexdata.last}({indexdata.percentChange}%) </b>
 
-                                </Button>  
+                                </Button>
                                 &nbsp;
 
-                                <Button  size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshSectorCandleManually(indexdata.index)}> 
-                                  <ShowChartIcon />
-                                </Button>  
+                                <Button size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshSectorCandleManually(indexdata.index)}>
+                                    <ShowChartIcon />
+                                </Button>
 
 
                                 <Grid direction="row" container className="flexGrow" spacing={1} >
@@ -865,19 +913,23 @@ class MyView extends React.Component {
                                     {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
 
                                         <Grid item xs={12} sm={6} >
-                                            <Paper style={{  textAlign: "center" }} >
+                                            <Paper style={{ textAlign: "center" }} >
 
                                                 {/* {sectorItem.cng} */}
                                                 <Typography style={{ background: this.getPercentageColor(sectorItem.cng), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc}%)  Time: {sectorItem.ltt && sectorItem.ltt.substr(10 ,  10)} 
+                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc && sectorItem.nc.toFixed(2)}%) Time: {sectorItem.ltt && sectorItem.ltt.substr(10, 10)}
                                                 </Typography>
 
+                                                <Typography >
+                                                    {sectorItem.vwapValue ? <span style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "green" : "red", fontSize: '14px' }}>  VWAP: {sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)} </span> : ""}
+                                                    &nbsp;
+                                                    {sectorItem.lastRsiValue ? <span style={{ background: sectorItem.lastRsiValue >= 60 ? "green" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>  RSI: {sectorItem.lastRsiValue} </span> : ""}
+                                                </Typography>
+                                             
+                                                <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
+                                                    {sectorItem.candleChartData ? <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} /> : ""}
+                                                </span>
 
-
-                                                <span style={{ cursor: 'pointer'}} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc)} > 
-                                                 {sectorItem.candleChartData ? <LineChart  candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc}/> : ""} 
-                                                </span>   
-                                                      
 
                                                 {/* {sectorItem.candleChartData ? <ReactApexChart
                                                     options={{
@@ -907,16 +959,22 @@ class MyView extends React.Component {
                                         
                                                 /> : ""} */}
 
-                                                <Typography style={{ background: 'gray'}}>
-                                                  
-                                                  
-                                                  {this.state.buyButtonClicked ?  <Button size="small" variant="contained" color="primary" style={{ marginLeft: '20px' }} onClick={() => this.historyWiseOrderPlace(sectorItem , 'BUY')}>Buy</Button> : <Spinner /> }
-                                                   
-                                                    <Button size="small" variant="contained" color="secondary" style={{ marginLeft: '20px' }} onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL')}>Sell</Button>
 
-                                                </Typography>
+                                            <Grid direction="row" style={{padding:'5px'}} container className="flexGrow" justify="space-between" >
+
+                                                <Grid item>
+                                                    {!this.state['buyButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="primary"  onClick={() => this.historyWiseOrderPlace(sectorItem, 'BUY', "", 'buyButtonClicked' + indexdata.index + i)}>Buy</Button> : <Spinner />}
+                                                </Grid>
+                                                <Grid item >
+                                                    {!this.state['sellButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="secondary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL', "", 'sellButtonClicked' + indexdata.index + i)}>Sell</Button>: <Spinner />}
+                                                </Grid>
+                                            </Grid>
+
+
 
                                             </Paper>
+
+                                            
                                         </Grid>
 
                                     ))
