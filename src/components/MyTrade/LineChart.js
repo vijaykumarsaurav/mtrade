@@ -29,7 +29,7 @@ export default function App( props ) {
     labels: timeDate,
     datasets: [
       {
-        label: "Price",
+        label: "Close",
         data: closeData,
         fill: true,
         borderColor:  props.percentChange > 0 ? "green" : "red",

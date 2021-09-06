@@ -792,6 +792,17 @@ class MyView extends React.Component {
         return 'rgb(' + r + ',' + g + ',0)';
     }
 
+    get2DecimalNumber =(number)=>{
+
+        console.log('deci',number );
+
+        if(number){
+            return number.toFixed(2); 
+        }else{
+            return number;  
+        }
+    }
+
     render() {
 
         this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
@@ -888,7 +899,7 @@ class MyView extends React.Component {
 
                                                 {/* {sectorItem.cng} */}
                                                 <Typography style={{ background: this.getPercentageColor(sectorItem.cng), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc && sectorItem.nc.toFixed(2)}%)
+                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({ this.get2DecimalNumber(sectorItem.nc)}%)
                                                 </Typography>
 
                                           
