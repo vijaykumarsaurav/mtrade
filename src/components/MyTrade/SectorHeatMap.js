@@ -371,7 +371,7 @@ class MyView extends React.Component {
                             }
                             if (quantity) {
 
-                                //  this.placeOrderMethod(orderOption);
+                                this.placeOrderMethod(orderOption);
                                 this.setState({ [spinnerIndex]: false })
 
                             } else {
@@ -793,8 +793,6 @@ class MyView extends React.Component {
     }
 
     get2DecimalNumber =(number)=>{
-
-        console.log('deci',number );
 
         if(number){
             return number.toFixed(2); 
