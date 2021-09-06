@@ -404,72 +404,42 @@ class MyView extends React.Component {
 
 
     loadIndexesList() {
-
-        this.setState({ indexTimeStamp: '' })
-        this.setState({ refreshFlag: false, failedCount: 0 });
-
+        this.setState({ indexTimeStamp: '', refreshFlag: false, failedCount: 0 });
 
         AdminService.getAllIndices()
             .then((res) => {
                 if (res.data) {
-
                     var data = res.data, sectorStockList = [];
-
                     this.setState({ indexTimeStamp: data.timestamp })
-
                     var foundSectors = data.data.filter(row => row.key === "SECTORAL INDICES");
-
-
                     var softedData = foundSectors.sort(function (a, b) { return b.percentChange - a.percentChange });
-
-                    // this.speckIt("1st sector is " + softedData[0].indexSymbol + ' ' + softedData[0].percentChange + '%');
-                    // this.speckIt("2nd sector is " + softedData[1].indexSymbol + ' ' + softedData[1].percentChange + '%');
-                    // this.speckIt("3rd sector is " + softedData[2].indexSymbol + ' ' + softedData[2].percentChange + '%');         
-
                     function sleep(ms) {
                         return new Promise(resolve => setTimeout(resolve, ms));
                     }
-                    var updateLtpOnInterval = async (ref, sectorStocks) => {
-                        if (sectorStocks && sectorStocks.length) {
-                            ref.refreshSectorLtp(sectorStocks);
-                        }
-                        await sleep(sectorStocks / 10 * 1500);
-                    }
+                    var updateLtpOnInterval = async (ref, softedData) => {
+                            for (let i = 0; i < softedData.length; i++) {
 
-                    for (let i = 0; i < softedData.length; i++) {
+                                var length = 1; 
 
+                                
+                                this.setState({stockUpdate : i+1 + ". " + softedData[i].index});
+                                console.log(softedData[i].index,softedData[i].percentChange,  softedData[i]); 
 
-                        if (softedData[i].percentChange >= 0.75 || softedData[i].percentChange <= 0.75) {
-                            var sectorStocks = this.state.staticData[softedData[i].index];
-                            softedData[i].stockList = sectorStocks;
-
-                            for (let index = 0; index < sectorStocks.length; index++) {
-                                var foundInWatchlist = this.state.sectorStockList.filter(row => row.token == sectorStocks[index].token);
-                                if (!foundInWatchlist.length) {
-                                    this.setState({ sectorStockList: [...this.state.sectorStockList, sectorStocks[index]] });
-                                    sectorStockList.push(sectorStocks[index]);
+                                if (softedData[i].percentChange >= 0.75 || softedData[i].percentChange <= -0.75) {
+                                    var sectorStocks = this.state.staticData[softedData[i].index];
+                                    softedData[i].stockList = sectorStocks;
+                                    length = sectorStocks.length; 
+                                    if (sectorStocks && sectorStocks.length) {
+                                        ref.refreshSectorLtp(sectorStocks,softedData[i].index );
+                                    }
                                 }
+
+                            
+                                await sleep(length / 10 * 1500);
                             }
-
-                            this.setState({ sectorList: softedData });
-                            localStorage.setItem('sectorList', JSON.stringify(softedData));
-                            localStorage.setItem('sectorStockList', JSON.stringify(sectorStockList));
-
-                            // updateLtpOnInterval(this, sectorStocks);
                         }
-
-
-
-
-
-
-
-                    }
-
-                    //  console.log("softedData", softedData);
-                    //this.refreshSectorLtp();
+                        updateLtpOnInterval(this, softedData);
                 }
-
             })
             .catch((reject) => {
                 Notify.showError("All Indices API Failed" + <br /> + reject);
@@ -490,8 +460,9 @@ class MyView extends React.Component {
 
     refreshSectorLtp = async (sectorStocks, index) => {
 
+        this.setState({stockUpdate : index});
 
-        //    console.log("sectorStocks",sectorStocks,  new Date())
+    // console.log(index, "sectorStocks",sectorStocks,  new Date())
         this.setState({ refreshFlag: false, failedCount: 0 });
         var sectorUpdate = [];
         var sectorStockList = this.state.sectorStockList;
@@ -554,7 +525,7 @@ class MyView extends React.Component {
         }
 
         this.setState({ refreshFlag: true });
-
+        this.refreshSectorCandleManually(index); 
     }
 
 
@@ -563,7 +534,7 @@ class MyView extends React.Component {
     refreshSectorCandleManually = async (index) => {
 
         var sectorStocks = this.state.staticData[index];
-        this.refreshSectorLtp(sectorStocks, index);
+     //   this.refreshSectorLtp(sectorStocks, index);
 
 
         this.setState({ refreshFlagCandle: false });
@@ -578,7 +549,7 @@ class MyView extends React.Component {
             var data = {
                 "exchange": "NSE",
                 "symboltoken": sectorStocks[index].token,
-                "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
                 "fromdate": moment(beginningTime).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
                 "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
             }
@@ -891,7 +862,7 @@ class MyView extends React.Component {
                     {this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
 
 
-                        <Grid item xs={12} sm={3}>
+                        <Grid item xs={12} sm={this.state.sectorList.length <= 2 ? 6 : this.state.sectorList.length == 3 ? 4 : 3}>
 
                             <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
 
@@ -917,18 +888,23 @@ class MyView extends React.Component {
 
                                                 {/* {sectorItem.cng} */}
                                                 <Typography style={{ background: this.getPercentageColor(sectorItem.cng), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc && sectorItem.nc.toFixed(2)}%) Time: {sectorItem.ltt && sectorItem.ltt.substr(10, 10)}
+                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({sectorItem.nc && sectorItem.nc.toFixed(2)}%)
                                                 </Typography>
 
+                                          
+                                            
+
+                                                {sectorItem.candleChartData ?  <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
+                                                   <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} /> 
+                                                </span> : ""}
+
+                                                {sectorItem.vwapValue ? 
                                                 <Typography >
-                                                    {sectorItem.vwapValue ? <span style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "green" : "red", fontSize: '14px' }}>  VWAP: {sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)} </span> : ""}
+                                                    {sectorItem.vwapValue ? <span  style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)} </span> : ""}
                                                     &nbsp;
-                                                    {sectorItem.lastRsiValue ? <span style={{ background: sectorItem.lastRsiValue >= 60 ? "green" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>  RSI: {sectorItem.lastRsiValue} </span> : ""}
+                                                    {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:{sectorItem.lastRsiValue} {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
                                                 </Typography>
-                                             
-                                                <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
-                                                    {sectorItem.candleChartData ? <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} /> : ""}
-                                                </span>
+                                               : ""}
 
 
                                                 {/* {sectorItem.candleChartData ? <ReactApexChart
@@ -965,6 +941,11 @@ class MyView extends React.Component {
                                                 <Grid item>
                                                     {!this.state['buyButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="primary"  onClick={() => this.historyWiseOrderPlace(sectorItem, 'BUY', "", 'buyButtonClicked' + indexdata.index + i)}>Buy</Button> : <Spinner />}
                                                 </Grid>
+
+                                                <Grid item >
+                                                {sectorItem.ltt && new Date(sectorItem.ltt).toLocaleTimeString()}
+                                                </Grid>
+
                                                 <Grid item >
                                                     {!this.state['sellButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="secondary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL', "", 'sellButtonClicked' + indexdata.index + i)}>Sell</Button>: <Spinner />}
                                                 </Grid>
