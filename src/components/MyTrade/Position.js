@@ -44,7 +44,9 @@ class Home extends React.Component{
             totalBrokerChargesNR4: 0,
             stockTesting : "",
             perHighLowTotal: 0, 
-            netPnLAmountOnHighlowTotal:0
+            netPnLAmountOnHighlowTotal:0,
+            staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
+
             
         };
     }
@@ -85,10 +87,13 @@ class Home extends React.Component{
                     }, 70000);
 
                     setInterval(() => {
+                        
                         console.log("2st interval every 5min 10Sec", new Date());
                         if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
                             this.getCandleHistoryAndStore(); 
                         }
+
+
                      }, 60000 * 15 + 70000 );  
 
                      clearInterval(tostartInteral); 
@@ -108,9 +113,11 @@ class Home extends React.Component{
         } 
 
 
+    //this.findlast5minMovement(); 
+
 
      
-  /// this.getCandleHistoryAndStore(); 
+   //this.getCandleHistoryAndStore(); 
 
    // this.findNR4PatternLive();
    //this.findNR7PatternLive();
@@ -169,6 +176,62 @@ class Home extends React.Component{
     }
 
   
+    findlast5minMovement = async()=> {
+
+        var timediff = moment.duration("00:05:00");
+        const format1 = "YYYY-MM-DD HH:mm";       
+        var startdate = moment(new Date()).subtract(timediff);
+  //      var watchList = this.state.staticData['NIFTY 100'];
+        var watchList =  localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'))
+        console.log("watchList NIFTY 100", watchList); 
+        var foundData = []; 
+        for (let index = 0; index < watchList.length; index++) {
+            const element = watchList[index];
+            var data  = {
+                "exchange": "NSE",
+                "symboltoken": element.token,
+                "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
+                "fromdate": moment(startdate).format(format1) , 
+                "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+            }
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res,'noPop' );
+                //console.log("candle history", histdata); 
+                if(histdata && histdata.data && histdata.data.length){
+                   
+                    var percentChangeList = []; var foundCount =0; 
+                    histdata.data.forEach(element => {
+                       var changePer =  (element[4] - element[1])*100/element[1]; 
+
+                       if(changePer >= 0.3 ){
+                        foundCount = foundCount +1; 
+                         percentChangeList.push(  changePer.toFixed(2) + "% at: " + new Date( element[0]).toLocaleTimeString() )
+                       }
+                        if(changePer <= -0.3 ){
+                            foundCount = foundCount +1; 
+                            percentChangeList.push(  changePer.toFixed(2) + "% at: " + new Date( element[0]).toLocaleTimeString() )
+                        }
+                       
+                   });
+
+                   if(percentChangeList.length){
+                    foundData.push({symbol:watchList[index].symbol, percentChangeList: percentChangeList.join(" | ")})
+                    console.log("foundData", foundData);
+                    this.setState({findlast5minMovement : foundData})
+                   }
+                 
+
+                }else{
+                    console.log(" candle data emply"); 
+                }
+            })
+            await new Promise(r => setTimeout(r, 350));  
+        }
+
+
+    }
+
 
     getCandleHistoryAndStore = async()=> {
 
@@ -913,8 +976,6 @@ class Home extends React.Component{
 
                         console.log('nr4 updated',foundData ); 
                         
-                      
-
                         this.setState({foundPatternList: [...this.state.foundPatternList, foundData ]}); 
 
                         var foundlist = this.state.foundPatternList; 
@@ -945,13 +1006,23 @@ class Home extends React.Component{
        var oderbookData = localStorage.getItem('oderbookData'); 
        oderbookData =  JSON.parse(oderbookData);
        var stopLoss = 0; 
-       var data = {}; 
-       oderbookData.forEach(element => {
-        if(element.status === "trigger pending" && element.symboltoken === row.symboltoken){
-            data.stopLoss = element.triggerprice + "("+ ((element.triggerprice-row.buyavgprice)*100/row.buyavgprice).toFixed(2) + "%)"; 
-            data.maxLossAmount = ((element.triggerprice-row.buyavgprice)* parseInt(row.netqty)).toFixed(2); 
+       var data = {};
+        for (let index = 0; index < oderbookData.length; index++) {
+            const element = oderbookData[index];
+
+            if(element.status === "trigger pending" && element.symboltoken === row.symboltoken){
+                if(row.netqty > 0){
+                    data.stopLoss = element.triggerprice + "("+ ((element.triggerprice-row.buyavgprice)*100/row.buyavgprice).toFixed(2) + "%)"; 
+                    data.maxLossAmount = ((element.triggerprice-row.buyavgprice)* parseInt(row.netqty)).toFixed(2); 
+                }else if(row.netqty < 0){
+                    console.log(row.tradingsymbol, "sellage", row.sellavgprice,  "trigger", element.triggerprice); 
+                    data.stopLoss = element.triggerprice + "("+ ((element.triggerprice-row.sellavgprice)*100/row.sellavgprice).toFixed(2) + "%)"; 
+                    data.maxLossAmount = ((row.sellavgprice - element.triggerprice)* parseInt(row.netqty)).toFixed(2); 
+                }
+               break;
+            }
         }
-       });
+
        return data; 
     }
     getStoplossForSELLFromOrderbook = (row) => {
@@ -1017,7 +1088,7 @@ class Home extends React.Component{
                         return ""; 
                     }
 
-                    var percentPnL =((parseFloat(element.sellavgprice)-parseFloat(element.buyavgprice))*100/parseFloat(element.buyavgprice)).toFixed(2); 
+                    var percentPnL = ((parseFloat(element.sellavgprice)-parseFloat(element.buyavgprice))*100/parseFloat(element.buyavgprice)).toFixed(2); 
                     todayProfitPnL+= parseFloat( element.pnl); 
                     totalbuyvalue+=parseFloat( element.totalbuyvalue); 
                     totalsellvalue+= parseFloat(element.totalsellvalue) === 0 ? parseFloat(element.totalbuyvalue) : parseFloat(element.totalsellvalue); 
@@ -1026,14 +1097,14 @@ class Home extends React.Component{
                     allsellavgprice+=parseFloat(element.sellavgprice); 
                     element.percentPnL=percentPnL;
                     totalPercentage+= parseFloat( percentPnL); 
-                    if(element.totalsellavgprice)
 
                     var slData  = this.getStoplossFromOrderbook(element) ; 
-                    element.stopLoss = element.totalsellavgprice === "0.00" ? slData.stopLoss : element.totalsellavgprice + "("+ ((element.totalsellavgprice-element.totalbuyavgprice)*100/element.totalbuyavgprice).toFixed(2) + "%)"; 
-               
-                  
-                    element.stopLossAmount = slData.maxLossAmount; 
-                    totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;                     
+                    if(slData){
+                        element.stopLoss = slData.stopLoss;       
+                        element.stopLossAmount = slData.maxLossAmount; 
+                        totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;     
+                    }
+
                 }); 
                 this.setState({ todayProfitPnL :todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue : totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded}); 
                 this.setState({ allbuyavgprice :(allbuyavgprice/positionList.length).toFixed(2) ,allsellavgprice :(allsellavgprice/positionList.length).toFixed(2) , totalPercentage: totalPercentage    }); 
@@ -1584,9 +1655,11 @@ class Home extends React.Component{
 
     getPercentage = (row) =>  {
 
+        var percentChange = 0; 
+
         if(row.netqty > 0){
             row.buyavgprice = parseFloat(row.buyavgprice);             
-            var percentChange =  ((row.ltp - row.buyavgprice)*100/row.buyavgprice); 
+            percentChange =  ((row.ltp - row.buyavgprice)*100/row.buyavgprice); 
             if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.4){
                 var minPrice =  row.buyavgprice + (row.buyavgprice * 0.25/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
@@ -1605,15 +1678,17 @@ class Home extends React.Component{
 
         if(row.netqty < 0){
             row.sellavgprice = parseFloat(row.sellavgprice);             
-            var percentChange =  ((row.ltp - row.sellavgprice)*100/row.sellavgprice); 
+            percentChange =  ((row.ltp - row.sellavgprice)*100/row.sellavgprice); 
             if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange <= 0.4){
                 var minPrice =  row.sellavgprice - (row.sellavgprice * 0.25/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
-                this.modifyOrderMethod(row, minPrice);
+
+                console.log(row.tradingsymbol,  row.sellavgprice, minPrice, );
+                this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.25/100));
             }else{
               
                 var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
-                var perchngfromTriggerPrice = ((lastTriggerprice - row.ltp)*100/lastTriggerprice);   
+                var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice)*100/lastTriggerprice);   
                 if(perchngfromTriggerPrice <= 0.6){
                      minPrice =  lastTriggerprice + (lastTriggerprice * 0.2/100);
                      minPrice = this.getMinPriceAllowTick(minPrice); 
@@ -1621,6 +1696,9 @@ class Home extends React.Component{
                 }
               }
         }
+
+
+      
        
         //  if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.5){
         //         if(totalbuyavgprice)   
@@ -1812,13 +1890,13 @@ class Home extends React.Component{
 
 
                               
-                                {row.totalbuyavgprice ? 
+                                {row.netqty > 0 ? 
                                 <TableCell align="left">{((row.ltp - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2)}%</TableCell>
                                 : 
                                 <TableCell align="left">{((row.totalsellavgprice - row.ltp)*100/row.totalsellavgprice).toFixed(2)}%</TableCell>
                                }
 
-                                {row.totalbuyavgprice ? 
+                                {row.netqty > 0 ? 
                                 <TableCell title="Buy Side  High" align="left">{row.high}({row.high ? ((row.high - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2) +"%" : "Refresh H/L"}) </TableCell>
                                     : 
                                 <TableCell title="Sell Side Low" align="left">{row.low}({row.low ? ((row.totalsellavgprice - row.low)*100/row.totalsellavgprice).toFixed(2) +"%"  : "Refresh H/L"}) </TableCell>
@@ -1888,8 +1966,69 @@ class Home extends React.Component{
                         </Grid>
 
 
+
                         <Grid item xs={12} sm={12} >
-                        <Paper style={{overflow:"auto", padding:'5px'}} >
+                            <Paper style={{overflow:"auto", padding:'5px'}} >
+
+
+                              {this.state.findlast5minMovement ? <Grid justify="space-between"
+                                container>
+                                            <Grid item  >
+                                                <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                                                  Found last 5min Movement ({this.state.findlast5minMovement && this.state.findlast5minMovement.length})  
+
+                                                <span id="stockTesting" style={{fontSize: "18px", color: 'gray'}}> {this.state.findlast5minMovementUpdate} </span>
+                                                </Typography> 
+                                            </Grid>
+                                            <Grid item >
+                                                 <Button variant="contained"  style={{ marginLeft: '20px' }} onClick={() => this.findlast5minMovement()}>Live Refresh</Button>
+                                            </Grid>
+                                            
+                             
+                          
+                                 
+                                 <Table  size="small"   aria-label="sticky table" >
+                                     <TableHead  style={{whiteSpace: "nowrap", }} variant="head">
+                                         <TableRow key="1"  variant="head" style={{fontWeight: 'bold'}}>
+             
+                                              
+                                             <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>                             
+
+                                             <TableCell className="TableHeadFormat"  align="left">Time/PerChnage</TableCell>
+             
+                                          
+                                         </TableRow>
+                                     </TableHead>
+                                     <TableBody style={{width:"",whiteSpace: "nowrap"}}>
+             
+                                         {this.state.findlast5minMovement ? this.state.findlast5minMovement.map(row => (
+                                             <TableRow hover key={row.symbol}>
+                                                 <TableCell align="left">{row.symbol}</TableCell>
+                                                <TableCell align="left">{row.percentChangeList}
+
+
+                                                    
+                                                </TableCell>
+                                                
+                                             </TableRow>
+                                         )):''}
+                                     </TableBody>
+                                 </Table>
+
+                                 </Grid>
+
+                                : ""}
+             
+                                </Paper>
+
+                               
+
+
+                        </Grid>
+
+
+                        <Grid item xs={12} sm={12} >
+                            <Paper style={{overflow:"auto", padding:'5px'}} >
 
                             
 

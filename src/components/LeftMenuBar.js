@@ -22,6 +22,13 @@ export const AdminMenuList = (
       <ListItemText primary="Sector Heat Map" />
     </ListItem>
 
+    <ListItem button component='a' target={'_blank'} href={"/mtrade/#/find-fast-movement"} >  
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Search Fast Movement" />
+    </ListItem>
+
     <ListItem button component='a' href={"/mtrade/#/position"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />

@@ -22,6 +22,7 @@ import Position from "./MyTrade/Position";
 
 import AddToWatchlist from "./MyTrade/AddToWatchlist";
 import SectorHeatMap from "./MyTrade/SectorHeatMap";
+import FindFastMovement from "./MyTrade/FindFastMovement";
 
 
 const AppRouter = () => {
@@ -47,6 +48,7 @@ const AppRouter = () => {
                     <Route path="/position" component={Position}/>
                     <Route path="/addtowatchlist" component={AddToWatchlist}/>
                     <Route path="/sector-heat-map" component={SectorHeatMap}/>
+                    <Route path="/find-fast-movement" component={FindFastMovement}/>
 
            
                     <Route path="*" component={LoginComponent} />

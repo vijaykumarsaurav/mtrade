@@ -26,7 +26,7 @@ import ReactApexChart from "react-apexcharts";
 import TradeConfig from './TradeConfig.json';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import vwap from 'vwap';
-import { SMA, RSI, VWAP } from 'technicalindicators';
+import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 
 
 
@@ -42,6 +42,7 @@ class MyView extends React.Component {
             stopnview: '',
             indexTimeStamp: '',
             refreshFlag: true,
+            topGLCount: 0, 
             refreshFlagCandle: true,
             sectorStockList: localStorage.getItem('sectorStockList') && JSON.parse(localStorage.getItem('sectorStockList')) || [],
             sectorList: localStorage.getItem('sectorList') && JSON.parse(localStorage.getItem('sectorList')) || [],
@@ -114,10 +115,7 @@ class MyView extends React.Component {
                 //         }
                 //     });
                 // }
-
             }
-
-
 
             wsClintSectorUpdate.onerror = (e) => {
                 console.log("socket error", e);
@@ -404,7 +402,7 @@ class MyView extends React.Component {
 
 
     loadIndexesList() {
-        this.setState({ indexTimeStamp: '', refreshFlag: false, failedCount: 0 });
+        this.setState({ indexTimeStamp: '', refreshFlag: false, failedCount: 0, topGLCount : 0 });
 
         AdminService.getAllIndices()
             .then((res) => {
@@ -413,18 +411,21 @@ class MyView extends React.Component {
                     this.setState({ indexTimeStamp: data.timestamp })
                     var foundSectors = data.data.filter(row => row.key === "SECTORAL INDICES");
                     var softedData = foundSectors.sort(function (a, b) { return b.percentChange - a.percentChange });
+                  //  this.setState({sectorList :  softedData});
+                    this.setState({ sectorList: []});
+
+
                     function sleep(ms) {
                         return new Promise(resolve => setTimeout(resolve, ms));
                     }
                     var updateLtpOnInterval = async (ref, softedData) => {
+
+                            var middleSector = []; 
                             for (let i = 0; i < softedData.length; i++) {
 
                                 var length = 1; 
-
-                                
                                 this.setState({stockUpdate : i+1 + ". " + softedData[i].index});
                                 console.log(softedData[i].index,softedData[i].percentChange,  softedData[i]); 
-
                                 if (softedData[i].percentChange >= 0.75 || softedData[i].percentChange <= -0.75) {
                                     var sectorStocks = this.state.staticData[softedData[i].index];
                                     softedData[i].stockList = sectorStocks;
@@ -432,11 +433,20 @@ class MyView extends React.Component {
                                     if (sectorStocks && sectorStocks.length) {
                                         ref.refreshSectorLtp(sectorStocks,softedData[i].index );
                                     }
+                                    this.setState({ sectorList: [...this.state.sectorList, softedData[i]], topGLCount: this.state.topGLCount+1 });
+                                }else{
+                                    middleSector.push(softedData[i]); 
                                 }
 
+                                
                             
                                 await sleep(length / 10 * 1500);
                             }
+
+
+                            middleSector.forEach(element => {
+                                this.setState({ sectorList: [...this.state.sectorList, element] });
+                            });
                         }
                         updateLtpOnInterval(this, softedData);
                 }
@@ -525,12 +535,122 @@ class MyView extends React.Component {
         }
 
         this.setState({ refreshFlag: true });
-        this.refreshSectorCandleManually(index); 
+       // this.refreshSectorCandleManually(index); 
+      //  this.checkLast5MinMovement(index); 
+
+      
     }
 
 
 
 
+    checkLast5MinMovement = async (index) => {
+
+        var sectorStocks = this.state.staticData[index];
+     //   this.refreshSectorLtp(sectorStocks, index);
+
+
+        this.setState({ refreshFlagCandle: false });
+        console.log("sectorStockList", index);
+
+
+        for (let index = 0; index < sectorStocks.length; index++) {
+           
+           
+            var beginningTime = moment('9:15am', 'h:mma');
+
+            var time = moment.duration("00:06:00");
+            var startdate = moment(new Date()).subtract(time);
+
+            var data = {
+                "exchange": "NSE",
+                "symboltoken": sectorStocks[index].token,
+                "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+            }
+
+            this.setState({ stockCandleUpdate: index + 1 + ". " + sectorStocks && sectorStocks[index].symbol });
+
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res, 'noPop');
+                if (histdata && histdata.data && histdata.data.length) {
+                    console.log(sectorStocks[index].symbol , "candle history", histdata.data); 
+
+                    
+                    var candleData = histdata.data;
+                    var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [];
+                    candleData.forEach((element, index) => {
+                        candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                        vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
+                        closeingData.push(element[4]);
+                        highData.push(element[2]);
+                        lowData.push(element[3]);
+                        openData.push(element[3]);
+                        valumeData.push(element[5]);
+
+                    });
+
+                    // var sma = SMA.calculate({period : 10, values : closeingData});
+                    // console.log(sectorStocks[index].symbol,"SMA", sma);
+
+
+                    // var inputRSI = { values: closeingData, period: 14 };
+                    // var lastRsiValue = RSI.calculate(inputRSI)
+                    // console.log(sectorStocks[index].symbol, "lastRsiValue", lastRsiValue[lastRsiValue.length - 1]);
+
+
+                    // var inputVWAP = {
+                    //     open: openData,
+                    //     high: highData,
+                    //     low: lowData,
+                    //     close: closeingData,
+                    //     volume: valumeData
+                    // };
+
+
+                    // if (candleData.length > 0) {
+                    //     sectorStocks[index].candleChartData = candleChartData;
+                    //     sectorStocks[index].vwapValue = vwap(vwapdata);
+                    //     sectorStocks[index].vwapDataChart = VWAP.calculate(inputVWAP);
+                    //     sectorStocks[index].lastRsiValue = lastRsiValue[lastRsiValue.length - 1];
+                    // }
+
+                    console.log(sectorStocks[index].symbol, sectorStocks[index]);
+
+
+                } else {
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(sectorStocks[index].symbol, "  emply candle found");
+                }
+            }).catch(error => {
+                this.setState({ failedCount: this.state.failedCount + 1 });
+                Notify.showError(sectorStocks[index].symbol + " candle failed!");
+            })
+
+            await new Promise(r => setTimeout(r, 350));
+        }
+
+
+        if (index) {
+            this.state.sectorList.forEach((element, i) => {
+                if (element.index == index) {
+                    this.state.sectorList[i].stockList = sectorStocks;
+                    this.setState({ sectorList: this.state.sectorList });
+                    return;
+                }
+            });
+        }
+
+
+        this.setState({ refreshFlagCandle: true });
+
+
+
+
+        console.log("sectorStockswithcandle", sectorStocks);
+    }
     refreshSectorCandleManually = async (index) => {
 
         var sectorStocks = this.state.staticData[index];
@@ -542,15 +662,18 @@ class MyView extends React.Component {
 
 
         for (let index = 0; index < sectorStocks.length; index++) {
+           
+           
             var beginningTime = moment('9:15am', 'h:mma');
-            var time = moment.duration("12:00:00");
+
+            var time = moment.duration("22:00:00");
             var startdate = moment(new Date()).subtract(time);
 
             var data = {
                 "exchange": "NSE",
                 "symboltoken": sectorStocks[index].token,
                 "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                "fromdate": moment(beginningTime).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
                 "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
             }
 
@@ -563,7 +686,7 @@ class MyView extends React.Component {
                 if (histdata && histdata.data && histdata.data.length) {
 
                     var candleData = histdata.data;
-                    var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [];
+                    var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata=[];
                     candleData.forEach((element, index) => {
                         candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
                         vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
@@ -572,6 +695,8 @@ class MyView extends React.Component {
                         lowData.push(element[3]);
                         openData.push(element[3]);
                         valumeData.push(element[5]);
+
+                        bbdata.push((element[2] + element[3] + element[4]) / 3);
 
                     });
 
@@ -591,6 +716,16 @@ class MyView extends React.Component {
                         close: closeingData,
                         volume: valumeData
                     };
+
+                    var input = {
+                    period : 20, 
+                    values : bbdata,
+                    stdDev : 2
+                        
+                    }
+
+                    var bb = BollingerBands.calculate(input); 
+                    console.log(sectorStocks[index].symbol , "BB",input, bb);
 
 
                     if (candleData.length > 0) {
@@ -846,7 +981,7 @@ class MyView extends React.Component {
                 <Grid direction="row" container className="flexGrow" spacing={1} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
                     <Grid item xs={12} sm={12} >
                         <Typography component="h3" variant="h6" color="primary" >
-                            Sectors Stocks({this.state.sectorStockList.length}) at {this.state.indexTimeStamp}
+                            Top Gainer/Looser Sectors({this.state.topGLCount}) at {this.state.indexTimeStamp}
                             {this.state.refreshFlag ? <Button variant="contained" onClick={() => this.loadIndexesList()}>Live Ltp</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </>}
                             {this.state.failedCount ? this.state.failedCount + "Failed" : ""}
 
@@ -855,7 +990,7 @@ class MyView extends React.Component {
                             {/* {this.state.refreshFlagCandle ? <Button variant="contained" onClick={() => this.refreshSectorCandle()}>Refresh Candle</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockCandleUpdate}  </Button> </>}
                             &nbsp; */}
 
-                            <Button variant="contained" onClick={() => this.makeConnection()}> WS Refresh</Button>
+                            {/* <Button variant="contained" onClick={() => this.makeConnection()}> WS Refresh</Button> */}
 
 
 
@@ -871,7 +1006,7 @@ class MyView extends React.Component {
                     {this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
 
 
-                        <Grid item xs={12} sm={this.state.sectorList.length <= 2 ? 6 : this.state.sectorList.length == 3 ? 4 : 3}>
+                        <Grid item xs={12} sm={this.state.topGLCount <= 2 ? 6 : this.state.topGLCount == 3 ? 4 : 3}>
 
                             <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
 
@@ -909,9 +1044,9 @@ class MyView extends React.Component {
 
                                                 {sectorItem.vwapValue ? 
                                                 <Typography >
-                                                    {sectorItem.vwapValue ? <span  style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)} </span> : ""}
+                                                    {sectorItem.vwapValue ? <span  style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:<b>{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)}</b> </span> : ""}
                                                     &nbsp;
-                                                    {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:{sectorItem.lastRsiValue} {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
+                                                    {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:<b>{sectorItem.lastRsiValue}</b> {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
                                                 </Typography>
                                                : ""}
 
