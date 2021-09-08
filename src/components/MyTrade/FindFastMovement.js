@@ -35,41 +35,34 @@ class Home extends React.Component {
         this.state = {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
-            selectedWatchlist:"NIFTY 50"
+            selectedWatchlist: "NIFTY IT", 
+            totalStockToWatch : 0
 
         };
         this.findlast5minMovement = this.findlast5minMovement.bind(this);
+        this.startSearching = this.startSearching.bind(this);   
     }
 
 
     componentDidMount() {
-        var beginningTime = moment('9:15am', 'h:mma');
-        var endTime = moment('3:30pm', 'h:mma');
-        const friday = 5; // for friday
-        var currentTime = moment(new Date(), "h:mma");
-        const today = moment().isoWeekday();
+       
         window.document.title = "Fast Movement";
-        //market hours
-        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            this.setState({ findlast5minMovementInterval: setInterval(() => { this.startSearching(); }, 60000) })
-        }
 
-       this.startSearching(); 
+        var watchList = this.state.staticData[this.state.selectedWatchlist];
+        this.setState({totalStockToWatch : watchList.length});
+
+        this.findlast5minMovement(); //one time only
+
+        this.startSearching();
 
     }
-
-    startSearching = () => {
-        console.log("Starting the search");
-        var  watchList = this.state.staticData[this.state.selectedWatchlist]; 
-        this.findlast5minMovement(watchList);
-
-        //this.setState({findlast5minMovementInterval :  setInterval(() => {this.findlast5minMovement(); }, 60000)}) 
-    }
+    
 
     stopSearching = () => {
         console.log("stop the search")
         clearInterval(this.state.findlast5minMovementInterval);
     }
+
 
     showCandleChart = (candleData, symbol, ltp, perChange) => {
         localStorage.setItem('candleChartData', JSON.stringify(candleData))
@@ -81,27 +74,62 @@ class Home extends React.Component {
 
 
     componentWillUnmount() {
-        //clearInterval(this.state.positionInterval);
+        clearInterval(this.state.findlast5minMovementInterval);
         // clearInterval(this.state.scaninterval);
         //  clearInterval(this.state.bankNiftyInterval); 
     }
 
+    onChangeWatchlist = (e) => {
+        clearInterval(this.state.findlast5minMovementInterval);
+        this.setState({ [e.target.name]: e.target.value }, function() {
+            this.findlast5minMovement(); //one time only
+            this.startSearching();    
+          });
+    }
 
-    findlast5minMovement = async (watchList) => {
+    startSearching = () => {
+        
+        console.log("Starting the search");
+        
+        var beginningTime = moment('9:15am', 'h:mma');
+        var endTime = moment('3:30pm', 'h:mma');
+        const friday = 5; // for friday
+        var currentTime = moment(new Date(), "h:mma");
+        const today = moment().isoWeekday();
+        //market hours
 
-        console.log("watchList", watchList);
+        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+            var intervaltime = 60000; 
+            if(this.state.totalStockToWatch > 180){
+                intervaltime = this.state.totalStockToWatch * 333; 
+            }
+            this.setState({ findlast5minMovementInterval: setInterval(() => { this.findlast5minMovement(); }, intervaltime ) });
+        }
+        
+    }
+
+
+    findlast5minMovement = async () => {
+
+
 
         var timediff = moment.duration("00:05:00");
         const format1 = "YYYY-MM-DD HH:mm";
         var startdate = moment(new Date()).subtract(timediff);
-     
-      //  var watchList = this.state.staticData['NIFTY 100'];
 
+        var watchList = this.state.staticData[this.state.selectedWatchlist];
+
+        if (this.state.selectedWatchlist == "selectall") {
+            watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'));
+        }
+        console.log("watchList",this.state.selectedWatchlist,  watchList);
+
+        this.setState({totalStockToWatch : watchList.length})
 
 
         var foundData = [];
 
-        if(watchList && watchList.length){
+        if (watchList && watchList.length) {
             for (let index = 0; index < watchList.length; index++) {
                 const element = watchList[index];
                 var data = {
@@ -111,41 +139,41 @@ class Home extends React.Component {
                     "fromdate": moment(startdate).format(format1),
                     "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
                 }
-    
-                var updateMsg = index + 1 + ". " + element.symbol; 
-                this.setState({ findlast5minMovementUpdate: updateMsg});
-    
+
+                var updateMsg = index + 1 + ". " + element.symbol;
+                this.setState({ findlast5minMovementUpdate: updateMsg });
+
                 window.document.title = "FM: " + updateMsg;
-    
+
                 AdminService.getHistoryData(data).then(res => {
                     let histdata = resolveResponse(res, 'noPop');
                     //console.log("candle history", histdata); 
                     if (histdata && histdata.data && histdata.data.length) {
-    
+
                         var percentChangeList = []; var foundCount = 0;
                         histdata.data.forEach(element => {
                             var changePer = (element[4] - element[1]) * 100 / element[1];
-    
+
                             if (changePer >= 0.3) {
                                 foundCount = foundCount + 1;
-                                percentChangeList.push( "<span style='color:green'>" + changePer.toFixed(2) + "% At " + new Date(element[0]).toLocaleTimeString().substr(0, 5) + "</span>" )
+                                percentChangeList.push("<span style='color:green'>" + changePer.toFixed(2) + "% At " + new Date(element[0]).toLocaleTimeString().substr(0, 5) + "</span>")
                             }
                             if (changePer <= -0.3) {
                                 foundCount = foundCount + 1;
-                                percentChangeList.push( "<span style='color:red'>" + changePer.toFixed(2) + "% At " + new Date(element[0]).toLocaleTimeString().substr(0, 5) + "</span>" )
+                                percentChangeList.push("<span style='color:red'>" + changePer.toFixed(2) + "% At " + new Date(element[0]).toLocaleTimeString().substr(0, 5) + "</span>")
                             }
-    
+
                         });
-    
-    
+
+
                         var ttophistCandle = [];
                         histdata.data.forEach(element => {
                             ttophistCandle.push([element[0], element[1], element[2], element[3], element[4]]);
                         });
-    
-    
+
+
                         if (percentChangeList.length) {
-    
+
                             var data = {
                                 "exchange": "NSE",
                                 "tradingsymbol": watchList[index].symbol,
@@ -156,51 +184,38 @@ class Home extends React.Component {
                                 var LtpData = data && data.data;
                                 //console.log(LtpData);
                                 if (LtpData && LtpData.ltp) {
-    
+
                                     var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                    foundData.push({ 
-                                        symbol: watchList[index].symbol, 
-                                        ltp: LtpData.ltp, 
-                                        perChange: perChange, 
-                                        percentChangeList: percentChangeList.join(" | "), 
-                                        candleChartData: ttophistCandle, 
+                                    foundData.push({
+                                        symbol: watchList[index].symbol,
+                                        ltp: LtpData.ltp,
+                                        perChange: perChange,
+                                        percentChangeList: percentChangeList.join(" | "),
+                                        candleChartData: ttophistCandle,
                                     })
                                     console.log("foundData", foundData);
                                     this.setState({ findlast5minMovement: foundData })
-    
+
                                 }
-    
+
                             })
-    
-    
+
+
                         }
-    
-    
+
+
                     } else {
                         console.log(" candle data emply");
                     }
                 })
-                await new Promise(r => setTimeout(r, 350));
+                await new Promise(r => setTimeout(r, 333));
             }
+
+        }
+
+
+    }
     
-        }
-     
-
-    }
-    onChangeWatchlist = (e) => {
-       
-        this.setState({ [e.target.name]: e.target.value });
-
-        console.log(e.target.value); 
-        var  watchList = this.state.staticData[e.target.value]; 
-
-        if (e.target.value == "selectall") {
-           watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
-        }
-        this.findlast5minMovement(watchList);
-
-    }
-
 
 
 
@@ -220,9 +235,9 @@ class Home extends React.Component {
                 <Grid justify="space-between"
                     container>
 
-<Grid item xs={12} sm={3} >                        
-                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                          Search  5min Movement({this.state.findlast5minMovement && this.state.findlast5minMovement.length})
+                    <Grid item xs={12} sm={3} >
+                        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                            Search  5min Movement ({this.state.findlast5minMovement && this.state.findlast5minMovement.length})
 
                             <span id="stockTesting" style={{ fontSize: "18px", color: 'gray' }}> {this.state.findlast5minMovementUpdate} </span>
 
@@ -235,35 +250,35 @@ class Home extends React.Component {
 
 
 
-                            <Grid item xs={12} sm={3} >
-                                <FormControl style={styles.selectStyle} >
-                                <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
-                                <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
-                                    <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
+                    <Grid item xs={12} sm={3} >
+                        <FormControl style={styles.selectStyle} >
+                            <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
+                            <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
+                                <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
 
-                                    {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
-                                        <MenuItem value={element}>{element}</MenuItem>
-                                    ))
-                                    }
+                                {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                                    <MenuItem value={element}>{element}</MenuItem>
+                                ))
+                                }
 
-                                </Select>
-                            </FormControl>
+                            </Select>
+                        </FormControl>
 
 
 
                     </Grid>
-                   
+
 
 
 
                     <Grid item xs={12} sm={3} >
-                                                <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.startSearching()}>Start Searching</Button>
+                        <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.findlast5minMovement()}>Start Searching</Button>
                         <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.stopSearching()}>Stop Searching</Button>
 
                     </Grid>
-                   
-                   
-                  
+
+
+
                 </Grid>
 
 
@@ -292,7 +307,7 @@ class Home extends React.Component {
                         <Grid item  >
 
                             <Paper style={{ overflow: "auto", padding: '10px' }} >
-                                
+
                                 <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}) </b></Typography>
 
                                 {row.candleChartData.length > 0 ? <ReactApexChart
@@ -302,7 +317,7 @@ class Home extends React.Component {
                                             height: 250
                                         },
                                         title: {
-                                            text:  "" ,
+                                            text: "",
                                             align: 'left'
                                         },
                                         xaxis: {
@@ -323,20 +338,20 @@ class Home extends React.Component {
                                     height={250}
                                 /> : ""}
 
-                                 <div style={{width:"350px", overflow:"auto"}}> {Parser(row.percentChangeList)}</div>
+                                <div style={{ width: "350px", overflow: "auto" }}> {Parser(row.percentChangeList)}</div>
 
-                                 <Grid direction="row" style={{padding:'5px'}} container className="flexGrow" justify="space-between" >
+                                <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
 
                                     <Grid item>
-                                    {/* onClick={() => this.historyWiseOrderPlace(row, 'BUY', "", 'buyButtonClicked' + row.symbol + i)} */}
+                                        {/* onClick={() => this.historyWiseOrderPlace(row, 'BUY', "", 'buyButtonClicked' + row.symbol + i)} */}
                                         {!this.state['buyButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="primary"  >Buy</Button> : <Spinner />}
                                     </Grid>
 
-                                 
+
 
                                     <Grid item >
-                                    {/* onClick={() => this.historyWiseOrderPlace(row, 'SELL', "", 'sellButtonClicked' + row.symbol + i)} */}
-                                        {!this.state['sellButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="secondary" >Sell</Button>: <Spinner />}
+                                        {/* onClick={() => this.historyWiseOrderPlace(row, 'SELL', "", 'sellButtonClicked' + row.symbol + i)} */}
+                                        {!this.state['sellButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="secondary" >Sell</Button> : <Spinner />}
                                     </Grid>
                                 </Grid>
 
