@@ -73,32 +73,20 @@ class Home extends React.Component{
             
 
             
-            var tostartInteral =   setInterval(() => {
-
-               // console.log("1st interval every second", new Date().toLocaleTimeString());
-                var time = new Date(); 
-                if(time.getMinutes() % 15 === 0){
-                    console.log("5th min completed at", new Date().toLocaleTimeString());
-                    console.log("next scan at", new Date(new Date().getTime()+70000).toLocaleTimeString());
-                    
-                    setTimeout(() => {
-                        console.log("set timout at 70sec ", new Date());
-                        this.getCandleHistoryAndStore(); 
-                    }, 70000);
-
-                    setInterval(() => {
-                        
-                        console.log("2st interval every 5min 10Sec", new Date());
-                        if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
-                            this.getCandleHistoryAndStore(); 
-                        }
-
-
-                     }, 60000 * 15 + 70000 );  
-
-                     clearInterval(tostartInteral); 
-                } 
-            }, 1000);
+            // var tostartInteral =   setInterval(() => {
+            //     var time = new Date(); 
+            //     if(time.getMinutes() % 15 === 0){
+            //         setTimeout(() => {
+            //             this.getCandleHistoryAndStore(); 
+            //         }, 70000);
+            //         setInterval(() => {
+            //                 if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
+            //                 this.getCandleHistoryAndStore(); 
+            //             }
+            //          }, 60000 * 15 + 70000 );  
+            //          clearInterval(tostartInteral); 
+            //     } 
+            // }, 1000);
 
 
 
@@ -1600,7 +1588,7 @@ class Home extends React.Component{
         var oderbookData = localStorage.getItem('oderbookData') && JSON.parse(localStorage.getItem('oderbookData'));
         var data = {}; 
          for (let index = 0; index < oderbookData.length; index++) {
-            if(oderbookData[index].symboltoken === symboltoken && oderbookData[index].transactiontype ===  "SELL"){
+            if(oderbookData[index].symboltoken === symboltoken && oderbookData[index].variety ===  "STOPLOSS"){
                 data.orderId = oderbookData[index].orderid  
                 data.variety = oderbookData[index].variety  
                 break;
@@ -1610,10 +1598,9 @@ class Home extends React.Component{
      }
     modifyOrderMethod = (row, minPrice) => {
         var orderData = this.getOpenPeningOrderId(row.symboltoken); 
-        console.log("modifyOrderMethod", row,  "minPrice", minPrice);
 
         var data = {
-            "variety" : "STOPLOSS",
+            "variety" : orderData.variety,
             "orderid": orderData.orderId,
             "ordertype": "STOPLOSS_MARKET",   // "STOPLOSS_LIMIT",
             "producttype":  row.producttype, //"DELIVERY",
@@ -1632,11 +1619,11 @@ class Home extends React.Component{
           
           
             if(data.status  && data.message ===  'SUCCESS'){
-              //  this.setState({ ['lastTriggerprice_' + row.symboltoken]:  parseFloat(minPrice)})
+              //  this.setState({ ['lastTriggerprice_' + row.tradingsymbol]:  parseFloat(minPrice)})
               msg.text = row.tradingsymbol +' modified '+data.message;
-           //   window.speechSynthesis.speak(msg);
-              localStorage.setItem('firstTimeModify'+row.symboltoken, 'No');
-              localStorage.setItem('lastTriggerprice_' + row.symboltoken, parseFloat(minPrice));
+              window.speechSynthesis.speak(msg);
+              localStorage.setItem('firstTimeModify'+row.tradingsymbol, 'No');
+              localStorage.setItem('lastTriggerprice_' + row.tradingsymbol, parseFloat(minPrice));
             }
         })
     }
@@ -1660,14 +1647,14 @@ class Home extends React.Component{
         if(row.netqty > 0){
             row.buyavgprice = parseFloat(row.buyavgprice);             
             percentChange =  ((row.ltp - row.buyavgprice)*100/row.buyavgprice); 
-            if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.4){
+            if(!localStorage.getItem('firstTimeModify'+row.tradingsymbol) && percentChange >= 0.3){
                 var minPrice =  row.buyavgprice + (row.buyavgprice * 0.25/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
                 this.modifyOrderMethod(row, minPrice);
             }else{
-                var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
+                var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.tradingsymbol)); 
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice)*100/lastTriggerprice);   
-                if(perchngfromTriggerPrice >= 0.6){
+                if(perchngfromTriggerPrice >= 0.4){
                      minPrice =  lastTriggerprice + (lastTriggerprice * 0.2/100);
                      minPrice = this.getMinPriceAllowTick(minPrice); 
                      this.modifyOrderMethod(row, minPrice);
@@ -1677,65 +1664,25 @@ class Home extends React.Component{
 
 
         if(row.netqty < 0){
+
             row.sellavgprice = parseFloat(row.sellavgprice);             
             percentChange =  ((row.ltp - row.sellavgprice)*100/row.sellavgprice); 
-            if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange <= 0.4){
+            if(!localStorage.getItem('firstTimeModify'+row.tradingsymbol) && percentChange <= -0.3){
                 var minPrice =  row.sellavgprice - (row.sellavgprice * 0.25/100);
                 minPrice = this.getMinPriceAllowTick(minPrice); 
-
-                console.log(row.tradingsymbol,  row.sellavgprice, minPrice, );
-                this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.25/100));
+               this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.25/100));
             }else{
-              
-                var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
+                var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.tradingsymbol)); 
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice)*100/lastTriggerprice);   
-                if(perchngfromTriggerPrice <= 0.6){
-                     minPrice =  lastTriggerprice + (lastTriggerprice * 0.2/100);
+
+                console.log("perchngfromTriggerPrice", perchngfromTriggerPrice);
+                if(perchngfromTriggerPrice <= -0.4){
+                     minPrice =  lastTriggerprice - (lastTriggerprice * 0.2/100);
                      minPrice = this.getMinPriceAllowTick(minPrice); 
                      this.modifyOrderMethod(row, minPrice);
                 }
               }
         }
-
-
-      
-       
-        //  if(!localStorage.getItem('firstTimeModify'+row.symboltoken) && percentChange >= 0.5){
-        //         if(totalbuyavgprice)   
-        //         var minPrice =  totalbuyavgprice + (totalbuyavgprice * 0.2/100);
-        //         if(totalsellavgprice)   
-        //         var minPrice =  totalsellavgprice - (totalsellavgprice * 0.2/100);
-        //         minPrice = this.getMinPriceAllowTick(minPrice); 
-        //         this.modifyOrderMethod(row, minPrice);
-        //  }else{
-        //    var lastTriggerprice =  parseFloat(localStorage.getItem('lastTriggerprice_'+row.symboltoken)); 
-        //    var perchngfromTriggerPrice = ((ltp - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
-        //    if(perchngfromTriggerPrice > 0.6){
-        //         minPrice =  lastTriggerprice + (lastTriggerprice * 0.3/100);
-        //         minPrice = this.getMinPriceAllowTick(minPrice); 
-        //         this.modifyOrderMethod(row, minPrice);
-        //    }
-        //    else if(percentChange >= 0.3 && percentChange <= 0.4){
-
-        //         // if(!localStorage.getItem('squiredOff'+row.symboltoken)){
-        //         //     localStorage.setItem('squiredOff'+row.symboltoken, 'yes');
-        //         //     this.squareOff(row); 
-        //         //     var msg = new SpeechSynthesisUtterance();
-        //         //     msg.text = row.symbolname +' squired Off Success at ' + percentChange.toFixed(2) + '%'; 
-        //         //     window.speechSynthesis.speak(msg);
-        //         //     console.log("Sqr off called for 0.3% ",row.symbolname);  
-        //         // }
-
-        //         if(totalbuyavgprice)   
-        //         var minPrice =  totalbuyavgprice + (totalbuyavgprice * 0.3/100);
-        //         if(totalsellavgprice)   
-        //         var minPrice =  totalsellavgprice - (totalsellavgprice * 0.3/100);
-        //         minPrice = this.getMinPriceAllowTick(minPrice); 
-        //         this.modifyOrderMethod(row, minPrice);
-        //    }
-        //  }
-
-
 
         let sqrOffbeginningTime = moment('3:14pm', 'h:mma');
         let sqrOffendTime = moment('3:15pm', 'h:mma');
@@ -1841,8 +1788,9 @@ class Home extends React.Component{
                                 <TableCell className="TableHeadFormat" align="left">Chng % </TableCell>
                                 <TableCell  className="TableHeadFormat" align="left">LTP</TableCell>
 
-                                <TableCell  className="TableHeadFormat" align="left">Closing%</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">HighLow%</TableCell>
+
+                                {/* <TableCell  className="TableHeadFormat" align="left">Closing%</TableCell>
+                                <TableCell  className="TableHeadFormat" align="left">HighLow%</TableCell> */}
 
         
     
@@ -1880,7 +1828,7 @@ class Home extends React.Component{
                                 <TableCell align="left"> {row.stopLossAmount}</TableCell> 
 
                                 
-                                {/* {(localStorage.getItem('lastTriggerprice_'+row.symboltoken))} */}
+                                {/* {(localStorage.getItem('lastTriggerprice_'+row.tradingsymbol))} */}
                                 <TableCell align="left" style={{color: parseFloat( row.pnl ) >0 ?  'green' : 'red'}}><b>{row.pnl}</b></TableCell>
                                 <TableCell align="left">
                                     { row.netqty !== '0' ? this.getPercentage(row) : ""} 
@@ -1889,8 +1837,7 @@ class Home extends React.Component{
                                 <TableCell align="left">{row.ltp}</TableCell>
 
 
-                              
-                                {row.netqty > 0 ? 
+                                {/* {row.netqty > 0 ? 
                                 <TableCell align="left">{((row.ltp - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2)}%</TableCell>
                                 : 
                                 <TableCell align="left">{((row.totalsellavgprice - row.ltp)*100/row.totalsellavgprice).toFixed(2)}%</TableCell>
@@ -1900,7 +1847,7 @@ class Home extends React.Component{
                                 <TableCell title="Buy Side  High" align="left">{row.high}({row.high ? ((row.high - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2) +"%" : "Refresh H/L"}) </TableCell>
                                     : 
                                 <TableCell title="Sell Side Low" align="left">{row.low}({row.low ? ((row.totalsellavgprice - row.low)*100/row.totalsellavgprice).toFixed(2) +"%"  : "Refresh H/L"}) </TableCell>
-                                }
+                                } */}
 
 
                                 <TableCell align="left">
