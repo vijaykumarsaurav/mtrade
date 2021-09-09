@@ -221,12 +221,12 @@ class Home extends React.Component {
                console.log("socket error", e);
            }
    
-           setInterval(() => {
-               this.makeConnection();
-               var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-               // console.log("Request :- " + _req);
-               wsClint.send(_req);
-           }, 59000);
+        //    setInterval(() => {
+        //        this.makeConnection();
+        //        var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
+        //        // console.log("Request :- " + _req);
+        //        wsClint.send(_req);
+        //    }, 59000);
 
 
         }
@@ -1758,7 +1758,7 @@ class Home extends React.Component {
 
     }
 
-    placeOrder = (transactiontype, slmOrderType) => {
+    placeOrder = (transactiontype) => {
 
         var data = {
             "variety": "NORMAL",
@@ -1769,7 +1769,7 @@ class Home extends React.Component {
             "ordertype": this.state.buyPrice === 0 ? "MARKET" : "LIMIT",
             "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
             "duration": "DAY",
-            "price": this.state.buyPrice,
+            "price":  0,
             "squareoff": "0",
             "stoploss": "0",
             "quantity": this.state.quantity,
@@ -1783,7 +1783,15 @@ class Home extends React.Component {
                 this.setState({ orderid: data.data && data.data.orderid });
 
                 if (this.state.stoploss) {
-                    this.placeSLMOrder(this.state.stoploss, slmOrderType);
+                   
+                    if(transactiontype == "BUY"){
+                        this.placeSLMOrder("SELL");
+                    }
+
+                    if(transactiontype == "SELL"){
+                        this.placeSLMOrder("BUY");
+                    }
+
                 }
             }
         })
@@ -1809,7 +1817,7 @@ class Home extends React.Component {
         var data = {
             "tradingsymbol": this.state.tradingsymbol,
             "symboltoken": this.state.symboltoken,
-            "transactiontype": slmOrderType ? slmOrderType : "SELL",
+            "transactiontype": slmOrderType,
             "exchange": "NSE",
             "ordertype": "STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
             "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
@@ -1885,9 +1893,11 @@ class Home extends React.Component {
             }
 
 
-            var watchlist = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : [];
+            var watchlist = []; //localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
+
             var foundInWatchlist = watchlist.filter(row => row.token === values);
             if (!foundInWatchlist.length) {
+
                 watchlist.push(fdata);
                 localStorage.setItem('watchList', JSON.stringify(watchlist));
 
@@ -1895,10 +1905,14 @@ class Home extends React.Component {
                     let resdata = resolveResponse(res, 'noPop');
                     console.log(resdata);
                 });
+
+                
+
             }
+          //  this.setState({ symbolList: fdata });
 
             this.setState({ symbolList: JSON.parse(localStorage.getItem('watchList')), search: "" });
-            this.updateSocketWatch();
+        //    this.updateSocketWatch();
 
         }
 
@@ -2064,7 +2078,7 @@ class Home extends React.Component {
                                 </FormControl>
                             </Grid>
                             <Grid item xs={10} sm={1}>
-                                <TextField id="buyPrice" label="Buy Price" value={this.state.buyPrice} name="buyPrice" onChange={this.onChange} />
+                                <TextField id="buyPrice" label="Buy Price" value={0} name="buyPrice" onChange={this.onChange} />
                             </Grid>
                             <Grid item xs={10} sm={1}>
                                 <TextField id="quantity" label="Qty" value={this.state.quantity} name="quantity" onChange={this.onChange} />
