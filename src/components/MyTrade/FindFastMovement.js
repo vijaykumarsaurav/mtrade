@@ -111,6 +111,7 @@ class Home extends React.Component {
 
     findlast5minMovement = async () => {
 
+        this.setState({ findlast5minMovementUpdate: '' });
 
 
         var timediff = moment.duration("00:05:00");

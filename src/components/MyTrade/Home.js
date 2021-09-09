@@ -37,6 +37,7 @@ class Home extends React.Component {
         super(props);
         this.state = {
             sumPercentage: 0,
+            InstrumentPerChange:"", 
             autoSearchList: [],
             isDasable: false,
             isError: false,
@@ -93,13 +94,15 @@ class Home extends React.Component {
     onChangeWatchlist = (e) => {
         this.setState({ [e.target.name]: e.target.value });
         var staticData = this.state.staticData;
-        this.setState({ symbolList: staticData[e.target.value] });
+        this.setState({ symbolList: staticData[e.target.value]}, function(){
+            this.updateSocketWatch();
+        });
+        
         if (e.target.value == "selectall") {
-            this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) });
-
+            this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) }, function(){
+                this.updateSocketWatch();
+            });
         }
-
-
     }
 
     myCallback = (date, fromDate) => {
@@ -119,6 +122,11 @@ class Home extends React.Component {
             let data = resolveResponse(res, 'noPop');
             var LtpData = data && data.data;
             this.setState({ InstrumentLTP: LtpData });
+
+            if(LtpData && LtpData.ltp)
+            this.setState({ InstrumentPerChange: ((LtpData.ltp -  LtpData.close)*100/LtpData.close).toFixed(2)});
+
+
 
             //  if(!localStorage.getItem('ifNotBought') && LtpData &&  LtpData.ltp > this.state.buyPrice){
             //    this.placeOrder(this.state.buyPrice); 
@@ -153,14 +161,12 @@ class Home extends React.Component {
     updateSocketWatch = () => {
 
         
-
-        
         var channel = this.state.symbolList.map(element => {
             return 'nse_cm|' + element.token;
         });
 
         channel = channel.join('&');
-        var sbin = {
+        var updateSocket = {
             "task": "mw",
             "channel": channel,
             "token": this.state.feedToken,
@@ -168,8 +174,8 @@ class Home extends React.Component {
             "acctid": this.state.clientcode
         }
 
-        console.log("update watech", sbin); 
-        wsClint.send(JSON.stringify(sbin));
+        console.log("updated ws watchlisht",this.state.selectedWatchlist, updateSocket); 
+        wsClint.send(JSON.stringify(updateSocket));
     }
 
 
@@ -194,8 +200,8 @@ class Home extends React.Component {
       
 
             wsClint.onopen  = (res) => {
-              //  this.makeConnection();
-              //  this.updateSocketWatch();
+               this.makeConnection();
+               this.updateSocketWatch();
            }
    
            wsClint.onmessage = (message) => {
@@ -208,7 +214,7 @@ class Home extends React.Component {
                    if(foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc){
                        symbolListArray[index].ltp = foundLive[0].ltp; 
                        symbolListArray[index].nc = foundLive[0].nc; 
-                       console.log("foundLive", foundLive);
+                       console.log("ws onmessage: ", foundLive);
                    }
                });
                symbolListArray && symbolListArray.sort(function (a, b) {
@@ -221,14 +227,21 @@ class Home extends React.Component {
                console.log("socket error", e);
            }
    
-        //    setInterval(() => {
-        //        this.makeConnection();
-        //        var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-        //        // console.log("Request :- " + _req);
-        //        wsClint.send(_req);
-        //    }, 59000);
+           setInterval(() => {
+               this.makeConnection();
+               var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
+               // console.log("Request :- " + _req);
+               wsClint.send(_req);
+           }, 59000);
 
 
+         setInterval(() => {
+
+            if(this.state.tradingsymbol){
+                this.getLTP();
+            }
+          
+         }, 1000);
         }
 
 
@@ -1799,7 +1812,7 @@ class Home extends React.Component {
 
     LoadSymbolDetails = (name) => {
 
-        console.log("this.state.symbolList", this.state.symbolList);
+        console.log("name", name);
 
         var token = '';
         for (let index = 0; index < this.state.symbolList.length; index++) {
@@ -1844,11 +1857,18 @@ class Home extends React.Component {
 
     getHistory = (token) => {
 
+
+        this.setState({ downMoveCount: 0, upsideMoveCount: 0 });
+        this.setState({ InstrumentHistroy: [] });
+        this.getLTP();
+
+
         const format1 = "YYYY-MM-DD HH:mm";
 
         var time = moment.duration("00:50:00");
         var startdate = moment(new Date()).subtract(time);
         // var startdate = moment(this.state.startDate).subtract(time);
+        var beginningTime = moment('9:15am', 'h:mma');
 
         var data = {
             "exchange": "NSE",
@@ -1869,9 +1889,26 @@ class Home extends React.Component {
                 });
                 if (histCandles.length > 0) {
                     localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
-                    this.setState({ InstrumentHistroy: histCandles, buyPrice: histCandles[0][2] });
+                    this.setState({ InstrumentHistroy: histCandles });
+
+                
+                    var upsideMoveCount = 0, downMoveCount=0;  
+                     histCandles.forEach(element => {
+                        
+                        var per =  (element[4] - element[1])*100/element[1]; 
+                        if(per >= 0.3){
+                            upsideMoveCount += 1; 
+                        }
+                        if(per <= -0.3){
+                            downMoveCount += 1; 
+                        }
+                        
+                    });
+
+                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount });
+
                 }
-                this.getLTP();
+               
             }
         })
     }
@@ -1885,7 +1922,7 @@ class Home extends React.Component {
         if (autoSearchTemp.length > 0) {
             var fdata = '';
             for (let index = 0; index < autoSearchTemp.length; index++) {
-                console.log("fdata", autoSearchTemp[index].symbol);
+               
                 if (autoSearchTemp[index].symbol === values) {
                     fdata = autoSearchTemp[index];
                     break;
@@ -1896,27 +1933,29 @@ class Home extends React.Component {
             var watchlist = []; //localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
 
             var foundInWatchlist = watchlist.filter(row => row.token === values);
+
             if (!foundInWatchlist.length) {
 
                 watchlist.push(fdata);
-                localStorage.setItem('watchList', JSON.stringify(watchlist));
-
-                AdminService.saveWatchListJSON({ stock: fdata }).then(res => {
-                    let resdata = resolveResponse(res, 'noPop');
-                    console.log(resdata);
+                this.setState({ tradingsymbol: fdata.symbol,  symboltoken : fdata.token }, function(){
+                   this.LoadSymbolDetails(fdata.symbol);
                 });
 
-                
+                this.setState({ symbolList: watchlist}, function(){
+                    this.updateSocketWatch();             
+                });
 
             }
-          //  this.setState({ symbolList: fdata });
-
-            this.setState({ symbolList: JSON.parse(localStorage.getItem('watchList')), search: "" });
-        //    this.updateSocketWatch();
-
         }
 
     }
+    getPercentageColor = (percent) => {
+        percent = percent * 100;
+        var r = percent < 50 ? 255 : Math.floor(255 - (percent * 2 - 100) * 255 / 100);
+        var g = percent > 50 ? 255 : Math.floor((percent * 2) * 255 / 100);
+        return 'rgb(' + r + ',' + g + ',0)';
+    }
+
 
     deleteItemWatchlist = (symbol) => {
         var list = this.state.symbolList; // JSON.parse( localStorage.getItem('watchList'));
@@ -2059,8 +2098,8 @@ class Home extends React.Component {
                            <Grid style={{display:"visible"}} direction="row" alignItems="center" container>
     
                             <Grid item xs={10} sm={5}>
-                                <Typography variant="h5"  >
-                                    {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : ""}   {this.state.sbinLtp}
+                                <Typography variant="h5" style={{color: this.state.InstrumentPerChange > 0 ? "green": "red"}} >
+                                    {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : ""} ({this.state.InstrumentPerChange + "%"})
                                 </Typography>
                                 Open : {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : ""} &nbsp;
                                 High : {this.state.InstrumentLTP ? this.state.InstrumentLTP.high : ""} &nbsp;
@@ -2078,7 +2117,7 @@ class Home extends React.Component {
                                 </FormControl>
                             </Grid>
                             <Grid item xs={10} sm={1}>
-                                <TextField id="buyPrice" label="Buy Price" value={0} name="buyPrice" onChange={this.onChange} />
+                                <TextField id="buyPrice" label="Buy Price" value={this.state.buyPrice} name="buyPrice" onChange={this.onChange} />
                             </Grid>
                             <Grid item xs={10} sm={1}>
                                 <TextField id="quantity" label="Qty" value={this.state.quantity} name="quantity" onChange={this.onChange} />
@@ -2094,12 +2133,14 @@ class Home extends React.Component {
                                 <Button variant="contained" color="" style={{ marginLeft: '20px' }} onClick={() => this.placeOrder('SELL')}>Sell</Button>
                             </Grid>
 
+
                     `            <Table size="small" aria-label="sticky table" >
                                 <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                    <TableRow variant="head" style={{ fontWeight: 'bold' }}>
+                                    <TableRow variant="head" style={{ fontWeight: 'bold' }} >
 
-                                        {/* <TableCell className="TableHeadFormat" align="center">Instrument</TableCell> */}
+                                        <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
                                         <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
+                                        <TableCell className="TableHeadFormat"  align="center">Chng% <b style={{color:'green'}}> UP({this.state.upsideMoveCount})</b> | <b style={{color:'red'}}> Down({this.state.downMoveCount})</b> </TableCell>
                                         <TableCell className="TableHeadFormat" align="center">Open</TableCell>
                                         <TableCell className="TableHeadFormat" align="center">High</TableCell>
                                         <TableCell className="TableHeadFormat" align="center">Low</TableCell>
@@ -2109,12 +2150,14 @@ class Home extends React.Component {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-
+                                {/* this.getPercentageColor((row[4] - row[1])*100/row[1] >= 0.3)  */}
 
                                     {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
-                                        <TableRow key={i} >
+                                        <TableRow key={i} style={{  background:  (row[4] - row[1])*100/row[1] >= 0.3 ? "green": (row[4] - row[1])*100/row[1] <= -0.3 ? "red" : "none"}} >
 
+                                            <TableCell align="center">{this.state.tradingsymbol}</TableCell>
                                             <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
+                                            <TableCell align="center"> <b>{(row[4] - row[1])*100/row[1] && ((row[4] - row[1])*100/row[1]).toFixed(2)}%</b></TableCell>
                                             <TableCell align="center">{row[1]}</TableCell>
                                             <TableCell align="center">{row[2]}</TableCell>
                                             <TableCell align="center">{row[3]}</TableCell>
@@ -2447,7 +2490,6 @@ class Home extends React.Component {
                                                 <TableRow variant="head" style={{ fontWeight: 'bold' }}>
 
                                                    <TableCell className="TableHeadFormat" align="center">Sr </TableCell>
-
 
                                                     <TableCell className="TableHeadFormat"  align="left">Symbol </TableCell>
                                                     <TableCell className="TableHeadFormat" align="left">FoundAt </TableCell>

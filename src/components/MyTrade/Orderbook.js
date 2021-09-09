@@ -61,6 +61,23 @@ class OrderBook extends React.Component{
        
     }
 
+   
+    cancelOrderOfSame = (orderId,variety) =>  {
+       
+        var data = {
+            "variety":variety,
+            "orderid":orderId,
+        }
+        AdminService.cancelOrder(data).then(res => {
+            let data = resolveResponse(res);
+            if(data.status  && data.message === 'SUCCESS'){
+                console.log("cancel order", data);   
+               // this.setState({ orderid : data.data && data.data.orderid });
+            }
+        })
+       
+    }
+
 
 
 
@@ -135,6 +152,10 @@ class OrderBook extends React.Component{
                                 {/* <TableCell align="center"><b>Token</b></TableCell> */}
 
                                 <TableCell align="center"><b>Order Type</b></TableCell>
+                                <TableCell align="center"><b>Variety</b></TableCell>
+
+                                
+
                                 <TableCell align="center"><b>CNC/Intraday</b></TableCell>
                                 <TableCell align="center"><b>Qty </b></TableCell>
                         
@@ -162,7 +183,11 @@ class OrderBook extends React.Component{
                                     {/* <TableCell align="center">{row.symboltoken  }</TableCell> */}
 
                                     <TableCell align="center">{row.transactiontype}</TableCell>
+                                    <TableCell align="center">{row.variety}</TableCell>
+
                                     <TableCell align="center">{row.producttype}</TableCell>
+
+                                    
 
                                     <TableCell align="center">
                                         {row.orderstatus === 'trigger pending' ? 
@@ -189,12 +214,22 @@ class OrderBook extends React.Component{
 
 
                                     <TableCell align="left">
-                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
+                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? <>
                                         <Button  size={'small'} type="number" variant="contained" color="primary" style={{marginLeft: '20px'}} onClick={() => this.modifyOrder(row)}>Update</Button>    
-                                        : ''}
+                                       </>
+                                     : ''}
                                     </TableCell>
                                     
-                                    <TableCell style={{fontSize: "11px", width: '10%'}} align="center">{row.orderstatus}</TableCell>
+                                    <TableCell style={{fontSize: "11px", width: '10%'}} align="center">
+                                        {row.orderstatus}
+                                        <br />
+
+                                    {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? <>
+                                    <Button  size={'small'} type="number" variant="contained" color="" style={{marginLeft: '20px'}} onClick={() => this.cancelOrderOfSame(row.orderid, row.variety)}>Cancel</Button>    
+                                       </>
+                                     : ''}
+
+                                    </TableCell>
 
                                     <TableCell style={{fontSize: "11px"}} align="center">{row.text}</TableCell>
 
