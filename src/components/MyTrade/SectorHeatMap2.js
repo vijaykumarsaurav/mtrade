@@ -42,7 +42,7 @@ class MyView extends React.Component {
             stopnview: '',
             indexTimeStamp: '',
             refreshFlag: true,
-            topGLCount: 0, 
+            topGLCount: 0,
             refreshFlagCandle: true,
             sectorStockList: localStorage.getItem('sectorStockList') && JSON.parse(localStorage.getItem('sectorStockList')) || [],
             sectorList: localStorage.getItem('sectorList') && JSON.parse(localStorage.getItem('sectorList')) || [],
@@ -55,7 +55,7 @@ class MyView extends React.Component {
     componentDidMount() {
         // window.location.reload(); 
 
-        //  this.loadIndexesList();
+        this.loadIndexesList();
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
@@ -185,127 +185,6 @@ class MyView extends React.Component {
 
         // setInterval(() => {
         //     AdminService.checkSectorApiOther("nifty").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-
-        
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxRealty").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("niftyPvtBank").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxCommodities").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxPSU").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxit").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxMedia").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxMetal").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxPharma").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxPSU").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxPSU").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxMNC").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cnxInfra").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("cpse").then(res => {
         //         //let data = resolveResponse(res, 'noPop');
         //         console.log(res); 
 
@@ -541,141 +420,145 @@ class MyView extends React.Component {
                     }
                 })
 
-            }else{
+            } else {
                 Notify.showError(quantity + "  quantity |  " + symbol + " " + orderType + " Rejected");
                 this.setState({ [spinnerIndex]: false })
             }
-        }).catch(function(error){
+        }).catch(function (error) {
             this.setState({ [spinnerIndex]: true })
         })
         // await new Promise(r => setTimeout(r, 2000)); 
     }
 
 
-//     loadIndexesList() {
-//         this.setState({ indexTimeStamp: '', refreshFlag: false, failedCount: 0, topGLCount : 0 });
-
-//         AdminService.getAllIndices()
-//             .then((res) => {
-//                 if (res.data) {
-//                     var data = res.data, sectorStockList = [];
-//                     this.setState({ indexTimeStamp: data.timestamp })
-//                     var foundSectors = data.data.filter(row => row.key === "SECTORAL INDICES");
-//                     var softedData = foundSectors.sort(function (a, b) { return b.percentChange - a.percentChange });
-//                   //  this.setState({sectorList :  softedData});
-                  
-// //                    this.setState({ sectorList: []});
-//                     function sleep(ms) {
-//                         return new Promise(resolve => setTimeout(resolve, ms));
-//                     }
-//                     var updateLtpOnInterval = async (ref, softedData) => {
-
-//                             var middleSector = []; 
-//                             for (let i = 0; i < softedData.length; i++) {
-
-//                                 var length = 1;                                     
-//                                 var sectorStocks = this.state.staticData[softedData[i].index];
-//                                 this.setState({stockUpdate : i+1 + ". " + softedData[i].index});
-//                                 console.log(softedData[i].index,softedData[i].percentChange,  softedData[i]); 
-//                                 if (softedData[i].percentChange >= 0.75 || softedData[i].percentChange <= -0.75) {
-//                                     softedData[i].stockList = sectorStocks;
-//                                     length = sectorStocks.length; 
-//                                     if (sectorStocks && sectorStocks.length) {
-//                                         ref.refreshSectorLtp(sectorStocks,softedData[i].index );
-//                                     }
-//                                     this.setState({ sectorList: [...this.state.sectorList, softedData[i]], topGLCount: this.state.topGLCount+1 });
-//                                 }else{
-//                                     softedData[i].stockList = sectorStocks;
-//                                     middleSector.push(softedData[i]); 
-//                                 }
-
-                                
-                            
-//                                 await sleep(length / 10 * 1500);
-//                             }
-
-
-//                             middleSector.forEach(element => {
-//                                 this.setState({ sectorList: [...this.state.sectorList, element] });
-//                             });
-//                         }
-//                         updateLtpOnInterval(this, softedData);
-//                 }
-//             })
-//             .catch((reject) => {
-//                 Notify.showError("All Indices API Failed" + <br /> + reject);
-//                 this.speckIt("All Indices API Failed");
-
-//             })
-
-//         this.setState({ refreshFlag: true });
-
-//     }
 
     loadIndexesList() {
-        this.setState({ indexTimeStamp: '', refreshFlag: false, failedCount: 0, topGLCount : 0 });
+        this.setState({ indexTimeStamp: '', refreshFlag: false, failedCount: 0, topGLCount: 0 });
 
+
+        
         AdminService.allIndicesDirectJSON()
             .then((res) => {
 
 
                 if (res.data) {
 
-        
-
                     var data = res.data && res.data.data, sectorStockList = [];
-                   // this.setState({ indexTimeStamp: data.timestamp })
-                   // var foundSectors = data.filter(row => row.key === "SECTORAL INDICES");
-                    var softedData = data.sort(function (a, b) { return b.percChange - a.percChange });
-                  //  this.setState({sectorList :  softedData});
+                    // this.setState({ indexTimeStamp: data.timestamp })
+                    // var foundSectors = data.filter(row => row.key === "SECTORAL INDICES");
+                 //   var softedData = data.sort(function (a, b) { return b.percChange - a.percChange });
+                    //  this.setState({sectorList :  softedData});
+                 
 
-                  console.log(softedData); 
 
-                    this.setState({ sectorList: []});  
-                    function sleep(ms) {
-                        return new Promise(resolve => setTimeout(resolve, ms));
-                    }
-                    var updateLtpOnInterval = async (ref, softedData) => {
+                    var sluglist = {
+                        'NIFTY 50': 'nifty',
+                        'NIFTY NEXT 50': 'juniorNifty',
+                        'NIFTY MIDCAP 50': 'niftyMidcap50',
+                        'NIFTY AUTO': 'cnxAuto',
+                        'NIFTY BANK': 'bankNifty',
+                        'NIFTY ENERGY': 'cnxEnergy',
+                        'NIFTY FIN SERVICE': 'cnxFinance',
+                        'NIFTY FMCG': 'cnxFMCG',
+                        'NIFTY IT': 'cnxit',
+                        'NIFTY MEDIA': 'cnxMedia',
+                        'NIFTY METAL': 'cnxMetal',
+                        'NIFTY PHARMA': 'cnxPharma',
+                        'NIFTY PSU BANK': 'cnxPSU',
+                        'NIFTY REALTY': 'cnxRealty',
+                        'NIFTY PVT BANK': 'niftyPvtBank',
+                        'NIFTY COMMODITIES': 'cnxCommodities',
+                        'NIFTY CONSUMPTION': 'cnxConsumption',
+                        'NIFTY CPSE': 'cpse',
+                        'NIFTY INFRA': 'cnxInfra',
+                        'NIFTY MNC': 'cnxMNC',
+                        'NIFTY GROWSECT 15': 'ni15',
+                        'NIFTY PSE': 'cnxPSE',
+                        'NIFTY SERV SECTOR': 'cnxService',
+                        'NIFTY100 LIQ 15': 'nseliquid',
+                        'NIFTY MID LIQ 15': 'niftyMidcapLiq15',
+                        'NIFTY DIV OPPS 50': 'cnxDividendOppt',
+                        'NIFTY50 VALUE 20': 'nv20',
+                        'NIFTY QUALITY 30': 'niftyQuality30',
+                        'NIFTY50 EQL WGT': 'nifty50EqualWeight',
+                        'NIFTY100 EQL WGT': 'nifty100EqualWeight',
+                        'NIFTY ALPHA 50': 'niftyAlpha50',
+                    };
 
-                            var middleSector = []; 
-                            for (let i = 0; i < softedData.length; i++) {
 
-                                var length = 1;                                     
-                                var sectorStocks = this.state.staticData[softedData[i].indexName];
-                                this.setState({stockUpdate : i+1 + ". " + softedData[i].indexName});
-                                console.log(softedData[i].index,softedData[i].percChange,  softedData[i]); 
-                                if (softedData[i].percChange >= 0.75 || softedData[i].percChange <= -0.75) {
+                   var softedData = res.data && res.data.data; 
 
-                                    if(sectorStocks && sectorStocks.length){
-                                        softedData[i].stockList = sectorStocks;
-                                        length = sectorStocks.length; 
-                                        if (sectorStocks && sectorStocks.length) {
-                                            ref.refreshSectorLtp(sectorStocks, softedData[i].indexName );
-                                        }
-                                       this.setState({ sectorList: [...this.state.sectorList, softedData[i]], topGLCount: this.state.topGLCount+1 });
-                                    }
-                                }else{
-                                    if(sectorStocks && sectorStocks.length>=1){
-                                        softedData[i].stockList = sectorStocks;
-                                        middleSector.push(softedData[i]); 
-                                    }
-                                  
-                                }
+                //    console.log("softedData", softedData);
+                //     for (let index = 0; index < softedData.length; index++) {
+                //         const element = softedData[index];
+                //         var slugName =  sluglist[element.indexName]; 
 
-                                await sleep(length / 10 * 150);
+
+                //         if(slugName){
+                //             console.log("secName", element.indexName, slugName);
+
+                //             AdminService.checkSectorApiOther(slugName).then(res => {
+                //                 console.log(element.indexName, res.data.data);
+                //                 softedData[index].stockList = res.data && res.data.data; 
+                //                 this.setState({ sectorList: softedData });
+                //             }).catch(error => {
+                //                // Notify.showError(element.indexName + "fail to get stockdata"); 
+                //                console.log("list fetch error", error)
+                //             })
+                //         }else{
+                //             console.log("deleted", element.indexName, slugName)
+                //           //  delete softedData[index]; 
+                //            softedData.splice(index, 1);
+                //         }
+                //     }
+
+
+
+                
+                    var updateLtpOnInterval = async (ref, softedData, sluglist) => {
+
+                        for (let index = 0; index < softedData.length; index++) {
+                            const element = softedData[index];
+                            var slugName =  sluglist[element.indexName]; 
+
+    
+
+                            if(slugName){
+                                console.log("secName", element.indexName, slugName);
+    
+                                AdminService.checkSectorApiOther(slugName).then(res => {
+                                    console.log(element.indexName, res.data.data);
+                                    softedData[index].stockList = res.data && res.data.data; 
+                                    this.setState({ sectorList: softedData });
+                                }).catch(error => {
+                                   // Notify.showError(element.indexName + "fail to get stockdata"); 
+                                   console.log("list fetch error", error)
+                                })
+                            }else{
+                              //  console.log("deleted", element.indexName, slugName, )
+                              //  delete softedData[index]; 
+                                 softedData.splice(index, 1);
                             }
 
+                            await new Promise(resolve => setTimeout(resolve, 0));
+                         }
 
-                            middleSector.forEach(element => {
-                                this.setState({ sectorList: [...this.state.sectorList, element] });
-                            });
+                         console.log("after", softedData);
+
+
+
+  
                         }
-                        updateLtpOnInterval(this, softedData);
+                        updateLtpOnInterval(this, softedData, sluglist);
+
+
+
+                    
                 }
             })
             .catch((reject) => {
-          //      Notify.showError("All Indices API Failed" + <br /> + reject);
-          //      this.speckIt("All Indices API Failed");
+                //      Notify.showError("All Indices API Failed" + <br /> + reject);
+                //      this.speckIt("All Indices API Failed");
 
             })
 
@@ -693,9 +576,9 @@ class MyView extends React.Component {
 
     refreshSectorLtp = async (sectorStocks, index) => {
 
-        this.setState({stockUpdate : index});
+        this.setState({ stockUpdate: index });
 
-    // console.log(index, "sectorStocks",sectorStocks,  new Date())
+        // console.log(index, "sectorStocks",sectorStocks,  new Date())
         this.setState({ refreshFlag: false, failedCount: 0 });
         var sectorUpdate = [];
         var sectorStockList = this.state.sectorStockList;
@@ -758,10 +641,10 @@ class MyView extends React.Component {
         }
 
         this.setState({ refreshFlag: true });
-       // this.refreshSectorCandleManually(index); 
-      //  this.checkLast5MinMovement(index); 
+        // this.refreshSectorCandleManually(index); 
+        //  this.checkLast5MinMovement(index); 
 
-      
+
     }
 
 
@@ -770,7 +653,7 @@ class MyView extends React.Component {
     checkLast5MinMovement = async (index) => {
 
         var sectorStocks = this.state.staticData[index];
-     //   this.refreshSectorLtp(sectorStocks, index);
+        //   this.refreshSectorLtp(sectorStocks, index);
 
 
         this.setState({ refreshFlagCandle: false });
@@ -778,8 +661,8 @@ class MyView extends React.Component {
 
 
         for (let index = 0; index < sectorStocks.length; index++) {
-           
-           
+
+
             var beginningTime = moment('9:15am', 'h:mma');
 
             var time = moment.duration("00:06:00");
@@ -799,9 +682,9 @@ class MyView extends React.Component {
             AdminService.getHistoryData(data).then(res => {
                 let histdata = resolveResponse(res, 'noPop');
                 if (histdata && histdata.data && histdata.data.length) {
-                    console.log(sectorStocks[index].symbol , "candle history", histdata.data); 
+                    console.log(sectorStocks[index].symbol, "candle history", histdata.data);
 
-                    
+
                     var candleData = histdata.data;
                     var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [];
                     candleData.forEach((element, index) => {
@@ -877,7 +760,7 @@ class MyView extends React.Component {
     refreshSectorCandleManually = async (index) => {
 
         var sectorStocks = this.state.staticData[index];
-     //   this.refreshSectorLtp(sectorStocks, index);
+        //   this.refreshSectorLtp(sectorStocks, index);
 
 
         this.setState({ refreshFlagCandle: false });
@@ -885,8 +768,8 @@ class MyView extends React.Component {
 
 
         for (let index = 0; index < sectorStocks.length; index++) {
-           
-           
+
+
             var beginningTime = moment('9:15am', 'h:mma');
 
             var time = moment.duration("22:00:00");
@@ -909,7 +792,7 @@ class MyView extends React.Component {
                 if (histdata && histdata.data && histdata.data.length) {
 
                     var candleData = histdata.data;
-                    var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata=[];
+                    var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [];
                     candleData.forEach((element, index) => {
                         candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
                         vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
@@ -941,14 +824,14 @@ class MyView extends React.Component {
                     };
 
                     var input = {
-                    period : 20, 
-                    values : bbdata,
-                    stdDev : 2
-                        
+                        period: 20,
+                        values: bbdata,
+                        stdDev: 2
+
                     }
 
-                    var bb = BollingerBands.calculate(input); 
-                    console.log(sectorStocks[index].symbol , "BB",input, bb);
+                    var bb = BollingerBands.calculate(input);
+                    console.log(sectorStocks[index].symbol, "BB", input, bb);
 
 
                     if (candleData.length > 0) {
@@ -1150,12 +1033,12 @@ class MyView extends React.Component {
         return 'rgb(' + r + ',' + g + ',0)';
     }
 
-    get2DecimalNumber =(number)=>{
+    get2DecimalNumber = (number) => {
 
-        if(number){
-            return number.toFixed(2); 
-        }else{
-            return number;  
+        if (number) {
+            return number.toFixed(2);
+        } else {
+            return number;
         }
     }
 
@@ -1202,7 +1085,7 @@ class MyView extends React.Component {
                 <Grid direction="row" container className="flexGrow" spacing={1} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
                     <Grid item xs={12} sm={12} >
                         <Typography component="h3" variant="h6" color="primary" >
-                            Top Gainer/Looser Sectors({this.state.topGLCount}) at {this.state.indexTimeStamp}
+                            Top Gainer/Looser Sectors({this.state.sectorList.length}) at {this.state.indexTimeStamp}
                             {this.state.refreshFlag ? <Button variant="contained" onClick={() => this.loadIndexesList()}>Live Ltp</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </>}
                             {this.state.failedCount ? this.state.failedCount + "Failed" : ""}
 
@@ -1246,30 +1129,31 @@ class MyView extends React.Component {
                                 <Grid direction="row" container className="flexGrow" spacing={1} >
 
 
+
                                     {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
 
                                         <Grid item xs={12} sm={6} >
                                             <Paper style={{ textAlign: "center" }} >
 
                                                 {/* {sectorItem.cng} */}
-                                                <Typography style={{ background: this.getPercentageColor(sectorItem.cng), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.name} {sectorItem.ltp} ({ this.get2DecimalNumber(sectorItem.nc)}%)
+                                                <Typography style={{ background: this.getPercentageColor(sectorItem.iislPercChange), fontSize: '14px' }}>
+                                                    {i + 1}. {sectorItem.symbol} {sectorItem.ltp} ({sectorItem.iislPercChange}%)
                                                 </Typography>
 
-                                          
-                                            
 
-                                                {sectorItem.candleChartData ?  <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
-                                                   <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} /> 
+
+
+                                                {sectorItem.candleChartData ? <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
+                                                    <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} />
                                                 </span> : ""}
 
-                                                {sectorItem.vwapValue ? 
-                                                <Typography >
-                                                    {sectorItem.vwapValue ? <span  style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:<b>{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)}</b> </span> : ""}
-                                                    &nbsp;
-                                                    {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:<b>{sectorItem.lastRsiValue}</b> {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
-                                                </Typography>
-                                               : ""}
+                                                {sectorItem.vwapValue ?
+                                                    <Typography >
+                                                        {sectorItem.vwapValue ? <span style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:<b>{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)}</b> </span> : ""}
+                                                        &nbsp;
+                                                        {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:<b>{sectorItem.lastRsiValue}</b> {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
+                                                    </Typography>
+                                                    : ""}
 
 
                                                 {/* {sectorItem.candleChartData ? <ReactApexChart
@@ -1301,26 +1185,26 @@ class MyView extends React.Component {
                                                 /> : ""} */}
 
 
-                                            <Grid direction="row" style={{padding:'5px'}} container className="flexGrow" justify="space-between" >
+                                                {/* <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
 
-                                                <Grid item>
-                                                    {!this.state['buyButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="primary"  onClick={() => this.historyWiseOrderPlace(sectorItem, 'BUY', "", 'buyButtonClicked' + indexdata.index + i)}>Buy</Button> : <Spinner />}
+                                                    <Grid item>
+                                                        {!this.state['buyButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="primary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'BUY', "", 'buyButtonClicked' + indexdata.index + i)}>Buy</Button> : <Spinner />}
+                                                    </Grid>
+
+                                                    <Grid item >
+                                                        {sectorItem.ltt && new Date(sectorItem.ltt).toLocaleTimeString()}
+                                                    </Grid>
+
+                                                    <Grid item >
+                                                        {!this.state['sellButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="secondary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL', "", 'sellButtonClicked' + indexdata.index + i)}>Sell</Button> : <Spinner />}
+                                                    </Grid>
                                                 </Grid>
-
-                                                <Grid item >
-                                                {sectorItem.ltt && new Date(sectorItem.ltt).toLocaleTimeString()}
-                                                </Grid>
-
-                                                <Grid item >
-                                                    {!this.state['sellButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="secondary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL', "", 'sellButtonClicked' + indexdata.index + i)}>Sell</Button>: <Spinner />}
-                                                </Grid>
-                                            </Grid>
-
+ */}
 
 
                                             </Paper>
 
-                                            
+
                                         </Grid>
 
                                     ))

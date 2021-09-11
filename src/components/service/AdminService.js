@@ -103,16 +103,29 @@ class AdminService {
         return axios.get(apiConstant.getIndiceStockApi+index, '');
     }
 
+    checkOtherApi(index){
+        return axios.get('http://localhost:3000/nse/get_indices', '');
+     //  return axios.get('http://localhost:3000/nse/get_index_stocks?symbol=bankNifty', '');
+    // return axios.get("https://www1.nseindia.com/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json", '');
+    }
+
+    checkSectorApiOther(index){
+        //  return axios.get('http://localhost:3000/nse/get_indices', '');
+         return axios.get('http://localhost:3000/nse/get_index_stocks?symbol='+index, '');
+       //return axios.get("https://www1.nseindia.com/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json", '');
+      }
+
+    
+
     getAllIndices(){
-       var sessionId =  Math.random().toString(36).substr(2, 9);
-       var CookieExpireDate = new Date();
-       CookieExpireDate.setDate(CookieExpireDate.getDate() + 1);
-       document.cookie = "sessionId=" + sessionId + ";expires=" + CookieExpireDate + ";domain=www.nseindia.com;path=/";
-
-
         return axios.get(apiConstant.allIndices);
     }
 
+    allIndicesDirectJSON(){
+        return axios.get('http://localhost:3000/nse/get_indices', '');
+        // return axios.get(apiConstant.allIndices2Json);
+     }
+ 
 }
 
 

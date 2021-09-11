@@ -19,9 +19,13 @@ import Tradebook from "./MyTrade/Tradebook";
 // import LiveFeed from "./MyTrade/LiveFeed";
 import OrderStatusLive from "./MyTrade/OrderStatusLive";
 import Position from "./MyTrade/Position";
+import Test from "./MyTrade/Test";
+
 
 import AddToWatchlist from "./MyTrade/AddToWatchlist";
 import SectorHeatMap from "./MyTrade/SectorHeatMap";
+import SectorHeatMap2 from "./MyTrade/SectorHeatMap2";
+
 import FindFastMovement from "./MyTrade/FindFastMovement";
 
 
@@ -48,8 +52,12 @@ const AppRouter = () => {
                     <Route path="/position" component={Position}/>
                     <Route path="/addtowatchlist" component={AddToWatchlist}/>
                     <Route path="/sector-heat-map" component={SectorHeatMap}/>
-                    <Route path="/find-fast-movement" component={FindFastMovement}/>
+                    <Route path="/sector-heat-map2" component={SectorHeatMap2}/>
 
+                    <Route path="/find-fast-movement" component={FindFastMovement}/>
+                    
+                    <Route path="/test" component={Test}/>
+                    
            
                     <Route path="*" component={LoginComponent} />
                     

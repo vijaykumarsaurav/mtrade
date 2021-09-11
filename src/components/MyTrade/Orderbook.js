@@ -72,6 +72,7 @@ class OrderBook extends React.Component{
             let data = resolveResponse(res);
             if(data.status  && data.message === 'SUCCESS'){
                 console.log("cancel order", data);   
+                this.getTodayOrder();
                // this.setState({ orderid : data.data && data.data.orderid });
             }
         })
