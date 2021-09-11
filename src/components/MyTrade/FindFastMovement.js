@@ -113,7 +113,6 @@ class Home extends React.Component {
 
         this.setState({ findlast5minMovementUpdate: '' });
 
-
         var timediff = moment.duration("00:05:00");
         const format1 = "YYYY-MM-DD HH:mm";
         var startdate = moment(new Date()).subtract(timediff);

@@ -2,7 +2,6 @@ import React from "react";
 import AdminService from "../service/AdminService";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
-
 import Button from "@material-ui/core/Button";
 import Table from "@material-ui/core/Table";
 import TableRow from "@material-ui/core/TableRow";
@@ -39,6 +38,40 @@ class MyView extends React.Component {
         super(props);
         this.state = {
             // sectorList: [],
+            sluglist : {
+                'NIFTY 50': 'nifty',
+                'NIFTY AUTO': 'cnxAuto',
+                'NIFTY BANK': 'bankNifty',
+                'NIFTY ENERGY': 'cnxEnergy',
+                'NIFTY FIN SERVICE': 'cnxFinance',
+                'NIFTY FMCG': 'cnxFMCG',
+                'NIFTY IT': 'cnxit',
+                'NIFTY MEDIA': 'cnxMedia',
+                'NIFTY METAL': 'cnxMetal',
+                'NIFTY PHARMA': 'cnxPharma',
+                'NIFTY PSU BANK': 'cnxPSU',
+                'NIFTY REALTY': 'cnxRealty',
+                'NIFTY PVT BANK': 'niftyPvtBank',
+                'NIFTY CONSUMPTION': 'cnxConsumption',
+                'NIFTY CPSE': 'cpse',
+                'NIFTY INFRA': 'cnxInfra',
+                'NIFTY MNC': 'cnxMNC',
+
+                // 'NIFTY GROWSECT 15': 'ni15',H
+                // 'NIFTY PSE': 'cnxPSE',
+                // 'NIFTY COMMODITIES': 'cnxCommodities',
+                // 'NIFTY SERV SECTOR': 'cnxService',
+                // 'NIFTY100 LIQ 15': 'nseliquid',
+                // 'NIFTY MID LIQ 15': 'niftyMidcapLiq15',
+                // 'NIFTY DIV OPPS 50': 'cnxDividendOppt',
+                // 'NIFTY50 VALUE 20': 'nv20',
+                // 'NIFTY QUALITY 30': 'niftyQuality30',
+                // 'NIFTY50 EQL WGT': 'nifty50EqualWeight',
+                // 'NIFTY100 EQL WGT': 'nifty100EqualWeight',
+                // 'NIFTY ALPHA 50': 'niftyAlpha50',
+                // 'NIFTY NEXT 50': 'juniorNifty',
+                // 'NIFTY MIDCAP 50': 'niftyMidcap50',
+            },
             stopnview: '',
             indexTimeStamp: '',
             refreshFlag: true,
@@ -55,7 +88,13 @@ class MyView extends React.Component {
     componentDidMount() {
         // window.location.reload(); 
 
-        this.loadIndexesList();
+       this.loadIndexesList();
+
+        // setInterval(() => {
+        //     this.loadIndexesList();
+        // }, 1000);
+
+
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
@@ -442,114 +481,52 @@ class MyView extends React.Component {
 
 
                 if (res.data) {
-
-                    var data = res.data && res.data.data, sectorStockList = [];
-                    // this.setState({ indexTimeStamp: data.timestamp })
-                    // var foundSectors = data.filter(row => row.key === "SECTORAL INDICES");
-                 //   var softedData = data.sort(function (a, b) { return b.percChange - a.percChange });
-                    //  this.setState({sectorList :  softedData});
-                 
-
-
-                    var sluglist = {
-                        'NIFTY 50': 'nifty',
-                        'NIFTY NEXT 50': 'juniorNifty',
-                        'NIFTY MIDCAP 50': 'niftyMidcap50',
-                        'NIFTY AUTO': 'cnxAuto',
-                        'NIFTY BANK': 'bankNifty',
-                        'NIFTY ENERGY': 'cnxEnergy',
-                        'NIFTY FIN SERVICE': 'cnxFinance',
-                        'NIFTY FMCG': 'cnxFMCG',
-                        'NIFTY IT': 'cnxit',
-                        'NIFTY MEDIA': 'cnxMedia',
-                        'NIFTY METAL': 'cnxMetal',
-                        'NIFTY PHARMA': 'cnxPharma',
-                        'NIFTY PSU BANK': 'cnxPSU',
-                        'NIFTY REALTY': 'cnxRealty',
-                        'NIFTY PVT BANK': 'niftyPvtBank',
-                        'NIFTY COMMODITIES': 'cnxCommodities',
-                        'NIFTY CONSUMPTION': 'cnxConsumption',
-                        'NIFTY CPSE': 'cpse',
-                        'NIFTY INFRA': 'cnxInfra',
-                        'NIFTY MNC': 'cnxMNC',
-                        'NIFTY GROWSECT 15': 'ni15',
-                        'NIFTY PSE': 'cnxPSE',
-                        'NIFTY SERV SECTOR': 'cnxService',
-                        'NIFTY100 LIQ 15': 'nseliquid',
-                        'NIFTY MID LIQ 15': 'niftyMidcapLiq15',
-                        'NIFTY DIV OPPS 50': 'cnxDividendOppt',
-                        'NIFTY50 VALUE 20': 'nv20',
-                        'NIFTY QUALITY 30': 'niftyQuality30',
-                        'NIFTY50 EQL WGT': 'nifty50EqualWeight',
-                        'NIFTY100 EQL WGT': 'nifty100EqualWeight',
-                        'NIFTY ALPHA 50': 'niftyAlpha50',
-                    };
-
-
-                   var softedData = res.data && res.data.data; 
-
-                //    console.log("softedData", softedData);
-                //     for (let index = 0; index < softedData.length; index++) {
-                //         const element = softedData[index];
-                //         var slugName =  sluglist[element.indexName]; 
-
-
-                //         if(slugName){
-                //             console.log("secName", element.indexName, slugName);
-
-                //             AdminService.checkSectorApiOther(slugName).then(res => {
-                //                 console.log(element.indexName, res.data.data);
-                //                 softedData[index].stockList = res.data && res.data.data; 
-                //                 this.setState({ sectorList: softedData });
-                //             }).catch(error => {
-                //                // Notify.showError(element.indexName + "fail to get stockdata"); 
-                //                console.log("list fetch error", error)
-                //             })
-                //         }else{
-                //             console.log("deleted", element.indexName, slugName)
-                //           //  delete softedData[index]; 
-                //            softedData.splice(index, 1);
-                //         }
-                //     }
-
-
-
                 
-                    var updateLtpOnInterval = async (ref, softedData, sluglist) => {
+                   var softedData = res.data && res.data.data; 
+                   softedData.sort(function (a, b) {
+                    return b.percChange - a.percChange;
+                   });
 
-                        for (let index = 0; index < softedData.length; index++) {
-                            const element = softedData[index];
-                            var slugName =  sluglist[element.indexName]; 
+                    for (let index = 0; index < softedData.length; index++) {
+                        const element = softedData[index];
+                        var slugName =  this.state.sluglist[element.indexName]; 
 
-    
-
-                            if(slugName){
-                                console.log("secName", element.indexName, slugName);
-    
-                                AdminService.checkSectorApiOther(slugName).then(res => {
-                                    console.log(element.indexName, res.data.data);
-                                    softedData[index].stockList = res.data && res.data.data; 
-                                    this.setState({ sectorList: softedData });
-                                }).catch(error => {
-                                   // Notify.showError(element.indexName + "fail to get stockdata"); 
-                                   console.log("list fetch error", error)
-                                })
-                            }else{
-                              //  console.log("deleted", element.indexName, slugName, )
-                              //  delete softedData[index]; 
-                                 softedData.splice(index, 1);
-                            }
-
-                            await new Promise(resolve => setTimeout(resolve, 0));
-                         }
-
-                         console.log("after", softedData);
-
-
-
-  
+                        if(slugName){
+                            console.log("secName", element.indexName, slugName);
+                            AdminService.checkSectorApiOther(slugName).then(res => {
+                                console.log(element.indexName, res.data.data);
+                                softedData[index].stockList = res.data && res.data.data; 
+                                this.setState({ sectorList: softedData });
+                            }).catch(error => {
+                               // Notify.showError(element.indexName + "fail to get stockdata"); 
+                               console.log("list fetch error", error)
+                            })
                         }
-                        updateLtpOnInterval(this, softedData, sluglist);
+                    }
+                 
+                
+                    // var updateLtpOnInterval = async (ref, softedData, sluglist) => {
+
+                    //     for (let index = 0; index < softedData.length; index++) {
+                    //         const element = softedData[index];
+                    //         var slugName =  sluglist[element.indexName]; 
+                    //       //  console.log("indexName", element.indexName, slugName);
+                    //         if(slugName){
+                    //             console.log("secName", element.indexName, slugName);
+                    //             AdminService.checkSectorApiOther(slugName).then(res => {
+                    //                 console.log(element.indexName, res.data.data);
+                    //                 softedData[index].stockList = res.data && res.data.data; 
+                    //                 this.setState({ sectorList: softedData });
+                    //             }).catch(error => {
+                    //                // Notify.showError(element.indexName + "fail to get stockdata"); 
+                    //                console.log("list fetch error", error)
+                    //             })
+                    //         }
+                    //       //  await new Promise(resolve => setTimeout(resolve, 0));
+                    //      }
+                    //      console.log("after", softedData);
+                    //     }
+                    //     updateLtpOnInterval(this, softedData, sluglist);
 
 
 
@@ -1044,11 +1021,11 @@ class MyView extends React.Component {
 
     render() {
 
-        this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
-            outerEelement.stockList && outerEelement.stockList.sort(function (a, b) {
-                return b.nc - a.nc;
-            });
-        });
+        // this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
+        //     outerEelement.stockList && outerEelement.stockList.sort(function (a, b) {
+        //         return b.nc - a.nc;
+        //     });
+        // });
 
 
         let sqrOffbeginningTime = moment('9:15am', 'h:mma');
@@ -1085,7 +1062,7 @@ class MyView extends React.Component {
                 <Grid direction="row" container className="flexGrow" spacing={1} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
                     <Grid item xs={12} sm={12} >
                         <Typography component="h3" variant="h6" color="primary" >
-                            Top Gainer/Looser Sectors({this.state.sectorList.length}) at {this.state.indexTimeStamp}
+                            Top Gainer/Looser Sectors({Object.keys(this.state.sluglist).length}) at {this.state.indexTimeStamp}
                             {this.state.refreshFlag ? <Button variant="contained" onClick={() => this.loadIndexesList()}>Live Ltp</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </>}
                             {this.state.failedCount ? this.state.failedCount + "Failed" : ""}
 
@@ -1109,114 +1086,110 @@ class MyView extends React.Component {
 
                     {this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
 
-
-                        <Grid item xs={12} sm={this.state.topGLCount <= 2 ? 6 : this.state.topGLCount == 3 ? 4 : 3}>
-
-                            <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
+                        indexdata.stockList ?  <Grid item xs={12} sm={this.state.topGLCount <= 2 ? 6 : this.state.topGLCount == 3 ? 4 : 3}>
+                        <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
 
 
-                                <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
-                                    <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%) </b>
+                            <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
+                                <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%) </b>
 
-                                </Button>
-                                &nbsp;
+                            </Button>
+                            &nbsp;
 
-                                <Button size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshSectorCandleManually(indexdata.index)}>
-                                    <ShowChartIcon />
-                                </Button>
+                            <Button size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshSectorCandleManually(indexdata.index)}>
+                                <ShowChartIcon />
+                            </Button>
 
 
-                                <Grid direction="row" container className="flexGrow" spacing={1} >
+                            <Grid direction="row" container className="flexGrow" spacing={1} >
 
 
 
-                                    {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
+                                {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
 
-                                        <Grid item xs={12} sm={6} >
-                                            <Paper style={{ textAlign: "center" }} >
+                                    <Grid item xs={12} sm={6} >
+                                        <Paper style={{ textAlign: "center" }} >
 
-                                                {/* {sectorItem.cng} */}
-                                                <Typography style={{ background: this.getPercentageColor(sectorItem.iislPercChange), fontSize: '14px' }}>
-                                                    {i + 1}. {sectorItem.symbol} {sectorItem.ltp} ({sectorItem.iislPercChange}%)
+                                            {/* {sectorItem.cng} */}
+                                            <Typography style={{ background: this.getPercentageColor(sectorItem.iislPercChange), fontSize: '14px' }}>
+                                                {i + 1}. {sectorItem.symbol} {sectorItem.ltp} ({sectorItem.iislPercChange}%)
+                                            </Typography>
+
+
+
+
+                                            {sectorItem.candleChartData ? <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
+                                                <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} />
+                                            </span> : ""}
+
+                                            {sectorItem.vwapValue ?
+                                                <Typography >
+                                                    {sectorItem.vwapValue ? <span style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:<b>{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)}</b> </span> : ""}
+                                                    &nbsp;
+                                                    {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:<b>{sectorItem.lastRsiValue}</b> {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
                                                 </Typography>
+                                                : ""}
 
 
+                                            {/* {sectorItem.candleChartData ? <ReactApexChart
+                                                options={{
+                                                    chart: {
+                                                        type: 'candlestick',
+                                                        //  height: 40
 
-
-                                                {sectorItem.candleChartData ? <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
-                                                    <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} />
-                                                </span> : ""}
-
-                                                {sectorItem.vwapValue ?
-                                                    <Typography >
-                                                        {sectorItem.vwapValue ? <span style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:<b>{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)}</b> </span> : ""}
-                                                        &nbsp;
-                                                        {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:<b>{sectorItem.lastRsiValue}</b> {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
-                                                    </Typography>
-                                                    : ""}
-
-
-                                                {/* {sectorItem.candleChartData ? <ReactApexChart
-                                                    options={{
-                                                        chart: {
-                                                            type: 'candlestick',
-                                                            //  height: 40
-
-                                                        },
-                                                        title: {
-                                                            text: '',
-                                                            align: 'left'
-                                                        },
-                                                        xaxis: {
-                                                            type: 'datetime',
-                                                        },
-                                                        yaxis: {
-                                                            tooltip: {
-                                                                enabled: true
-                                                            }
+                                                    },
+                                                    title: {
+                                                        text: '',
+                                                        align: 'left'
+                                                    },
+                                                    xaxis: {
+                                                        type: 'datetime',
+                                                    },
+                                                    yaxis: {
+                                                        tooltip: {
+                                                            enabled: true
                                                         }
-                                                    }}
-                                                    series={[{
-                                                        data: sectorItem.candleChartData
+                                                    }
+                                                }}
+                                                series={[{
+                                                    data: sectorItem.candleChartData
 
-                                                    }]}
-                                                    type="candlestick"
-                                        
-                                                /> : ""} */}
+                                                }]}
+                                                type="candlestick"
+                                    
+                                            /> : ""} */}
 
 
-                                                {/* <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
+                                            {/* <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
 
-                                                    <Grid item>
-                                                        {!this.state['buyButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="primary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'BUY', "", 'buyButtonClicked' + indexdata.index + i)}>Buy</Button> : <Spinner />}
-                                                    </Grid>
-
-                                                    <Grid item >
-                                                        {sectorItem.ltt && new Date(sectorItem.ltt).toLocaleTimeString()}
-                                                    </Grid>
-
-                                                    <Grid item >
-                                                        {!this.state['sellButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="secondary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL', "", 'sellButtonClicked' + indexdata.index + i)}>Sell</Button> : <Spinner />}
-                                                    </Grid>
+                                                <Grid item>
+                                                    {!this.state['buyButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="primary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'BUY', "", 'buyButtonClicked' + indexdata.index + i)}>Buy</Button> : <Spinner />}
                                                 </Grid>
- */}
+
+                                                <Grid item >
+                                                    {sectorItem.ltt && new Date(sectorItem.ltt).toLocaleTimeString()}
+                                                </Grid>
+
+                                                <Grid item >
+                                                    {!this.state['sellButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="secondary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL', "", 'sellButtonClicked' + indexdata.index + i)}>Sell</Button> : <Spinner />}
+                                                </Grid>
+                                            </Grid>
+*/}
 
 
-                                            </Paper>
+                                        </Paper>
 
 
-                                        </Grid>
+                                    </Grid>
 
-                                    ))
-                                    }
+                                ))
+                                }
 
-                                </Grid>
+                            </Grid>
 
-                            </Paper>
-                        </Grid>
-
-
-
+                        </Paper>
+                    </Grid> : "" 
+                  
                     )) : <Spinner />}
 
 

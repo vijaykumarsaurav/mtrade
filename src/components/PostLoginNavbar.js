@@ -21,6 +21,13 @@ import MyLogo from './mylogo.png';
 import Button from '@material-ui/core/Button';
 import InvertColor from '../utils/InvertColor';
 import FoundPatternDialog from '../components/MyTrade/FoundPatternDialog'
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import AdminService from "./service/AdminService";
+import TextField from "@material-ui/core/TextField";
+import CommonOrderMethod from "../utils/CommonMethods";
+import Spinner from "react-spinner-material";
+import Notify from '../utils/Notify';
+
 
 const drawerWidth = 240;
 
@@ -87,16 +94,17 @@ const useStyles = makeStyles(theme => ({
 
 export default function PostLoginNavBar(props) {
 
-    const [values] = React.useState({
-        acquisitionCount: '',
-        resubmitCount: ''
+    const [values, setValues] = React.useState({
+        buyFlag: true,
+        sellFlag: true, 
+        searchSymbol : "",
+        
     });
-
-
 
     const classes = useStyles();
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
+    const autoSearchList = [];
 
     function handleDrawerOpen() {
         setOpen(true);
@@ -106,10 +114,53 @@ export default function PostLoginNavBar(props) {
         setOpen(false);
     }
 
-    // function handleClick(e) {
-    //     console.log(e.target.innerText)
-    //     //this.props.history.push('/login');
-    // }
+
+    function handleInput(e){
+        setValues({ ...values, ['searchSymbol']: e.target.value });    
+        AdminService.autoCompleteSearch(e.target.value).then(searchRes => {   
+            let searchResdata =  searchRes.data; 
+            if(e.target.value){
+                var uppercaseName =  e.target.value.toUpperCase() + "-EQ"; 
+                var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.symbol === uppercaseName);      
+              //  console.log("found", found[0] && found[0].symbol); 
+                if(found.length){ 
+             
+                    setValues({ ...values, ['searchSymbol']: found[0].symbol, ['token'] : found[0].token });    
+                }
+            }
+         })
+    }
+
+    function udpateFlag( flag ){
+        setValues({ ...values, ['buyFlag']: flag });
+        setValues({ ...values, ['sellFlag']: flag });
+        setValues({ ...values, ['searchSymbol']: '' });
+    }
+
+    function handleClick(type) {
+
+        if(values.token && values.searchSymbol){ 
+            if (type == 'BUY') {
+                setValues({ ...values, ['buyFlag']: false });
+                var symbolInfo = { 
+                    token: values.token, 
+                    symbol: values.searchSymbol
+                }
+               CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", udpateFlag);
+            }
+
+            if (type == 'SELL') {
+                setValues({ ...values, ['sellFlag']: false });
+                var symbolInfo = { 
+                    token: values.token, 
+                    symbol: values.searchSymbol
+                }
+                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", udpateFlag);
+            }
+        }else{
+            Notify.showError("Type Symbol!!!");
+        }
+    }
 
     var userProfile = localStorage.getItem("userProfile")
     userProfile = userProfile && JSON.parse(userProfile);
@@ -148,12 +199,30 @@ export default function PostLoginNavBar(props) {
                             <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
                         </Grid>
 
-                        <Grid item >
-                            <Typography variant="h6" noWrap>
-                                {localStorage.getItem('BankLtpltp')}
-                            </Typography>
+
+                        <Grid item  >
+
+                            <Grid
+                                justify="space-between"
+                                container
+                                spacing={2}
+                            >
+
+                                <Grid item  >
+                                    <TextField label="Type Symbol & Order" name="searchSymbol" value={values.searchSymbol} onChange={handleInput}  />
+                                </Grid>
+                                <Grid item  >
+                                    {values.buyFlag ? <Button variant="contained" color="primary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("BUY")}>Buy</Button> : <Spinner />}
+                                </Grid>
+
+                                <Grid item  >
+                                    {values.sellFlag ? <Button variant="contained" color="secondary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("SELL")}>SELL</Button> : <Spinner />}
+                                </Grid>
+
+                            </Grid>
 
                         </Grid>
+
 
                         <Grid item >
 
@@ -164,7 +233,7 @@ export default function PostLoginNavBar(props) {
                                 style={{ color: "white" }}
                             >
 
-                                <Grid item> 
+                                <Grid item>
                                     <Button variant="outlined" color="primary" href={"/mtrade/#/sector-heat-map"}>
                                         Sector Hit Map
                                     </Button>
@@ -270,7 +339,7 @@ export default function PostLoginNavBar(props) {
                     {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : ''}
                     ({userProfile && userProfile.clientcode ? userProfile.clientcode : ''})
 
-                    
+
 
                     <IconButton onClick={handleDrawerClose}  >
                         {theme.direction === 'ltr' ? <ChevronLeftIcon style={{ color: "gray" }} /> : <ChevronRightIcon style={{ color: "gray" }} />}
@@ -300,10 +369,3 @@ export default function PostLoginNavBar(props) {
         </div>
     );
 }
-
-
-// BO agent : BOA
-// Data Entry : DE
-// Admin : ADMIN
-// Distributor : DIST
-
