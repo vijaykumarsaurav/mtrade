@@ -27,7 +27,7 @@ import Spinner from "react-spinner-material";
 
 import { w3cwebsocket } from 'websocket';
 import DeleteIcon from '@material-ui/icons/Delete';
-import ChartDialog from './ChartDialog'; 
+import ChartDialog from './ChartDialog';
 import EqualizerIcon from '@material-ui/icons/Equalizer';
 import pako from 'pako';
 const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
@@ -37,7 +37,7 @@ class Home extends React.Component {
         super(props);
         this.state = {
             sumPercentage: 0,
-            InstrumentPerChange:"", 
+            InstrumentPerChange: "",
             autoSearchList: [],
             isDasable: false,
             isError: false,
@@ -46,7 +46,7 @@ class Home extends React.Component {
             autoSearchTemp: [],
             backTestResult: [],
             backTestFlag: true,
-            patternType: "NR4_SameDay",  //NR4ForNextDay
+            patternType: "",  //NR4ForNextDay  NR4_SameDay
             symboltoken: "",
             tradingsymbol: "",
             buyPrice: 0,
@@ -54,15 +54,17 @@ class Home extends React.Component {
             producttype: "INTRADAY",
             symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
-            staticData : localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
+            staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             selectedWatchlist: 'NIFTY BANK',
             longExitPriceType: 4,
             shortExitPriceType: 4,
-            candleChartData : [],
-            stopScaningFlag : false,
-            backTestResultDateRange : [],
-            searchFailed:0,
-            FoundPatternList : localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
+            candleChartData: [],
+            stopScaningFlag: false,
+            backTestResultDateRange: [],
+            searchFailed: 0,
+            openEqualHighList: [],
+            openEqualLowList : [], 
+            FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
 
         };
         this.myCallback = this.myCallback.bind(this);
@@ -83,27 +85,76 @@ class Home extends React.Component {
     onChangePattern = (e) => {
         this.setState({ [e.target.name]: e.target.value });
 
-        if( e.target.value == 'NR4_Daywide_daterage'){
+        if (e.target.value == 'NR4_Daywide_daterage') {
 
-            var backTestResultDateRange = localStorage.getItem('backTestResultDateRange') && JSON.parse(localStorage.getItem('backTestResultDateRange')) ; 
-            
-            this.setState({dateAndTypeKeys: Object.keys(backTestResultDateRange || {}), backTestResultDateRange : backTestResultDateRange });
+            var backTestResultDateRange = localStorage.getItem('backTestResultDateRange') && JSON.parse(localStorage.getItem('backTestResultDateRange'));
+
+            this.setState({ dateAndTypeKeys: Object.keys(backTestResultDateRange || {}), backTestResultDateRange: backTestResultDateRange });
 
         }
     }
     onChangeWatchlist = (e) => {
         this.setState({ [e.target.name]: e.target.value });
         var staticData = this.state.staticData;
-        this.setState({ symbolList: staticData[e.target.value]}, function(){
+        this.setState({ symbolList: staticData[e.target.value] }, function () {
             this.updateSocketWatch();
+            this.checkOpenEqualToLow(); 
+
         });
-        
+
         if (e.target.value == "selectall") {
-            this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) }, function(){
+            this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) }, function () {
                 this.updateSocketWatch();
+                this.checkOpenEqualToLow(); 
             });
         }
+
     }
+    checkOpenEqualToLow =async()=> {
+         
+        this.setState({openEqualHighList : [], openEqualLowList : [] });
+
+        for (let index = 0; index < this.state.symbolList.length; index++) {
+            const element = this.state.symbolList[index];
+         
+            var data = {
+                "exchange": element.exch_seg,
+                "tradingsymbol": element.symbol,
+                "symboltoken":  element.token,
+            }
+            AdminService.getLTP(data).then(res => {
+                let data = resolveResponse(res, 'noPop');
+                var LtpData = data && data.data;
+                if(LtpData){
+
+                    LtpData.perChange =((LtpData.ltp - LtpData.close)*100/ LtpData.close).toFixed(2); 
+
+                    if(LtpData && LtpData.open ==  LtpData.low){ 
+                        console.log("o=l", LtpData);
+                        this.setState({openEqualHighList : [...this.state.openEqualHighList , LtpData] });
+                    }
+
+                    if(LtpData && LtpData.open ==  LtpData.high){ 
+                        console.log("o=h", LtpData);
+                        this.setState({openEqualLowList : [...this.state.openEqualLowList , LtpData] });
+                    }
+
+                    this.state.symbolList[index].ltp = LtpData.ltp; 
+                    this.state.symbolList[index].nc = LtpData.perChange; 
+
+                    
+
+                    this.state.symbolList  && this.state.symbolList .sort(function (a, b) {
+                        return b.nc - a.nc;
+                    });
+                    this.setState({symbolList : this.state.symbolList });
+                }
+            })
+            await new Promise(r => setTimeout(r, 310));
+        }
+
+    }
+
 
     myCallback = (date, fromDate) => {
         if (fromDate === "START_DATE") {
@@ -123,8 +174,8 @@ class Home extends React.Component {
             var LtpData = data && data.data;
             this.setState({ InstrumentLTP: LtpData });
 
-            if(LtpData && LtpData.ltp)
-            this.setState({ InstrumentPerChange: ((LtpData.ltp -  LtpData.close)*100/LtpData.close).toFixed(2)});
+            if (LtpData && LtpData.ltp)
+                this.setState({ InstrumentPerChange: ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2) });
 
 
 
@@ -160,7 +211,7 @@ class Home extends React.Component {
 
     updateSocketWatch = () => {
 
-        
+
         var channel = this.state.symbolList.map(element => {
             return 'nse_cm|' + element.token;
         });
@@ -174,7 +225,7 @@ class Home extends React.Component {
             "acctid": this.state.clientcode
         }
 
-        console.log("updated ws watchlisht",this.state.selectedWatchlist, updateSocket); 
+        console.log("updated ws watchlisht", this.state.selectedWatchlist, updateSocket);
         wsClint.send(JSON.stringify(updateSocket));
     }
 
@@ -190,58 +241,60 @@ class Home extends React.Component {
         this.setState({ feedToken: feedToken, clientcode: clientcode });
 
 
+        this.checkOpenEqualToLow(); 
+
         var beginningTime = moment('9:15am', 'h:mma');
         var endTime = moment('3:30pm', 'h:mma');
         const friday = 5; // for friday
         var currentTime = moment(new Date(), "h:mma");
         const today = moment().isoWeekday();
         //market hours
-        if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
-      
-
-            wsClint.onopen  = (res) => {
-               this.makeConnection();
-               this.updateSocketWatch();
-           }
-   
-           wsClint.onmessage = (message) => {
-               var decoded = window.atob(message.data);
-               var data = this.decodeWebsocketData(pako.inflate(decoded));
-               var liveData = JSON.parse(data);
-               var symbolListArray = this.state.symbolList; 
-               this.state.symbolList && this.state.symbolList.forEach((element, index)  => {
-                   var foundLive = liveData.filter(row => row.tk == element.token);
-                   if(foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc){
-                       symbolListArray[index].ltp = foundLive[0].ltp; 
-                       symbolListArray[index].nc = foundLive[0].nc; 
-                       console.log("ws onmessage: ", foundLive);
-                   }
-               });
-               symbolListArray && symbolListArray.sort(function (a, b) {
-                   return  b.nc - a.nc;
-               });
-               this.setState({symbolList : symbolListArray}); 
-           }
-   
-           wsClint.onerror = (e) => {
-               console.log("socket error", e);
-           }
-   
-           setInterval(() => {
-               this.makeConnection();
-               var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-               // console.log("Request :- " + _req);
-               wsClint.send(_req);
-           }, 59000);
+        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
 
 
-         setInterval(() => {
-
-            if(this.state.tradingsymbol){
-                this.getLTP();
+            wsClint.onopen = (res) => {
+                this.makeConnection();
+                this.updateSocketWatch();
             }
-          
-         }, 1000);
+
+            wsClint.onmessage = (message) => {
+                var decoded = window.atob(message.data);
+                var data = this.decodeWebsocketData(pako.inflate(decoded));
+                var liveData = JSON.parse(data);
+                var symbolListArray = this.state.symbolList;
+                this.state.symbolList && this.state.symbolList.forEach((element, index) => {
+                    var foundLive = liveData.filter(row => row.tk == element.token);
+                    if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
+                        symbolListArray[index].ltp = foundLive[0].ltp;
+                        symbolListArray[index].nc = foundLive[0].nc;
+                        console.log("ws onmessage: ", foundLive);
+                    }
+                });
+                symbolListArray && symbolListArray.sort(function (a, b) {
+                    return b.nc - a.nc;
+                });
+                this.setState({ symbolList: symbolListArray });
+            }
+
+            wsClint.onerror = (e) => {
+                console.log("socket error", e);
+            }
+
+            setInterval(() => {
+                this.makeConnection();
+                var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
+                // console.log("Request :- " + _req);
+                wsClint.send(_req);
+            }, 59000);
+
+
+            setInterval(() => {
+
+                if (this.state.tradingsymbol) {
+                    this.getLTP();
+                }
+
+            }, 1000);
         }
 
 
@@ -292,28 +345,28 @@ class Home extends React.Component {
             this.backTestNR4SameDay();
             return;
         }
-     
+
 
         if (this.state.patternType === 'NR4_Daywide_daterage') {
 
             var startdate = moment(this.state.startDate);
             var enddate = moment(this.state.endDate);
 
-            const currentMoment =startdate; 
-            const endMoment = enddate; 
-            
-            
+            const currentMoment = startdate;
+            const endMoment = enddate;
+
+
             while (currentMoment.isSameOrBefore(endMoment, 'day')) {
 
                 console.log(`Loop at ${currentMoment.format('DD-MM-YYYY')}`);
 
                 this.backTestNR4DatewiseRange(currentMoment);
 
-                if(this.state.stopScaningFlag){
+                if (this.state.stopScaningFlag) {
                     break;
                 }
 
-                await new Promise(r => setTimeout(r,  this.state.symbolList.length * 310));
+                await new Promise(r => setTimeout(r, this.state.symbolList.length * 310));
 
 
                 currentMoment.add(1, 'days');
@@ -325,7 +378,7 @@ class Home extends React.Component {
         }
 
 
-        
+
 
         this.setState({ backTestResult: [], backTestFlag: false });
 
@@ -388,7 +441,7 @@ class Home extends React.Component {
 
     }
 
-    
+
     NR4ForNextDay = async () => {
 
         this.setState({ FoundPatternList: [], backTestFlag: false });
@@ -398,17 +451,17 @@ class Home extends React.Component {
         for (let index = 0; index < watchList.length; index++) {
             const element = watchList[index];
 
-            
-            if(this.state.stopScaningFlag){
+
+            if (this.state.stopScaningFlag) {
                 break;
             }
 
-        this.setState({ stockTesting: index + 1 + ". " + element.symbol })
+            this.setState({ stockTesting: index + 1 + ". " + element.symbol })
 
 
-            
-        var time = moment.duration("240:00:00");
-        var startdate = moment(this.state.endDate).subtract(time);
+
+            var time = moment.duration("240:00:00");
+            var startdate = moment(this.state.endDate).subtract(time);
 
             var data = {
                 "exchange": "NSE",
@@ -424,65 +477,65 @@ class Home extends React.Component {
                 if (histdata && histdata.data && histdata.data.length) {
 
                     var candleData = histdata.data;
-                      candleData.reverse(); 
-                    
-                        // var startindex = index2 * 10; 
-                        var last4Candle = candleData.slice(0, 4);
-                        // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+                    candleData.reverse();
 
-                        // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+                    // var startindex = index2 * 10; 
+                    var last4Candle = candleData.slice(0, 4);
+                    // var next10Candle = candleData.slice(index2+5 , index2+35 );    
 
-                        //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
-                        if (last4Candle.length >= 4) {
+                    // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
 
-                            //last4Candle.reverse();
+                    //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
+                    if (last4Candle.length >= 4) {
 
-                            var rangeArr = [], candleChartData = []; 
-                            last4Candle.forEach(element => {
-                                rangeArr.push(element[2] - element[3]);
-                                candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
-                            });
-                            var firstElement = rangeArr[0], rgrangeCount = 0;
-                            rangeArr.forEach(element => {
-                                if (firstElement <= element) {
-                                    firstElement = element;
-                                    rgrangeCount += 1;
-                                }
-                            });
+                        //last4Candle.reverse();
 
-                            if (rgrangeCount == 4) {
-                                var firstCandle = last4Candle[0];
-                                var next5thCandle = candleData[0];
+                        var rangeArr = [], candleChartData = [];
+                        last4Candle.forEach(element => {
+                            rangeArr.push(element[2] - element[3]);
+                            candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                        });
+                        var firstElement = rangeArr[0], rgrangeCount = 0;
+                        rangeArr.forEach(element => {
+                            if (firstElement <= element) {
+                                firstElement = element;
+                                rgrangeCount += 1;
+                            }
+                        });
+
+                        if (rgrangeCount == 4) {
+                            var firstCandle = last4Candle[0];
+                            var next5thCandle = candleData[0];
 
 
-                                console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle); 
+                            console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle);
 
-                                //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
-                                var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
+                            //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
+                            var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
 
-                                //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
-                                var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
+                            //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
+                            var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
 
-                            
-                                var foundStock = {
-                                    foundAt: new Date(firstCandle[0]).toString().substr(0, 25),
-                                    symbol: element.symbol,
-                                    token : element.token, 
-                                    pattenName : "NR4", 
-                                    SellAt: sellenty,
-                                    high: firstCandle[2],
-                                    low: firstCandle[3],
-                                    BuyAt: buyentry,
-                                    candleChartData : candleChartData, 
-                                    close : firstCandle[4]
-                                }
-                            
-                                this.nr4CheckPastPerfommance(element.token, foundStock) ; 
 
+                            var foundStock = {
+                                foundAt: new Date(firstCandle[0]).toString().substr(0, 25),
+                                symbol: element.symbol,
+                                token: element.token,
+                                pattenName: "NR4",
+                                SellAt: sellenty,
+                                high: firstCandle[2],
+                                low: firstCandle[3],
+                                BuyAt: buyentry,
+                                candleChartData: candleChartData,
+                                close: firstCandle[4]
                             }
 
+                            this.nr4CheckPastPerfommance(element.token, foundStock);
+
                         }
-                        
+
+                    }
+
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
                     console.log(element.symbol, " candle data emply");
@@ -491,38 +544,38 @@ class Home extends React.Component {
                 Notify.showError(element.symbol + " Candle data not found!");
             })
             await new Promise(r => setTimeout(r, 350));
-            
+
         }
         this.setState({ backTestFlag: true, stopScaningFlag: false });
-    } 
+    }
 
-    
-    findShortTraadeOnNextDay =(element, firstCandle, candleChartData, histdataInside)=>{
+
+    findShortTraadeOnNextDay = (element, firstCandle, candleChartData, histdataInside) => {
         var buyentry = (firstCandle[3] - (firstCandle[3] / 100 / 10));
-       // var buyentrySL = (firstCandle[2] + (firstCandle[2] / 100 / 10));
-        var buyentrySL = (buyentry + (buyentry*1/100));   //1% SL
+        // var buyentrySL = (firstCandle[2] + (firstCandle[2] / 100 / 10));
+        var buyentrySL = (buyentry + (buyentry * 1 / 100));   //1% SL
 
 
-        var resultCandle = [], buyEntryFlag = true,  longTradeFound = {},   elementInside = '', buyHighest = histdataInside[0][3]; 
+        var resultCandle = [], buyEntryFlag = true, longTradeFound = {}, elementInside = '', buyHighest = histdataInside[0][3];
 
         console.log(element.symbol, "result candle", histdataInside);
 
         if (histdataInside && histdataInside.length) {
-            
+
             for (let index = 0; index < histdataInside.length; index++) {
                 const candle5min = histdataInside[index];
-                resultCandle.push([new Date(candle5min[0]).getTime(),candle5min[1],candle5min[2],candle5min[3],candle5min[4]]); 
-                if(candle5min[2] < buyHighest){
-                    buyHighest = candle5min[3]; 
+                resultCandle.push([new Date(candle5min[0]).getTime(), candle5min[1], candle5min[2], candle5min[3], candle5min[4]]);
+                if (candle5min[2] < buyHighest) {
+                    buyHighest = candle5min[3];
                 }
-               
+
             }
 
             for (let insideIndex = 0; insideIndex < histdataInside.length; insideIndex++) {
                 elementInside = histdataInside[insideIndex];
 
-                if(buyEntryFlag && elementInside[3] < buyentry){
-                    console.log(element.symbol, "taken short enty", elementInside[3] );
+                if (buyEntryFlag && elementInside[3] < buyentry) {
+                    console.log(element.symbol, "taken short enty", elementInside[3]);
                     longTradeFound = {
                         foundAt: "Short-" + new Date(elementInside[0]).toLocaleString(),
                         symbol: element.symbol,
@@ -530,52 +583,52 @@ class Home extends React.Component {
                         stopLoss: buyentrySL,
                         brokerageCharges: 0.06,
                         quantity: Math.floor(100000 / buyentry),
-                        candleChartData : candleChartData,
+                        candleChartData: candleChartData,
                     }
-                    buyEntryFlag = false; 
+                    buyEntryFlag = false;
                 }
-                                                          
-               
+
+
 
                 var perChange = (buyentry - elementInside[3]) * 100 / buyentry;
-                console.log(element.symbol, "perChange", perChange );
+                console.log(element.symbol, "perChange", perChange);
 
                 //trailing sl  
                 // if(elementInside[3] > buyentry && plPerChng >= 0.5){            
                 // }
 
                 //flat 1% profit booking
-                if(!buyEntryFlag && perChange >= 1){
+                if (!buyEntryFlag && perChange >= 1) {
 
-                    var sellEntyPrice = buyentry - buyentry * 1/100; 
+                    var sellEntyPrice = buyentry - buyentry * 1 / 100;
                     longTradeFound.buyExitPrice = sellEntyPrice;
                     longTradeFound.perChange = perChange;
                     longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                    longTradeFound.exitStatus  = "Flat_1%_Booked"; 
+                    longTradeFound.exitStatus = "Flat_1%_Booked";
                     break;
                 }
-                console.log(element.symbol, "high", elementInside[2] );
+                console.log(element.symbol, "high", elementInside[2]);
 
-                if(!buyEntryFlag && elementInside[2] >= buyentrySL){
+                if (!buyEntryFlag && elementInside[2] >= buyentrySL) {
                     var perChng = (buyentry - buyentrySL) * 100 / buyentry;
                     longTradeFound.buyExitPrice = buyentrySL;
                     longTradeFound.perChange = perChng;
                     longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                    longTradeFound.exitStatus  = "SL_Hit"; 
+                    longTradeFound.exitStatus = "SL_Hit";
                     break;
                 }
-             
+
             }
 
-            if(!buyEntryFlag && !longTradeFound.sellEntyPrice){
+            if (!buyEntryFlag && !longTradeFound.sellEntyPrice) {
                 var perChng = (elementInside[4] - buyentry) * 100 / buyentry;
                 longTradeFound.buyExitPrice = elementInside[4];
                 longTradeFound.perChange = perChng;
                 longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                longTradeFound.exitStatus  = "Market_End"; 
+                longTradeFound.exitStatus = "Market_End";
             }
 
-            if(!buyEntryFlag && Math.floor(100000 / buyentry) && longTradeFound.buyExitPrice){
+            if (!buyEntryFlag && Math.floor(100000 / buyentry) && longTradeFound.buyExitPrice) {
                 var perChngOnHigh = (buyentry - buyHighest) * 100 / buyentry;
                 longTradeFound.highAndLow = buyHighest;
                 longTradeFound.perChngOnHighLow = perChngOnHigh;
@@ -590,22 +643,22 @@ class Home extends React.Component {
 
 
 
-    findLongsTraadeOnNextDay =(element, firstCandle, candleChartData, histdataInside)=>{
+    findLongsTraadeOnNextDay = (element, firstCandle, candleChartData, histdataInside) => {
         var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10));
-//        var buyentrySL = (firstCandle[3] - (firstCandle[3] / 100 / 10));
-   //    var buyentrySL = (buyentry - (buyentry*1/100));   //1% SL
-       var buyentrySL = (buyentry - (buyentry*0.3/100));   //0.3% SL
+        //        var buyentrySL = (firstCandle[3] - (firstCandle[3] / 100 / 10));
+        //    var buyentrySL = (buyentry - (buyentry*1/100));   //1% SL
+        var buyentrySL = (buyentry - (buyentry * 0.3 / 100));   //0.3% SL
 
 
-        var resultCandle = [], buyEntryFlag = true, firstTimeTrail = true, trailCount =0,  longTradeFound = {},   elementInside = '', buyHighest = histdataInside[0][2]; 
+        var resultCandle = [], buyEntryFlag = true, firstTimeTrail = true, trailCount = 0, longTradeFound = {}, elementInside = '', buyHighest = histdataInside[0][2];
 
 
         if (histdataInside && histdataInside.length) {
-            
+
             for (let index = 0; index < histdataInside.length; index++) {
                 const candle5min = histdataInside[index];
-                resultCandle.push([new Date(candle5min[0]).getTime(),candle5min[1],candle5min[2],candle5min[3],candle5min[4]]); 
-                if(buyHighest < histdataInside[index][2]){
+                resultCandle.push([new Date(candle5min[0]).getTime(), candle5min[1], candle5min[2], candle5min[3], candle5min[4]]);
+                if (buyHighest < histdataInside[index][2]) {
                     buyHighest = histdataInside[index][2];
                 }
             }
@@ -613,7 +666,7 @@ class Home extends React.Component {
             for (let insideIndex = 0; insideIndex < histdataInside.length; insideIndex++) {
                 elementInside = histdataInside[insideIndex];
 
-                if(buyEntryFlag && elementInside[2] > buyentry){
+                if (buyEntryFlag && elementInside[2] > buyentry) {
                     longTradeFound = {
                         foundAt: "Long-" + new Date(elementInside[0]).toLocaleString(),
                         symbol: element.symbol,
@@ -621,16 +674,16 @@ class Home extends React.Component {
                         stopLoss: buyentrySL,
                         brokerageCharges: 0.06,
                         quantity: Math.floor(100000 / buyentry),
-                        candleChartData : candleChartData,
+                        candleChartData: candleChartData,
                     }
-                    buyEntryFlag = false; 
+                    buyEntryFlag = false;
                 }
-                                                          
-               
+
+
 
                 var perChange = (elementInside[2] - buyentry) * 100 / buyentry;
-                
-            
+
+
                 //flat 1% profit booking
                 // if(!buyEntryFlag && perChange >= 1){
                 //     var sellEntyPrice = buyentry + buyentry * 1/100; 
@@ -641,83 +694,83 @@ class Home extends React.Component {
                 //     break;
                 // }
 
-                if(!buyEntryFlag){
+                if (!buyEntryFlag) {
 
-                        if(firstTimeTrail && perChange >= 0.7){
-                            trailCount +=1;
-                            var minPrice =  buyentry + (buyentry * 0.1/100);
+                    if (firstTimeTrail && perChange >= 0.7) {
+                        trailCount += 1;
+                        var minPrice = buyentry + (buyentry * 0.1 / 100);
+                        longTradeFound.sellEntyPrice = minPrice;
+                        longTradeFound.perChange = (minPrice - buyentry) * 100 / buyentry;
+                        longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                        longTradeFound.exitStatus = "Trail by 0.1% " + trailCount + "time";
+                        firstTimeTrail = false;
+                    } else {
+                        var lastTriggerprice = longTradeFound.sellEntyPrice;
+                        var perchngfromTriggerPrice = ((elementInside[2] - lastTriggerprice) * 100 / lastTriggerprice).toFixed(2);
+
+                        var buyExitPricePer = longTradeFound.buyExitPrice;
+                        var buyExitPriceMinRange = ((elementInside[2] - buyExitPricePer) * 100 / buyExitPricePer).toFixed(2);
+
+                        if (perchngfromTriggerPrice > 0.7) {
+                            trailCount += 1;
+                            minPrice = lastTriggerprice + (lastTriggerprice * 0.25 / 100);
                             longTradeFound.sellEntyPrice = minPrice;
                             longTradeFound.perChange = (minPrice - buyentry) * 100 / buyentry;
                             longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                            longTradeFound.exitStatus  = "Trail by 0.1% "+trailCount + "time"; 
-                            firstTimeTrail = false; 
-                        }else{ 
-                            var lastTriggerprice =  longTradeFound.sellEntyPrice; 
-                            var perchngfromTriggerPrice = ((elementInside[2] - lastTriggerprice)*100/lastTriggerprice).toFixed(2);   
-                           
-                            var buyExitPricePer =  longTradeFound.buyExitPrice; 
-                            var buyExitPriceMinRange = ((elementInside[2] - buyExitPricePer)*100/buyExitPricePer).toFixed(2);   
-                           
-                            if(perchngfromTriggerPrice > 0.7){
-                                    trailCount +=1;
-                                    minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
-                                    longTradeFound.sellEntyPrice = minPrice;
-                                    longTradeFound.perChange = (minPrice - buyentry) * 100 / buyentry;
-                                    longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                                    longTradeFound.exitStatus  = "Trail by 0.25% "+trailCount + "time"; 
-                                   
-                            }else if(buyExitPriceMinRange >= 0.3 && buyExitPriceMinRange <= 0.4){
-                                trailCount +=1;
-                                minPrice =  lastTriggerprice + (lastTriggerprice * 0.25/100);
-                                longTradeFound.sellEntyPrice = minPrice;
-                                longTradeFound.perChange = (minPrice - buyentry) * 100 / buyentry;
-                                longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                                longTradeFound.exitStatus  = "Min range 0.3 -0.4% "+trailCount + "time"; 
-                                break; 
-                            }
+                            longTradeFound.exitStatus = "Trail by 0.25% " + trailCount + "time";
 
+                        } else if (buyExitPriceMinRange >= 0.3 && buyExitPriceMinRange <= 0.4) {
+                            trailCount += 1;
+                            minPrice = lastTriggerprice + (lastTriggerprice * 0.25 / 100);
+                            longTradeFound.sellEntyPrice = minPrice;
+                            longTradeFound.perChange = (minPrice - buyentry) * 100 / buyentry;
+                            longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
+                            longTradeFound.exitStatus = "Min range 0.3 -0.4% " + trailCount + "time";
+                            break;
                         }
 
-                        
+                    }
 
 
 
 
-                        if(elementInside[3] <= longTradeFound.sellEntyPrice){
-                            console.log(element.symbol, "trail hit elementInside[3] <= sellEntyPrice", elementInside[3] , longTradeFound.sellEntyPrice,  new Date(elementInside[0]).toLocaleString()); 
-                            break; 
-                        }
+
+
+                    if (elementInside[3] <= longTradeFound.sellEntyPrice) {
+                        console.log(element.symbol, "trail hit elementInside[3] <= sellEntyPrice", elementInside[3], longTradeFound.sellEntyPrice, new Date(elementInside[0]).toLocaleString());
+                        break;
+                    }
 
                 }
 
-                
-                if(!buyEntryFlag && elementInside[3] <= buyentrySL){
-                    console.log(element.symbol, "SL hit elementInside[3] <= buyentrySL", elementInside[3] , buyentrySL,  new Date(elementInside[0]).toLocaleString()); 
+
+                if (!buyEntryFlag && elementInside[3] <= buyentrySL) {
+                    console.log(element.symbol, "SL hit elementInside[3] <= buyentrySL", elementInside[3], buyentrySL, new Date(elementInside[0]).toLocaleString());
 
                     var perChng = (buyentrySL - buyentry) * 100 / buyentry;
                     longTradeFound.sellEntyPrice = buyentrySL;
                     longTradeFound.perChange = perChng;
                     longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                    longTradeFound.exitStatus  = "SL_Hit"; 
+                    longTradeFound.exitStatus = "SL_Hit";
                     break;
                 }
-             
+
             } //candle loop end
 
-            if(!buyEntryFlag && !longTradeFound.sellEntyPrice){
+            if (!buyEntryFlag && !longTradeFound.sellEntyPrice) {
                 var perChng = (elementInside[4] - buyentry) * 100 / buyentry;
                 longTradeFound.buyExitPrice = elementInside[4];
                 longTradeFound.perChange = perChng;
                 longTradeFound.squareOffAt = new Date(elementInside[0]).toLocaleString();
-                longTradeFound.exitStatus  = "Market_End"; 
+                longTradeFound.exitStatus = "Market_End";
             }
 
-            if(!buyEntryFlag && Math.floor(100000 / buyentry)  && longTradeFound.buyExitPrice){
+            if (!buyEntryFlag && Math.floor(100000 / buyentry) && longTradeFound.buyExitPrice) {
                 var perChngOnHigh = (buyHighest - buyentry) * 100 / buyentry;
                 longTradeFound.highAndLow = buyHighest;
                 longTradeFound.perChngOnHighLow = perChngOnHigh;
                 longTradeFound.candleChartDataInside = resultCandle;
-                console.log(element.symbol, "longTradeFound",longTradeFound);
+                console.log(element.symbol, "longTradeFound", longTradeFound);
 
                 this.setState({ backTestResult: [...this.state.backTestResult, longTradeFound] });
             }
@@ -729,22 +782,22 @@ class Home extends React.Component {
 
     backTestNR4SameDay = async () => {
 
-        this.setState({ backTestResult: [], backTestFlag: false, searchFailed : 0});
+        this.setState({ backTestResult: [], backTestFlag: false, searchFailed: 0 });
 
         var watchList = this.state.symbolList //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
         var runningTest = 1, sumPercentage = 0;
         for (let index = 0; index < watchList.length; index++) {
             const element = watchList[index];
 
-            
-            if(this.state.stopScaningFlag){
+
+            if (this.state.stopScaningFlag) {
                 break;
             }
 
 
-            
-        var time = moment.duration("240:00:00");
-        var startdate = moment(this.state.endDate).subtract(time);
+
+            var time = moment.duration("240:00:00");
+            var startdate = moment(this.state.endDate).subtract(time);
 
             var data = {
                 "exchange": "NSE",
@@ -760,142 +813,142 @@ class Home extends React.Component {
                 if (histdata && histdata.data && histdata.data.length) {
 
                     var candleData = histdata.data;
-                      candleData.reverse(); 
-                    
-                        // var startindex = index2 * 10; 
-                        var last4Candle = candleData.slice(1, 5);
-                        // var next10Candle = candleData.slice(index2+5 , index2+35 );    
-                        // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
-                        //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
-                        if (last4Candle.length >= 4) {
-                            //last4Candle.reverse();
+                    candleData.reverse();
 
-                            var rangeArr = [], candleChartData = []; 
-                            last4Candle.forEach(element => {
-                                rangeArr.push(element[2] - element[3]);
-                                candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
-                            });
-                            var firstElement = rangeArr[0], rgrangeCount = 0;
-                            rangeArr.forEach(element => {
-                                if (firstElement <= element) {
-                                    firstElement = element;
-                                    rgrangeCount += 1;
-                                }
-                            });
+                    // var startindex = index2 * 10; 
+                    var last4Candle = candleData.slice(1, 5);
+                    // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+                    // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+                    //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
+                    if (last4Candle.length >= 4) {
+                        //last4Candle.reverse();
 
-                            if (rgrangeCount == 4) {
-                                var firstCandle = last4Candle[0];
-                                var next5thCandle = candleData[0];
-                                candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
+                        var rangeArr = [], candleChartData = [];
+                        last4Candle.forEach(element => {
+                            rangeArr.push(element[2] - element[3]);
+                            candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                        });
+                        var firstElement = rangeArr[0], rgrangeCount = 0;
+                        rangeArr.forEach(element => {
+                            if (firstElement <= element) {
+                                firstElement = element;
+                                rgrangeCount += 1;
+                            }
+                        });
 
-                                console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle); 
-                           
-                                var start5thdate = moment(next5thCandle[0]).set({"hour": 9, "minute": 15});
-                                var end5thdate = moment(next5thCandle[0]).set({"hour": 15, "minute": 30});
-                            
-                                var data = {
-                                    "exchange": "NSE",
-                                    "symboltoken": element.token,
-                                    "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                                    "fromdate": moment(start5thdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
-                                    "todate": moment(end5thdate).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
-                                }
-                        
-                                AdminService.getHistoryData(data).then(insideCandleRes => {
-                                    let histdataInside = resolveResponse(insideCandleRes, 'noPop'); 
-                                    histdataInside =  histdataInside && histdataInside.data; 
+                        if (rgrangeCount == 4) {
+                            var firstCandle = last4Candle[0];
+                            var next5thCandle = candleData[0];
+                            candleChartData.unshift([next5thCandle[0], next5thCandle[1], next5thCandle[2], next5thCandle[3], next5thCandle[4]]);
 
-                                    this.findLongsTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
-                                   // this.findShortTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
+                            console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle);
 
-                        
-                                }).catch(error => {
-                                    Notify.showError(element.symbol + " FIVE_MINUTE Candle data not found!");
-                                    this.setState({searchFailed : this.state.searchFailed +1})
-                                });
+                            var start5thdate = moment(next5thCandle[0]).set({ "hour": 9, "minute": 15 });
+                            var end5thdate = moment(next5thCandle[0]).set({ "hour": 15, "minute": 30 });
 
-
-                               
-                                // var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
-                                // if (next5thCandle[2] > buyentry) {
-                                //     var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
-                                //     var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
-
-                                //     sumPercentage += perChng;
-        
-                                //     console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
-
-                                //     var foundStock = {
-                                //         foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
-                                //         symbol: element.symbol,
-                                //         sellEntyPrice: next5thCandle[4],
-                                //         highAndLow: next5thCandle[2],
-                                //         stopLoss: firstCandle[3],
-                                //         buyExitPrice: buyentry,
-                                //         brokerageCharges: 0.06,
-                                //         perChange: perChng.toFixed(2),
-                                //         perChngOnHighLow: perChngOnHigh.toFixed(2),
-                                //         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
-                                //         quantity: Math.floor(10000 / firstCandle[2]),
-                                //         candleChartData : candleChartData,
-                                //     }
-                                //     if (Math.floor(10000 / firstCandle[2])){ 
-                                //         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
-                                //     }
-                                // }
-                                // var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
-                                // if (next5thCandle[3] < sellenty) {
-                                //     var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
-                                //     var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
-
-                                //     sumPercentage += perChng;
-                                //     console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
-
-                                //     var foundStock = {
-                                //         foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
-                                //         symbol: element.symbol,
-                                //         sellEntyPrice: sellenty,
-                                //         stopLoss: firstCandle[2],
-                                //         buyExitPrice: next5thCandle[4],
-                                //         highAndLow: next5thCandle[3],
-                                //         brokerageCharges: 0.06,
-                                //         perChange: perChng.toFixed(2),
-                                //         perChngOnHighLow: perChngOnLow.toFixed(2),
-                                //         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
-                                //         quantity: Math.floor(10000 / firstCandle[3]),
-                                //         candleChartData : candleChartData
-                                //     }
-                                //     if(Math.floor(10000 / firstCandle[3])){
-                                //         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
-                                //     }
-
-
-                                // }
-
+                            var data = {
+                                "exchange": "NSE",
+                                "symboltoken": element.token,
+                                "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                                "fromdate": moment(start5thdate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                                "todate": moment(end5thdate).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
                             }
 
+                            AdminService.getHistoryData(data).then(insideCandleRes => {
+                                let histdataInside = resolveResponse(insideCandleRes, 'noPop');
+                                histdataInside = histdataInside && histdataInside.data;
+
+                                this.findLongsTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside);
+                                // this.findShortTraadeOnNextDay(element, firstCandle, candleChartData, histdataInside); 
+
+
+                            }).catch(error => {
+                                Notify.showError(element.symbol + " FIVE_MINUTE Candle data not found!");
+                                this.setState({ searchFailed: this.state.searchFailed + 1 })
+                            });
+
+
+
+                            // var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
+                            // if (next5thCandle[2] > buyentry) {
+                            //     var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
+                            //     var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
+
+                            //     sumPercentage += perChng;
+
+                            //     console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+
+                            //     var foundStock = {
+                            //         foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
+                            //         symbol: element.symbol,
+                            //         sellEntyPrice: next5thCandle[4],
+                            //         highAndLow: next5thCandle[2],
+                            //         stopLoss: firstCandle[3],
+                            //         buyExitPrice: buyentry,
+                            //         brokerageCharges: 0.06,
+                            //         perChange: perChng.toFixed(2),
+                            //         perChngOnHighLow: perChngOnHigh.toFixed(2),
+                            //         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+                            //         quantity: Math.floor(10000 / firstCandle[2]),
+                            //         candleChartData : candleChartData,
+                            //     }
+                            //     if (Math.floor(10000 / firstCandle[2])){ 
+                            //         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+                            //     }
+                            // }
+                            // var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
+                            // if (next5thCandle[3] < sellenty) {
+                            //     var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
+                            //     var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
+
+                            //     sumPercentage += perChng;
+                            //     console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+
+                            //     var foundStock = {
+                            //         foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
+                            //         symbol: element.symbol,
+                            //         sellEntyPrice: sellenty,
+                            //         stopLoss: firstCandle[2],
+                            //         buyExitPrice: next5thCandle[4],
+                            //         highAndLow: next5thCandle[3],
+                            //         brokerageCharges: 0.06,
+                            //         perChange: perChng.toFixed(2),
+                            //         perChngOnHighLow: perChngOnLow.toFixed(2),
+                            //         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+                            //         quantity: Math.floor(10000 / firstCandle[3]),
+                            //         candleChartData : candleChartData
+                            //     }
+                            //     if(Math.floor(10000 / firstCandle[3])){
+                            //         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+                            //     }
+
+
+                            // }
+
                         }
-                        runningTest = runningTest + candleData.length - 35;
-                        
+
+                    }
+                    runningTest = runningTest + candleData.length - 35;
+
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
                     console.log(element.symbol, " candle data emply");
                     Notify.showError(element.symbol + " FIVE_MINUTE candle data emply!");
-                    this.setState({searchFailed : this.state.searchFailed +1})
+                    this.setState({ searchFailed: this.state.searchFailed + 1 })
 
                 }
             }).catch(error => {
                 Notify.showError(element.symbol + " 1 day Candle data not found!");
-                this.setState({searchFailed : this.state.searchFailed +1})
+                this.setState({ searchFailed: this.state.searchFailed + 1 })
 
             });
             await new Promise(r => setTimeout(r, 305));
-         //   this.setState({ backTestResult:  this.state.backTestResult.reverse()}); 
+            //   this.setState({ backTestResult:  this.state.backTestResult.reverse()}); 
             this.setState({ stockTesting: index + 1 + ". " + element.symbol, runningTest: runningTest })
         }
         this.setState({ backTestFlag: true, stopScaningFlag: false });
         console.log("sumPercentage", sumPercentage)
-    } 
+    }
 
     backTestNR4DatewiseRange = async (date) => {
 
@@ -906,15 +959,15 @@ class Home extends React.Component {
         for (let index = 0; index < watchList.length; index++) {
             const element = watchList[index];
 
-            
-            if(this.state.stopScaningFlag){
+
+            if (this.state.stopScaningFlag) {
                 break;
             }
 
 
-            
-        var time = moment.duration("240:00:00");
-        var startdate = moment(date).subtract(time);
+
+            var time = moment.duration("240:00:00");
+            var startdate = moment(date).subtract(time);
 
             var data = {
                 "exchange": "NSE",
@@ -930,138 +983,138 @@ class Home extends React.Component {
                 if (histdata && histdata.data && histdata.data.length) {
 
                     var candleData = histdata.data;
-                      candleData.reverse(); 
-                    
-                        // var startindex = index2 * 10; 
-                        var last4Candle = candleData.slice(1, 5);
-                        // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+                    candleData.reverse();
 
-                        // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
+                    // var startindex = index2 * 10; 
+                    var last4Candle = candleData.slice(1, 5);
+                    // var next10Candle = candleData.slice(index2+5 , index2+35 );    
 
-                        //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
-                        if (last4Candle.length >= 4) {
+                    // console.log(element.symbol, 'backside',  last10Candle, '\n forntside',  next10Candle);
 
-                            //last4Candle.reverse();
+                    //&& new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00"
+                    if (last4Candle.length >= 4) {
 
-                            var rangeArr = [], candleChartData = []; 
-                            last4Candle.forEach(element => {
-                                rangeArr.push(element[2] - element[3]);
-                                candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
-                            });
-                            var firstElement = rangeArr[0], rgrangeCount = 0;
-                            rangeArr.forEach(element => {
-                                if (firstElement <= element) {
-                                    firstElement = element;
-                                    rgrangeCount += 1;
+                        //last4Candle.reverse();
+
+                        var rangeArr = [], candleChartData = [];
+                        last4Candle.forEach(element => {
+                            rangeArr.push(element[2] - element[3]);
+                            candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                        });
+                        var firstElement = rangeArr[0], rgrangeCount = 0;
+                        rangeArr.forEach(element => {
+                            if (firstElement <= element) {
+                                firstElement = element;
+                                rgrangeCount += 1;
+                            }
+                        });
+
+                        if (rgrangeCount == 4) {
+                            var firstCandle = last4Candle[0];
+                            var next5thCandle = candleData[0];
+                            candleChartData.unshift([next5thCandle[0], next5thCandle[1], next5thCandle[2], next5thCandle[3], next5thCandle[4]]);
+
+                            var currentDate = date.format('DD-MM-YYYY');
+
+                            var dateWithWlType = currentDate + ' ' + this.state.selectedWatchlist;
+
+                            var backTestResultDateRange = localStorage.getItem("backTestResultDateRange") ? JSON.parse(localStorage.getItem("backTestResultDateRange")) : {};
+                            var datewisetrades = backTestResultDateRange[dateWithWlType] ? backTestResultDateRange[dateWithWlType] : [];
+
+                            console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle);
+
+                            //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
+                            var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
+
+                            if (next5thCandle[2] > buyentry) {
+                                var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
+                                var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
+
+                                sumPercentage += perChng;
+
+                                console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+
+                                var foundStock = {
+                                    foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
+                                    symbol: element.symbol,
+                                    sellEntyPrice: next5thCandle[4],
+                                    highAndLow: next5thCandle[2],
+                                    stopLoss: firstCandle[3],
+                                    buyExitPrice: buyentry,
+                                    brokerageCharges: 0.06,
+                                    perChange: perChng.toFixed(2),
+                                    perChngOnHighLow: perChngOnHigh.toFixed(2),
+                                    squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+                                    quantity: Math.floor(10000 / firstCandle[2]),
+                                    candleChartData: candleChartData
                                 }
-                            });
+                                if (Math.floor(10000 / firstCandle[2])) {
+                                    this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
 
-                            if (rgrangeCount == 4) {
-                                var firstCandle = last4Candle[0];
-                                var next5thCandle = candleData[0];
-                                candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
-
-                                var currentDate = date.format('DD-MM-YYYY'); 
-
-                                var dateWithWlType =  currentDate+' '+ this.state.selectedWatchlist; 
-
-                                var backTestResultDateRange = localStorage.getItem("backTestResultDateRange") ? JSON.parse(localStorage.getItem("backTestResultDateRange")) : {};
-                                var datewisetrades = backTestResultDateRange[dateWithWlType] ? backTestResultDateRange[dateWithWlType] : []; 
-                              
-                                console.log(element.symbol, last4Candle, rangeArr, rgrangeCount, next5thCandle); 
-
-                                //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
-                                var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
-
-                                if (next5thCandle[2] > buyentry) {
-                                    var perChng = (next5thCandle[4] - buyentry) * 100 / buyentry;
-                                    var perChngOnHigh = (next5thCandle[2] - buyentry) * 100 / buyentry;
-
-                                    sumPercentage += perChng;
-        
-                                    console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
-
-                                    var foundStock = {
-                                        foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
-                                        symbol: element.symbol,
-                                        sellEntyPrice: next5thCandle[4],
-                                        highAndLow: next5thCandle[2],
-                                        stopLoss: firstCandle[3],
-                                        buyExitPrice: buyentry,
-                                        brokerageCharges: 0.06,
-                                        perChange: perChng.toFixed(2),
-                                        perChngOnHighLow: perChngOnHigh.toFixed(2),
-                                        squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
-                                        quantity: Math.floor(10000 / firstCandle[2]),
-                                        candleChartData : candleChartData
-                                    }
-                                    if (Math.floor(10000 / firstCandle[2])){ 
-                                        this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
-
-                                        datewisetrades.push(foundStock);
-                                        backTestResultDateRange[dateWithWlType] = datewisetrades; 
-                                        localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
-                                          
-                                        
-                                    }
-
-                                }
-                                //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
-                                var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
-
-                                if (next5thCandle[3] < sellenty) {
-                                    var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
-                                    var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
-
-                                    sumPercentage += perChng;
-                                    console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
-
-                                    var foundStock = {
-                                        foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
-                                        symbol: element.symbol,
-                                        sellEntyPrice: sellenty,
-                                        stopLoss: firstCandle[2],
-                                        buyExitPrice: next5thCandle[4],
-                                        highAndLow: next5thCandle[3],
-                                        brokerageCharges: 0.06,
-                                        perChange: perChng.toFixed(2),
-                                        perChngOnHighLow: perChngOnLow.toFixed(2),
-                                        squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
-                                        quantity: Math.floor(10000 / firstCandle[3]),
-                                        candleChartData : candleChartData
-                                    }
-                                    if(Math.floor(10000 / firstCandle[3])){
-                                        this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
-
-                                        datewisetrades.push(foundStock);
-                                        backTestResultDateRange[dateWithWlType] = datewisetrades; 
-
-                                        console.log('backTestResultDateRange', backTestResultDateRange);
-                                        localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
-                                     
-                                      //  var backTestResultDateRange = localStorage.getItem('backTestResultDateRange') && JSON.parse(localStorage.getItem('backTestResultDateRange')) ; 
-            
-                                        this.setState({dateAndTypeKeys: Object.keys(backTestResultDateRange), backTestResultDateRange : backTestResultDateRange });
-                            
-                                    }
+                                    datewisetrades.push(foundStock);
+                                    backTestResultDateRange[dateWithWlType] = datewisetrades;
+                                    localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
 
 
                                 }
 
                             }
+                            //var sellenty = (firstCandle[3] - (firstCandle[2] - firstCandle[3])/4).toFixed(2); 
+                            var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
+
+                            if (next5thCandle[3] < sellenty) {
+                                var perChng = (sellenty - next5thCandle[4]) * 100 / firstCandle[3];
+                                var perChngOnLow = (sellenty - next5thCandle[3]) * 100 / firstCandle[3];
+
+                                sumPercentage += perChng;
+                                console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
+
+                                var foundStock = {
+                                    foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
+                                    symbol: element.symbol,
+                                    sellEntyPrice: sellenty,
+                                    stopLoss: firstCandle[2],
+                                    buyExitPrice: next5thCandle[4],
+                                    highAndLow: next5thCandle[3],
+                                    brokerageCharges: 0.06,
+                                    perChange: perChng.toFixed(2),
+                                    perChngOnHighLow: perChngOnLow.toFixed(2),
+                                    squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
+                                    quantity: Math.floor(10000 / firstCandle[3]),
+                                    candleChartData: candleChartData
+                                }
+                                if (Math.floor(10000 / firstCandle[3])) {
+                                    this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
+
+                                    datewisetrades.push(foundStock);
+                                    backTestResultDateRange[dateWithWlType] = datewisetrades;
+
+                                    console.log('backTestResultDateRange', backTestResultDateRange);
+                                    localStorage.setItem('backTestResultDateRange', JSON.stringify(backTestResultDateRange));
+
+                                    //  var backTestResultDateRange = localStorage.getItem('backTestResultDateRange') && JSON.parse(localStorage.getItem('backTestResultDateRange')) ; 
+
+                                    this.setState({ dateAndTypeKeys: Object.keys(backTestResultDateRange), backTestResultDateRange: backTestResultDateRange });
+
+                                }
+
+
+                            }
 
                         }
-                        runningTest = runningTest + candleData.length - 35;
-                        
+
+                    }
+                    runningTest = runningTest + candleData.length - 35;
+
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
                     console.log(element.symbol, " candle data emply");
                 }
             })
             await new Promise(r => setTimeout(r, 300));
-            this.setState({ stockTesting: date.format('YYYY-MM-DD') +' '+ index + 1 + ". " + element.symbol, runningTest: runningTest })
+            this.setState({ stockTesting: date.format('YYYY-MM-DD') + ' ' + index + 1 + ". " + element.symbol, runningTest: runningTest })
         }
-    } 
+    }
 
     backTestNR4 = async () => {
 
@@ -1099,10 +1152,10 @@ class Home extends React.Component {
 
                             last4Candle.reverse();
 
-                            var rangeArr = [], candleChartData = []; 
+                            var rangeArr = [], candleChartData = [];
                             last4Candle.forEach(element => {
                                 rangeArr.push(element[2] - element[3]);
-                                candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
+                                candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
                             });
                             var firstElement = rangeArr[0], rgrangeCount = 0;
                             rangeArr.forEach(element => {
@@ -1116,7 +1169,7 @@ class Home extends React.Component {
                             if (rgrangeCount == 4) {
                                 var firstCandle = last4Candle[0];
                                 var next5thCandle = candleData[index2 + 4];
-                                candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
+                                candleChartData.unshift([next5thCandle[0], next5thCandle[1], next5thCandle[2], next5thCandle[3], next5thCandle[4]]);
 
                                 //var buyentry = (firstCandle[2] + (firstCandle[2] - firstCandle[3])/4).toFixed(2);
                                 var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
@@ -1134,17 +1187,17 @@ class Home extends React.Component {
                                         sellEntyPrice: next5thCandle[this.state.longExitPriceType],
                                         stopLoss: firstCandle[3],
                                         highAndLow: next5thCandle[2],
-                                        perChngOnHighLow : perChngOnHigh.toFixed(2),
+                                        perChngOnHighLow: perChngOnHigh.toFixed(2),
                                         buyExitPrice: buyentry,
                                         brokerageCharges: 0.06,
                                         perChange: perChng.toFixed(2),
                                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
                                         quantity: Math.floor(10000 / firstCandle[2]),
-                                        candleChartData : candleChartData
+                                        candleChartData: candleChartData
                                     }
-                                    if (Math.floor(10000 / firstCandle[2])){ 
+                                    if (Math.floor(10000 / firstCandle[2])) {
                                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
-                                        this.setState({ backTestResult:  this.state.backTestResult.reverse()});
+                                        this.setState({ backTestResult: this.state.backTestResult.reverse() });
                                     }
 
                                 }
@@ -1162,7 +1215,7 @@ class Home extends React.Component {
                                         foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
                                         symbol: element.symbol,
                                         sellEntyPrice: sellenty,
-                                        perChngOnHighLow : perChngOnLow.toFixed(2),
+                                        perChngOnHighLow: perChngOnLow.toFixed(2),
                                         stopLoss: firstCandle[2],
                                         highAndLow: next5thCandle[3],
                                         buyExitPrice: next5thCandle[this.state.shortExitPriceType],
@@ -1170,9 +1223,9 @@ class Home extends React.Component {
                                         perChange: perChng.toFixed(2),
                                         squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
                                         quantity: Math.floor(10000 / firstCandle[3]),
-                                        candleChartData : candleChartData
+                                        candleChartData: candleChartData
                                     }
-                                    if(Math.floor(10000 / firstCandle[3])){
+                                    if (Math.floor(10000 / firstCandle[3])) {
                                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
                                     }
 
@@ -1199,8 +1252,8 @@ class Home extends React.Component {
     nr4CheckPastPerfommance = (token, foundStock) => {
         var time = moment.duration("4320:00:00");
         var startdate = moment(this.state.endDate).subtract(time);
-        var totalLongs=0, totalShort=0, totalLongPer=0, totalShortPer=0, totalLongHighPer=0, totalShortLowPer=0; 
-        var longCandles=[], shortCandles=[]; 
+        var totalLongs = 0, totalShort = 0, totalLongPer = 0, totalShortPer = 0, totalLongHighPer = 0, totalShortLowPer = 0;
+        var longCandles = [], shortCandles = [];
 
         console.log('starting function foundStock', foundStock)
         var data = {
@@ -1213,7 +1266,7 @@ class Home extends React.Component {
 
         AdminService.getHistoryData(data).then(res => {
             let histdata = resolveResponse(res, 'noPop');
-            console.log("candle history", histdata); 
+            console.log("candle history", histdata);
             if (histdata && histdata.data && histdata.data.length) {
 
                 var candleData = histdata.data;
@@ -1230,10 +1283,10 @@ class Home extends React.Component {
 
                         last4Candle.reverse();
 
-                        var rangeArr = [], candleChartData = []; 
+                        var rangeArr = [], candleChartData = [];
                         last4Candle.forEach(element => {
                             rangeArr.push(element[2] - element[3]);
-                            candleChartData.push([element[0],element[1],element[2],element[3],element[4]]); 
+                            candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
                         });
                         var firstElement = rangeArr[0], rgrangeCount = 0;
                         rangeArr.forEach(element => {
@@ -1247,9 +1300,9 @@ class Home extends React.Component {
 
                             var firstCandle = last4Candle[0];
                             var next5thCandle = candleData[index2 + 4];
-                            candleChartData.unshift([next5thCandle[0],next5thCandle[1],next5thCandle[2],next5thCandle[3],next5thCandle[4]]); 
+                            candleChartData.unshift([next5thCandle[0], next5thCandle[1], next5thCandle[2], next5thCandle[3], next5thCandle[4]]);
 
-                            console.log(token, last4Candle, rangeArr, rgrangeCount,firstCandle[0].toString().substr(0, 25)) ; 
+                            console.log(token, last4Candle, rangeArr, rgrangeCount, firstCandle[0].toString().substr(0, 25));
 
                             var buyentry = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
 
@@ -1263,19 +1316,19 @@ class Home extends React.Component {
                                     sellEntyPrice: next5thCandle[4],
                                     stopLoss: firstCandle[3],
                                     highAndLow: next5thCandle[2],
-                                    perChngOnHighLow : perChngOnHigh.toFixed(2),
+                                    perChngOnHighLow: perChngOnHigh.toFixed(2),
                                     buyExitPrice: buyentry,
                                     brokerageCharges: 0.06,
                                     perChange: perChng.toFixed(2),
                                     squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
                                     quantity: Math.floor(10000 / firstCandle[2]),
-                                    candleChartData : candleChartData
+                                    candleChartData: candleChartData
                                 }
-                                longCandles.push(longData); 
-                                
-                                totalLongs+=1; 
-                                totalLongPer+=perChng; 
-                                totalLongHighPer+=perChngOnHigh;
+                                longCandles.push(longData);
+
+                                totalLongs += 1;
+                                totalLongPer += perChng;
+                                totalLongHighPer += perChngOnHigh;
 
                             }
                             var sellenty = (firstCandle[3] - (firstCandle[3] / 100 / 10)).toFixed(2);
@@ -1287,7 +1340,7 @@ class Home extends React.Component {
                                 var shortData = {
                                     foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
                                     sellEntyPrice: sellenty,
-                                    perChngOnHighLow : perChngOnLow.toFixed(2),
+                                    perChngOnHighLow: perChngOnLow.toFixed(2),
                                     stopLoss: firstCandle[2],
                                     highAndLow: next5thCandle[3],
                                     buyExitPrice: next5thCandle[4],
@@ -1295,17 +1348,17 @@ class Home extends React.Component {
                                     perChange: perChng.toFixed(2),
                                     squareOffAt: new Date(next5thCandle[0]).toLocaleString(),
                                     quantity: Math.floor(10000 / firstCandle[3]),
-                                    candleChartData : candleChartData
+                                    candleChartData: candleChartData
                                 }
-                                shortCandles.push(shortData); 
+                                shortCandles.push(shortData);
 
-                                totalShort+=1; 
-                                totalShortPer+=perChng;
-                                totalShortLowPer+=perChngOnLow; 
+                                totalShort += 1;
+                                totalShortPer += perChng;
+                                totalShortLowPer += perChngOnLow;
 
                             }
 
-                           
+
                         }
 
                     }
@@ -1313,21 +1366,21 @@ class Home extends React.Component {
 
 
                 var pastPerferm = {
-                    totalLongs:totalLongs, 
-                    totalShort:totalShort, 
-                    totalLongPer:totalLongPer.toFixed(2),
-                    totalShortPer:totalShortPer.toFixed(2),
-                    totalLongHighPer:totalLongHighPer.toFixed(2),
-                    totalShortLowPer:totalShortLowPer.toFixed(2),
+                    totalLongs: totalLongs,
+                    totalShort: totalShort,
+                    totalLongPer: totalLongPer.toFixed(2),
+                    totalShortPer: totalShortPer.toFixed(2),
+                    totalLongHighPer: totalLongHighPer.toFixed(2),
+                    totalShortLowPer: totalShortLowPer.toFixed(2),
                 }
-                if(foundStock) 
-                foundStock.pastPerferm = pastPerferm;
-                foundStock.longCandles = longCandles; 
-                foundStock.shortCandles = shortCandles; 
- 
+                if (foundStock)
+                    foundStock.pastPerferm = pastPerferm;
+                foundStock.longCandles = longCandles;
+                foundStock.shortCandles = shortCandles;
 
-                 console.log("foundStock",foundStock); 
-                if (Math.floor(10000 / firstCandle[4])){ 
+
+                console.log("foundStock", foundStock);
+                if (Math.floor(10000 / firstCandle[4])) {
                     this.setState({ FoundPatternList: [...this.state.FoundPatternList, foundStock] });
 
                     localStorage.setItem('FoundPatternList', JSON.stringify(this.state.FoundPatternList));
@@ -1339,9 +1392,9 @@ class Home extends React.Component {
             }
         });
 
-      
-     
-        
+
+
+
     }
 
     backtestTweezerTop = (candleHist, symbol, next10Candle) => {
@@ -1782,7 +1835,7 @@ class Home extends React.Component {
             "ordertype": this.state.buyPrice === 0 ? "MARKET" : "LIMIT",
             "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
             "duration": "DAY",
-            "price":  0,
+            "price": 0,
             "squareoff": "0",
             "stoploss": "0",
             "quantity": this.state.quantity,
@@ -1796,12 +1849,12 @@ class Home extends React.Component {
                 this.setState({ orderid: data.data && data.data.orderid });
 
                 if (this.state.stoploss) {
-                   
-                    if(transactiontype == "BUY"){
+
+                    if (transactiontype == "BUY") {
                         this.placeSLMOrder("SELL");
                     }
 
-                    if(transactiontype == "SELL"){
+                    if (transactiontype == "SELL") {
                         this.placeSLMOrder("BUY");
                     }
 
@@ -1891,24 +1944,24 @@ class Home extends React.Component {
                     localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
                     this.setState({ InstrumentHistroy: histCandles });
 
-                
-                    var upsideMoveCount = 0, downMoveCount=0;  
-                     histCandles.forEach(element => {
-                        
-                        var per =  (element[4] - element[1])*100/element[1]; 
-                        if(per >= 0.3){
-                            upsideMoveCount += 1; 
+
+                    var upsideMoveCount = 0, downMoveCount = 0;
+                    histCandles.forEach(element => {
+
+                        var per = (element[4] - element[1]) * 100 / element[1];
+                        if (per >= 0.3) {
+                            upsideMoveCount += 1;
                         }
-                        if(per <= -0.3){
-                            downMoveCount += 1; 
+                        if (per <= -0.3) {
+                            downMoveCount += 1;
                         }
-                        
+
                     });
 
                     this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount });
 
                 }
-               
+
             }
         })
     }
@@ -1922,7 +1975,7 @@ class Home extends React.Component {
         if (autoSearchTemp.length > 0) {
             var fdata = '';
             for (let index = 0; index < autoSearchTemp.length; index++) {
-               
+
                 if (autoSearchTemp[index].symbol === values) {
                     fdata = autoSearchTemp[index];
                     break;
@@ -1937,12 +1990,12 @@ class Home extends React.Component {
             if (!foundInWatchlist.length) {
 
                 watchlist.push(fdata);
-                this.setState({ tradingsymbol: fdata.symbol,  symboltoken : fdata.token }, function(){
-                   this.LoadSymbolDetails(fdata.symbol);
+                this.setState({ tradingsymbol: fdata.symbol, symboltoken: fdata.token }, function () {
+                    this.LoadSymbolDetails(fdata.symbol);
                 });
 
-                this.setState({ symbolList: watchlist}, function(){
-                    this.updateSocketWatch();             
+                this.setState({ symbolList: watchlist }, function () {
+                    this.updateSocketWatch();
                 });
 
             }
@@ -1981,15 +2034,15 @@ class Home extends React.Component {
     showCandleChart = (candleData, symbol, insiderow) => {
 
 
-        candleData  = candleData && candleData.reverse();
+        candleData = candleData && candleData.reverse();
 
         localStorage.setItem('candleChartData', JSON.stringify(candleData))
         localStorage.setItem('cadleChartSymbol', symbol)
 
-        if(insiderow)
-        localStorage.setItem('chartInfoDetails', JSON.stringify(insiderow));
+        if (insiderow)
+            localStorage.setItem('chartInfoDetails', JSON.stringify(insiderow));
 
-        
+
         document.getElementById('showCandleChart').click();
     }
 
@@ -2000,10 +2053,10 @@ class Home extends React.Component {
 
         var candleChartDataInside = row.candleChartDataInside;
 
-        if(candleChartDataInside)
-        localStorage.setItem('candleChartDataInside', JSON.stringify(candleChartDataInside));
+        if (candleChartDataInside)
+            localStorage.setItem('candleChartDataInside', JSON.stringify(candleChartDataInside));
 
-        
+
         document.getElementById('showCandleChart').click();
     }
 
@@ -2017,218 +2070,225 @@ class Home extends React.Component {
             secondLavel: "End Date and Time"
         }
 
-       
-        var sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0,sumPerChangeHighLow =0,  sumPnlValue = 0,sumPnlValueOnHighLow = 0,  totalInvestedValue = 0, totalLongTrade=0, totalShortTrade=0;
-        var tradetotal = 0, totalWin = 0,  totalLoss  = 0; 
+
+        var sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0, sumPerChangeHighLow = 0, sumPnlValue = 0, sumPnlValueOnHighLow = 0, totalInvestedValue = 0, totalLongTrade = 0, totalShortTrade = 0;
+        var tradetotal = 0, totalWin = 0, totalLoss = 0;
         return (
             <React.Fragment>
                 <PostLoginNavBar />
                 <ChartDialog />
-                <Grid direction="row" container>
+                <Grid direction="row" container spacing={1} style={{ padding: "5px" }} >
 
                     <Grid item xs={12} sm={2}  >
+                        <Paper>
+                            <Autocomplete
+                                freeSolo
+                                id="free-solo-2-demo"
+                                disableClearable
+                                style={{ paddingLeft: "10px", paddingRight: "10px" }}
+                                onChange={this.onSelectItem}
+                                //+ ' '+  option.exch_seg
+                                options={this.state.autoSearchList.length > 0 ? this.state.autoSearchList.map((option) =>
+                                    option.symbol
+                                ) : []}
+                                renderInput={(params) => (
+                                    <TextField
+                                        onChange={this.onChange}
+                                        {...params}
+                                        label={"Search Symbol"}
+                                        margin="normal"
+                                        variant="standard"
 
-                        <Autocomplete
-                            freeSolo
-                            id="free-solo-2-demo"
-                            disableClearable
-                            style={{ paddingLeft: "10px", paddingRight: "10px" }}
-                            onChange={this.onSelectItem}
-                            //+ ' '+  option.exch_seg
-                            options={this.state.autoSearchList.length > 0 ? this.state.autoSearchList.map((option) =>
-                                option.symbol
-                            ) : []}
-                            renderInput={(params) => (
-                                <TextField
-                                    onChange={this.onChange}
-                                    {...params}
-                                    label={"Search Symbol"}
-                                    margin="normal"
-                                    variant="standard"
+                                        name="search"
+                                        value={this.state.search}
+                                        InputProps={{ ...params.InputProps, type: 'search' }}
+                                    />
+                                )}
+                            />
 
-                                    name="search"
-                                    value={this.state.search}
-                                    InputProps={{ ...params.InputProps, type: 'search' }}
-                                /> 
-                            )}
-                        />
+                            <div style={{ marginLeft: '10px' }}>
+                                <FormControl style={{ paddingLeft: '12px' }} style={styles.selectStyle} >
+                                    <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
+                                    <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
+                                        <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
 
-                        <div style={{ marginLeft: '10px' }}>
-                            <FormControl style={{ paddingLeft: '12px' }} style={styles.selectStyle} >
-                                <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
-                                <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
-                                    <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
+                                        {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                                            <MenuItem value={element}>{element}</MenuItem>
+                                        ))
+                                        }
 
-                                    {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
-                                        <MenuItem value={element}>{element}</MenuItem>
-                                    ))
-                                    }
-
-                                </Select>
-                            </FormControl>
-
-                        </div>
-
-
-
-                        <div style={{ overflowY: 'scroll', height: "75vh" }}>
-
-                            {this.state.symbolList && this.state.symbolList.length ? this.state.symbolList.map(row => (
-                                <>
-                                    <ListItem button style={{ fontSize: '12px' }} >
-                                        <ListItemText style={{ color: !row.nc  || row.nc == 0 ? "" : row.nc > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {row.ltp} ({row.nc}%) <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />
-                                    </ListItem>
-
-                                </>
-                            )) : ''}
-                        </div>
-
-                        {/* <Tab style={{position: 'fixed'}}  data={{symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/> */}
-
-                    </Grid>
-
-
-
-
-                    <Grid item xs={12} sm={10}>
-
-
-                        <Grid direction="row" alignItems="center" container>
-
-                           <Grid style={{display:"visible"}} direction="row" alignItems="center" container>
-    
-                            <Grid item xs={10} sm={5}>
-                                <Typography variant="h5" style={{color: this.state.InstrumentPerChange > 0 ? "green": "red"}} >
-                                    {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : ""} ({this.state.InstrumentPerChange + "%"})
-                                </Typography>
-                                Open : {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : ""} &nbsp;
-                                High : {this.state.InstrumentLTP ? this.state.InstrumentLTP.high : ""} &nbsp;
-                                Low :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.low : ""}&nbsp;
-                                Previous Close :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.close : ""} &nbsp;
-
-                            </Grid>
-                            <Grid item xs={12} sm={2}>
-                                <FormControl style={styles.selectStyle}>
-                                    <InputLabel htmlFor="gender">Order Type</InputLabel>
-                                    <Select value={this.state.producttype} name="producttype" onChange={this.onChange}>
-                                        <MenuItem value={"INTRADAY"}>INTRADAY</MenuItem>
-                                        <MenuItem value={"DELIVERY"}>DELIVERY</MenuItem>
                                     </Select>
                                 </FormControl>
-                            </Grid>
-                            <Grid item xs={10} sm={1}>
-                                <TextField id="buyPrice" label="Buy Price" value={this.state.buyPrice} name="buyPrice" onChange={this.onChange} />
-                            </Grid>
-                            <Grid item xs={10} sm={1}>
-                                <TextField id="quantity" label="Qty" value={this.state.quantity} name="quantity" onChange={this.onChange} />
-                            </Grid>
-                            <Grid item xs={10} sm={1}>
-                                <TextField id="stoploss" label="SL" value={this.state.stoploss} name="stoploss" onChange={this.onChange} />
-                            </Grid>
+
+                            </div>
 
 
-                            <Grid item xs={1} sm={2}  >
 
-                                <Button variant="contained" color="" style={{ marginLeft: '20px' }} onClick={() => this.placeOrder('BUY')}>Buy</Button>
-                                <Button variant="contained" color="" style={{ marginLeft: '20px' }} onClick={() => this.placeOrder('SELL')}>Sell</Button>
-                            </Grid>
+                            <div style={{ overflowY: 'scroll', height: "75vh" }}>
+
+                                {this.state.symbolList && this.state.symbolList.length ? this.state.symbolList.map(row => (
+                                    <>
+                                        <ListItem button style={{ fontSize: '12px', padding:'0px', paddingLeft: '5px' , paddingRight: '5px' }} >
+                                        {/* <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />  */}
+                                        <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {row.ltp} ({row.nc}%) 
+                                        </ListItem>
+
+                                    </>
+                                )) : ''}
+                            </div>
+
+                            {/* <Tab style={{position: 'fixed'}}  data={{symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/> */}
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} sm={8}>
+                        <Paper style={{ padding: "10px" }}>
+                            <Typography style={{ textAlign: "center", background: "lightgray" }}>Place Order</Typography>
+
+                            <Grid style={{ display: "visible" }} direction="row" alignItems="center" container>
+
+                                <Grid item xs={10} sm={5}>
+                                    {this.state.tradingsymbol ? <Typography variant="h5" style={{ color: this.state.InstrumentPerChange > 0 ? "green" : "red" }} >
+                                        {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : ""} ({this.state.InstrumentPerChange + "%"})
+                                    </Typography> : <Typography variant="h5" >Select Symbol </Typography>}
+                                    Open : {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : ""} &nbsp;
+                                    High : {this.state.InstrumentLTP ? this.state.InstrumentLTP.high : ""} &nbsp;
+                                    Low :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.low : ""}&nbsp;
+                                    P.Close :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.close : ""} &nbsp;
+
+                                </Grid>
+                                <Grid item xs={12} sm={2}>
+                                    <FormControl style={styles.selectStyle}>
+                                        <InputLabel htmlFor="gender">Order Type</InputLabel>
+                                        <Select value={this.state.producttype} name="producttype" onChange={this.onChange}>
+                                            <MenuItem value={"INTRADAY"}>INTRADAY</MenuItem>
+                                            <MenuItem value={"DELIVERY"}>DELIVERY</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={10} sm={1}>
+                                    <TextField id="buyPrice" label="Buy Price" value={this.state.buyPrice} name="buyPrice" onChange={this.onChange} />
+                                </Grid>
+                                <Grid item xs={10} sm={1}>
+                                    <TextField id="quantity" label="Qty" value={this.state.quantity} name="quantity" onChange={this.onChange} />
+                                </Grid>
+                                <Grid item xs={10} sm={1}>
+                                    <TextField id="stoploss" label="SL" value={this.state.stoploss} name="stoploss" onChange={this.onChange} />
+                                </Grid>
 
 
-                    `            <Table size="small" aria-label="sticky table" >
-                                <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                    <TableRow variant="head" style={{ fontWeight: 'bold' }} >
+                                <Grid item xs={1} sm={2}  >
+                                    <Button variant="contained" color="" style={{ marginLeft: '20px' }} onClick={() => this.placeOrder('BUY')}>Buy</Button>
+                                    <Button variant="contained" color="" style={{ marginLeft: '20px' }} onClick={() => this.placeOrder('SELL')}>Sell</Button>
+                                </Grid>
 
-                                        <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
-                                        <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
-                                        <TableCell className="TableHeadFormat"  align="center">Chng% <b style={{color:'green'}}> UP({this.state.upsideMoveCount})</b> | <b style={{color:'red'}}> Down({this.state.downMoveCount})</b> </TableCell>
-                                        <TableCell className="TableHeadFormat" align="center">Open</TableCell>
-                                        <TableCell className="TableHeadFormat" align="center">High</TableCell>
-                                        <TableCell className="TableHeadFormat" align="center">Low</TableCell>
-                                        <TableCell className="TableHeadFormat" align="center">Close </TableCell>
-                                        <TableCell className="TableHeadFormat" align="center">Volume</TableCell>
 
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-                                {/* this.getPercentageColor((row[4] - row[1])*100/row[1] >= 0.3)  */}
+                                <Table size="small" aria-label="sticky table" >
+                                    <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
+                                        <TableRow variant="head" style={{ fontWeight: 'bold' }} >
 
-                                    {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
-                                        <TableRow key={i} style={{  background:  (row[4] - row[1])*100/row[1] >= 0.3 ? "green": (row[4] - row[1])*100/row[1] <= -0.3 ? "red" : "none"}} >
-
-                                            <TableCell align="center">{this.state.tradingsymbol}</TableCell>
-                                            <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
-                                            <TableCell align="center"> <b>{(row[4] - row[1])*100/row[1] && ((row[4] - row[1])*100/row[1]).toFixed(2)}%</b></TableCell>
-                                            <TableCell align="center">{row[1]}</TableCell>
-                                            <TableCell align="center">{row[2]}</TableCell>
-                                            <TableCell align="center">{row[3]}</TableCell>
-                                            <TableCell align="center">{row[4]}</TableCell>
-                                            <TableCell align="center">{row[5]}</TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: 'green' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> </TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">Open</TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">High</TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">Low</TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">Close </TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">Volume</TableCell>
 
                                         </TableRow>
-                                    )) : ''}
-                                </TableBody>
-                            </Table>
+                                    </TableHead>
+                                    <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
+                                        {/* this.getPercentageColor((row[4] - row[1])*100/row[1] >= 0.3)  */}
+
+                                        {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
+                                            <TableRow key={i} style={{ background: (row[4] - row[1]) * 100 / row[1] >= 0.3 ? "green" : (row[4] - row[1]) * 100 / row[1] <= -0.3 ? "red" : "none" }} >
+
+                                                <TableCell align="center">{this.state.tradingsymbol}</TableCell>
+                                                <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
+                                                <TableCell align="center"> <b>{(row[4] - row[1]) * 100 / row[1] && ((row[4] - row[1]) * 100 / row[1]).toFixed(2)}%</b></TableCell>
+                                                <TableCell align="center">{row[1]}</TableCell>
+                                                <TableCell align="center">{row[2]}</TableCell>
+                                                <TableCell align="center">{row[3]}</TableCell>
+                                                <TableCell align="center">{row[4]}</TableCell>
+                                                <TableCell align="center">{row[5]}</TableCell>
+
+                                            </TableRow>
+                                        )) : ''}
+                                    </TableBody>
+                                </Table>
 
                             </Grid>
+                        </Paper>
+                        <br />  
+
+                        <Paper > 
+                        {/* "http://localhost:3001/TradingViewChart.html?symbol=TCS" */}
+                            <iframe style={{width: "100%", height: "550px"}} src={"http://localhost:3001/TradingViewChart.html?symbol="+this.state.tradingsymbol.split('-')[0]} > </iframe>
+                        </Paper>
+                        
+                        {/* <Paper > 
+                            <iframe style={{width: "100%", height: "550px"}} src="http://localhost:3001/TradingViewTL.html"> </iframe>
+                        </Paper> */}
+                      
+
+                        <Paper style={{ padding: "10px" }}>
+                            <Typography style={{ textAlign: "center", background: "lightgray" }}>Backtest</Typography>
+
+                            <Grid direction="row" container spacing={2}>
+
+                                <Grid item xs={12} sm={2} style={{ marginTop: '15px' }}>
+                                    <FormControl style={styles.selectStyle}>
+                                        <InputLabel htmlFor="Nationality">Pattern Type</InputLabel>
+                                        <Select value={this.state.patternType} name="patternType" onChange={this.onChangePattern}>
+                                            <MenuItem value={"TweezerTop"}>Tweezer Top</MenuItem>
+                                            <MenuItem value={"TweezerBottom"}>Tweezer Bottom</MenuItem>
+                                            <MenuItem value={"NR4"}>Narrow Range 4</MenuItem>
+                                            <MenuItem value={"NR4ForNextDay"}>NR4 For Next Day</MenuItem>
+
+
+                                            <MenuItem value={"NR4_SameDay"}>NR4 ByDate</MenuItem>
+                                            <MenuItem value={"NR4_Daywide_daterage"}>NR4 Daywise Range</MenuItem>
+
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+
+
+                                <Grid item xs={12} sm={4}>
+                                    <MaterialUIDateTimePicker callbackFromParent={dateParam} />
+                                </Grid>
 
 
 
-                            <Grid direction="row" alignItems="center" container>
+                                <Grid item xs={12} sm={6} style={{ marginTop: '28px' }}>
+                                    {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <> <Button> <Spinner /> &nbsp; &nbsp; Scaning: {this.state.stockTesting}  {this.state.runningTest}  </Button>  <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button> </>}
+                                    SearchFailed:{this.state.searchFailed}
 
-                                    <Grid direction="row" container spacing={2}>
+                                </Grid>
 
-                                        <Grid item xs={12} sm={2} style={{ marginTop: '15px' }}>
-                                            <FormControl style={styles.selectStyle}>
-                                                <InputLabel htmlFor="Nationality">Pattern Type</InputLabel>
-                                                <Select value={this.state.patternType} name="patternType" onChange={this.onChangePattern}>
-                                                    <MenuItem value={"TweezerTop"}>Tweezer Top</MenuItem>
-                                                    <MenuItem value={"TweezerBottom"}>Tweezer Bottom</MenuItem>
-                                                    <MenuItem value={"NR4"}>Narrow Range 4</MenuItem>
-                                                    <MenuItem value={"NR4ForNextDay"}>NR4 For Next Day</MenuItem>
-
-                                            
-                                                    <MenuItem value={"NR4_SameDay"}>NR4 ByDate</MenuItem>
-                                                    <MenuItem value={"NR4_Daywide_daterage"}>NR4 Daywise Range</MenuItem>
-                                                    
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
+                                <Grid item xs={12} sm={12}>
 
 
-                                        <Grid item xs={12} sm={4}>
-                                            <MaterialUIDateTimePicker callbackFromParent={dateParam} />
-                                        </Grid>
-
-
-
-                                        <Grid item xs={12} sm={6} style={{ marginTop:'28px'}}>
-                                            {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <> <Button> <Spinner /> &nbsp; &nbsp; Scaning: {this.state.stockTesting}  {this.state.runningTest}  </Button>  <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button> </> }
-                                            SearchFailed:{this.state.searchFailed}
-
-                                        </Grid>
-
-                                        <Grid item xs={12} sm={12}>
-
-                                 
-                                        {this.state.patternType == 'NR4' || this.state.patternType == 'TweezerTop' || this.state.patternType == 'TweezerBottom' || this.state.patternType == 'NR4_SameDay' ?   <Table size="small" aria-label="sticky table" >
+                                    {this.state.patternType == 'NR4' || this.state.patternType == 'TweezerTop' || this.state.patternType == 'TweezerBottom' || this.state.patternType == 'NR4_SameDay' ? <Table size="small" aria-label="sticky table" >
 
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                            <TableRow style={{  background: "lightgray" }}>
+                                            <TableRow style={{ background: "lightgray" }}>
 
                                                 <TableCell style={{ color: localStorage.getItem('sumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPerChange')}%</b></TableCell>
-                                            
+
                                                 {/* <TableCell style={{ color: "red" }} align="center"><b>{localStorage.getItem('sumBrokeragePer')}%</b></TableCell>
-                                                <TableCell style={{ color: localStorage.getItem('netSumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('netSumPerChange')}%</b></TableCell> */}
+        <TableCell style={{ color: localStorage.getItem('netSumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('netSumPerChange')}%</b></TableCell> */}
 
 
                                                 <TableCell style={{ color: localStorage.getItem('sumPnlValue') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPnlValue')}</b></TableCell>
-                                            
+
                                                 <TableCell style={{ color: localStorage.getItem('sumPerChangeHighLow') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPerChangeHighLow')}%</b></TableCell>
                                                 <TableCell style={{ color: localStorage.getItem('sumPnlValueOnHighLow') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPnlValueOnHighLow')}</b></TableCell>
 
-                                                
 
-                                            
+
+
                                                 <TableCell align="left" >Total Trades: {this.state.backTestResult && this.state.backTestResult.length} Win: {localStorage.getItem('totalWin')} Loss: {localStorage.getItem('totalLoss')}</TableCell>
 
 
@@ -2236,7 +2296,7 @@ class Home extends React.Component {
                                                 <TableCell align="left" colSpan={2}> Total Invested  {localStorage.getItem('totalInvestedValue')}</TableCell>
 
                                                 <TableCell align="center" colSpan={4}> Average gross/trade PnL:  <b style={{ color: (localStorage.getItem('sumPerChange') / this.state.backTestResult.length) > 0 ? "green" : "red" }} >{(localStorage.getItem('sumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b></TableCell>
-                                        
+
 
                                             </TableRow>
                                             <TableRow variant="head" style={{ fontWeight: 'bold' }}>
@@ -2245,19 +2305,19 @@ class Home extends React.Component {
                                                 <TableCell className="TableHeadFormat" align="center">CPnl% </TableCell>
 
                                                 {/* <TableCell className="TableHeadFormat" align="center">Charges</TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Net PnL %</TableCell> */}
+        <TableCell className="TableHeadFormat" align="center">Net PnL %</TableCell> */}
 
-                                                <TableCell className="TableHeadFormat"  align="center">CNetPnL </TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">CNetPnL </TableCell>
 
                                                 <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">HLPnL% </TableCell>
-                                                <TableCell className="TableHeadFormat"  title="High on long side | Low in short side" align="center">HLNet PnL</TableCell>
+                                                <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">HLNet PnL</TableCell>
 
                                                 <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
                                                 <TableCell className="TableHeadFormat" align="left">EntryTaken</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">SquiredOffAt</TableCell>
 
                                                 <TableCell className="TableHeadFormat" align="center">ExitStatus</TableCell>
-                                                
+
                                                 <TableCell className="TableHeadFormat" align="center">Buy</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Sell(Qty)</TableCell>
                                                 <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">High/Low</TableCell>
@@ -2266,232 +2326,232 @@ class Home extends React.Component {
                                                 <TableCell className="TableHeadFormat" align="center">StopLoss</TableCell>
                                                 {/* <TableCell className="TableHeadFormat" align="center">Sr. </TableCell> */}
 
-                                            
+
                                             </TableRow>
                                         </TableHead>
                                         <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-                                        
-
-                                    {this.state.backTestResult ? this.state.backTestResult.map((row, i) => (
 
 
-
-                                        //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
-                                        <TableRow hover key={i}  >
-
-                                            <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
-                                            {/* <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
-                                            <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "green" : "red" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
-                                            */}
-                                            <TableCell {...tradetotal = ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} {...sumPnlValue = sumPnlValue + tradetotal} {...totalWin +=  (((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? 1 : 0)} {...totalLoss += ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) < 0 ? 1 : 0}  style={{ color: tradetotal > 0 ? "green" : "red" }}  align="center" > {tradetotal.toFixed(2)}</TableCell>
-
-                                            <TableCell style={{ color: row.perChngOnHighLow > 0 ? "green" : "red" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
-                                            <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
+                                            {this.state.backTestResult ? this.state.backTestResult.map((row, i) => (
 
 
 
-                                            <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleBothChart(row)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
+                                                //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
+                                                <TableRow hover key={i}  >
 
-                                            <TableCell align="left" style={{ color: row.foundAt && row.foundAt.indexOf('Long') == 0  ? "green" : "red" }} {... totalLongTrade = totalLongTrade + ( row.foundAt && row.foundAt.indexOf('Long') == 0 ? 1 : 0) }>{row.foundAt}</TableCell>
-                                            <TableCell align="center">{row.squareOffAt}</TableCell>
+                                                    <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
+                                                    {/* <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
+        <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "green" : "red" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
+        */}
+                                                    <TableCell {...tradetotal = ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} {...sumPnlValue = sumPnlValue + tradetotal} {...totalWin += (((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? 1 : 0)} {...totalLoss += ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) < 0 ? 1 : 0} style={{ color: tradetotal > 0 ? "green" : "red" }} align="center" > {tradetotal.toFixed(2)}</TableCell>
 
-                                            <TableCell align="center">{row.exitStatus}</TableCell>
-
-                                            <TableCell align="center">{row.buyExitPrice}</TableCell>
-
-                                            <TableCell align="center" {...totalInvestedValue = totalInvestedValue + (row.foundAt && row.foundAt.indexOf('Long') == 0  ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity)) }>{row.sellEntyPrice}({row.quantity})</TableCell>
-                                            <TableCell  title="High on long side | Low in short side" align="center">{row.highAndLow}</TableCell>
-
-                                            
-                                            <TableCell align="center">{row.stopLoss}</TableCell>
-                                            {/* <TableCell align="center">{i + 1}</TableCell> */}
-
-                                        </TableRow>
+                                                    <TableCell style={{ color: row.perChngOnHighLow > 0 ? "green" : "red" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
+                                                    <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
 
 
 
-                                    )) : ''}
+                                                    <TableCell align="left"> <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleBothChart(row)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
+
+                                                    <TableCell align="left" style={{ color: row.foundAt && row.foundAt.indexOf('Long') == 0 ? "green" : "red" }} {...totalLongTrade = totalLongTrade + (row.foundAt && row.foundAt.indexOf('Long') == 0 ? 1 : 0)}>{row.foundAt}</TableCell>
+                                                    <TableCell align="center">{row.squareOffAt}</TableCell>
+
+                                                    <TableCell align="center">{row.exitStatus}</TableCell>
+
+                                                    <TableCell align="center">{row.buyExitPrice}</TableCell>
+
+                                                    <TableCell align="center" {...totalInvestedValue = totalInvestedValue + (row.foundAt && row.foundAt.indexOf('Long') == 0 ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity))}>{row.sellEntyPrice}({row.quantity})</TableCell>
+                                                    <TableCell title="High on long side | Low in short side" align="center">{row.highAndLow}</TableCell>
 
 
-                                    <TableRow style={{  background: "lightgray" }} >
+                                                    <TableCell align="center">{row.stopLoss}</TableCell>
+                                                    {/* <TableCell align="center">{i + 1}</TableCell> */}
 
-                                        <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
-                                        
-                                        {/* <TableCell style={{ color: "red" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
-                                        <TableCell style={{ color: netSumPerChange > 0 ? "green" : "red" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
-
-                                        <TableCell style={{ color: sumPnlValue > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
-
-                                        <TableCell style={{ color: sumPerChangeHighLow > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
-                                        <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
+                                                </TableRow>
 
 
-                                        <TableCell align="left" > {localStorage.setItem('totalLongTrade', totalLongTrade)} {localStorage.setItem('totalInvestedValue', totalInvestedValue.toFixed(2))} </TableCell>
 
-                                        <TableCell align="left">{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))} {localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
-
-                                        <TableCell align="left">{localStorage.setItem('totalWin', totalWin)}{localStorage.setItem('totalLoss', totalLoss)}</TableCell>
+                                            )) : ''}
 
 
-                                        <TableCell align="left" > </TableCell>
-                                        <TableCell align="left"> </TableCell>
+                                            <TableRow style={{ background: "lightgray" }} >
 
-                                        <TableCell align="left"> </TableCell>
-                                        <TableCell align="left"> </TableCell>
-                                        <TableCell align="left"> </TableCell>
+                                                <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
+
+                                                {/* <TableCell style={{ color: "red" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
+<TableCell style={{ color: netSumPerChange > 0 ? "green" : "red" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
+
+                                                <TableCell style={{ color: sumPnlValue > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
+
+                                                <TableCell style={{ color: sumPerChangeHighLow > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
+                                                <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
 
 
-                                        
+                                                <TableCell align="left" > {localStorage.setItem('totalLongTrade', totalLongTrade)} {localStorage.setItem('totalInvestedValue', totalInvestedValue.toFixed(2))} </TableCell>
 
-                                    </TableRow>
+                                                <TableCell align="left">{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))} {localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
+
+                                                <TableCell align="left">{localStorage.setItem('totalWin', totalWin)}{localStorage.setItem('totalLoss', totalLoss)}</TableCell>
+
+
+                                                <TableCell align="left" > </TableCell>
+                                                <TableCell align="left"> </TableCell>
+
+                                                <TableCell align="left"> </TableCell>
+                                                <TableCell align="left"> </TableCell>
+                                                <TableCell align="left"> </TableCell>
+
+
+
+
+                                            </TableRow>
                                         </TableBody>
-                                        </Table>
+                                    </Table>
 
                                         : ""}
 
 
 
-                                        {this.state.patternType == 'NR4_Daywide_daterage' ?  <>
+                                    {this.state.patternType == 'NR4_Daywide_daterage' ? <>
 
                                         {this.state.dateAndTypeKeys ? this.state.dateAndTypeKeys.map(key => (
 
-                                                <Table size="small" aria-label="sticky table"  style={{ padding:"5px"}}>
-                                                    <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                                    
-                                                            <TableRow style={{  background: "lightgray" }}  key={key}>
-                                                                <TableCell  colSpan={11} className="TableHeadFormat" align="center"> {key}  {sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0,sumPerChangeHighLow =0,  sumPnlValue = 0,sumPnlValueOnHighLow = 0,  totalInvestedValue = 0, totalLongTrade=0, totalShortTrade=0}</TableCell>
-                                                            </TableRow>
+                                            <Table size="small" aria-label="sticky table" style={{ padding: "5px" }}>
+                                                <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
 
-                                                            <TableRow key={key+1}  variant="head" style={{ fontWeight: 'bold' , background: "lightgray" }}>
+                                                    <TableRow style={{ background: "lightgray" }} key={key}>
+                                                        <TableCell colSpan={11} className="TableHeadFormat" align="center"> {key}  {sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0, sumPerChangeHighLow = 0, sumPnlValue = 0, sumPnlValueOnHighLow = 0, totalInvestedValue = 0, totalLongTrade = 0, totalShortTrade = 0}</TableCell>
+                                                    </TableRow>
 
-
-                                                                <TableCell className="TableHeadFormat" align="center"> CPnL% </TableCell>
-
-                                                                {/* <TableCell className="TableHeadFormat" align="center">Charges</TableCell>
-                                                                <TableCell className="TableHeadFormat" align="center">Net PnL %</TableCell> */}
-
-                                                                <TableCell className="TableHeadFormat"  align="center">CNetPnL </TableCell>
-
-                                                                <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">HLPnL% </TableCell>
-                                                                <TableCell className="TableHeadFormat"  title="High on long side | Low in short side" align="center">HLNet PnL</TableCell>
-
-                                                                <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
-                                                                <TableCell className="TableHeadFormat" align="left">FoundAt</TableCell>
-                                                                <TableCell className="TableHeadFormat" align="center">Buy</TableCell>
-                                                                <TableCell className="TableHeadFormat" align="center">Sell(Qty)</TableCell>
-                                                                <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">High/Low</TableCell>
+                                                    <TableRow key={key + 1} variant="head" style={{ fontWeight: 'bold', background: "lightgray" }}>
 
 
-                                                                <TableCell className="TableHeadFormat" align="center">SquiredOffAt</TableCell>
-                                                                <TableCell className="TableHeadFormat" align="center">StopLoss</TableCell>
-                                                                {/* <TableCell className="TableHeadFormat" align="center">Sr. </TableCell> */}
+                                                        <TableCell className="TableHeadFormat" align="center"> CPnL% </TableCell>
+
+                                                        {/* <TableCell className="TableHeadFormat" align="center">Charges</TableCell>
+                        <TableCell className="TableHeadFormat" align="center">Net PnL %</TableCell> */}
+
+                                                        <TableCell className="TableHeadFormat" align="center">CNetPnL </TableCell>
+
+                                                        <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">HLPnL% </TableCell>
+                                                        <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">HLNet PnL</TableCell>
+
+                                                        <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
+                                                        <TableCell className="TableHeadFormat" align="left">FoundAt</TableCell>
+                                                        <TableCell className="TableHeadFormat" align="center">Buy</TableCell>
+                                                        <TableCell className="TableHeadFormat" align="center">Sell(Qty)</TableCell>
+                                                        <TableCell className="TableHeadFormat" title="High on long side | Low in short side" align="center">High/Low</TableCell>
 
 
-                                                            </TableRow>
-
-                                                            </TableHead>
-                                                            <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-
-                                                        
-
-                                                            {this.state.backTestResultDateRange[key].map((row, i) => (
+                                                        <TableCell className="TableHeadFormat" align="center">SquiredOffAt</TableCell>
+                                                        <TableCell className="TableHeadFormat" align="center">StopLoss</TableCell>
+                                                        {/* <TableCell className="TableHeadFormat" align="center">Sr. </TableCell> */}
 
 
-                                                            //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
-                                                            
-                                                                    <TableRow hover key={i}  >
+                                                    </TableRow>
 
-                                                                    <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
-                                                                    {/* <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
-                                                                    <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "green" : "red" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
-                                                                */}
-                                                                    <TableCell {...sumPnlValue = sumPnlValue + ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" > {((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
-
-                                                                    <TableCell style={{ color: row.perChngOnHighLow > 0 ? "green" : "red" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
-                                                                    <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
+                                                </TableHead>
+                                                <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
 
 
 
-                                                                    <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
-
-                                                                    <TableCell align="left" style={{ color: row.foundAt.indexOf('Long') == 0  ? "green" : "red" }} {... totalLongTrade = totalLongTrade + (row.foundAt.indexOf('Long') == 0 ? 1 : 0) }>{row.foundAt}</TableCell>
-                                                                    <TableCell align="center">{row.buyExitPrice}</TableCell>
-
-                                                                    <TableCell align="center" {...totalInvestedValue = totalInvestedValue + (row.foundAt.indexOf('Long') == 0  ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity)) }>{row.sellEntyPrice}({row.quantity})</TableCell>
-                                                                    <TableCell  title="High on long side | Low in short side" align="center">{row.highAndLow}</TableCell>
-
-                                                                    <TableCell align="center">{row.squareOffAt}</TableCell>
-                                                                
-                                                                    <TableCell align="center">{row.stopLoss}</TableCell>
-                                                                    {/* <TableCell align="center">{i + 1}</TableCell> */}
-
-                                                                </TableRow>
+                                                    {this.state.backTestResultDateRange[key].map((row, i) => (
 
 
-                                                            ))}
+                                                        //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
+
+                                                        <TableRow hover key={i}  >
+
+                                                            <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
+                                                            {/* <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
+                            <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "green" : "red" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
+                        */}
+                                                            <TableCell {...sumPnlValue = sumPnlValue + ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" > {((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
+
+                                                            <TableCell style={{ color: row.perChngOnHighLow > 0 ? "green" : "red" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
+                                                            <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
 
 
 
-                                                    <TableRow style={{  background: "lightgray" }} >
+                                                            <TableCell align="left"> <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
 
-                                                    <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
+                                                            <TableCell align="left" style={{ color: row.foundAt.indexOf('Long') == 0 ? "green" : "red" }} {...totalLongTrade = totalLongTrade + (row.foundAt.indexOf('Long') == 0 ? 1 : 0)}>{row.foundAt}</TableCell>
+                                                            <TableCell align="center">{row.buyExitPrice}</TableCell>
 
-                                                    {/* <TableCell style={{ color: "red" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
-                                                    <TableCell style={{ color: netSumPerChange > 0 ? "green" : "red" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
+                                                            <TableCell align="center" {...totalInvestedValue = totalInvestedValue + (row.foundAt.indexOf('Long') == 0 ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity))}>{row.sellEntyPrice}({row.quantity})</TableCell>
+                                                            <TableCell title="High on long side | Low in short side" align="center">{row.highAndLow}</TableCell>
 
-                                                    <TableCell style={{ color: sumPnlValue > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
+                                                            <TableCell align="center">{row.squareOffAt}</TableCell>
 
-                                                    <TableCell style={{ color: sumPerChangeHighLow > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
-                                                    <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
+                                                            <TableCell align="center">{row.stopLoss}</TableCell>
+                                                            {/* <TableCell align="center">{i + 1}</TableCell> */}
 
-
-                                                    <TableCell align="left" > {localStorage.setItem('totalLongTrade', totalLongTrade)} {localStorage.setItem('totalInvestedValue', totalInvestedValue.toFixed(2))} </TableCell>
-
-                                                    <TableCell align="left">{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))} {localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
-
-                                                    <TableCell align="left"></TableCell>
+                                                        </TableRow>
 
 
-                                                    <TableCell align="left" > </TableCell>
-                                                    <TableCell align="left"> </TableCell>
+                                                    ))}
 
-                                                    <TableCell align="left"> </TableCell>
-                                                    <TableCell align="left"> </TableCell>
+
+
+                                                    <TableRow style={{ background: "lightgray" }} >
+
+                                                        <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
+
+                                                        {/* <TableCell style={{ color: "red" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
+            <TableCell style={{ color: netSumPerChange > 0 ? "green" : "red" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
+
+                                                        <TableCell style={{ color: sumPnlValue > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
+
+                                                        <TableCell style={{ color: sumPerChangeHighLow > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
+                                                        <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
+
+
+                                                        <TableCell align="left" > {localStorage.setItem('totalLongTrade', totalLongTrade)} {localStorage.setItem('totalInvestedValue', totalInvestedValue.toFixed(2))} </TableCell>
+
+                                                        <TableCell align="left">{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))} {localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
+
+                                                        <TableCell align="left"></TableCell>
+
+
+                                                        <TableCell align="left" > </TableCell>
+                                                        <TableCell align="left"> </TableCell>
+
+                                                        <TableCell align="left"> </TableCell>
+                                                        <TableCell align="left"> </TableCell>
 
 
 
 
                                                     </TableRow>
 
-                                                    </TableBody>
-                                                </Table>
-                                                
+                                                </TableBody>
+                                            </Table>
 
-                                            
-                                            )) : ''}
 
-                                            </>
+
+                                        )) : ''}
+
+                                    </>
 
                                         : ""}
 
 
-                                        {this.state.patternType == 'NR4ForNextDay' ?   
+                                    {this.state.patternType == 'NR4ForNextDay' ?
 
                                         <Typography component="h3" variant="h6" color="primary" gutterBottom>
-                                           NR4 For Next Day  ({this.state.FoundPatternList.length})  at {this.state.endDate && this.state.endDate ? this.state.endDate.toString().substr(0, 16)   : new Date().toString().substr(0, 16)}
-                                        </Typography> 
+                                            NR4 For Next Day  ({this.state.FoundPatternList.length})  at {this.state.endDate && this.state.endDate ? this.state.endDate.toString().substr(0, 16) : new Date().toString().substr(0, 16)}
+                                        </Typography>
                                         : ""}
-                                            
-                                        {this.state.patternType == 'NR4ForNextDay' ?   
-                                         <Table size="small" aria-label="sticky table" >
+
+                                    {this.state.patternType == 'NR4ForNextDay' ?
+                                        <Table size="small" aria-label="sticky table" >
 
                                             <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                               
+
                                                 <TableRow variant="head" style={{ fontWeight: 'bold' }}>
 
-                                                   <TableCell className="TableHeadFormat" align="center">Sr </TableCell>
+                                                    <TableCell className="TableHeadFormat" align="center">Sr </TableCell>
 
-                                                    <TableCell className="TableHeadFormat"  align="left">Symbol </TableCell>
+                                                    <TableCell className="TableHeadFormat" align="left">Symbol </TableCell>
                                                     <TableCell className="TableHeadFormat" align="left">FoundAt </TableCell>
                                                     <TableCell className="TableHeadFormat" align="left">Past Performance </TableCell>
 
@@ -2501,85 +2561,131 @@ class Home extends React.Component {
                                                     <TableCell className="TableHeadFormat" align="left">Low</TableCell>
                                                     <TableCell className="TableHeadFormat" align="left">Close</TableCell>
 
-                                                 
+
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-                                        
-
-                                           
-                                        {this.state.FoundPatternList ? this.state.FoundPatternList.map((row, i) => (
 
 
 
-                                            //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
-                                            <TableRow hover key={i}  >
-                                                <TableCell align="center">{i + 1}</TableCell>
-                                                <TableCell align="left"> <Button  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
-
-                                                <TableCell align="left">{row.foundAt.substr(0, 16)}</TableCell>
-                                                <TableCell align="left" title="based on last one 6 month">  
-                                                
-                                                <span style={{background: row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs >= 1 ? "#92f192" : ""}}><b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)  </span> <br/>
-                                                 Longs on High%: {row.pastPerferm.totalLongHighPer}%  ({(row.pastPerferm.totalLongHighPer/row.pastPerferm.totalLongs).toFixed(2)}% per trade)<br/>
-                                                 {row.longCandles && row.longCandles.map((insiderow, i) => (
-                                                       <>
-                                                         {/* <Button size="small"  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> <EqualizerIcon /></Button> */}
-                                                     
-                                                        <a style={{textDecoration: 'underline', background: 'lightgray',cursor: 'pointer'}} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> {insiderow.foundAt.substr(7, 10)} </a>  &nbsp;
-                                                        </>
-                                                ))}
-
-                                                <br/>
-
-                                                <span style={{background: row.pastPerferm.totalShortPer/row.pastPerferm.totalShort >= 1 ? "#e87b7b" : ""}}><b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer/row.pastPerferm.totalShort).toFixed(2)}% per trade) </span> <br/>
-                                                Short on Low%: {row.pastPerferm.totalShortLowPer}% ({(row.pastPerferm.totalShortLowPer/row.pastPerferm.totalShort).toFixed(2)}% per trade)<br/>
-                                                {row.shortCandles && row.shortCandles.map((insiderow, i) => (
-                                                <>
-                                                <a style={{textDecoration: 'underline', background: 'lightgray', cursor: 'pointer'}} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> {insiderow.foundAt.substr(7, 10)}  </a> &nbsp;
-                                              
- 
-                                                </>
-                                                ))}
-                                                
-                                                </TableCell>
-
-                                                
-                                                <TableCell align="left">{row.BuyAt}</TableCell>
-                                                <TableCell align="left">{row.SellAt}</TableCell>
-                                                <TableCell align="left">{row.high}</TableCell>
-                                                <TableCell align="left">{row.low}</TableCell>
-                                                <TableCell align="left">{row.close}</TableCell>
-
-
-                                            </TableRow>
+                                                {this.state.FoundPatternList ? this.state.FoundPatternList.map((row, i) => (
 
 
 
-                                        )) : ''}
+                                                    //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
+                                                    <TableRow hover key={i}  >
+                                                        <TableCell align="center">{i + 1}</TableCell>
+                                                        <TableCell align="left"> <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
 
-                                        </TableBody>
+                                                        <TableCell align="left">{row.foundAt.substr(0, 16)}</TableCell>
+                                                        <TableCell align="left" title="based on last one 6 month">
+
+                                                            <span style={{ background: row.pastPerferm.totalLongPer / row.pastPerferm.totalLongs >= 1 ? "#92f192" : "" }}><b>{row.pastPerferm.totalLongs}</b>  Longs:  {row.pastPerferm.totalLongPer}% ({(row.pastPerferm.totalLongPer / row.pastPerferm.totalLongs).toFixed(2)}% per trade)  </span> <br />
+                                                            Longs on High%: {row.pastPerferm.totalLongHighPer}%  ({(row.pastPerferm.totalLongHighPer / row.pastPerferm.totalLongs).toFixed(2)}% per trade)<br />
+                                                            {row.longCandles && row.longCandles.map((insiderow, i) => (
+                                                                <>
+                                                                    {/* <Button size="small"  variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> <EqualizerIcon /></Button> */}
+
+                                                                    <a style={{ textDecoration: 'underline', background: 'lightgray', cursor: 'pointer' }} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> {insiderow.foundAt.substr(7, 10)} </a>  &nbsp;
+                                                                </>
+                                                            ))}
+
+                                                            <br />
+
+                                                            <span style={{ background: row.pastPerferm.totalShortPer / row.pastPerferm.totalShort >= 1 ? "#e87b7b" : "" }}><b>{row.pastPerferm.totalShort}</b> Short: {row.pastPerferm.totalShortPer}% ({(row.pastPerferm.totalShortPer / row.pastPerferm.totalShort).toFixed(2)}% per trade) </span> <br />
+                                                            Short on Low%: {row.pastPerferm.totalShortLowPer}% ({(row.pastPerferm.totalShortLowPer / row.pastPerferm.totalShort).toFixed(2)}% per trade)<br />
+                                                            {row.shortCandles && row.shortCandles.map((insiderow, i) => (
+                                                                <>
+                                                                    <a style={{ textDecoration: 'underline', background: 'lightgray', cursor: 'pointer' }} onClick={() => this.showCandleChart(insiderow.candleChartData, row.symbol, insiderow)}> {insiderow.foundAt.substr(7, 10)}  </a> &nbsp;
+
+
+                                                                </>
+                                                            ))}
+
+                                                        </TableCell>
+
+
+                                                        <TableCell align="left">{row.BuyAt}</TableCell>
+                                                        <TableCell align="left">{row.SellAt}</TableCell>
+                                                        <TableCell align="left">{row.high}</TableCell>
+                                                        <TableCell align="left">{row.low}</TableCell>
+                                                        <TableCell align="left">{row.close}</TableCell>
+
+
+                                                    </TableRow>
+
+
+
+                                                )) : ''}
+
+                                            </TableBody>
 
                                         </Table>
-                                        
+
                                         : ""}
-                                        </Grid>             
+                                </Grid>
 
 
-                                    </Grid>
+                            </Grid>
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} sm={2}  >
 
 
-              
+                        <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
+                            <Grid item xs={12} sm={12}>
+                                <Paper>
+                                    <Typography style={{ textAlign: "center", background: "green" }}>{this.state.openEqualHighList.length} Open = Low : BUY </Typography>
+                                    <div style={{ overflowY: 'scroll', height: "25vh" }}>
+                                        {this.state.openEqualHighList && this.state.openEqualHighList.length ? this.state.openEqualHighList.map(row => (
+                                            <>                                            
+                                                <ListItem button  style={{ fontSize: '12px', padding:'0px',  paddingLeft: '5px' , paddingRight: '5px' }}  >
+                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
+                                                </ListItem> 
+                                            </>
+                                        )) : ''}
+                                    </div>
+                                </Paper>
+                            </Grid>
+                         
+                         
+                            <Grid item xs={12} sm={12}>
+                                <Paper >
+                                    <Typography style={{ textAlign: "center", background: "red" }}>{this.state.openEqualLowList.length} Open = Low : Sell </Typography>
+                                    <div style={{ overflowY: 'scroll', height: "25vh" }}>
+                                        {this.state.openEqualLowList && this.state.openEqualLowList.length ? this.state.openEqualLowList.map(row => (
+                                            <>
+                                                <ListItem button  style={{ fontSize: '12px', padding:'0px',  paddingLeft: '5px' , paddingRight: '5px' }}  >
+                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
+                                                </ListItem>
+                                            </>
+                                        )) : ''}
+                                    </div>
+                                </Paper>
                             </Grid>
 
 
+                           
 
+
+                            <Grid item xs={12} sm={12}>
+                                <Paper>
+                                    <Typography style={{ textAlign: "center", background: "lightgray" }}>Weekly, Daily, Hourly Bullish = Buy</Typography>
+                                    <div style={{ overflowY: 'scroll', height: "25vh" }}>
+                                        
+                                    </div>
+                                </Paper>
+                            </Grid>
 
                         </Grid>
+
+
+
+
+
+
                     </Grid>
-
-
-
 
 
 

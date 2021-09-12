@@ -266,7 +266,7 @@ class OrderBook extends React.Component{
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
                       Orders Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
                     
-                      {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> Open in New Page <OpenInNewIcon/> </Button> : ""}
+                      {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
 
                       {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
 
