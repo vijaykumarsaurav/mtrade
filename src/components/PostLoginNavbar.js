@@ -21,7 +21,6 @@ import MyLogo from './mylogo.png';
 import Button from '@material-ui/core/Button';
 import InvertColor from '../utils/InvertColor';
 import FoundPatternDialog from '../components/MyTrade/FoundPatternDialog'
-import Autocomplete from '@material-ui/lab/Autocomplete';
 import AdminService from "./service/AdminService";
 import TextField from "@material-ui/core/TextField";
 import CommonOrderMethod from "../utils/CommonMethods";
@@ -131,9 +130,9 @@ export default function PostLoginNavBar(props) {
          })
     }
 
-    function udpateFlag( flag ){
-        setValues({ ...values, ['buyFlag']: flag });
-        setValues({ ...values, ['sellFlag']: flag });
+    function callbackAfterOrderDone( order ){
+        setValues({ ...values, ['buyFlag']: order.status });
+        setValues({ ...values, ['sellFlag']:  order.status  });
         setValues({ ...values, ['searchSymbol']: '' });
     }
 
@@ -146,7 +145,7 @@ export default function PostLoginNavBar(props) {
                     token: values.token, 
                     symbol: values.searchSymbol
                 }
-               CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", udpateFlag);
+               CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", callbackAfterOrderDone);
             }
 
             if (type == 'SELL') {
@@ -155,7 +154,7 @@ export default function PostLoginNavBar(props) {
                     token: values.token, 
                     symbol: values.searchSymbol
                 }
-                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", udpateFlag);
+                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", callbackAfterOrderDone);
             }
         }else{
             Notify.showError("Type Symbol!!!");
@@ -209,7 +208,7 @@ export default function PostLoginNavBar(props) {
                             >
 
                                 <Grid item  >
-                                    <TextField label="Type Symbol & Order" name="searchSymbol" value={values.searchSymbol} onChange={handleInput}  />
+                                    <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput}  />
                                 </Grid>
                                 <Grid item  >
                                     {values.buyFlag ? <Button variant="contained" color="primary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("BUY")}>Buy</Button> : <Spinner />}

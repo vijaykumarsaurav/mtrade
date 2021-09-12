@@ -43,6 +43,13 @@ export const AdminMenuList = (
       <ListItemText primary="Positions" />
     </ListItem>
 
+    <ListItem button component='a' href={"/mtrade/#/order-watchlist"} >  
+      <ListItemIcon>
+        <EmojiEmotionsIcon />
+      </ListItemIcon>
+      <ListItemText primary="Order Watchlist" />
+    </ListItem>
+
     <ListItem button component='a' href={"/mtrade/#/funds"} >  
       <ListItemIcon>
         <FileCopyIcon />
@@ -63,7 +70,7 @@ export const AdminMenuList = (
       <ListItemText primary="Trade Book" />
     </ListItem>
   
-    <ListItem button component='a' href={"/mtrade/#/bn-view"} >  
+    {/* <ListItem button component='a' href={"/mtrade/#/bn-view"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
@@ -83,7 +90,7 @@ export const AdminMenuList = (
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Sector Top" />
-    </ListItem>
+    </ListItem> */}
 
     {/* <ListItem button component='a' href={"/mtrade/#/test"} >  
       <ListItemIcon>

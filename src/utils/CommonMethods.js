@@ -78,17 +78,16 @@ class CommonOrderMethod {
     }
 
 
-
     historyWiseOrderPlace = (sectorItem, orderType, isAutomatic, callback) => {
 
         var token = sectorItem.token;
         var symbol = sectorItem.symbol;
 
-        if (isAutomatic != "Automatic") {
-            if (!window.confirm(orderType + " " + symbol + " Are you sure ? ")) {
-                return;
-            }
-        }
+        // if (isAutomatic != "Automatic") {
+        //     if (!window.confirm(orderType + " " + symbol + " Are you sure ? ")) {
+        //         return;
+        //     }
+        // }
 
         var ltpdata = { "exchange": "NSE", "tradingsymbol": symbol, "symboltoken": token, }
         AdminService.getLTP(ltpdata).then(res => {
@@ -111,7 +110,7 @@ class CommonOrderMethod {
 
                 console.log("beginningTime", beginningTime);
 
-                var time = moment.duration("62:10:00");  //21:10:00"
+                var time = moment.duration("75:10:00");  //21:10:00"
                 var startdate = moment(new Date()).subtract(time);
                 var data = {
                     "exchange": "NSE",
@@ -260,6 +259,13 @@ class CommonOrderMethod {
                         //localStorage.setItem('NseStock_' + symbol, "");
                         Notify.showError(symbol + " candle data emply");
                         console.log(symbol + " candle data emply");
+                        var callData = {
+                            "transactiontype": orderType,//BUY OR SELL
+                            "tradingsymbol": symbol,
+                            "symboltoken": token,
+                            "status": false
+                        }
+                        callback(callData);
                     }
                 })
 
@@ -289,6 +295,9 @@ class CommonOrderMethod {
             "variety": "NORMAL"
         }
         console.log("place order option", data);
+
+       
+
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
             //  console.log(data);   
@@ -297,7 +306,13 @@ class CommonOrderMethod {
                     this.placeSLMOrder(orderOption);
                 }
                 this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
-                callback(true); 
+             
+                var callData = {
+                    "token": orderOption.symboltoken,
+                    "status": true
+                }
+                callback(callData);
+                return;  
             }
 
         })
