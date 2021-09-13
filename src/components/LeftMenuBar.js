@@ -15,25 +15,23 @@ export const AdminMenuList = (
   <div>
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
-    <ListItem button component='a' href={"/mtrade/#/sector-heat-map"} >  
-      <ListItemIcon>
-        <ShowChartIcon />
-      </ListItemIcon>
-      <ListItemText primary="Sector Heat Map" />
-    </ListItem>
 
     <ListItem button component='a' href={"/mtrade/#/sector-heat-map2"} >  
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
-      <ListItemText primary="Sector Heat Map2" />
+      <ListItemText primary="Heat Map2" />
     </ListItem>
 
+
+    
+
+   
     <ListItem button component='a' target={'_blank'} href={"/mtrade/#/find-fast-movement"} >  
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
-      <ListItemText primary="Search Fast Movement" />
+      <ListItemText primary="Fast Movement" />
     </ListItem>
 
     <ListItem button component='a' href={"/mtrade/#/position"} >  
@@ -68,6 +66,13 @@ export const AdminMenuList = (
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Trade Book" />
+    </ListItem>
+
+    <ListItem button component='a' href={"/mtrade/#/sector-heat-map"} >  
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Heat Map" />
     </ListItem>
   
     {/* <ListItem button component='a' href={"/mtrade/#/bn-view"} >  

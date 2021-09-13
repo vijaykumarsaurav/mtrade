@@ -56,9 +56,9 @@ class MyView extends React.Component {
                 'NIFTY CPSE': 'cpse',
                 'NIFTY INFRA': 'cnxInfra',
                 'NIFTY MNC': 'cnxMNC',
+                'NIFTY PSE': 'cnxPSE',
 
                 // 'NIFTY GROWSECT 15': 'ni15',H
-                // 'NIFTY PSE': 'cnxPSE',
                 // 'NIFTY COMMODITIES': 'cnxCommodities',
                 // 'NIFTY SERV SECTOR': 'cnxService',
                 // 'NIFTY100 LIQ 15': 'nseliquid',
@@ -478,8 +478,6 @@ class MyView extends React.Component {
     loadIndexesList() {
         this.setState({ indexTimeStamp: '', refreshFlag: false, failedCount: 0, topGLCount: 0 });
 
-
-        
         AdminService.allIndicesDirectJSON()
             .then((res) => {
 
@@ -490,8 +488,10 @@ class MyView extends React.Component {
                    softedData.sort(function (a, b) {
                     return b.percChange - a.percChange;
                    });
+
                    
-                  
+                   this.setState({ indexTimeStamp: softedData[0].timeVal });
+
 
                     for (let index = 0; index < softedData.length; index++) {
                         const element = softedData[index];
@@ -1054,8 +1054,9 @@ class MyView extends React.Component {
                 <Grid direction="row" container className="flexGrow" spacing={1} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
                     <Grid item xs={12} sm={12} >
                         <Typography component="h3" variant="h6" color="primary" >
-                            Top Gainer/Looser Sectors({Object.keys(this.state.sluglist).length}) at {this.state.indexTimeStamp}
-                            {this.state.refreshFlag ? <Button variant="contained" onClick={() => this.loadIndexesList()}>Live Ltp</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </>}
+                            Sectors HitMap ({Object.keys(this.state.sluglist).length}) at {this.state.indexTimeStamp}
+                            &nbsp;
+                            {this.state.refreshFlag ? <Button variant="contained" onClick={() => this.loadIndexesList()}>Refresh</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </>}
                             {this.state.failedCount ? this.state.failedCount + "Failed" : ""}
 
                             &nbsp;
@@ -1083,22 +1084,20 @@ class MyView extends React.Component {
                         <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
 
 
-                            <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
+                            {/* <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
                                 <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)</b> &nbsp; {indexdata.time.substr(13,8)}
-
-                                {/* {indexdata.time.substr(13,8)} */}
-
                             </Button>
                             &nbsp;
 
                             <Button size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshSectorCandleManually(indexdata.index)}>
                                 <ShowChartIcon />
-                            </Button>
+                            </Button> */}
 
+                            <Typography variant="body1" >
+                                <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)</b> &nbsp; {indexdata.time.substr(13,8)}
+                            </Typography>
 
                             <Grid direction="row" container className="flexGrow" spacing={1} >
-
-
 
                                 {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
 

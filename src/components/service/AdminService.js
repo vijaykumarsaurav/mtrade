@@ -104,14 +104,14 @@ class AdminService {
     }
 
     checkOtherApi(index){
-        return axios.get('http://localhost:3000/nse/get_indices', '');
+      //  return axios.get('http://localhost:8081/nse/get_indices', '');
      //  return axios.get('http://localhost:3000/nse/get_index_stocks?symbol=bankNifty', '');
-    // return axios.get("https://www1.nseindia.com/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json", '');
+        return axios.get("https://www1.nseindia.com/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json", '');
     }
 
     checkSectorApiOther(index){
         //  return axios.get('http://localhost:3000/nse/get_indices', '');
-         return axios.get('http://localhost:3000/nse/get_index_stocks?symbol='+index, '');
+         return axios.get('http://localhost:8081/nse/get_index_stocks?symbol='+index, '');
        //return axios.get("https://www1.nseindia.com/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json", '');
       }
 
@@ -122,7 +122,7 @@ class AdminService {
     }
 
     allIndicesDirectJSON(){
-        return axios.get('http://localhost:3000/nse/get_indices', '');
+        return axios.get('http://localhost:8081/nse/get_indices', '');
         // return axios.get(apiConstant.allIndices2Json);
      }
  
