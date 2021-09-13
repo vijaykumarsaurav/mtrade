@@ -232,6 +232,7 @@ class Home extends React.Component {
 
     componentDidMount() {
 
+        window.document.title = "Home"; 
         this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] });
 
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
@@ -1442,15 +1443,15 @@ class Home extends React.Component {
 
 
             if (diffPer >= 1.5 && maxHigh < highestOfBoth && maxLow < lowestOfBoth) {
-                //1st candle green & 2nd candle is red check
+                //1st candle #20d020 & 2nd candle is red check
                 if (secondCandle.open < secondCandle.close && firstCandle.open > firstCandle.close) {
                     // console.log(symbol, "candleHist",candleHist); 
                     //  console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
-                    //  console.log(symbol, 'making twisser 1st green & 2nd red' , firstCandle, secondCandle );
+                    //  console.log(symbol, 'making twisser 1st #20d020 & 2nd red' , firstCandle, secondCandle );
 
                     if (Math.round(secondCandle.close) == Math.round(firstCandle.open) && Math.round(secondCandle.open) == Math.round(firstCandle.close)) {
 
-                        console.log('%c' + new Date(candleHist[0][0]).toString(), 'color: green');
+                        console.log('%c' + new Date(candleHist[0][0]).toString(), 'color: #20d020');
                         console.log(symbol, "last 8th candle diff% ", diffPer, "10th Low", lastTrendCandleLow, "3rd high", firstTrendCandleHigh);
 
                         console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);
@@ -1655,15 +1656,15 @@ class Home extends React.Component {
 
 
             if (diffPer <= -1.5 && highestOfBoth < maxHigh && lowestOfBoth < maxLow) {
-                //1st candle green & 2nd candle is red check
+                //1st candle #20d020 & 2nd candle is red check
                 if (secondCandle.open > secondCandle.close && firstCandle.close > firstCandle.open) {
                     // console.log(symbol, "candleHist",candleHist); 
                     //  console.log(symbol, "last 8th candle diff% ",  diffPer, "10th Low", lastTrendCandleLow,"3rd high", firstTrendCandleHigh);
-                    //  console.log(symbol, 'making twisser 1st green & 2nd red' , firstCandle, secondCandle );
+                    //  console.log(symbol, 'making twisser 1st #20d020 & 2nd red' , firstCandle, secondCandle );
 
                     if (Math.round(secondCandle.close) == Math.round(firstCandle.open) || Math.round(secondCandle.open) == Math.round(firstCandle.close)) {
 
-                        console.log('%c' + new Date(candleHist[0][0]).toString(), 'color: green');
+                        console.log('%c' + new Date(candleHist[0][0]).toString(), 'color: #20d020');
                         console.log(symbol, "last 8th candle diff% ", diffPer, "10th Low", lastTrendCandleLow, "3rd high", firstTrendCandleHigh);
 
                         console.log(symbol, "maxHigh", maxHigh, "maxLow", maxLow);
@@ -2130,7 +2131,7 @@ class Home extends React.Component {
                                     <>
                                         <ListItem button style={{ fontSize: '12px', padding:'0px', paddingLeft: '5px' , paddingRight: '5px' }} >
                                         {/* <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />  */}
-                                        <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {row.ltp} ({row.nc}%) 
+                                        <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {row.ltp} ({row.nc}%) 
                                         </ListItem>
 
                                     </>
@@ -2148,7 +2149,7 @@ class Home extends React.Component {
                             <Grid style={{ display: "visible" }} direction="row" alignItems="center" container>
 
                                 <Grid item xs={10} sm={5}>
-                                    {this.state.tradingsymbol ? <Typography variant="h5" style={{ color: this.state.InstrumentPerChange > 0 ? "green" : "red" }} >
+                                    {this.state.tradingsymbol ? <Typography variant="h5" style={{ color: this.state.InstrumentPerChange > 0 ? "#20d020" : "#e66e6e" }} >
                                         {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : ""} ({this.state.InstrumentPerChange + "%"})
                                     </Typography> : <Typography variant="h5" >Select Symbol </Typography>}
                                     Open : {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : ""} &nbsp;
@@ -2183,14 +2184,14 @@ class Home extends React.Component {
                                 </Grid>
 
                                 
-                                <Grid item xs={12} sm={12}  >
+                                <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "50vh" }} >
                                 <Table size="small" aria-label="sticky table" >
                                     <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
                                         <TableRow variant="head" style={{ fontWeight: 'bold' }} >
 
                                             <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
                                             <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
-                                            <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: 'green' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> </TableCell>
+                                            <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> </TableCell>
                                             <TableCell className="TableHeadFormat" align="center">Open</TableCell>
                                             <TableCell className="TableHeadFormat" align="center">High</TableCell>
                                             <TableCell className="TableHeadFormat" align="center">Low</TableCell>
@@ -2202,7 +2203,7 @@ class Home extends React.Component {
                                     <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
                                         {/* this.getPercentageColor((row[4] - row[1])*100/row[1] >= 0.3)  */}
                                         {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
-                                            <TableRow key={i} style={{ background: (row[4] - row[1]) * 100 / row[1] >= 0.3 ? "green" : (row[4] - row[1]) * 100 / row[1] <= -0.3 ? "red" : "none" }} >
+                                            <TableRow key={i} style={{ background: (row[4] - row[1]) * 100 / row[1] >= 0.3 ? "#20d020" : (row[4] - row[1]) * 100 / row[1] <= -0.3 ? "#e66e6e" : "none" }} >
 
                                                 <TableCell align="center">{this.state.tradingsymbol}</TableCell>
                                                 <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
@@ -2277,16 +2278,16 @@ class Home extends React.Component {
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
                                             <TableRow style={{ background: "lightgray" }}>
 
-                                                <TableCell style={{ color: localStorage.getItem('sumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPerChange')}%</b></TableCell>
+                                                <TableCell style={{ color: localStorage.getItem('sumPerChange') > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.getItem('sumPerChange')}%</b></TableCell>
 
-                                                {/* <TableCell style={{ color: "red" }} align="center"><b>{localStorage.getItem('sumBrokeragePer')}%</b></TableCell>
-        <TableCell style={{ color: localStorage.getItem('netSumPerChange') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('netSumPerChange')}%</b></TableCell> */}
+                                                {/* <TableCell style={{ color: "#e66e6e" }} align="center"><b>{localStorage.getItem('sumBrokeragePer')}%</b></TableCell>
+        <TableCell style={{ color: localStorage.getItem('netSumPerChange') > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.getItem('netSumPerChange')}%</b></TableCell> */}
 
 
-                                                <TableCell style={{ color: localStorage.getItem('sumPnlValue') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPnlValue')}</b></TableCell>
+                                                <TableCell style={{ color: localStorage.getItem('sumPnlValue') > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.getItem('sumPnlValue')}</b></TableCell>
 
-                                                <TableCell style={{ color: localStorage.getItem('sumPerChangeHighLow') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPerChangeHighLow')}%</b></TableCell>
-                                                <TableCell style={{ color: localStorage.getItem('sumPnlValueOnHighLow') > 0 ? "green" : "red" }} align="center"><b>{localStorage.getItem('sumPnlValueOnHighLow')}</b></TableCell>
+                                                <TableCell style={{ color: localStorage.getItem('sumPerChangeHighLow') > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.getItem('sumPerChangeHighLow')}%</b></TableCell>
+                                                <TableCell style={{ color: localStorage.getItem('sumPnlValueOnHighLow') > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.getItem('sumPnlValueOnHighLow')}</b></TableCell>
 
 
 
@@ -2297,7 +2298,7 @@ class Home extends React.Component {
                                                 <TableCell align="center">Long: {localStorage.getItem('totalLongTrade')} Short:  {this.state.backTestResult && this.state.backTestResult.length - localStorage.getItem('totalLongTrade')}</TableCell>
                                                 <TableCell align="left" colSpan={2}> Total Invested  {localStorage.getItem('totalInvestedValue')}</TableCell>
 
-                                                <TableCell align="center" colSpan={4}> Average gross/trade PnL:  <b style={{ color: (localStorage.getItem('sumPerChange') / this.state.backTestResult.length) > 0 ? "green" : "red" }} >{(localStorage.getItem('sumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b></TableCell>
+                                                <TableCell align="center" colSpan={4}> Average gross/trade PnL:  <b style={{ color: (localStorage.getItem('sumPerChange') / this.state.backTestResult.length) > 0 ? "#20d020" : "#e66e6e" }} >{(localStorage.getItem('sumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b></TableCell>
 
 
                                             </TableRow>
@@ -2341,20 +2342,20 @@ class Home extends React.Component {
                                                 //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
                                                 <TableRow hover key={i}  >
 
-                                                    <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
+                                                    <TableCell style={{ color: row.perChange > 0 ? "#20d020" : "#e66e6e" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
                                                     {/* <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
-        <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "green" : "red" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
+        <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "#20d020" : "#e66e6e" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
         */}
-                                                    <TableCell {...tradetotal = ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} {...sumPnlValue = sumPnlValue + tradetotal} {...totalWin += (((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? 1 : 0)} {...totalLoss += ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) < 0 ? 1 : 0} style={{ color: tradetotal > 0 ? "green" : "red" }} align="center" > {tradetotal.toFixed(2)}</TableCell>
+                                                    <TableCell {...tradetotal = ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} {...sumPnlValue = sumPnlValue + tradetotal} {...totalWin += (((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? 1 : 0)} {...totalLoss += ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) < 0 ? 1 : 0} style={{ color: tradetotal > 0 ? "#20d020" : "#e66e6e" }} align="center" > {tradetotal.toFixed(2)}</TableCell>
 
-                                                    <TableCell style={{ color: row.perChngOnHighLow > 0 ? "green" : "red" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
-                                                    <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
+                                                    <TableCell style={{ color: row.perChngOnHighLow > 0 ? "#20d020" : "#e66e6e" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
+                                                    <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "#20d020" : "#e66e6e" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
 
 
 
                                                     <TableCell align="left"> <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleBothChart(row)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
 
-                                                    <TableCell align="left" style={{ color: row.foundAt && row.foundAt.indexOf('Long') == 0 ? "green" : "red" }} {...totalLongTrade = totalLongTrade + (row.foundAt && row.foundAt.indexOf('Long') == 0 ? 1 : 0)}>{row.foundAt}</TableCell>
+                                                    <TableCell align="left" style={{ color: row.foundAt && row.foundAt.indexOf('Long') == 0 ? "#20d020" : "#e66e6e" }} {...totalLongTrade = totalLongTrade + (row.foundAt && row.foundAt.indexOf('Long') == 0 ? 1 : 0)}>{row.foundAt}</TableCell>
                                                     <TableCell align="center">{row.squareOffAt}</TableCell>
 
                                                     <TableCell align="center">{row.exitStatus}</TableCell>
@@ -2377,15 +2378,15 @@ class Home extends React.Component {
 
                                             <TableRow style={{ background: "lightgray" }} >
 
-                                                <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
+                                                <TableCell style={{ color: sumPerChange > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
 
-                                                {/* <TableCell style={{ color: "red" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
-<TableCell style={{ color: netSumPerChange > 0 ? "green" : "red" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
+                                                {/* <TableCell style={{ color: "#e66e6e" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
+<TableCell style={{ color: netSumPerChange > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
 
-                                                <TableCell style={{ color: sumPnlValue > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
+                                                <TableCell style={{ color: sumPnlValue > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
 
-                                                <TableCell style={{ color: sumPerChangeHighLow > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
-                                                <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
+                                                <TableCell style={{ color: sumPerChangeHighLow > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
+                                                <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
 
 
                                                 <TableCell align="left" > {localStorage.setItem('totalLongTrade', totalLongTrade)} {localStorage.setItem('totalInvestedValue', totalInvestedValue.toFixed(2))} </TableCell>
@@ -2463,20 +2464,20 @@ class Home extends React.Component {
 
                                                         <TableRow hover key={i}  >
 
-                                                            <TableCell style={{ color: row.perChange > 0 ? "green" : "red" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
+                                                            <TableCell style={{ color: row.perChange > 0 ? "#20d020" : "#e66e6e" }} align="center" {...sumPerChange = sumPerChange + parseFloat(row.perChange || 0)}>{row.perChange}%</TableCell>
                                                             {/* <TableCell style={{ color: "gray" }} align="center" {...sumBrokeragePer = sumBrokeragePer + parseFloat(row.brokerageCharges)}>{row.brokerageCharges}%</TableCell>
-                            <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "green" : "red" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
+                            <TableCell style={{ color: (row.perChange - row.brokerageCharges) > 0 ? "#20d020" : "#e66e6e" }} align="center" {...netSumPerChange = netSumPerChange + parseFloat(row.perChange - row.brokerageCharges)}> <b>{(row.perChange - row.brokerageCharges).toFixed(2)}%</b></TableCell>
                         */}
-                                                            <TableCell {...sumPnlValue = sumPnlValue + ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" > {((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
+                                                            <TableCell {...sumPnlValue = sumPnlValue + ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? "#20d020" : "#e66e6e" }} align="center" > {((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
 
-                                                            <TableCell style={{ color: row.perChngOnHighLow > 0 ? "green" : "red" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
-                                                            <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "green" : "red" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
+                                                            <TableCell style={{ color: row.perChngOnHighLow > 0 ? "#20d020" : "#e66e6e" }} align="center" {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
+                                                            <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "#20d020" : "#e66e6e" }} align="center" >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
 
 
 
                                                             <TableCell align="left"> <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleChart(row.candleChartData, row.symbol)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
 
-                                                            <TableCell align="left" style={{ color: row.foundAt.indexOf('Long') == 0 ? "green" : "red" }} {...totalLongTrade = totalLongTrade + (row.foundAt.indexOf('Long') == 0 ? 1 : 0)}>{row.foundAt}</TableCell>
+                                                            <TableCell align="left" style={{ color: row.foundAt.indexOf('Long') == 0 ? "#20d020" : "#e66e6e" }} {...totalLongTrade = totalLongTrade + (row.foundAt.indexOf('Long') == 0 ? 1 : 0)}>{row.foundAt}</TableCell>
                                                             <TableCell align="center">{row.buyExitPrice}</TableCell>
 
                                                             <TableCell align="center" {...totalInvestedValue = totalInvestedValue + (row.foundAt.indexOf('Long') == 0 ? parseFloat(row.buyExitPrice * row.quantity) : parseFloat(row.sellEntyPrice * row.quantity))}>{row.sellEntyPrice}({row.quantity})</TableCell>
@@ -2496,15 +2497,15 @@ class Home extends React.Component {
 
                                                     <TableRow style={{ background: "lightgray" }} >
 
-                                                        <TableCell style={{ color: sumPerChange > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
+                                                        <TableCell style={{ color: sumPerChange > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.setItem('sumPerChange', sumPerChange.toFixed(2))}{sumPerChange.toFixed(2)}%</b></TableCell>
 
-                                                        {/* <TableCell style={{ color: "red" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
-            <TableCell style={{ color: netSumPerChange > 0 ? "green" : "red" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
+                                                        {/* <TableCell style={{ color: "#e66e6e" }} align="center"><b>-{(sumBrokeragePer).toFixed(2)}%</b>{localStorage.setItem('sumBrokeragePer', sumBrokeragePer.toFixed(2))}</TableCell>
+            <TableCell style={{ color: netSumPerChange > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{(netSumPerChange).toFixed(2)}%</b>{localStorage.setItem('netSumPerChange', netSumPerChange.toFixed(2))}</TableCell> */}
 
-                                                        <TableCell style={{ color: sumPnlValue > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
+                                                        <TableCell style={{ color: sumPnlValue > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{(sumPnlValue).toFixed(2)}</b>{localStorage.setItem('sumPnlValue', sumPnlValue.toFixed(2))}</TableCell>
 
-                                                        <TableCell style={{ color: sumPerChangeHighLow > 0 ? "green" : "red" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
-                                                        <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "green" : "red" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
+                                                        <TableCell style={{ color: sumPerChangeHighLow > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{localStorage.setItem('sumPerChangeHighLow', sumPerChangeHighLow.toFixed(2))}{sumPerChangeHighLow.toFixed(2)}%</b></TableCell>
+                                                        <TableCell style={{ color: sumPnlValueOnHighLow > 0 ? "#20d020" : "#e66e6e" }} align="center"><b>{(sumPnlValueOnHighLow).toFixed(2)}</b>{localStorage.setItem('sumPnlValueOnHighLow', sumPnlValueOnHighLow.toFixed(2))}</TableCell>
 
 
                                                         <TableCell align="left" > {localStorage.setItem('totalLongTrade', totalLongTrade)} {localStorage.setItem('totalInvestedValue', totalInvestedValue.toFixed(2))} </TableCell>
@@ -2638,12 +2639,12 @@ class Home extends React.Component {
                         <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
                             <Grid item xs={12} sm={12}>
                                 <Paper>
-                                    <Typography style={{ textAlign: "center", background: "green" }}>{this.state.openEqualHighList.length} Open = Low : BUY </Typography>
+                                    <Typography style={{ textAlign: "center", background: "#20d020" }}>{this.state.openEqualHighList.length} Open = Low : BUY </Typography>
                                     <div style={{ overflowY: 'scroll', height: "25vh" }}>
                                         {this.state.openEqualHighList && this.state.openEqualHighList.length ? this.state.openEqualHighList.map(row => (
                                             <>                                            
                                                 <ListItem button  style={{ fontSize: '12px', padding:'0px',  paddingLeft: '5px' , paddingRight: '5px' }}  >
-                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
+                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
                                                 </ListItem> 
                                             </>
                                         )) : ''}
@@ -2654,12 +2655,12 @@ class Home extends React.Component {
                          
                             <Grid item xs={12} sm={12}>
                                 <Paper >
-                                    <Typography style={{ textAlign: "center", background: "red" }}>{this.state.openEqualLowList.length} Open = Low : Sell </Typography>
+                                    <Typography style={{ textAlign: "center", background: "#e66e6e" }}>{this.state.openEqualLowList.length} Open = High : Sell </Typography>
                                     <div style={{ overflowY: 'scroll', height: "25vh" }}>
                                         {this.state.openEqualLowList && this.state.openEqualLowList.length ? this.state.openEqualLowList.map(row => (
                                             <>
                                                 <ListItem button  style={{ fontSize: '12px', padding:'0px',  paddingLeft: '5px' , paddingRight: '5px' }}  >
-                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? 'green' : "red" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
+                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
                                                 </ListItem>
                                             </>
                                         )) : ''}

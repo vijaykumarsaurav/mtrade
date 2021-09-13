@@ -88,6 +88,9 @@ class MyView extends React.Component {
     componentDidMount() {
         // window.location.reload(); 
 
+        window.document.title = "Hit Map2"; 
+
+
        this.loadIndexesList();
 
        
@@ -109,7 +112,7 @@ class MyView extends React.Component {
 
             setInterval(() => {
                 this.loadIndexesList();
-            }, 5000);
+            }, 30000);
     
 
             wsClintSectorUpdate.onopen = (res) => {
@@ -487,6 +490,8 @@ class MyView extends React.Component {
                    softedData.sort(function (a, b) {
                     return b.percChange - a.percChange;
                    });
+                   
+                  
 
                     for (let index = 0; index < softedData.length; index++) {
                         const element = softedData[index];
@@ -505,31 +510,16 @@ class MyView extends React.Component {
                             })
                         }
                     }
-                 
-                
-                    // var updateLtpOnInterval = async (ref, softedData, sluglist) => {
 
-                    //     for (let index = 0; index < softedData.length; index++) {
-                    //         const element = softedData[index];
-                    //         var slugName =  sluglist[element.indexName]; 
-                    //       //  console.log("indexName", element.indexName, slugName);
-                    //         if(slugName){
-                    //             console.log("secName", element.indexName, slugName);
-                    //             AdminService.checkSectorApiOther(slugName).then(res => {
-                    //                 console.log(element.indexName, res.data.data);
-                    //                 softedData[index].stockList = res.data && res.data.data; 
-                    //                 this.setState({ sectorList: softedData });
-                    //             }).catch(error => {
-                    //                // Notify.showError(element.indexName + "fail to get stockdata"); 
-                    //                console.log("list fetch error", error)
-                    //             })
-                    //         }
-                    //       //  await new Promise(resolve => setTimeout(resolve, 0));
-                    //      }
-                    //      console.log("after", softedData);
+             
+
+
+                    // this.state.sectorList.forEach(element => {
+                    //     if(element.stockList && element.stockList.length){
+                    //         document.title = "Top1: " + element.indexName; 
+                    //         return;
                     //     }
-                    //     updateLtpOnInterval(this, softedData, sluglist);
-
+                    // });
 
 
                     
@@ -1088,12 +1078,15 @@ class MyView extends React.Component {
 
                     {this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
 
-                        indexdata.stockList ?  <Grid item xs={12} sm={this.state.topGLCount <= 2 ? 6 : this.state.topGLCount == 3 ? 4 : 3}>
+                        //this.state.topGLCount <= 2 ? 6 : this.state.topGLCount == 3 ? 4 : 3
+                        indexdata.stockList ?  <Grid item xs={12} sm={3}>
                         <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
 
 
                             <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
-                                <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)</b> &nbsp; {indexdata.timeVal}
+                                <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)</b> &nbsp; {indexdata.time.substr(13,8)}
+
+                                {/* {indexdata.time.substr(13,8)} */}
 
                             </Button>
                             &nbsp;
@@ -1114,7 +1107,7 @@ class MyView extends React.Component {
 
                                             {/* {sectorItem.cng} */}
                                             <Typography style={{ background: this.getPercentageColor(sectorItem.iislPercChange), fontSize: '14px' }}>
-                                                {i + 1}. {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%) at {indexdata.time.substr(13,8)}
+                                                {i + 1}. {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%)
                                             </Typography>
 
 

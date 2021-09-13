@@ -999,6 +999,26 @@ class Home extends React.Component {
         }
 
     }
+    tagPatternWhichTaken =(token)=> {
+       var orderTagToPosition = localStorage.getItem('orderTagToPosition') && JSON.parse(localStorage.getItem('orderTagToPosition')) || []; 
+       
+       var pattern = ''; 
+       for (let index = 0; index < orderTagToPosition.length; index++) {
+           const element = orderTagToPosition[index];
+           if(token == element.token){
+            pattern = element.pattenName; 
+            break;
+           }
+        }
+        return pattern
+    //    console.log("findpatter", token, orderTagToPosition);
+    //    orderTagToPosition.forEach(element => {
+    //         if(token == element.token){
+    //             return element.pattenName; 
+    //         }
+    //    });
+
+    }
     getPositionData = async () => {
         //   document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
         var maxPnL = 0, totalMaxPnL = 0;
@@ -1024,6 +1044,7 @@ class Home extends React.Component {
                     allsellavgprice += parseFloat(element.sellavgprice);
                     element.percentPnL = percentPnL;
                     totalPercentage += parseFloat(percentPnL);
+                    element.pattenName = this.tagPatternWhichTaken(element.symboltoken); 
 
                     var slData = this.getStoplossFromOrderbook(element);
                     if (slData) {
@@ -1564,6 +1585,8 @@ class Home extends React.Component {
                 window.speechSynthesis.speak(msg);
                 localStorage.setItem('firstTimeModify' + row.tradingsymbol, 'No');
                 localStorage.setItem('lastTriggerprice_' + row.tradingsymbol, parseFloat(minPrice));
+                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
+
             }
         })
     }
@@ -1583,20 +1606,21 @@ class Home extends React.Component {
 
     getPercentage = (row) => {
 
-        var percentChange = 0;
+        var percentChange = 0, trailPerChange = 0; 
 
         if (row.netqty > 0) {
             row.buyavgprice = parseFloat(row.buyavgprice);
             percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
             if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 0.3) {
-                var minPrice = row.buyavgprice + (row.buyavgprice * 0.25 / 100);
+                var minPrice = row.buyavgprice + (row.buyavgprice * 0.15 / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
                 this.modifyOrderMethod(row, minPrice);
             } else {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
-                if (perchngfromTriggerPrice >= 0.4) {
-                    minPrice = lastTriggerprice + (lastTriggerprice * 0.2 / 100);
+                trailPerChange = perchngfromTriggerPrice; 
+                if (perchngfromTriggerPrice >= 0.7) {
+                    minPrice = lastTriggerprice + (lastTriggerprice * 0.25 / 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
                     this.modifyOrderMethod(row, minPrice);
                 }
@@ -1615,7 +1639,7 @@ class Home extends React.Component {
             } else {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
-
+                trailPerChange = perchngfromTriggerPrice; 
                 console.log("perchngfromTriggerPrice", perchngfromTriggerPrice);
                 if (perchngfromTriggerPrice <= -0.4) {
                     minPrice = lastTriggerprice - (lastTriggerprice * 0.2 / 100);
@@ -1637,7 +1661,11 @@ class Home extends React.Component {
             }
         }
 
-        return percentChange.toFixed(2);
+        if(!trailPerChange){
+            return percentChange.toFixed(2) + "%"; 
+        }else{
+            return percentChange.toFixed(2) + "% | Trailing "+ trailPerChange.toFixed(2) + "%"; 
+        }
     }
 
 
@@ -1652,8 +1680,8 @@ class Home extends React.Component {
                 <ChartDialog /> <ChartMultiple />
                 <Grid style={{ padding: '5px' }} justify="space-between" direction="row" container>
                     <Grid item >
-                        <Typography variant="h6" >
-                            <b>Positions ({this.state.positionList && this.state.positionList.length}) </b>
+                       <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                            Positions ({this.state.positionList && this.state.positionList.length}) 
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={3} >
@@ -1711,6 +1739,7 @@ class Home extends React.Component {
                                         <TableCell style={{ paddingLeft: "3px" }} className="TableHeadFormat" align="left">&nbsp;Symbol</TableCell>
                                         {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left">Product type</TableCell> */}
+                                        <TableCell className="TableHeadFormat" align="left">Pattern Name</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">Avg Buy</TableCell>
                                         {/* <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell> */}
@@ -1747,14 +1776,13 @@ class Home extends React.Component {
 
                                         row.producttype !== 'DELIVERY1' ? <TableRow hover key={row.symboltoken} style={{ background: row.netqty !== '0' ? 'lightgray' : "" }} >
 
-                                            {/* href={"https://chartink.com/stocks/"+row.symbolname+".html" */}
                                             <TableCell align="left">
-
                                                 <Button style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
                                                     {row.symbolname} {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon />
                                                 </Button>
-
                                             </TableCell>
+                                            <TableCell align="left">{row.pattenName}</TableCell>
+
                                             {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                             {/* <TableCell align="left">{row.producttype}</TableCell> */}
 
@@ -1805,6 +1833,8 @@ class Home extends React.Component {
                                         {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                         <TableCell className="TableHeadFormat" align="left">&nbsp;Total</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left"></TableCell>
+
                                         <TableCell className="TableHeadFormat" align="left">{this.state.allbuyavgprice}</TableCell>
                                         {/* <TableCell  className="TableHeadFormat" align="left">{this.state.totalbuyvalue}</TableCell> */}
 
@@ -1849,7 +1879,7 @@ class Home extends React.Component {
 
 
 
-                    <Grid item xs={12} sm={12} style={{ height: '300px', overflow: "auto" }}>
+                    <Grid item xs={12} sm={12} style={{ height: '250px', overflow: "auto" }}>
                         <OrderBook />
                     </Grid>
 

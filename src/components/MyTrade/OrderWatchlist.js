@@ -18,6 +18,8 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import CommonOrderMethod from "../../utils/CommonMethods";
 import * as moment from 'moment';
+import Notify from "../../utils/Notify";
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 class OrderBook extends React.Component{
 
@@ -84,7 +86,8 @@ class OrderBook extends React.Component{
 
             this.setState({orderPenidngList : [...this.state.orderPenidngList, data]}, function(){
                 this.setState({searchSymbolPending: '' ,searchTokenPending:'',buyAtPending: "", sellAtPending: "",pattenNamePending:""  })
-                localStorage.setItem('orderPenidngList', JSON.stringify(this.state.orderPenidngList)); 
+                localStorage.setItem('orderPenidngList', JSON.stringify(this.state.orderPenidngList));
+                localStorage.setItem('orderTagToPosition', JSON.stringify(this.state.orderPenidngList));
             })
             
         }
@@ -112,6 +115,7 @@ class OrderBook extends React.Component{
     }
 
     callBackUpdate =(row) => {
+
       this.deleteInOrderPenidngList(row); 
     }
 
@@ -181,7 +185,7 @@ class OrderBook extends React.Component{
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            var intervaltime = 1500; 
+            var intervaltime = 2000; 
             if(this.state.orderPenidngList.length > 10){
                 intervaltime = this.state.orderPenidngList.length * 110; 
             }
@@ -191,6 +195,45 @@ class OrderBook extends React.Component{
     }
 
   
+    refreshCandleChartManually = async (row) => {
+
+        var beginningTime = moment('9:15am', 'h:mma');
+        var time = moment.duration("12:00:00");
+        var startdate = moment(new Date()).subtract(time);
+
+        var data = {
+            "exchange": "NSE",
+            "symboltoken": row.token,
+            "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+            "fromdate": moment(beginningTime).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+            "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+        }
+        AdminService.getHistoryData(data).then(res => {
+            let histdata = resolveResponse(res, 'noPop');
+            //console.log("candle history", histdata); 
+            if (histdata && histdata.data && histdata.data.length) {
+
+                var candleChartData = [];
+                histdata.data.forEach(element => {
+                    candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                });
+
+                localStorage.setItem('candleChangeShow', row.perChange);
+                localStorage.setItem('candleChartData', JSON.stringify(candleChartData))
+                localStorage.setItem('cadleChartSymbol', row.symbol);
+                document.getElementById('showCandleChart').click();
+
+            } else {
+                //localStorage.setItem('NseStock_' + symbol, "");
+                console.log(row.symboltoken, "  emply candle found");
+            }
+        }).catch(error => {
+            this.setState({ failedCount: this.state.failedCount + 1 });
+            Notify.showError(row.symboltoken + " candle failed!");
+        })
+
+    }
+
   
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value.trim() });
@@ -265,12 +308,8 @@ class OrderBook extends React.Component{
                      
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
                       Orders Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
-                    
-                      {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> xNew Page <OpenInNewIcon/> </Button> : ""}
-
+                      {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
                       {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
-
-
                     </Typography> 
 
 
@@ -307,7 +346,7 @@ class OrderBook extends React.Component{
                                             /> 
                                         )}
                                     />
-                              {this.state.lastTradedData.symbol}  Ltp: <b style={{ color:this.state.lastTradedData.perChange == 0 ? "none" : this.state.lastTradedData.perChange > 0 ? "green" : "red"}}> {this.state.lastTradedData.ltp} {this.state.lastTradedData.ltp ? "("+this.state.lastTradedData.perChange+")"  : ""}</b> 
+                              {this.state.lastTradedData.symbol}  Ltp: <b style={{ color:this.state.lastTradedData.perChange == 0 ? "none" : this.state.lastTradedData.perChange > 0 ? "green" : "red"}}> {this.state.lastTradedData.ltp} {this.state.lastTradedData.ltp ? "("+this.state.lastTradedData.perChange+"%)"  : ""}</b> 
                             </Grid>
                             <Grid item  >
                                 <TextField label="BuyAt(limit)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
@@ -334,8 +373,9 @@ class OrderBook extends React.Component{
                         <TableHead style={{ whiteSpace: "nowrap", }} variant="head">
                             <TableRow key="1" variant="head" style={{ fontWeight: 'bold' }}>
 
-                                <TableCell className="TableHeadFormat" align="left">CreatetAt</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">CreatetAt</TableCell>
+
                                 <TableCell className="TableHeadFormat" align="left">Exch_seg</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">Token</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">Patten Name</TableCell>
@@ -350,8 +390,18 @@ class OrderBook extends React.Component{
 
                             {this.state.orderPenidngList ? this.state.orderPenidngList.map(row => (
                                  <TableRow hover >
+
+                                   
+
+
+                                    <TableCell align="left">
+                                        <Button style={{ color: row.perChange > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
+                                            {row.symbol} {row.ltp} ({row.perChange}) <ShowChartIcon />
+                                        </Button>
+                                    </TableCell>
+
                                     <TableCell align="left">{row.createdAt}</TableCell>
-                                    <TableCell align="left">{row.symbol}</TableCell>
+
 
                                     <TableCell align="left">{row.exch_seg}</TableCell>
                                     <TableCell align="left">{row.token}</TableCell>
