@@ -2182,7 +2182,8 @@ class Home extends React.Component {
                                     <Button variant="contained" color="" style={{ marginLeft: '20px' }} onClick={() => this.placeOrder('SELL')}>Sell</Button>
                                 </Grid>
 
-
+                                
+                                <Grid item xs={12} sm={12}  >
                                 <Table size="small" aria-label="sticky table" >
                                     <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
                                         <TableRow variant="head" style={{ fontWeight: 'bold' }} >
@@ -2200,7 +2201,6 @@ class Home extends React.Component {
                                     </TableHead>
                                     <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
                                         {/* this.getPercentageColor((row[4] - row[1])*100/row[1] >= 0.3)  */}
-
                                         {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
                                             <TableRow key={i} style={{ background: (row[4] - row[1]) * 100 / row[1] >= 0.3 ? "green" : (row[4] - row[1]) * 100 / row[1] <= -0.3 ? "red" : "none" }} >
 
@@ -2215,17 +2215,19 @@ class Home extends React.Component {
 
                                             </TableRow>
                                         )) : ''}
+                                    
                                     </TableBody>
                                 </Table>
-
+                            </Grid>
+                               
+                               
                             </Grid>
                         </Paper>
                         <br />  
 
-                        <Paper > 
-                        {/* "http://localhost:3001/TradingViewChart.html?symbol=TCS" */}
+                        {/* <Paper > 
                             <iframe style={{width: "100%", height: "550px"}} src={"http://localhost:3001/TradingViewChart.html?symbol="+this.state.tradingsymbol.split('-')[0]} > </iframe>
-                        </Paper>
+                        </Paper> */}
                         
                         {/* <Paper > 
                             <iframe style={{width: "100%", height: "550px"}} src="http://localhost:3001/TradingViewTL.html"> </iframe>

@@ -181,7 +181,7 @@ class OrderBook extends React.Component{
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            var intervaltime = 1000; 
+            var intervaltime = 1500; 
             if(this.state.orderPenidngList.length > 10){
                 intervaltime = this.state.orderPenidngList.length * 110; 
             }
@@ -266,7 +266,7 @@ class OrderBook extends React.Component{
                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
                       Orders Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
                     
-                      {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
+                      {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> xNew Page <OpenInNewIcon/> </Button> : ""}
 
                       {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
 

@@ -90,11 +90,7 @@ class MyView extends React.Component {
 
        this.loadIndexesList();
 
-        // setInterval(() => {
-        //     this.loadIndexesList();
-        // }, 1000);
-
-
+       
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
@@ -110,6 +106,11 @@ class MyView extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
 
+
+            setInterval(() => {
+                this.loadIndexesList();
+            }, 5000);
+    
 
             wsClintSectorUpdate.onopen = (res) => {
                 // this.makeConnection();
@@ -496,6 +497,7 @@ class MyView extends React.Component {
                             AdminService.checkSectorApiOther(slugName).then(res => {
                                 console.log(element.indexName, res.data.data);
                                 softedData[index].stockList = res.data && res.data.data; 
+                                softedData[index].time = res.data && res.data.time; 
                                 this.setState({ sectorList: softedData });
                             }).catch(error => {
                                // Notify.showError(element.indexName + "fail to get stockdata"); 
@@ -1091,7 +1093,7 @@ class MyView extends React.Component {
 
 
                             <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
-                                <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%) </b>
+                                <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)</b> &nbsp; {indexdata.timeVal}
 
                             </Button>
                             &nbsp;
@@ -1112,7 +1114,7 @@ class MyView extends React.Component {
 
                                             {/* {sectorItem.cng} */}
                                             <Typography style={{ background: this.getPercentageColor(sectorItem.iislPercChange), fontSize: '14px' }}>
-                                                {i + 1}. {sectorItem.symbol} {sectorItem.ltp} ({sectorItem.iislPercChange}%)
+                                                {i + 1}. {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%) at {indexdata.time.substr(13,8)}
                                             </Typography>
 
 
