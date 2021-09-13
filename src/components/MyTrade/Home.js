@@ -2232,8 +2232,8 @@ class Home extends React.Component {
                         
                         {/* <Paper > 
                             <iframe style={{width: "100%", height: "550px"}} src="http://localhost:3001/TradingViewTL.html"> </iframe>
-                        </Paper> */}
-                      
+                        </Paper>
+                       */}
 
                         <Paper style={{ padding: "10px" }}>
                             <Typography style={{ textAlign: "center", background: "lightgray" }}>Backtest</Typography>
