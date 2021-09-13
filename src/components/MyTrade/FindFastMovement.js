@@ -30,6 +30,8 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import vwap from 'vwap';
+import CommonOrderMethod from "../../utils/CommonMethods";
+
 
 class Home extends React.Component {
     constructor(props) {
@@ -37,7 +39,7 @@ class Home extends React.Component {
         this.state = {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
-            selectedWatchlist: "NIFTY IT",
+            selectedWatchlist: "NIFTY BANK",
             totalStockToWatch: 0
 
         };
@@ -54,10 +56,35 @@ class Home extends React.Component {
         this.setState({ totalStockToWatch: watchList.length });
 
         // this.findlast5minMovement(); //one time only
+     //   this.startSearching();
 
-        this.startSearching();
 
-        this.find10MinBBBlast();
+        var beginningTime = moment('9:15am', 'h:mma');
+        var endTime = moment('3:30pm', 'h:mma');
+        const friday = 5; // for friday
+        var currentTime = moment(new Date(), "h:mma");
+        const today = moment().isoWeekday();
+
+        var tostartInteral =  setInterval(() => {
+            var time = new Date(); 
+            if(time.getMinutes() % 10 === 0){
+                setTimeout(() => {
+                    this.find10MinBBBlast();
+                }, 70000);
+                this.setState({ stop10bbSearch: 
+                    setInterval(() => {
+                    if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
+                        this.find10MinBBBlast();
+                    }
+                }, 60000 * 10 + 70000 ) });
+
+
+                
+                clearInterval(tostartInteral); 
+            } 
+        }, 1000);
+
+
 
     }
 
@@ -65,6 +92,8 @@ class Home extends React.Component {
     stopSearching = () => {
         console.log("stop the search")
         clearInterval(this.state.findlast5minMovementInterval);
+        clearInterval(this.state.stop10bbSearch);
+        
     }
 
 
@@ -76,7 +105,11 @@ class Home extends React.Component {
         document.getElementById('showCandleChart').click();
     }
 
-
+    speckIt = (text) => {
+        var msg = new SpeechSynthesisUtterance();
+        msg.text = text.toString();
+        window.speechSynthesis.speak(msg);
+    }
     componentWillUnmount() {
         clearInterval(this.state.findlast5minMovementInterval);
         // clearInterval(this.state.scaninterval);
@@ -88,7 +121,6 @@ class Home extends React.Component {
         this.setState({ [e.target.name]: e.target.value }, function () {
             // this.findlast5minMovement(); //one time only
             //this.startSearching();
-
             this.find10MinBBBlast();
 
         });
@@ -115,37 +147,31 @@ class Home extends React.Component {
     }
 
     find10MinBBBlast = async () => {
-
-        this.setState({ findlast5minMovementUpdate: '' });
-
-        var timediff = moment.duration("00:05:00");
-        const format1 = "YYYY-MM-DD HH:mm";
-        var startdate = moment(new Date()).subtract(timediff);
-
+        
+        this.setState({ findlast5minMovementUpdate: '' , findlast5minMovement: []});
         var watchList = this.state.staticData[this.state.selectedWatchlist];
-
         if (this.state.selectedWatchlist == "selectall") {
             watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'));
         }
-        console.log("watchList", this.state.selectedWatchlist, watchList);
 
         this.setState({ totalStockToWatch: watchList.length })
-
 
         var foundData = [];
 
         for (let index = 0; index < watchList.length; index++) {
+
+            this.setState({ findlast5minMovementUpdate: index+1 + ". " + watchList[index].symbol });
+
             const format1 = "YYYY-MM-DD HH:mm";
             var beginningTime = moment('9:15am', 'h:mma').format(format1);
-            console.log("beginningTime", beginningTime);
-
-            var time = moment.duration("02:00:00");  //21:10:00"
+            var time = moment.duration("22:00:00");  //22:00:00" for last day  2hours 
             var startdate = moment(new Date()).subtract(time);
+
             var data = {
                 "exchange": "NSE",
                 "symboltoken": watchList[index].token,
                 "interval": "TEN_MINUTE", //ONE_DAY FIVE_MINUTE 
-                "fromdate": moment(beginningTime).format(format1),
+                "fromdate": moment(startdate).format(format1),
                 "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
             }
 
@@ -157,7 +183,7 @@ class Home extends React.Component {
 
                     var candleData = histdata.data;
                     var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [];
-                        candleData.forEach((element, index) => {
+                        candleData.forEach((element, loopindex) => {
                         candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
                         vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
                         closeingData.push(element[4]);
@@ -174,10 +200,12 @@ class Home extends React.Component {
 
 
                     var inputRSI = { values: closeingData, period: 14 };
-                    var lastRsiValue = RSI.calculate(inputRSI)
-                    console.log(watchList[index].symbol, "lastRsiValue", lastRsiValue[lastRsiValue.length - 1]);
+                    var lastRsiValue = RSI.calculate(inputRSI); 
 
+                    console.log(watchList[index].symbol, "Rsi",inputRSI , lastRsiValue);
+                    console.log(watchList[index].symbol, "vwap",vwapdata , vwap(vwapdata));
 
+            
                     var inputVWAP = {
                         open: openData,
                         high: highData,
@@ -198,12 +226,13 @@ class Home extends React.Component {
 
                     var bbvlastvalue = bb[bb.length - 1];
 
-                    if (candleData.length > 0) {
-                        watchList[index].candleChartData = candleChartData;
-                        watchList[index].vwapValue = vwap(vwapdata);
-                        watchList[index].vwapDataChart = VWAP.calculate(inputVWAP);
-                        watchList[index].lastRsiValue = lastRsiValue[lastRsiValue.length - 1];
+                    if(bbvlastvalue){
+                        bbvlastvalue.upper = bbvlastvalue.upper.toFixed(2); 
+                        bbvlastvalue.middle = bbvlastvalue.middle.toFixed(2); 
+                        bbvlastvalue.lower = bbvlastvalue.lower.toFixed(2); 
+                    
                     }
+                  
 
                     var data = {
                         "exchange": "NSE",
@@ -216,17 +245,45 @@ class Home extends React.Component {
                         //console.log(LtpData);
                         if (LtpData && LtpData.ltp) {
 
+
+                           lastRsiValue = lastRsiValue.slice((lastRsiValue.length - 6), lastRsiValue.length); 
+
+
                             if (LtpData.ltp >= bbvlastvalue.upper) {
                                 var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                 foundData.push({
                                     symbol: watchList[index].symbol,
+                                    token: watchList[index].token,
                                     ltp: LtpData.ltp,
                                     perChange: perChange,
-                                    percentChangeList: '',
+                                 //   percentChangeList: "RSI: <span style='color:green;font-weight:bold'>"+lastRsiValue[lastRsiValue.length - 1] + "</span>  VWAP: "+vwap(vwapdata) + " BB:"+ JSON.stringify( bbvlastvalue ),
+//                                    percentChangeList: "RSI:"+lastRsiValue + " <br />VWAP: "+vwap(vwapdata) + "<br /> BB:"+ JSON.stringify( bbvlastvalue ),
+                                    RSIValue: lastRsiValue[lastRsiValue.length-1], 
+                                    RSI: lastRsiValue, 
+                                    VWAP: vwap(vwapdata), 
+                                    BB: bbvlastvalue, 
                                     candleChartData: candleChartData,
                                 })
-                                console.log("foundData", foundData);
-                                this.setState({ findlast5minMovement: foundData })
+                                this.setState({ findlast5minMovement: foundData });
+                                this.speckIt(watchList[index].symbol + ' BB Blast for buy'); 
+                            }
+                            if (LtpData.ltp <= bbvlastvalue.lower) {
+                                var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                foundData.push({
+                                    symbol: watchList[index].symbol,
+                                    token: watchList[index].token,
+                                    ltp: LtpData.ltp,
+                                    perChange: perChange,
+                                 //   percentChangeList: "RSI: <span style='color:green;font-weight:bold'>"+lastRsiValue[lastRsiValue.length - 1] + "</span>  VWAP: "+vwap(vwapdata) + " BB:"+ JSON.stringify( bbvlastvalue ),
+//                                    percentChangeList: "RSI:"+lastRsiValue + " <br />VWAP: "+vwap(vwapdata) + "<br /> BB:"+ JSON.stringify( bbvlastvalue ),
+                                    RSIValue: lastRsiValue[lastRsiValue.length-1], 
+                                    RSI: lastRsiValue, 
+                                    VWAP: vwap(vwapdata), 
+                                    BB: bbvlastvalue, 
+                                    candleChartData: candleChartData,
+                                })
+                                this.setState({ findlast5minMovement: foundData });
+                                this.speckIt(watchList[index].symbol + ' BB Blast for sell'); 
                             }
 
                         }
@@ -353,8 +410,47 @@ class Home extends React.Component {
         }
     }
 
+    callbackAfterOrderDone =( order ) => {
+        // setValues({ ...values, ['buyFlag']: order.status });
+        // setValues({ ...values, ['sellFlag']:  order.status  });
+      //  this.setState({ [spineerId]: order.status}); 
 
 
+      console.log("order executed", order); 
+
+    }
+
+
+
+    handleClick =(row,  type, spinnerIndex) => {
+
+
+        console.log(row);
+        if(row.token && row.symbol){ 
+            if (type == 'BUY') {
+                this.setState({ [spinnerIndex]: true}); 
+                var symbolInfo = { 
+                    token: row.token, 
+                    symbol: row.symbol
+                }
+               CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
+               this.setState({ [spinnerIndex]: false}); 
+
+            }
+
+            if (type == 'SELL') {
+                this.setState({ [spinnerIndex]: true}); 
+                var symbolInfo = { 
+                    token: row.token, 
+                    symbol: row.symbol
+                }
+                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
+                this.setState({ [spinnerIndex]: false}); 
+            }
+        }else{
+            Notify.showError(" Symbol Not found!!!");
+        }
+    }
 
     render() {
 
@@ -392,7 +488,7 @@ class Home extends React.Component {
                     </Grid>
 
                     <Grid item xs={12} sm={3} >
-                        <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.findlast5minMovement()}>Start Searching</Button>
+                        <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.find10MinBBBlast()}>Start Searching</Button>
                         <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.stopSearching()}>Stop Searching</Button>
                     </Grid>
 
@@ -420,7 +516,7 @@ class Home extends React.Component {
 
                     {this.state.findlast5minMovement ? this.state.findlast5minMovement.map((row, i) => (
 
-                        <Grid item  >
+                        <Grid item   xs={12} sm={3}>
                             <Paper style={{ overflow: "auto", padding: '10px' }} >
                                 <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}) </b></Typography>
 
@@ -452,18 +548,38 @@ class Home extends React.Component {
                                     height={250}
                                 /> : ""}
 
-                                <div style={{ width: "350px", overflow: "auto" }}> {Parser(row.percentChangeList)}</div>
-
+                                {/* <div> {Parser(row.percentChangeList)}</div> */}
+                                
                                 <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
 
-                                    <Grid item>
-                                        {/* onClick={() => this.historyWiseOrderPlace(row, 'BUY', "", 'buyButtonClicked' + row.symbol + i)} */}
-                                        {!this.state['buyButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="primary"  >Buy</Button> : <Spinner />}
+                                    <Grid item xs={12} sm={12} style={{color: row.ltp> row.VWAP ? "green" : "red", fontWeight: "bold"}}>
+                                      VWAP:  {row.VWAP}
+                                    </Grid>
+                                    <Grid item xs={12} sm={12}>
+                                   
+                                     RSI: { row.RSI.map((item, j) => (
+                                        item >= 60 ? <span style={{color: 'green' ,fontWeight: "bold"}}> {item} &nbsp;</span> :  <span style={{color:  item <= 40 ? 'red' : "" ,fontWeight: "bold"}}> {item} &nbsp;</span>
+                                     ))} 
+
+                                    
+                                    </Grid>
+                                    <Grid item xs={12} sm={12} >
+                                       BB 
+                                       &nbsp; <span style={{color: row.ltp >= row.BB.upper ? "green" : "", fontWeight: "bold"}}>Upper: {row.BB.upper}</span> 
+                                       &nbsp; Middle: {row.BB.middle} 
+                                       &nbsp; <span style={{color: row.ltp <= row.BB.lower ? "red" : "", fontWeight: "bold"}}> Lower: {row.BB.lower}</span>
+                                    </Grid>
+
+                                </Grid>
+
+                                <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
+                                    <Grid item>              
+                                        {!this.state['buyButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="primary" onClick={() => this.handleClick(row, 'BUY', 'buyButtonClicked' + row.symbol + i)}>BUY</Button> : <Spinner />}
                                     </Grid>
 
                                     <Grid item >
                                         {/* onClick={() => this.historyWiseOrderPlace(row, 'SELL', "", 'sellButtonClicked' + row.symbol + i)} */}
-                                        {!this.state['sellButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="secondary" >Sell</Button> : <Spinner />}
+                                        {!this.state['sellButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="Secondary" onClick={() => this.handleClick(row, 'SELL', 'sellButtonClicked' + row.symbol + i)}>SELL</Button> : <Spinner />}
                                     </Grid>
                                 </Grid>
 
