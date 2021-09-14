@@ -24,6 +24,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Spinner from "react-spinner-material";
+import { createChart } from 'lightweight-charts';
 
 import { w3cwebsocket } from 'websocket';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -64,6 +65,7 @@ class Home extends React.Component {
             searchFailed: 0,
             openEqualHighList: [],
             openEqualLowList : [], 
+            chartStaticData: [], 
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
 
         };
@@ -1877,6 +1879,76 @@ class Home extends React.Component {
             }
         }
         this.getHistory(token);
+
+        this.showStaticChart(token); 
+    }
+
+    showStaticChart =(token)=> {
+                          
+        const chartProperties = {
+        width:1000,
+        height:600,
+        timeScale:{
+            timeVisible:true,
+            secondsVisible:true,
+        }
+        }
+
+        console.log('ok',token );
+
+        this.setState({ chartStaticData : ''}, function(){
+            console.log('reset done',token );
+        }); 
+
+      
+         const domElement = document.getElementById('tvchart');
+    
+    
+        document.getElementById('tvchart').innerHTML = ''; 
+        
+        const chart = createChart(domElement, { width: 1000, height: 400 });
+        const candleSeries = chart.addCandlestickSeries();
+       
+
+
+        const format1 = "YYYY-MM-DD HH:mm";
+        var time = moment.duration("10:50:00");
+        var startdate = moment(new Date()).subtract(time);
+        // var startdate = moment(this.state.startDate).subtract(time);
+        var beginningTime = moment('9:15am', 'h:mma');
+
+        var data = {
+            "exchange": "NSE",
+            "symboltoken": token,
+            "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE 
+            "fromdate": moment(startdate).format(format1),
+            "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+        }
+
+
+        AdminService.getHistoryData(data).then(res => {
+            let historyData = resolveResponse(res, 'noPop');
+            //    console.log(data); 
+            if (historyData && historyData.data) {
+
+                var data = historyData.data;
+              
+
+                
+                const cdata = data.map(d => {
+                    return {time: new Date(d[0]).getTime(),open:parseFloat(d[1]),high:parseFloat(d[2]),low:parseFloat(d[3]),close:parseFloat(d[4])}
+                });
+                this.setState({ chartStaticData : cdata}, function(){
+                    candleSeries.setData(this.state.chartStaticData); 
+                }); 
+                
+
+                
+
+            }
+        })
+
+        
     }
 
     placeSLMOrder = (slmOrderType) => {
@@ -1960,6 +2032,7 @@ class Home extends React.Component {
                     });
 
                     this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount });
+
 
                 }
 
@@ -2185,6 +2258,9 @@ class Home extends React.Component {
 
                                 
                                 <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "50vh" }} >
+
+                                <div id="tvchart"></div>
+
                                 <Table size="small" aria-label="sticky table" >
                                     <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
                                         <TableRow variant="head" style={{ fontWeight: 'bold' }} >

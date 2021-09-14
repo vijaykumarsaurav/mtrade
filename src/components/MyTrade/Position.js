@@ -967,6 +967,8 @@ class Home extends React.Component {
     }
     getHighLowPercentage = async () => {
 
+        this.setState({showHighLowWisePer: true});
+
         if (!this.state.positionList.length) {
             Notify.showError("First Refresh Position")
         }
@@ -991,9 +993,8 @@ class Home extends React.Component {
                     this.state.positionList[index].high = LtpData.high;
                     this.state.positionList[index].low = LtpData.low;
                 }
-
             })
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 125));
             this.setState({ positionList: this.state.positionList });
 
         }
@@ -1759,9 +1760,11 @@ class Home extends React.Component {
                                         <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
 
 
-                                        {/* <TableCell  className="TableHeadFormat" align="left">Closing%</TableCell>
-                                <TableCell  className="TableHeadFormat" align="left">HighLow%</TableCell> */}
-
+                                        {this.state.showHighLowWisePer ? 
+                                        <>
+                                         <TableCell  className="TableHeadFormat" align="left">High</TableCell>
+                                         <TableCell  className="TableHeadFormat" align="left">Low</TableCell>
+                                          </> : ""}
 
 
 
@@ -1806,17 +1809,11 @@ class Home extends React.Component {
                                             <TableCell align="left">{row.ltp}</TableCell>
 
 
-                                            {/* {row.netqty > 0 ? 
-                                <TableCell align="left">{((row.ltp - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2)}%</TableCell>
-                                : 
-                                <TableCell align="left">{((row.totalsellavgprice - row.ltp)*100/row.totalsellavgprice).toFixed(2)}%</TableCell>
-                               }
 
-                                {row.netqty > 0 ? 
-                                <TableCell title="Buy Side  High" align="left">{row.high}({row.high ? ((row.high - row.totalbuyavgprice)*100/row.totalbuyavgprice).toFixed(2) +"%" : "Refresh H/L"}) </TableCell>
-                                    : 
-                                <TableCell title="Sell Side Low" align="left">{row.low}({row.low ? ((row.totalsellavgprice - row.low)*100/row.totalsellavgprice).toFixed(2) +"%"  : "Refresh H/L"}) </TableCell>
-                                } */}
+                                        {this.state.showHighLowWisePer ? <>
+                                            <TableCell   align="left">{row.high}</TableCell>
+                                            <TableCell  align="left">{row.low}</TableCell>
+                                          </> : ""}
 
 
                                             <TableCell align="left">

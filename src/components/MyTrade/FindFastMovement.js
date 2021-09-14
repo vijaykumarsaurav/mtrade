@@ -297,16 +297,33 @@ class Home extends React.Component {
 
                            lastRsiValue = lastRsiValue.slice((lastRsiValue.length - 6), lastRsiValue.length); 
 
+                           var upsidecount = 0, downsidecount = 0, startingRsiupside = lastRsiValue[2], startingRsiDownside = lastRsiValue[2]; 
+                           lastRsiValue.forEach((element, i)  => {
+                                if(i > 2 && element >= 55 && element <= 65){
+                                    if(startingRsiupside <= element) {
+                                        startingRsiupside = element; 
+                                        upsidecount += 1; 
+                                    }
+                                }
 
-                            if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
+                                if(i > 2 && element >= 35 && element <= 45){
+                                    if(element <= startingRsiDownside) {
+                                        startingRsiDownside = element; 
+                                        downsidecount += 1; 
+                                    }
+                                }
+                            });
+
+                            console.log(watchList[index].symbol, "last continue rsi", upsidecount)
+
+
+                            if (bbvlastvalue && upsidecount >= 2 && LtpData.ltp >= bbvlastvalue.upper) {
                                 var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                 foundData.push({
                                     symbol: watchList[index].symbol,
                                     token: watchList[index].token,
                                     ltp: LtpData.ltp,
                                     perChange: perChange,
-                                 //   percentChangeList: "RSI: <span style='color:green;font-weight:bold'>"+lastRsiValue[lastRsiValue.length - 1] + "</span>  VWAP: "+vwap(vwapdata) + " BB:"+ JSON.stringify( bbvlastvalue ),
-//                                    percentChangeList: "RSI:"+lastRsiValue + " <br />VWAP: "+vwap(vwapdata) + "<br /> BB:"+ JSON.stringify( bbvlastvalue ),
                                     RSIValue: lastRsiValue[lastRsiValue.length-1], 
                                     RSI: lastRsiValue, 
                                     VWAP: vwap(vwapdata), 
@@ -314,19 +331,17 @@ class Home extends React.Component {
                                     candleChartData: candleChartData,
                                 })
                                 this.setState({ findlast5minMovement: foundData });
-                                this.speckIt(watchList[index].symbol + ' BB Blast for buy'); 
+                                this.speckIt(watchList[index].symbol + ' BB  buy'); 
                                 window.document.title = "FM: Buy "+watchList[index].symbol;
 
                             }
-                            if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
+                            if (bbvlastvalue && downsidecount >= 2 && LtpData.ltp <= bbvlastvalue.lower) {
                                 var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                 foundData.push({
                                     symbol: watchList[index].symbol,
                                     token: watchList[index].token,
                                     ltp: LtpData.ltp,
                                     perChange: perChange,
-                                 //   percentChangeList: "RSI: <span style='color:green;font-weight:bold'>"+lastRsiValue[lastRsiValue.length - 1] + "</span>  VWAP: "+vwap(vwapdata) + " BB:"+ JSON.stringify( bbvlastvalue ),
-//                                    percentChangeList: "RSI:"+lastRsiValue + " <br />VWAP: "+vwap(vwapdata) + "<br /> BB:"+ JSON.stringify( bbvlastvalue ),
                                     RSIValue: lastRsiValue[lastRsiValue.length-1], 
                                     RSI: lastRsiValue, 
                                     VWAP: vwap(vwapdata), 
@@ -334,7 +349,7 @@ class Home extends React.Component {
                                     candleChartData: candleChartData,
                                 })
                                 this.setState({ findlast5minMovement: foundData });
-                                this.speckIt(watchList[index].symbol + ' BB Blast for sell'); 
+                                this.speckIt(watchList[index].symbol + ' BB sell'); 
                                 window.document.title = "FM: Sell "+watchList[index].symbol;
                             }
 
@@ -585,7 +600,7 @@ class Home extends React.Component {
 
                         <Grid item   xs={12} sm={3}>
                             <Paper style={{ overflow: "auto", padding: '10px' }} >
-                                <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}) </b></Typography>
+                                <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}%) </b></Typography>
 
                                 {row.candleChartData.length > 0 ? <ReactApexChart
                                     options={{
