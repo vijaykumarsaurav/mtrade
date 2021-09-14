@@ -64,9 +64,13 @@ class Home extends React.Component {
             backTestResultDateRange: [],
             searchFailed: 0,
             openEqualHighList: [],
-            openEqualLowList : [], 
-            chartStaticData: [], 
+            openEqualLowList: [],
+            chartStaticData: [],
+            timeFrame : "TEN_MINUTE",
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
+
+
+
 
         };
         this.myCallback = this.myCallback.bind(this);
@@ -84,6 +88,20 @@ class Home extends React.Component {
         })
 
     }
+    onInputChange = (e) => {
+
+
+        this.setState({ [e.target.name]: e.target.value }, function(){
+
+            console.log("time", this.state.timeFrame); 
+            if (this.state.tradingsymbol) {
+                this.showStaticChart(this.state.symboltoken);
+            }
+        });
+
+       
+    }
+   
     onChangePattern = (e) => {
         this.setState({ [e.target.name]: e.target.value });
 
@@ -100,56 +118,56 @@ class Home extends React.Component {
         var staticData = this.state.staticData;
         this.setState({ symbolList: staticData[e.target.value] }, function () {
             this.updateSocketWatch();
-            this.checkOpenEqualToLow(); 
+            this.checkOpenEqualToLow();
 
         });
 
         if (e.target.value == "selectall") {
             this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) }, function () {
                 this.updateSocketWatch();
-                this.checkOpenEqualToLow(); 
+                this.checkOpenEqualToLow();
             });
         }
 
     }
-    checkOpenEqualToLow =async()=> {
-         
-        this.setState({openEqualHighList : [], openEqualLowList : [] });
+    checkOpenEqualToLow = async () => {
+
+        this.setState({ openEqualHighList: [], openEqualLowList: [] });
 
         for (let index = 0; index < this.state.symbolList.length; index++) {
             const element = this.state.symbolList[index];
-         
+
             var data = {
                 "exchange": element.exch_seg,
                 "tradingsymbol": element.symbol,
-                "symboltoken":  element.token,
+                "symboltoken": element.token,
             }
             AdminService.getLTP(data).then(res => {
                 let data = resolveResponse(res, 'noPop');
                 var LtpData = data && data.data;
-                if(LtpData){
+                if (LtpData) {
 
-                    LtpData.perChange =((LtpData.ltp - LtpData.close)*100/ LtpData.close).toFixed(2); 
+                    LtpData.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
 
-                    if(LtpData && LtpData.open ==  LtpData.low){ 
+                    if (LtpData && LtpData.open == LtpData.low) {
                         console.log("o=l", LtpData);
-                        this.setState({openEqualHighList : [...this.state.openEqualHighList , LtpData] });
+                        this.setState({ openEqualHighList: [...this.state.openEqualHighList, LtpData] });
                     }
 
-                    if(LtpData && LtpData.open ==  LtpData.high){ 
+                    if (LtpData && LtpData.open == LtpData.high) {
                         console.log("o=h", LtpData);
-                        this.setState({openEqualLowList : [...this.state.openEqualLowList , LtpData] });
+                        this.setState({ openEqualLowList: [...this.state.openEqualLowList, LtpData] });
                     }
 
-                    this.state.symbolList[index].ltp = LtpData.ltp; 
-                    this.state.symbolList[index].nc = LtpData.perChange; 
+                    this.state.symbolList[index].ltp = LtpData.ltp;
+                    this.state.symbolList[index].nc = LtpData.perChange;
 
-                    
 
-                    this.state.symbolList  && this.state.symbolList .sort(function (a, b) {
+
+                    this.state.symbolList && this.state.symbolList.sort(function (a, b) {
                         return b.nc - a.nc;
                     });
-                    this.setState({symbolList : this.state.symbolList });
+                    this.setState({ symbolList: this.state.symbolList });
                 }
             })
             await new Promise(r => setTimeout(r, 310));
@@ -234,7 +252,7 @@ class Home extends React.Component {
 
     componentDidMount() {
 
-        window.document.title = "Home"; 
+        window.document.title = "Home";
         this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] });
 
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
@@ -243,8 +261,14 @@ class Home extends React.Component {
         var clientcode = userProfile && userProfile.clientcode;
         this.setState({ feedToken: feedToken, clientcode: clientcode });
 
+        const domElement = document.getElementById('tvchart');
+        document.getElementById('tvchart').innerHTML = '';
+        const chart = createChart(domElement, { width: 1000, height: 400, timeVisible: true, secondsVisible: true, });
+        const candleSeries = chart.addCandlestickSeries();
+        this.setState({ candleSeries: candleSeries });
 
-        this.checkOpenEqualToLow(); 
+
+        this.checkOpenEqualToLow();
 
         var beginningTime = moment('9:15am', 'h:mma');
         var endTime = moment('3:30pm', 'h:mma');
@@ -295,11 +319,11 @@ class Home extends React.Component {
 
                 if (this.state.tradingsymbol) {
                     this.getLTP();
+                    this.showStaticChart(this.state.symboltoken);
                 }
 
             }, 1000);
         }
-
 
         var list = localStorage.getItem('watchList');
         if (!list) {
@@ -1869,7 +1893,6 @@ class Home extends React.Component {
     LoadSymbolDetails = (name) => {
 
         console.log("name", name);
-
         var token = '';
         for (let index = 0; index < this.state.symbolList.length; index++) {
             if (this.state.symbolList[index].symbol === name) {
@@ -1880,48 +1903,74 @@ class Home extends React.Component {
         }
         this.getHistory(token);
 
-        this.showStaticChart(token); 
+        this.showStaticChart(token);
+    }
+    getTimeFrameValue=(timeFrame)=> {
+        //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
+
+        switch (timeFrame) {
+            case 'ONE_MINUTE':
+                if (new Date().toLocaleTimeString() < "10:05:00") 
+                return "19:00:00"; 
+                else
+                return "01:00:00"; 
+                break;
+            case 'FIVE_MINUTE':
+                if (new Date().toLocaleTimeString() < "11:00:00") 
+                return "23:00:00"; 
+                else                
+                return "03:00:00"; 
+                break;
+            case 'TEN_MINUTE':
+                if (new Date().toLocaleTimeString() < "12:35:00") 
+                return "24:21:00"; 
+                else                
+                return "07:00:00"; 
+                break;
+            case 'FIFTEEN_MINUTE':
+                if (new Date().toLocaleTimeString() < "14:15:00") 
+                return "28:01:00"; 
+                else                
+                return "10:01:00"; 
+                break;
+            case 'THIRTY_MINUTE':                    
+                return "100:01:00"; 
+                break;
+            case 'ONE_HOUR':
+                return "200:01:00"; 
+                break;
+            case 'ONE_DAY':
+                return "1000:01:00"; 
+                break;
+            default:
+                break;
+        }
     }
 
-    showStaticChart =(token)=> {
-                          
-        const chartProperties = {
-        width:1000,
-        height:600,
-        timeScale:{
-            timeVisible:true,
-            secondsVisible:true,
-        }
-        }
+    showStaticChart = (token) => {
 
-        console.log('ok',token );
+        this.setState({ chartStaticData: '' }, function () {
+            console.log('reset done', token);
+        });
 
-        this.setState({ chartStaticData : ''}, function(){
-            console.log('reset done',token );
-        }); 
-
-      
-         const domElement = document.getElementById('tvchart');
-    
-    
-        document.getElementById('tvchart').innerHTML = ''; 
-        
-        const chart = createChart(domElement, { width: 1000, height: 400 });
-        const candleSeries = chart.addCandlestickSeries();
-       
-
+        console.log("time in function ", this.state.timeFrame); 
 
         const format1 = "YYYY-MM-DD HH:mm";
-        var time = moment.duration("10:50:00");
-        var startdate = moment(new Date()).subtract(time);
+        // var time = moment.duration("10:50:00");
+        // var startDate = moment(new Date()).subtract(time);
         // var startdate = moment(this.state.startDate).subtract(time);
         var beginningTime = moment('9:15am', 'h:mma');
+
+        let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
+        var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
+        var startDate = moment(new Date()).subtract(time);
+
 
         var data = {
             "exchange": "NSE",
             "symboltoken": token,
-            "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE 
-            "fromdate": moment(startdate).format(format1),
+            "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE 
+            "fromdate": moment(startDate).format(format1),
             "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
         }
 
@@ -1932,23 +1981,21 @@ class Home extends React.Component {
             if (historyData && historyData.data) {
 
                 var data = historyData.data;
-              
 
-                
                 const cdata = data.map(d => {
-                    return {time: new Date(d[0]).getTime(),open:parseFloat(d[1]),high:parseFloat(d[2]),low:parseFloat(d[3]),close:parseFloat(d[4])}
+                    return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
                 });
-                this.setState({ chartStaticData : cdata}, function(){
-                    candleSeries.setData(this.state.chartStaticData); 
-                }); 
-                
 
-                
+
+                this.setState({ chartStaticData: cdata }, function () {
+                    // candleSeries.setData(this.state.chartStaticData); 
+                    this.state.candleSeries.setData(this.state.chartStaticData);
+                });
 
             }
         })
 
-        
+
     }
 
     placeSLMOrder = (slmOrderType) => {
@@ -2202,9 +2249,9 @@ class Home extends React.Component {
 
                                 {this.state.symbolList && this.state.symbolList.length ? this.state.symbolList.map(row => (
                                     <>
-                                        <ListItem button style={{ fontSize: '12px', padding:'0px', paddingLeft: '5px' , paddingRight: '5px' }} >
-                                        {/* <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />  */}
-                                        <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {row.ltp} ({row.nc}%) 
+                                        <ListItem button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }} >
+                                            {/* <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />  */}
+                                            <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {row.ltp} ({row.nc}%)
                                         </ListItem>
 
                                     </>
@@ -2219,12 +2266,30 @@ class Home extends React.Component {
                         <Paper style={{ padding: "10px" }}>
                             <Typography style={{ textAlign: "center", background: "lightgray" }}>Place Order</Typography>
 
-                            <Grid style={{ display: "visible" }} direction="row" alignItems="center" container>
-
+                            <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
+                                <Grid item xs={10} sm={1}>
+                                    <FormControl style={styles.selectStyle} >
+                                        <InputLabel htmlFor="gender">Time Frame</InputLabel>
+                                        <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
+                                            <MenuItem value={'ONE_MINUTE'}>{'1 Min'}</MenuItem>
+                                            <MenuItem value={'FIVE_MINUTE'}>{'5 Min'}</MenuItem>
+                                            <MenuItem value={'TEN_MINUTE'}>{'10 Min'}</MenuItem>
+                                            <MenuItem value={'FIFTEEN_MINUTE'}>{'15 Min'}</MenuItem>
+                                            <MenuItem value={'THIRTY_MINUTE'}>{'30 Min'}</MenuItem>
+                                            <MenuItem value={'ONE_HOUR'}>{'1 Hour'}</MenuItem>
+                                            <MenuItem value={'ONE_DAY'}>{'1 Day'}</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
                                 <Grid item xs={10} sm={5}>
-                                    {this.state.tradingsymbol ? <Typography variant="h5" style={{ color: this.state.InstrumentPerChange > 0 ? "#20d020" : "#e66e6e" }} >
-                                        {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : ""} ({this.state.InstrumentPerChange + "%"})
-                                    </Typography> : <Typography variant="h5" >Select Symbol </Typography>}
+
+
+                                    {this.state.tradingsymbol ?
+                                        <Typography variant="h5" style={{ color: this.state.InstrumentPerChange > 0 ? "#20d020" : "#e66e6e" }} >
+                                            {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : ""} ({this.state.InstrumentPerChange + "%"})
+
+                                        </Typography> : <Typography variant="h5" >Select Symbol </Typography>}
+
                                     Open : {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : ""} &nbsp;
                                     High : {this.state.InstrumentLTP ? this.state.InstrumentLTP.high : ""} &nbsp;
                                     Low :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.low : ""}&nbsp;
@@ -2256,56 +2321,56 @@ class Home extends React.Component {
                                     <Button variant="contained" color="" style={{ marginLeft: '20px' }} onClick={() => this.placeOrder('SELL')}>Sell</Button>
                                 </Grid>
 
-                                
+
                                 <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "50vh" }} >
 
-                                <div id="tvchart"></div>
+                                    <div id="tvchart"></div>
 
-                                <Table size="small" aria-label="sticky table" >
-                                    <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                        <TableRow variant="head" style={{ fontWeight: 'bold' }} >
+                                    <Table size="small" aria-label="sticky table" >
+                                        <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
+                                            <TableRow variant="head" style={{ fontWeight: 'bold' }} >
 
-                                            <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
-                                            <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
-                                            <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> </TableCell>
-                                            <TableCell className="TableHeadFormat" align="center">Open</TableCell>
-                                            <TableCell className="TableHeadFormat" align="center">High</TableCell>
-                                            <TableCell className="TableHeadFormat" align="center">Low</TableCell>
-                                            <TableCell className="TableHeadFormat" align="center">Close </TableCell>
-                                            <TableCell className="TableHeadFormat" align="center">Volume</TableCell>
-
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-                                        {/* this.getPercentageColor((row[4] - row[1])*100/row[1] >= 0.3)  */}
-                                        {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
-                                            <TableRow key={i} style={{ background: (row[4] - row[1]) * 100 / row[1] >= 0.3 ? "#20d020" : (row[4] - row[1]) * 100 / row[1] <= -0.3 ? "#e66e6e" : "none" }} >
-
-                                                <TableCell align="center">{this.state.tradingsymbol}</TableCell>
-                                                <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
-                                                <TableCell align="center"> <b>{(row[4] - row[1]) * 100 / row[1] && ((row[4] - row[1]) * 100 / row[1]).toFixed(2)}%</b></TableCell>
-                                                <TableCell align="center">{row[1]}</TableCell>
-                                                <TableCell align="center">{row[2]}</TableCell>
-                                                <TableCell align="center">{row[3]}</TableCell>
-                                                <TableCell align="center">{row[4]}</TableCell>
-                                                <TableCell align="center">{row[5]}</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> </TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Open</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">High</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Low</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Close </TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Volume</TableCell>
 
                                             </TableRow>
-                                        )) : ''}
-                                    
-                                    </TableBody>
-                                </Table>
-                            </Grid>
-                               
-                               
+                                        </TableHead>
+                                        <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
+                                            {/* this.getPercentageColor((row[4] - row[1])*100/row[1] >= 0.3)  */}
+                                            {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
+                                                <TableRow key={i} style={{ background: (row[4] - row[1]) * 100 / row[1] >= 0.3 ? "#20d020" : (row[4] - row[1]) * 100 / row[1] <= -0.3 ? "#e66e6e" : "none" }} >
+
+                                                    <TableCell align="center">{this.state.tradingsymbol}</TableCell>
+                                                    <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
+                                                    <TableCell align="center"> <b>{(row[4] - row[1]) * 100 / row[1] && ((row[4] - row[1]) * 100 / row[1]).toFixed(2)}%</b></TableCell>
+                                                    <TableCell align="center">{row[1]}</TableCell>
+                                                    <TableCell align="center">{row[2]}</TableCell>
+                                                    <TableCell align="center">{row[3]}</TableCell>
+                                                    <TableCell align="center">{row[4]}</TableCell>
+                                                    <TableCell align="center">{row[5]}</TableCell>
+
+                                                </TableRow>
+                                            )) : ''}
+
+                                        </TableBody>
+                                    </Table>
+                                </Grid>
+
+
                             </Grid>
                         </Paper>
-                        <br />  
+                        <br />
 
                         {/* <Paper > 
                             <iframe style={{width: "100%", height: "550px"}} src={"http://localhost:3001/TradingViewChart.html?symbol="+this.state.tradingsymbol.split('-')[0]} > </iframe>
                         </Paper> */}
-                        
+
                         {/* <Paper > 
                             <iframe style={{width: "100%", height: "550px"}} src="http://localhost:3001/TradingViewTL.html"> </iframe>
                         </Paper>
@@ -2718,24 +2783,8 @@ class Home extends React.Component {
                                     <Typography style={{ textAlign: "center", background: "#20d020" }}>{this.state.openEqualHighList.length} Open = Low : BUY </Typography>
                                     <div style={{ overflowY: 'scroll', height: "25vh" }}>
                                         {this.state.openEqualHighList && this.state.openEqualHighList.length ? this.state.openEqualHighList.map(row => (
-                                            <>                                            
-                                                <ListItem button  style={{ fontSize: '12px', padding:'0px',  paddingLeft: '5px' , paddingRight: '5px' }}  >
-                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
-                                                </ListItem> 
-                                            </>
-                                        )) : ''}
-                                    </div>
-                                </Paper>
-                            </Grid>
-                         
-                         
-                            <Grid item xs={12} sm={12}>
-                                <Paper >
-                                    <Typography style={{ textAlign: "center", background: "#e66e6e" }}>{this.state.openEqualLowList.length} Open = High : Sell </Typography>
-                                    <div style={{ overflowY: 'scroll', height: "25vh" }}>
-                                        {this.state.openEqualLowList && this.state.openEqualLowList.length ? this.state.openEqualLowList.map(row => (
                                             <>
-                                                <ListItem button  style={{ fontSize: '12px', padding:'0px',  paddingLeft: '5px' , paddingRight: '5px' }}  >
+                                                <ListItem button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }}  >
                                                     <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
                                                 </ListItem>
                                             </>
@@ -2745,14 +2794,30 @@ class Home extends React.Component {
                             </Grid>
 
 
-                           
+                            <Grid item xs={12} sm={12}>
+                                <Paper >
+                                    <Typography style={{ textAlign: "center", background: "#e66e6e" }}>{this.state.openEqualLowList.length} Open = High : Sell </Typography>
+                                    <div style={{ overflowY: 'scroll', height: "25vh" }}>
+                                        {this.state.openEqualLowList && this.state.openEqualLowList.length ? this.state.openEqualLowList.map(row => (
+                                            <>
+                                                <ListItem button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }}  >
+                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
+                                                </ListItem>
+                                            </>
+                                        )) : ''}
+                                    </div>
+                                </Paper>
+                            </Grid>
+
+
+
 
 
                             <Grid item xs={12} sm={12}>
                                 <Paper>
                                     <Typography style={{ textAlign: "center", background: "lightgray" }}>Weekly, Daily, Hourly Bullish = Buy</Typography>
                                     <div style={{ overflowY: 'scroll', height: "25vh" }}>
-                                        
+
                                     </div>
                                 </Paper>
                             </Grid>

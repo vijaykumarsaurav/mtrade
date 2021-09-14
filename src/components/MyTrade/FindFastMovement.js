@@ -31,6 +31,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import vwap from 'vwap';
 import CommonOrderMethod from "../../utils/CommonMethods";
+import LightChart from "./LightChart";
 
 
 class Home extends React.Component {
@@ -41,7 +42,8 @@ class Home extends React.Component {
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             selectedWatchlist: "NIFTY BANK",
             totalStockToWatch: 0, 
-            timeFrame : "TEN_MINUTE"
+            timeFrame : "TEN_MINUTE",
+            chartStaticData: []
 
         };
         this.findlast5minMovement = this.findlast5minMovement.bind(this);
@@ -193,6 +195,7 @@ class Home extends React.Component {
         }
     }
 
+
     find10MinBBBlast = async () => {
         
         this.setState({ findlast5minMovementUpdate: '' , findlast5minMovement: []});
@@ -202,6 +205,7 @@ class Home extends React.Component {
         }
 
         this.setState({ totalStockToWatch: watchList.length })
+
 
         var foundData = [];
 
@@ -356,7 +360,6 @@ class Home extends React.Component {
                         }
 
                     })
-
 
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -595,12 +598,14 @@ class Home extends React.Component {
                 </Table> */}
                 <Grid container spacing={2} >
 
-
+                
                     {this.state.findlast5minMovement ? this.state.findlast5minMovement.map((row, i) => (
 
                         <Grid item   xs={12} sm={3}>
                             <Paper style={{ overflow: "auto", padding: '10px' }} >
                                 <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}%) </b></Typography>
+                                                                
+                                {/* <LightChart candleData={row.candleChartData.length} />  */}
 
                                 {row.candleChartData.length > 0 ? <ReactApexChart
                                     options={{
