@@ -1619,8 +1619,8 @@ class Home extends React.Component {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
                 trailPerChange = perchngfromTriggerPrice; 
-                if (perchngfromTriggerPrice >= 0.7) {
-                    minPrice = lastTriggerprice + (lastTriggerprice * 0.25 / 100);
+                if (perchngfromTriggerPrice >= 0.5) {
+                    minPrice = lastTriggerprice + (lastTriggerprice * 0.15 / 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
                     this.modifyOrderMethod(row, minPrice);
                 }
@@ -1633,7 +1633,7 @@ class Home extends React.Component {
             row.sellavgprice = parseFloat(row.sellavgprice);
             percentChange = ((row.ltp - row.sellavgprice) * 100 / row.sellavgprice);
             if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange <= -0.3) {
-                var minPrice = row.sellavgprice - (row.sellavgprice * 0.25 / 100);
+                var minPrice = row.sellavgprice - (row.sellavgprice * 0.15 / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
                 this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.25 / 100));
             } else {
@@ -1641,8 +1641,8 @@ class Home extends React.Component {
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
                 trailPerChange = perchngfromTriggerPrice; 
                 console.log("perchngfromTriggerPrice", perchngfromTriggerPrice);
-                if (perchngfromTriggerPrice <= -0.4) {
-                    minPrice = lastTriggerprice - (lastTriggerprice * 0.2 / 100);
+                if (perchngfromTriggerPrice <= -0.5) {
+                    minPrice = lastTriggerprice - (lastTriggerprice * 0.15 / 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
                     this.modifyOrderMethod(row, minPrice);
                 }

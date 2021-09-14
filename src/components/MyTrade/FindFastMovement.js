@@ -40,7 +40,8 @@ class Home extends React.Component {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             selectedWatchlist: "NIFTY BANK",
-            totalStockToWatch: 0
+            totalStockToWatch: 0, 
+            timeFrame : "TEN_MINUTE"
 
         };
         this.findlast5minMovement = this.findlast5minMovement.bind(this);
@@ -66,19 +67,21 @@ class Home extends React.Component {
         const today = moment().isoWeekday();
 
         var tostartInteral =  setInterval(() => {
-            var time = new Date(); 
-            if(time.getMinutes() % 10 === 0){
+            var time = new Date();
+            console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());  
+            if(time.getMinutes() % 5 === 0){
+                console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());  
+
                 setTimeout(() => {
                     this.find10MinBBBlast();
                 }, 70000);
                 this.setState({ stop10bbSearch: 
                     setInterval(() => {
+                    console.log("search method call in with setInterval in 10min", time.toLocaleTimeString());  
                     if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
                         this.find10MinBBBlast();
                     }
-                }, 60000 * 10 + 70000 ) });
-
-
+                }, 60000 * 5 + 70000 ) });
                 
                 clearInterval(tostartInteral); 
             } 
@@ -112,6 +115,7 @@ class Home extends React.Component {
     }
     componentWillUnmount() {
         clearInterval(this.state.findlast5minMovementInterval);
+        clearInterval(this.state.stop10bbSearch);
         // clearInterval(this.state.scaninterval);
         //  clearInterval(this.state.bankNiftyInterval); 
     }
@@ -146,6 +150,49 @@ class Home extends React.Component {
         }
     }
 
+    getTimeFrameValue=(timeFrame)=> {
+    
+        //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
+
+        switch (timeFrame) {
+            case 'ONE_MINUTE':
+                if (new Date().toLocaleTimeString() < "10:05:00") 
+                return "18:21:00"; 
+                else
+                return "00:21:00"; 
+                break;
+            case 'FIVE_MINUTE':
+                if (new Date().toLocaleTimeString() < "11:00:00") 
+                return "19:41:00"; 
+                else                
+                return "01:41:00"; 
+                break;
+            case 'TEN_MINUTE':
+                if (new Date().toLocaleTimeString() < "12:35:00") 
+                return "21:21:00"; 
+                else                
+                return "03:21:00"; 
+                break;
+            case 'FIFTEEN_MINUTE':
+                if (new Date().toLocaleTimeString() < "14:15:00") 
+                return "23:01:00"; 
+                else                
+                return "05:01:00"; 
+                break;
+            case 'THIRTY_MINUTE':                    
+                return "84:01:00"; 
+                break;
+            case 'ONE_HOUR':
+                return "168:01:00"; 
+                break;
+            case 'ONE_DAY':
+                return "744:01:00"; 
+                break;
+            default:
+                break;
+        }
+    }
+
     find10MinBBBlast = async () => {
         
         this.setState({ findlast5minMovementUpdate: '' , findlast5minMovement: []});
@@ -160,18 +207,20 @@ class Home extends React.Component {
 
         for (let index = 0; index < watchList.length; index++) {
 
-            this.setState({ findlast5minMovementUpdate: index+1 + ". " + watchList[index].symbol });
+            this.setState({ findlast5minMovementUpdate: index+1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() });
 
             const format1 = "YYYY-MM-DD HH:mm";
             var beginningTime = moment('9:15am', 'h:mma').format(format1);
-            var time = moment.duration("22:00:00");  //22:00:00" for last day  2hours 
-            var startdate = moment(new Date()).subtract(time);
+
+            let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
+            var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
+            var startDate = moment(new Date()).subtract(time);
 
             var data = {
                 "exchange": "NSE",
                 "symboltoken": watchList[index].token,
-                "interval": "TEN_MINUTE", //ONE_DAY FIVE_MINUTE 
-                "fromdate": moment(startdate).format(format1),
+                "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment(startDate).format(format1),
                 "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
             }
 
@@ -249,7 +298,7 @@ class Home extends React.Component {
                            lastRsiValue = lastRsiValue.slice((lastRsiValue.length - 6), lastRsiValue.length); 
 
 
-                            if (LtpData.ltp >= bbvlastvalue.upper) {
+                            if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
                                 var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                 foundData.push({
                                     symbol: watchList[index].symbol,
@@ -266,8 +315,10 @@ class Home extends React.Component {
                                 })
                                 this.setState({ findlast5minMovement: foundData });
                                 this.speckIt(watchList[index].symbol + ' BB Blast for buy'); 
+                                window.document.title = "FM: Buy "+watchList[index].symbol;
+
                             }
-                            if (LtpData.ltp <= bbvlastvalue.lower) {
+                            if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
                                 var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                 foundData.push({
                                     symbol: watchList[index].symbol,
@@ -284,6 +335,7 @@ class Home extends React.Component {
                                 })
                                 this.setState({ findlast5minMovement: foundData });
                                 this.speckIt(watchList[index].symbol + ' BB Blast for sell'); 
+                                window.document.title = "FM: Sell "+watchList[index].symbol;
                             }
 
                         }
@@ -463,18 +515,18 @@ class Home extends React.Component {
                 <ChartDialog /> <ChartMultiple />
 
                 <Grid justify="space-between"
-                    container>
+                    container spacing={1}>
 
-                    <Grid item xs={12} sm={3} >
+                    <Grid item xs={12} sm={4} >
                         <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                            Search  5min Movement ({this.state.findlast5minMovement && this.state.findlast5minMovement.length})
+                            10min BB Blast ({this.state.findlast5minMovement && this.state.findlast5minMovement.length}) 
                             <span id="stockTesting" style={{ fontSize: "18px", color: 'gray' }}> {this.state.findlast5minMovementUpdate} </span>
                         </Typography>
 
                     </Grid>
 
 
-                    <Grid item xs={12} sm={3} >
+                    <Grid item xs={12} sm={2} >
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
                             <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
@@ -487,7 +539,22 @@ class Home extends React.Component {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={3} >
+                    <Grid item xs={12} sm={2} >
+                        <FormControl style={styles.selectStyle} >
+                            <InputLabel htmlFor="gender">Select Time</InputLabel>
+                            <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onChangeWatchlist}>
+                                <MenuItem value={'ONE_MINUTE'}>{'1 Min'}</MenuItem>
+                                <MenuItem value={'FIVE_MINUTE'}>{'5 Min'}</MenuItem>
+                                <MenuItem value={'TEN_MINUTE'}>{'10 Min'}</MenuItem>
+                                <MenuItem value={'FIFTEEN_MINUTE'}>{'15 Min'}</MenuItem>
+                                <MenuItem value={'THIRTY_MINUTE'}>{'30 Min'}</MenuItem>
+                                <MenuItem value={'ONE_HOUR'}>{'1 Hour'}</MenuItem>
+                                <MenuItem value={'ONE_DAY'}>{'1 Day'}</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={4} >
                         <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.find10MinBBBlast()}>Start Searching</Button>
                         <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.stopSearching()}>Stop Searching</Button>
                     </Grid>
