@@ -17,6 +17,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import * as Menu from './LeftMenuBar';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MyLogo from './mylogo.png';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 
 import Button from '@material-ui/core/Button';
 import InvertColor from '../utils/InvertColor';
@@ -95,9 +96,9 @@ export default function PostLoginNavBar(props) {
 
     const [values, setValues] = React.useState({
         buyFlag: true,
-        sellFlag: true, 
-        searchSymbol : "",
-        
+        sellFlag: true,
+        searchSymbol: "",
+
     });
 
     const classes = useStyles();
@@ -114,49 +115,49 @@ export default function PostLoginNavBar(props) {
     }
 
 
-    function handleInput(e){
-        setValues({ ...values, ['searchSymbol']: e.target.value });    
-        AdminService.autoCompleteSearch(e.target.value).then(searchRes => {   
-            let searchResdata =  searchRes.data; 
-            if(e.target.value){
-                var uppercaseName =  e.target.value.toUpperCase() + "-EQ"; 
-                var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.symbol === uppercaseName);      
-              //  console.log("found", found[0] && found[0].symbol); 
-                if(found.length){ 
-             
-                    setValues({ ...values, ['searchSymbol']: found[0].symbol, ['token'] : found[0].token });    
+    function handleInput(e) {
+        setValues({ ...values, ['searchSymbol']: e.target.value });
+        AdminService.autoCompleteSearch(e.target.value).then(searchRes => {
+            let searchResdata = searchRes.data;
+            if (e.target.value) {
+                var uppercaseName = e.target.value.toUpperCase() + "-EQ";
+                var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.symbol === uppercaseName);
+                //  console.log("found", found[0] && found[0].symbol); 
+                if (found.length) {
+
+                    setValues({ ...values, ['searchSymbol']: found[0].symbol, ['token']: found[0].token });
                 }
             }
-         })
+        })
     }
 
-    function callbackAfterOrderDone( order ){
+    function callbackAfterOrderDone(order) {
         setValues({ ...values, ['buyFlag']: order.status });
-        setValues({ ...values, ['sellFlag']:  order.status  });
+        setValues({ ...values, ['sellFlag']: order.status });
         setValues({ ...values, ['searchSymbol']: '' });
     }
 
     function handleClick(type) {
 
-        if(values.token && values.searchSymbol){ 
+        if (values.token && values.searchSymbol) {
             if (type == 'BUY') {
                 setValues({ ...values, ['buyFlag']: false });
-                var symbolInfo = { 
-                    token: values.token, 
+                var symbolInfo = {
+                    token: values.token,
                     symbol: values.searchSymbol
                 }
-               CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", callbackAfterOrderDone);
+                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", callbackAfterOrderDone);
             }
 
             if (type == 'SELL') {
                 setValues({ ...values, ['sellFlag']: false });
-                var symbolInfo = { 
-                    token: values.token, 
+                var symbolInfo = {
+                    token: values.token,
                     symbol: values.searchSymbol
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", callbackAfterOrderDone);
             }
-        }else{
+        } else {
             Notify.showError("Type Symbol!!!");
         }
     }
@@ -195,7 +196,11 @@ export default function PostLoginNavBar(props) {
                             {/* <Typography variant="h6" noWrap>
                           M-Trade
                          </Typography> */}
-                            <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
+                            <Button href={"/mtrade/#/home"}>
+                                <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
+
+                            </Button>
+
                         </Grid>
 
 
@@ -208,7 +213,7 @@ export default function PostLoginNavBar(props) {
                             >
 
                                 <Grid item  >
-                                    <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput}  />
+                                    <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput} />
                                 </Grid>
                                 <Grid item  >
                                     {values.buyFlag ? <Button variant="contained" color="primary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("BUY")}>Buy</Button> : <Spinner />}
@@ -229,19 +234,24 @@ export default function PostLoginNavBar(props) {
                                 container
                                 spacing={1}
                                 direction="row"
-                                style={{ color: "white" }}
+                               
                             >
 
                                 <Grid item>
-                                    <Button variant="outlined" color="primary" href={"/mtrade/#/sector-heat-map"}>
-                                        Sector Hit Map
+                                    <Button variant="outlined" color="primary" href={"/mtrade/#/sector-heat-map2"}>
+                                        Hit Map
+                                    </Button>
+                                </Grid>
+                                <Grid item>
+                                    <Button variant="outlined" color="primary" target={'_blank'} href={"/mtrade/#/find-fast-movement"}>
+                                        Fast Move <OpenInNewIcon />
                                     </Button>
                                 </Grid>
 
 
-                                <Grid item>
+                                {/* <Grid item>
                                     <FoundPatternDialog />
-                                </Grid>
+                                </Grid> */}
 
 
 

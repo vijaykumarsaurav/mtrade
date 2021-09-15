@@ -25,13 +25,13 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Spinner from "react-spinner-material";
 import { createChart } from 'lightweight-charts';
+import Input from "@material-ui/core/Input";
 
 import { w3cwebsocket } from 'websocket';
 import DeleteIcon from '@material-ui/icons/Delete';
 import ChartDialog from './ChartDialog';
 import EqualizerIcon from '@material-ui/icons/Equalizer';
 import pako from 'pako';
-const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
 
 class Home extends React.Component {
     constructor(props) {
@@ -67,6 +67,7 @@ class Home extends React.Component {
             openEqualLowList: [],
             chartStaticData: [],
             timeFrame : "TEN_MINUTE",
+            cursor : '',
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
 
 
@@ -117,18 +118,18 @@ class Home extends React.Component {
         this.setState({ [e.target.name]: e.target.value });
         var staticData = this.state.staticData;
         this.setState({ symbolList: staticData[e.target.value] }, function () {
-            this.updateSocketWatch();
+        //    this.updateSocketWatch();
             this.checkOpenEqualToLow();
-
+            this.setState({ cursor : ''}); 
         });
 
         if (e.target.value == "selectall") {
             this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) }, function () {
-                this.updateSocketWatch();
+          //      this.updateSocketWatch();
                 this.checkOpenEqualToLow();
+                this.setState({ cursor :''}); 
             });
         }
-
     }
     checkOpenEqualToLow = async () => {
 
@@ -219,23 +220,18 @@ class Home extends React.Component {
         return newarray.join('');
     }
 
-    makeConnection = () => {
+   
 
+    makeConnection = (wsClint) => {
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-        //  console.log("1st Request :- " + firstTime_req);
         wsClint.send(firstTime_req);
-
-        this.updateSocketWatch();
-
+        this.updateSocketWatch(wsClint);
     }
 
-    updateSocketWatch = () => {
-
-
+    updateSocketWatch = (wsClint) => {
         var channel = this.state.symbolList.map(element => {
             return 'nse_cm|' + element.token;
         });
-
         channel = channel.join('&');
         var updateSocket = {
             "task": "mw",
@@ -244,9 +240,45 @@ class Home extends React.Component {
             "user": this.state.clientcode,
             "acctid": this.state.clientcode
         }
-
         console.log("updated ws watchlisht", this.state.selectedWatchlist, updateSocket);
         wsClint.send(JSON.stringify(updateSocket));
+    }
+
+    updateSocketDetails=(wsClint)=>{
+        wsClint.onopen = (res) => {
+            this.makeConnection( wsClint );
+            this.updateSocketWatch(wsClint);
+        }
+
+        wsClint.onmessage = (message) => {
+            var decoded = window.atob(message.data);
+            var data = this.decodeWebsocketData(pako.inflate(decoded));
+            var liveData = JSON.parse(data);
+            var symbolListArray = this.state.symbolList;
+            this.state.symbolList && this.state.symbolList.forEach((element, index) => {
+                var foundLive = liveData.filter(row => row.tk == element.token);
+                if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
+                    symbolListArray[index].ltp = foundLive[0].ltp;
+                    symbolListArray[index].nc = foundLive[0].nc;
+                    console.log("ws onmessage: ", foundLive);
+                }
+            });
+            symbolListArray && symbolListArray.sort(function (a, b) {
+                return b.nc - a.nc;
+            });
+            this.setState({ symbolList: symbolListArray });
+        }
+
+        wsClint.onerror = (e) => {
+            console.log("socket error", e);
+        }
+
+        setInterval(() => {
+            this.makeConnection();
+            var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
+            // console.log("Request :- " + _req);
+            wsClint.send(_req);
+        }, 59000);
     }
 
 
@@ -277,57 +309,14 @@ class Home extends React.Component {
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-
-
-            wsClint.onopen = (res) => {
-                this.makeConnection();
-                this.updateSocketWatch();
-            }
-
-            wsClint.onmessage = (message) => {
-                var decoded = window.atob(message.data);
-                var data = this.decodeWebsocketData(pako.inflate(decoded));
-                var liveData = JSON.parse(data);
-                var symbolListArray = this.state.symbolList;
-                this.state.symbolList && this.state.symbolList.forEach((element, index) => {
-                    var foundLive = liveData.filter(row => row.tk == element.token);
-                    if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
-                        symbolListArray[index].ltp = foundLive[0].ltp;
-                        symbolListArray[index].nc = foundLive[0].nc;
-                        console.log("ws onmessage: ", foundLive);
-                    }
-                });
-                symbolListArray && symbolListArray.sort(function (a, b) {
-                    return b.nc - a.nc;
-                });
-                this.setState({ symbolList: symbolListArray });
-            }
-
-            wsClint.onerror = (e) => {
-                console.log("socket error", e);
-            }
-
+            const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+            this.updateSocketDetails(wsClint); 
             setInterval(() => {
-                this.makeConnection();
-                var _req = '{"task":"hb","channel":"","token":"' + feedToken + '","user": "' + clientcode + '","acctid":"' + clientcode + '"}';
-                // console.log("Request :- " + _req);
-                wsClint.send(_req);
-            }, 59000);
-
-
-            setInterval(() => {
-
                 if (this.state.tradingsymbol) {
                     this.getLTP();
                     this.showStaticChart(this.state.symboltoken);
                 }
-
             }, 1000);
-        }
-
-        var list = localStorage.getItem('watchList');
-        if (!list) {
-            localStorage.setItem('watchList', []);
         }
 
         // setInterval(() => {
@@ -1890,7 +1879,7 @@ class Home extends React.Component {
         })
     }
 
-    LoadSymbolDetails = (name) => {
+    LoadSymbolDetails = (name, i) => {
 
         console.log("name", name);
         var token = '';
@@ -1901,9 +1890,12 @@ class Home extends React.Component {
                 break;
             }
         }
-        this.getHistory(token);
+        this.setState({ cursor : i}, function(){
+            this.getHistory(token);
+            this.showStaticChart(token);
+        } ); 
 
-        this.showStaticChart(token);
+       
     }
     getTimeFrameValue=(timeFrame)=> {
         //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
@@ -2116,10 +2108,32 @@ class Home extends React.Component {
                 });
 
                 this.setState({ symbolList: watchlist }, function () {
-                    this.updateSocketWatch();
+                  //  this.updateSocketWatch();
                 });
 
             }
+        }
+
+    }
+    onSelectItemChart = (event, values) => {
+        var autoSearchTemp = JSON.parse(localStorage.getItem('autoSearchTemp'));
+        //  console.log("values", values); 
+        //   console.log("autoSearchTemp", autoSearchTemp); 
+        if (autoSearchTemp.length > 0) {
+            var fdata = '';
+            for (let index = 0; index < autoSearchTemp.length; index++) {
+
+                if (autoSearchTemp[index].symbol === values) {
+                    fdata = autoSearchTemp[index];
+                    break;
+                }
+            }
+            this.setState({ tradingsymbol: fdata.symbol, symboltoken: fdata.token, seachSumbol: "" }, function () {
+                this.getLTP();
+                this.showStaticChart(fdata.token);
+                this.LoadSymbolDetails(fdata.symbol);
+            });
+           
         }
 
     }
@@ -2181,7 +2195,36 @@ class Home extends React.Component {
         document.getElementById('showCandleChart').click();
     }
 
+  handleKeyDown =(e) => {
+  
+    //38 for down and 40 for up key
+    if (e.keyCode === 38 && this.state.cursor > 0) {
+        this.setState( prevState => ({cursor: prevState.cursor - 1})); 
+    } else if (e.keyCode === 40 && this.state.cursor < this.state.symbolList.length - 1) {
+        this.setState( prevState => ({cursor: prevState.cursor + 1}))
+    }
+    
+     setTimeout(() => {
+        this.updateCandleOnkey(); 
+     }, 100);
+    
+  }
 
+ 
+
+
+  updateCandleOnkey=()=>{
+    var selectedKeyRow =  localStorage.getItem('selectedKeyRow') && JSON.parse( localStorage.getItem('selectedKeyRow')); 
+    if(selectedKeyRow.token && selectedKeyRow.symbol ){
+         this.setState({tradingsymbol:selectedKeyRow.symbol, symboltoken :  selectedKeyRow.token}); 
+         this.showStaticChart(selectedKeyRow.token);
+         this.getLTP();
+     }
+  }
+
+
+
+ 
     render() {
         const dateParam = {
             myCallback: this.myCallback,
@@ -2219,7 +2262,6 @@ class Home extends React.Component {
                                         label={"Search Symbol"}
                                         margin="normal"
                                         variant="standard"
-
                                         name="search"
                                         value={this.state.search}
                                         InputProps={{ ...params.InputProps, type: 'search' }}
@@ -2230,7 +2272,7 @@ class Home extends React.Component {
                             <div style={{ marginLeft: '10px' }}>
                                 <FormControl style={{ paddingLeft: '12px' }} style={styles.selectStyle} >
                                     <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
-                                    <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
+                                    <Select  value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
                                         <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
 
                                         {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
@@ -2243,15 +2285,22 @@ class Home extends React.Component {
 
                             </div>
 
+                            {/* <Input onKeyDown={ this.handleKeyDown } > </Input> */}
 
 
-                            <div style={{ overflowY: 'scroll', height: "75vh" }}>
+                            <div style={{ overflowY: 'scroll', height: "75vh" }} >
 
-                                {this.state.symbolList && this.state.symbolList.length ? this.state.symbolList.map(row => (
+                                {this.state.symbolList && this.state.symbolList.length ? this.state.symbolList.map((row, i) => (
                                     <>
-                                        <ListItem button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }} >
-                                            {/* <DeleteIcon onClick={() => this.deleteItemWatchlist(row.symbol)} />  */}
-                                            <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.name} /> {row.ltp} ({row.nc}%)
+                                        <ListItem onKeyDown={ this.handleKeyDown }  button selected={this.state.cursor === i ? 'active' : null} 
+                                         
+                                            style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }} >
+
+                                                {this.state.cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
+                                                
+                                            <ListItemText  style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol, i)} primary={row.name} /> {row.ltp} ({row.nc}%)
+
+                                           
                                         </ListItem>
 
                                     </>
@@ -2264,44 +2313,81 @@ class Home extends React.Component {
 
                     <Grid item xs={12} sm={8}>
                         <Paper style={{ padding: "10px" }}>
+
+                                    
                             <Typography style={{ textAlign: "center", background: "lightgray" }}>Place Order</Typography>
 
                             <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
-                                <Grid item xs={10} sm={1}>
-                                    <FormControl style={styles.selectStyle} >
-                                        <InputLabel htmlFor="gender">Time Frame</InputLabel>
-                                        <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
-                                            <MenuItem value={'ONE_MINUTE'}>{'1 Min'}</MenuItem>
-                                            <MenuItem value={'FIVE_MINUTE'}>{'5 Min'}</MenuItem>
-                                            <MenuItem value={'TEN_MINUTE'}>{'10 Min'}</MenuItem>
-                                            <MenuItem value={'FIFTEEN_MINUTE'}>{'15 Min'}</MenuItem>
-                                            <MenuItem value={'THIRTY_MINUTE'}>{'30 Min'}</MenuItem>
-                                            <MenuItem value={'ONE_HOUR'}>{'1 Hour'}</MenuItem>
-                                            <MenuItem value={'ONE_DAY'}>{'1 Day'}</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={10} sm={5}>
-
+                                
+                                <Grid item xs={10} sm={3}>
 
                                     {this.state.tradingsymbol ?
-                                        <Typography variant="h5" style={{ color: this.state.InstrumentPerChange > 0 ? "#20d020" : "#e66e6e" }} >
+                                        <Typography variant="body1" style={{ color: this.state.InstrumentPerChange > 0 ? "#20d020" : "#e66e6e" }} >
+
                                             {this.state.tradingsymbol} : {this.state.InstrumentLTP ? this.state.InstrumentLTP.ltp : ""} ({this.state.InstrumentPerChange + "%"})
 
                                         </Typography> : <Typography variant="h5" >Select Symbol </Typography>}
 
-                                    Open : {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : ""} &nbsp;
-                                    High : {this.state.InstrumentLTP ? this.state.InstrumentLTP.high : ""} &nbsp;
-                                    Low :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.low : ""}&nbsp;
-                                    P.Close :  {this.state.InstrumentLTP ? this.state.InstrumentLTP.close : ""} &nbsp;
+                                    O: {this.state.InstrumentLTP ? this.state.InstrumentLTP.open : ""} &nbsp;
+                                    H: {this.state.InstrumentLTP ? this.state.InstrumentLTP.high : ""} &nbsp;
+                                    L: {this.state.InstrumentLTP ? this.state.InstrumentLTP.low : ""}&nbsp;
+                                    C: {this.state.InstrumentLTP ? this.state.InstrumentLTP.close : ""} &nbsp;
 
                                 </Grid>
-                                <Grid item xs={12} sm={2}>
-                                    <FormControl style={styles.selectStyle}>
+
+                                <Grid item xs={10} sm={2}>
+                                   
+                                   <Autocomplete
+                                       freeSolo
+                                       id="free-solo-2-demo"
+                                       disableClearable
+                                       style={{ paddingLeft: "10px", paddingRight: "10px" }}
+                                       onChange={this.onSelectItemChart}
+                                       value={this.state.seachSumbol}
+                                       //+ ' '+  option.exch_seg
+                                       options={this.state.autoSearchList.length > 0 ? this.state.autoSearchList.map((option) =>
+                                           option.symbol
+                                       ) : []}
+                                       renderInput={(params) => (
+                                           <TextField
+                                               onChange={this.onChange}
+                                               {...params}
+                                               label={"Search"}
+                                               margin="normal"
+                                               variant="standard"
+                                               name="seachSumbol"
+                                               InputProps={{ ...params.InputProps, type: 'search' }}
+                                           />
+                                       )}
+                                   />
+                               </Grid>
+                               
+
+                                <Grid item xs={10} sm={1}>
+                                    <FormControl style={styles.selectStyle} style={{marginTop: '10px'}} >
+                                        <InputLabel htmlFor="gender">Time</InputLabel>
+                                        <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
+                                            <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
+                                            <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
+                                            <MenuItem value={'TEN_MINUTE'}>{'10M'}</MenuItem>
+                                            <MenuItem value={'FIFTEEN_MINUTE'}>{'15M'}</MenuItem>
+                                            <MenuItem value={'THIRTY_MINUTE'}>{'30M'}</MenuItem>
+                                            <MenuItem value={'ONE_HOUR'}>{'1H'}</MenuItem>
+                                            <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
+                                        </Select>
+                                    </FormControl>
+
+
+                                </Grid>
+
+                               
+                               
+                                <Grid item xs={12} sm={1}>
+                                    <FormControl style={styles.selectStyle}  style={{marginTop: '3px'}} >
                                         <InputLabel htmlFor="gender">Order Type</InputLabel>
                                         <Select value={this.state.producttype} name="producttype" onChange={this.onChange}>
-                                            <MenuItem value={"INTRADAY"}>INTRADAY</MenuItem>
-                                            <MenuItem value={"DELIVERY"}>DELIVERY</MenuItem>
+                                            <MenuItem value={"INTRADAY"}>Interaday</MenuItem>
+                                            <MenuItem value={"DELIVERY"}>Del</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>

@@ -221,7 +221,7 @@ class Home extends React.Component {
             var startDate = moment(new Date()).subtract(time);
 
             var data = {
-                "exchange": "NSE",
+                "exchange": watchList[index].exch_seg,
                 "symboltoken": watchList[index].token,
                 "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
                 "fromdate": moment(startDate).format(format1),
@@ -248,7 +248,7 @@ class Home extends React.Component {
 
                     });
 
-                    var sma = SMA.calculate({ period: 10, values: closeingData });
+                    var sma = SMA.calculate({ period: 20, values: closeingData });
                     console.log(watchList[index].symbol, "SMA", sma);
 
 
@@ -277,22 +277,21 @@ class Home extends React.Component {
                     var bb = BollingerBands.calculate(input);
                     console.log(watchList[index].symbol, "Bolinger band", input, bb);
 
-                    var bbvlastvalue = bb[bb.length - 1];
 
+                    var bbvlastvalue = bb[bb.length - 1];
                     if(bbvlastvalue){
                         bbvlastvalue.upper = bbvlastvalue.upper.toFixed(2); 
                         bbvlastvalue.middle = bbvlastvalue.middle.toFixed(2); 
                         bbvlastvalue.lower = bbvlastvalue.lower.toFixed(2); 
                     
                     }
-                  
-
-                    var data = {
+                    var dataltp = {
                         "exchange": "NSE",
                         "tradingsymbol": watchList[index].symbol,
                         "symboltoken": watchList[index].token,
                     }
-                    AdminService.getLTP(data).then(res => {
+
+                    AdminService.getLTP(dataltp).then(res => {
                         let data = resolveResponse(res, 'noPop');
                         var LtpData = data && data.data;
                         //console.log(LtpData);
@@ -318,48 +317,96 @@ class Home extends React.Component {
                                 }
                             });
 
-                            console.log(watchList[index].symbol, "last continue rsi", upsidecount)
+                            
+                            console.log(watchList[index].symbol, "last continue rsi", upsidecount);
+                            this.setState({ findlast5minMovementUpdate: index+1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " RSI rising :" + upsidecount});
+                           
+                            if(upsidecount >= 2 || downsidecount >= 2){
 
-
-                            if (bbvlastvalue && upsidecount >= 2 && LtpData.ltp >= bbvlastvalue.upper) {
-                                var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                foundData.push({
-                                    symbol: watchList[index].symbol,
-                                    token: watchList[index].token,
-                                    ltp: LtpData.ltp,
-                                    perChange: perChange,
-                                    RSIValue: lastRsiValue[lastRsiValue.length-1], 
-                                    RSI: lastRsiValue, 
-                                    VWAP: vwap(vwapdata), 
-                                    BB: bbvlastvalue, 
-                                    candleChartData: candleChartData,
-                                })
-                                this.setState({ findlast5minMovement: foundData });
-                                this.speckIt(watchList[index].symbol + ' BB  buy'); 
-                                window.document.title = "FM: Buy "+watchList[index].symbol;
-
+                                let timeDuration = this.getTimeFrameValue('ONE_DAY');
+                                var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
+                                var startDateforDaily = moment(new Date()).subtract(time);
+                                var dataDay = {
+                                    "exchange": watchList[index].exch_seg,
+                                    "symboltoken": watchList[index].token,
+                                    "interval": 'ONE_DAY', 
+                                    "fromdate": moment(startDateforDaily).format(format1),
+                                    "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+                                }
+                                AdminService.getHistoryData(dataDay).then(resd => {
+                                    let histdatad = resolveResponse(resd, 'noPop');
+                                    var DSMA = ''; 
+                                    if (histdatad && histdatad.data && histdatad.data.length) {
+                                        var candleDatad = histdatad.data;
+                                            var closeingDatadaily = [];
+                                            candleDatad.forEach((element, loopindex) => {
+                                                closeingDatadaily.push(element[4]);
+                                            });
+    
+                                        DSMA = SMA.calculate({ period: 20, values: closeingDatadaily });
+    
+                                        var DSMALastValue = DSMA && DSMA[DSMA.length-1]; 
+                                        console.log(watchList[index].symbol, "DSMA", DSMALastValue);
+            
+                                        if (LtpData.ltp > DSMALastValue && bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
+                                            var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                            foundData.push({
+                                                symbol: watchList[index].symbol,
+                                                token: watchList[index].token,
+                                                ltp: LtpData.ltp,
+                                                perChange: perChange,
+                                                RSIValue: lastRsiValue[lastRsiValue.length-1], 
+                                                RSI: lastRsiValue, 
+                                                VWAP: vwap(vwapdata), 
+                                                BB: bbvlastvalue, 
+                                                DSMALastValue : DSMALastValue,
+                                                candleChartData: candleChartData
+                                            })
+                                            this.setState({ findlast5minMovement: foundData });
+                                            this.speckIt(watchList[index].symbol + ' BB  buy'); 
+                                            window.document.title = "FM: Buy "+watchList[index].symbol;
+            
+                                        }
+                                        if (LtpData.ltp < DSMALastValue && bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
+                                            var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                            foundData.push({
+                                                symbol: watchList[index].symbol,
+                                                token: watchList[index].token,
+                                                ltp: LtpData.ltp,
+                                                perChange: perChange,
+                                                RSIValue: lastRsiValue[lastRsiValue.length-1], 
+                                                RSI: lastRsiValue, 
+                                                VWAP: vwap(vwapdata), 
+                                                BB: bbvlastvalue, 
+                                                DSMALastValue : DSMALastValue,
+                                                candleChartData: candleChartData
+                                            })
+                                            this.setState({ findlast5minMovement: foundData });
+                                            this.speckIt(watchList[index].symbol + ' BB sell'); 
+                                            window.document.title = "FM: Sell "+watchList[index].symbol;
+                                        }
+                                    }
+            
+    
+                                }); 
                             }
-                            if (bbvlastvalue && downsidecount >= 2 && LtpData.ltp <= bbvlastvalue.lower) {
-                                var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                foundData.push({
-                                    symbol: watchList[index].symbol,
-                                    token: watchList[index].token,
-                                    ltp: LtpData.ltp,
-                                    perChange: perChange,
-                                    RSIValue: lastRsiValue[lastRsiValue.length-1], 
-                                    RSI: lastRsiValue, 
-                                    VWAP: vwap(vwapdata), 
-                                    BB: bbvlastvalue, 
-                                    candleChartData: candleChartData,
-                                })
-                                this.setState({ findlast5minMovement: foundData });
-                                this.speckIt(watchList[index].symbol + ' BB sell'); 
-                                window.document.title = "FM: Sell "+watchList[index].symbol;
-                            }
+
+                          
+                           
+                           
+                           
 
                         }
 
                     })
+
+
+
+                    
+
+
+                   
+                   
 
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -367,7 +414,7 @@ class Home extends React.Component {
                 }
             })
 
-            await new Promise(r => setTimeout(r, 333));
+            await new Promise(r => setTimeout(r, 600));
         }
 
 
@@ -639,6 +686,11 @@ class Home extends React.Component {
                                 
                                 <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
 
+
+                                
+                                     <Grid item xs={12} sm={12} style={{color: row.ltp> row.DSMALastValue ? "green" : "red", fontWeight: "bold"}}>
+                                      Daily SMA: {row.DSMALastValue} {row.ltp > row.DSMALastValue ? "BUY" : "SELL"}
+                                    </Grid>
                                     <Grid item xs={12} sm={12} style={{color: row.ltp> row.VWAP ? "green" : "red", fontWeight: "bold"}}>
                                       VWAP:  {row.VWAP}
                                     </Grid>
