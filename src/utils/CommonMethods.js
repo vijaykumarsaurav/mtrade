@@ -77,6 +77,19 @@ class CommonOrderMethod {
         //  })
     }
 
+    updateOrderList = () => {
+        AdminService.retrieveOrderBook()
+            .then((res) => {
+                let data = resolveResponse(res);
+                if (data && data.data) {
+                    var orderlist = data.data;
+                    orderlist.sort(function (a, b) {
+                        return new Date(b.updatetime) - new Date(a.updatetime);
+                    });
+                    localStorage.setItem('oderbookData', JSON.stringify(orderlist));
+                }
+            });
+    }
 
     historyWiseOrderPlace = (sectorItem, orderType, isAutomatic, callback) => {
 
@@ -345,6 +358,7 @@ class CommonOrderMethod {
                 this.speckIt('hey Vijay, ' + slmOption.tradingsymbol + " stop loss order placed");
             //    this.getTodayOrder();
                 document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
+                this.updateOrderList(); 
             }
         })
     }

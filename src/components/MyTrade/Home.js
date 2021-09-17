@@ -68,6 +68,9 @@ class Home extends React.Component {
             chartStaticData: [],
             timeFrame : "TEN_MINUTE",
             cursor : '',
+            advanceShareCount: 0, 
+            declineShareCount: 0, 
+            UnchangeShareCount: 0,
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
 
 
@@ -133,7 +136,11 @@ class Home extends React.Component {
     }
     checkOpenEqualToLow = async () => {
 
-        this.setState({ openEqualHighList: [], openEqualLowList: [] });
+        this.setState({ openEqualHighList: [], openEqualLowList: [],  advanceShareCount: 0, 
+            declineShareCount: 0,UnchangeShareCount: 0  });
+
+       
+
 
         for (let index = 0; index < this.state.symbolList.length; index++) {
             const element = this.state.symbolList[index];
@@ -163,6 +170,12 @@ class Home extends React.Component {
                     this.state.symbolList[index].ltp = LtpData.ltp;
                     this.state.symbolList[index].nc = LtpData.perChange;
 
+                    if (LtpData.perChange > 0)
+                    this.setState({ advanceShareCount: this.state.advanceShareCount+1 });
+                    else if (LtpData.perChange < 0)
+                    this.setState({ declineShareCount: this.state.declineShareCount +1 });
+                    else
+                    this.setState({ UnchangeShareCount: this.state.UnchangeShareCount +1 });
 
 
                     this.state.symbolList && this.state.symbolList.sort(function (a, b) {
@@ -274,7 +287,7 @@ class Home extends React.Component {
         }
 
         setInterval(() => {
-            this.makeConnection();
+          //  this.makeConnection();
             var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
             // console.log("Request :- " + _req);
             wsClint.send(_req);
@@ -2309,6 +2322,8 @@ class Home extends React.Component {
 
                             {/* <Tab style={{position: 'fixed'}}  data={{symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/> */}
                         </Paper>
+                        <Typography style={{fontWeight:'bold'}}><span  style={{color:"green"}}> Advance {this.state.advanceShareCount} </span> <span  style={{color:"red"}}> Decline {this.state.declineShareCount} </span> <span> Unchange {this.state.UnchangeShareCount} </span> </Typography>
+
                     </Grid>
 
                     <Grid item xs={12} sm={8}>

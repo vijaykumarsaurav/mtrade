@@ -59,7 +59,7 @@ class Home extends React.Component {
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1001) })
+            this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1500) })
             //  this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
         } else {
             clearInterval(this.state.positionInterval);
@@ -1604,7 +1604,37 @@ class Home extends React.Component {
         return minPrice;
     }
 
+    getOptionPercentage =(row)=> {
 
+        console.log("option per calling"); 
+        var percentChange = 0, trailPerChange = 0; 
+
+        row.buyavgprice = parseFloat(row.buyavgprice);
+        percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
+        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 5) {
+            var minPrice = row.buyavgprice + (row.buyavgprice * 1 / 100);
+            minPrice = this.getMinPriceAllowTick(minPrice);
+            this.modifyOrderMethod(row, minPrice);
+        } else {
+            var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
+            var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
+            trailPerChange = perchngfromTriggerPrice; 
+            if (perchngfromTriggerPrice >= 5) {
+                minPrice = lastTriggerprice + (lastTriggerprice * 1 / 100);
+                minPrice = this.getMinPriceAllowTick(minPrice);
+                this.modifyOrderMethod(row, minPrice);
+            }
+        }
+
+        if(!trailPerChange){
+            return percentChange.toFixed(2) + "%"; 
+        }else{
+            return percentChange.toFixed(2) + "% | Trailing "+ trailPerChange.toFixed(2) + "%"; 
+        }
+ 
+    }
+
+    
     getPercentage = (row) => {
 
         var percentChange = 0, trailPerChange = 0; 
@@ -1627,7 +1657,6 @@ class Home extends React.Component {
                 }
             }
         }
-
 
         if (row.netqty < 0) {
 
@@ -1781,7 +1810,7 @@ class Home extends React.Component {
 
                                             <TableCell align="left">
                                                 <Button style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
-                                                    {row.symbolname} {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon />
+                                                    {row.tradingsymbol} {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon />
                                                 </Button>
                                             </TableCell>
                                             <TableCell align="left">{row.pattenName}</TableCell>
@@ -1803,7 +1832,8 @@ class Home extends React.Component {
                                             {/* {(localStorage.getItem('lastTriggerprice_'+row.tradingsymbol))} */}
                                             <TableCell align="left" style={{ color: parseFloat(row.pnl) > 0 ? 'green' : 'red' }}><b>{row.pnl}</b></TableCell>
                                             <TableCell align="left">
-                                                {row.netqty !== '0' ? this.getPercentage(row) : ""}
+                                                {row.netqty !== '0' && row.optiontype  == '' ? this.getPercentage(row) : ""}
+                                                {(row.optiontype  == 'CE' || row.optiontype  == 'PE') && row.netqty > 0 ? this.getOptionPercentage(row) : ""}  
                                                 {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
                                             </TableCell>
                                             <TableCell align="left">{row.ltp}</TableCell>

@@ -41,9 +41,10 @@ class Home extends React.Component {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             selectedWatchlist: "NIFTY BANK",
-            totalStockToWatch: 0, 
-            timeFrame : "TEN_MINUTE",
-            chartStaticData: []
+            totalStockToWatch: 0,
+            timeFrame: "TEN_MINUTE",
+            chartStaticData: [],
+            BBBlastType : "BBBlastOnly"
 
         };
         this.findlast5minMovement = this.findlast5minMovement.bind(this);
@@ -59,7 +60,7 @@ class Home extends React.Component {
         this.setState({ totalStockToWatch: watchList.length });
 
         // this.findlast5minMovement(); //one time only
-     //   this.startSearching();
+        //   this.startSearching();
 
 
         var beginningTime = moment('9:15am', 'h:mma');
@@ -68,25 +69,27 @@ class Home extends React.Component {
         var currentTime = moment(new Date(), "h:mma");
         const today = moment().isoWeekday();
 
-        var tostartInteral =  setInterval(() => {
+        var tostartInteral = setInterval(() => {
             var time = new Date();
-            console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());  
-            if(time.getMinutes() % 5 === 0){
-                console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());  
+            console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());
+            if (time.getMinutes() % 5 === 0) {
+                console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());
 
                 setTimeout(() => {
                     this.find10MinBBBlast();
                 }, 70000);
-                this.setState({ stop10bbSearch: 
-                    setInterval(() => {
-                    console.log("search method call in with setInterval in 10min", time.toLocaleTimeString());  
-                    if(today <= friday && currentTime.isBetween(beginningTime, endTime)){
-                        this.find10MinBBBlast();
-                    }
-                }, 60000 * 5 + 70000 ) });
-                
-                clearInterval(tostartInteral); 
-            } 
+                this.setState({
+                    stop10bbSearch:
+                        setInterval(() => {
+                            console.log("search method call in with setInterval in 10min", time.toLocaleTimeString());
+                            if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+                                this.find10MinBBBlast();
+                            }
+                        }, 60000 * 5 + 70000)
+                });
+
+                clearInterval(tostartInteral);
+            }
         }, 1000);
 
 
@@ -98,7 +101,7 @@ class Home extends React.Component {
         console.log("stop the search")
         clearInterval(this.state.findlast5minMovementInterval);
         clearInterval(this.state.stop10bbSearch);
-        
+
     }
 
 
@@ -152,43 +155,43 @@ class Home extends React.Component {
         }
     }
 
-    getTimeFrameValue=(timeFrame)=> {
-    
+    getTimeFrameValue = (timeFrame) => {
+
         //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
 
         switch (timeFrame) {
             case 'ONE_MINUTE':
-                if (new Date().toLocaleTimeString() < "10:05:00") 
-                return "18:21:00"; 
+                if (new Date().toLocaleTimeString() < "10:05:00")
+                    return "18:21:00";
                 else
-                return "00:21:00"; 
+                    return "00:21:00";
                 break;
             case 'FIVE_MINUTE':
-                if (new Date().toLocaleTimeString() < "11:00:00") 
-                return "19:41:00"; 
-                else                
-                return "01:41:00"; 
+                if (new Date().toLocaleTimeString() < "11:00:00")
+                    return "19:41:00";
+                else
+                    return "01:41:00";
                 break;
             case 'TEN_MINUTE':
-                if (new Date().toLocaleTimeString() < "12:35:00") 
-                return "21:21:00"; 
-                else                
-                return "03:21:00"; 
+                if (new Date().toLocaleTimeString() < "12:35:00")
+                    return "21:21:00";
+                else
+                    return "03:21:00";
                 break;
             case 'FIFTEEN_MINUTE':
-                if (new Date().toLocaleTimeString() < "14:15:00") 
-                return "23:01:00"; 
-                else                
-                return "05:01:00"; 
+                if (new Date().toLocaleTimeString() < "14:15:00")
+                    return "23:01:00";
+                else
+                    return "05:01:00";
                 break;
-            case 'THIRTY_MINUTE':                    
-                return "84:01:00"; 
+            case 'THIRTY_MINUTE':
+                return "84:01:00";
                 break;
             case 'ONE_HOUR':
-                return "168:01:00"; 
+                return "168:01:00";
                 break;
             case 'ONE_DAY':
-                return "744:01:00"; 
+                return "744:01:00";
                 break;
             default:
                 break;
@@ -197,8 +200,8 @@ class Home extends React.Component {
 
 
     find10MinBBBlast = async () => {
-        
-        this.setState({ findlast5minMovementUpdate: '' , findlast5minMovement: []});
+
+        this.setState({ findlast5minMovementUpdate: '', findlast5minMovement: [] });
         var watchList = this.state.staticData[this.state.selectedWatchlist];
         if (this.state.selectedWatchlist == "selectall") {
             watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'));
@@ -211,7 +214,7 @@ class Home extends React.Component {
 
         for (let index = 0; index < watchList.length; index++) {
 
-            this.setState({ findlast5minMovementUpdate: index+1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() });
+            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() });
 
             const format1 = "YYYY-MM-DD HH:mm";
             var beginningTime = moment('9:15am', 'h:mma').format(format1);
@@ -236,7 +239,7 @@ class Home extends React.Component {
 
                     var candleData = histdata.data;
                     var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [];
-                        candleData.forEach((element, loopindex) => {
+                    candleData.forEach((element, loopindex) => {
                         candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
                         vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
                         closeingData.push(element[4]);
@@ -253,12 +256,12 @@ class Home extends React.Component {
 
 
                     var inputRSI = { values: closeingData, period: 14 };
-                    var lastRsiValue = RSI.calculate(inputRSI); 
+                    var lastRsiValue = RSI.calculate(inputRSI);
 
-                    console.log(watchList[index].symbol, "Rsi",inputRSI , lastRsiValue);
-                    console.log(watchList[index].symbol, "vwap",vwapdata , vwap(vwapdata));
+                    console.log(watchList[index].symbol, "Rsi", inputRSI, lastRsiValue);
+                    console.log(watchList[index].symbol, "vwap", vwapdata, vwap(vwapdata));
 
-            
+
                     var inputVWAP = {
                         open: openData,
                         high: highData,
@@ -279,11 +282,11 @@ class Home extends React.Component {
 
 
                     var bbvlastvalue = bb[bb.length - 1];
-                    if(bbvlastvalue){
-                        bbvlastvalue.upper = bbvlastvalue.upper.toFixed(2); 
-                        bbvlastvalue.middle = bbvlastvalue.middle.toFixed(2); 
-                        bbvlastvalue.lower = bbvlastvalue.lower.toFixed(2); 
-                    
+                    if (bbvlastvalue) {
+                        bbvlastvalue.upper = bbvlastvalue.upper.toFixed(2);
+                        bbvlastvalue.middle = bbvlastvalue.middle.toFixed(2);
+                        bbvlastvalue.lower = bbvlastvalue.lower.toFixed(2);
+
                     }
                     var dataltp = {
                         "exchange": "NSE",
@@ -298,103 +301,144 @@ class Home extends React.Component {
                         if (LtpData && LtpData.ltp) {
 
 
-                           lastRsiValue = lastRsiValue.slice((lastRsiValue.length - 6), lastRsiValue.length); 
+                            lastRsiValue = lastRsiValue.slice((lastRsiValue.length - 6), lastRsiValue.length);
 
-                           var upsidecount = 0, downsidecount = 0, startingRsiupside = lastRsiValue[2], startingRsiDownside = lastRsiValue[2]; 
-                           lastRsiValue.forEach((element, i)  => {
-                                if(i > 2 && element >= 55 && element <= 65){
-                                    if(startingRsiupside <= element) {
-                                        startingRsiupside = element; 
-                                        upsidecount += 1; 
+                            var upsidecount = 0, downsidecount = 0, startingRsiupside = lastRsiValue[2], startingRsiDownside = lastRsiValue[2];
+                            lastRsiValue.forEach((element, i) => {
+                                if (i > 2 && element >= 55 && element <= 65) {
+                                    if (startingRsiupside <= element) {
+                                        startingRsiupside = element;
+                                        upsidecount += 1;
                                     }
                                 }
 
-                                if(i > 2 && element >= 35 && element <= 45){
-                                    if(element <= startingRsiDownside) {
-                                        startingRsiDownside = element; 
-                                        downsidecount += 1; 
+                                if (i > 2 && element >= 35 && element <= 45) {
+                                    if (element <= startingRsiDownside) {
+                                        startingRsiDownside = element;
+                                        downsidecount += 1;
                                     }
                                 }
                             });
 
-                            
-                            console.log(watchList[index].symbol, "last continue rsi", upsidecount);
-                            this.setState({ findlast5minMovementUpdate: index+1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " RSI rising :" + upsidecount});
-                           
-                            if(upsidecount >= 2 || downsidecount >= 2){
 
-                                let timeDuration = this.getTimeFrameValue('ONE_DAY');
-                                var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
-                                var startDateforDaily = moment(new Date()).subtract(time);
-                                var dataDay = {
-                                    "exchange": watchList[index].exch_seg,
-                                    "symboltoken": watchList[index].token,
-                                    "interval": 'ONE_DAY', 
-                                    "fromdate": moment(startDateforDaily).format(format1),
-                                    "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
-                                }
-                                AdminService.getHistoryData(dataDay).then(resd => {
-                                    let histdatad = resolveResponse(resd, 'noPop');
-                                    var DSMA = ''; 
-                                    if (histdatad && histdatad.data && histdatad.data.length) {
-                                        var candleDatad = histdatad.data;
+
+                            console.log(watchList[index].symbol, "last continue rsi", upsidecount);
+                            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " RSI rising :" + upsidecount });
+                            if (upsidecount >= 2 || downsidecount >= 2) {
+                                if (this.state.BBBlastType == 'BBBlastOnly') {
+                                    if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
+                                        var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                        foundData.push({
+                                            symbol: watchList[index].symbol,
+                                            token: watchList[index].token,
+                                            ltp: LtpData.ltp,
+                                            perChange: perChange,
+                                            RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                            RSI: lastRsiValue,
+                                            VWAP: vwap(vwapdata),
+                                            BB: bbvlastvalue,
+                                            candleChartData: candleChartData
+                                        })
+                                        this.setState({ findlast5minMovement: foundData });
+                                        this.speckIt(watchList[index].symbol + ' BB  buy');
+                                        window.document.title = "FM: Buy " + watchList[index].symbol;
+
+                                    }
+                                    if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
+                                        var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                        foundData.push({
+                                            symbol: watchList[index].symbol,
+                                            token: watchList[index].token,
+                                            ltp: LtpData.ltp,
+                                            perChange: perChange,
+                                            RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                            RSI: lastRsiValue,
+                                            VWAP: vwap(vwapdata),
+                                            BB: bbvlastvalue,
+                                            candleChartData: candleChartData
+                                        })
+                                        this.setState({ findlast5minMovement: foundData });
+                                        this.speckIt(watchList[index].symbol + ' BB sell');
+                                        window.document.title = "FM: Sell " + watchList[index].symbol;
+                                    }
+                                } else {
+
+                                    let timeDuration = this.getTimeFrameValue('ONE_DAY');
+                                    var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
+                                    var startDateforDaily = moment(new Date()).subtract(time);
+                                    var dataDay = {
+                                        "exchange": watchList[index].exch_seg,
+                                        "symboltoken": watchList[index].token,
+                                        "interval": 'ONE_DAY',
+                                        "fromdate": moment(startDateforDaily).format(format1),
+                                        "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+                                    }
+                                    AdminService.getHistoryData(dataDay).then(resd => {
+                                        let histdatad = resolveResponse(resd, 'noPop');
+                                        var DSMA = '';
+                                        if (histdatad && histdatad.data && histdatad.data.length) {
+                                            var candleDatad = histdatad.data;
                                             var closeingDatadaily = [];
                                             candleDatad.forEach((element, loopindex) => {
                                                 closeingDatadaily.push(element[4]);
                                             });
-    
-                                        DSMA = SMA.calculate({ period: 20, values: closeingDatadaily });
-    
-                                        var DSMALastValue = DSMA && DSMA[DSMA.length-1]; 
-                                        console.log(watchList[index].symbol, "DSMA", DSMALastValue);
-            
-                                        if (LtpData.ltp > DSMALastValue && bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
-                                            var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                            foundData.push({
-                                                symbol: watchList[index].symbol,
-                                                token: watchList[index].token,
-                                                ltp: LtpData.ltp,
-                                                perChange: perChange,
-                                                RSIValue: lastRsiValue[lastRsiValue.length-1], 
-                                                RSI: lastRsiValue, 
-                                                VWAP: vwap(vwapdata), 
-                                                BB: bbvlastvalue, 
-                                                DSMALastValue : DSMALastValue,
-                                                candleChartData: candleChartData
-                                            })
-                                            this.setState({ findlast5minMovement: foundData });
-                                            this.speckIt(watchList[index].symbol + ' BB  buy'); 
-                                            window.document.title = "FM: Buy "+watchList[index].symbol;
-            
+
+                                            DSMA = SMA.calculate({ period: 20, values: closeingDatadaily });
+
+                                            var DSMALastValue = DSMA && DSMA[DSMA.length - 1];
+                                            console.log(watchList[index].symbol, "DSMA", DSMALastValue);
+
+                                            if (LtpData.ltp > DSMALastValue && bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
+                                                var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                                foundData.push({
+                                                    symbol: watchList[index].symbol,
+                                                    token: watchList[index].token,
+                                                    ltp: LtpData.ltp,
+                                                    perChange: perChange,
+                                                    RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                                    RSI: lastRsiValue,
+                                                    VWAP: vwap(vwapdata),
+                                                    BB: bbvlastvalue,
+                                                    DSMALastValue: DSMALastValue,
+                                                    candleChartData: candleChartData
+                                                })
+                                                this.setState({ findlast5minMovement: foundData });
+                                                this.speckIt(watchList[index].symbol + ' BB  buy');
+                                                window.document.title = "FM: Buy " + watchList[index].symbol;
+
+                                            }
+                                            if (LtpData.ltp < DSMALastValue && bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
+                                                var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                                foundData.push({
+                                                    symbol: watchList[index].symbol,
+                                                    token: watchList[index].token,
+                                                    ltp: LtpData.ltp,
+                                                    perChange: perChange,
+                                                    RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                                    RSI: lastRsiValue,
+                                                    VWAP: vwap(vwapdata),
+                                                    BB: bbvlastvalue,
+                                                    DSMALastValue: DSMALastValue,
+                                                    candleChartData: candleChartData
+                                                })
+                                                this.setState({ findlast5minMovement: foundData });
+                                                this.speckIt(watchList[index].symbol + ' BB sell');
+                                                window.document.title = "FM: Sell " + watchList[index].symbol;
+                                            }
                                         }
-                                        if (LtpData.ltp < DSMALastValue && bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
-                                            var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                            foundData.push({
-                                                symbol: watchList[index].symbol,
-                                                token: watchList[index].token,
-                                                ltp: LtpData.ltp,
-                                                perChange: perChange,
-                                                RSIValue: lastRsiValue[lastRsiValue.length-1], 
-                                                RSI: lastRsiValue, 
-                                                VWAP: vwap(vwapdata), 
-                                                BB: bbvlastvalue, 
-                                                DSMALastValue : DSMALastValue,
-                                                candleChartData: candleChartData
-                                            })
-                                            this.setState({ findlast5minMovement: foundData });
-                                            this.speckIt(watchList[index].symbol + ' BB sell'); 
-                                            window.document.title = "FM: Sell "+watchList[index].symbol;
-                                        }
-                                    }
-            
-    
-                                }); 
+
+
+                                    });
+
+                                }
+
+
                             }
 
-                          
-                           
-                           
-                           
+
+
+
+
 
                         }
 
@@ -402,11 +446,11 @@ class Home extends React.Component {
 
 
 
-                    
 
 
-                   
-                   
+
+
+
 
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
@@ -527,44 +571,44 @@ class Home extends React.Component {
         }
     }
 
-    callbackAfterOrderDone =( order ) => {
+    callbackAfterOrderDone = (order) => {
         // setValues({ ...values, ['buyFlag']: order.status });
         // setValues({ ...values, ['sellFlag']:  order.status  });
-      //  this.setState({ [spineerId]: order.status}); 
+        //  this.setState({ [spineerId]: order.status}); 
 
 
-      console.log("order executed", order); 
+        console.log("order executed", order);
 
     }
 
 
 
-    handleClick =(row,  type, spinnerIndex) => {
+    handleClick = (row, type, spinnerIndex) => {
 
 
         console.log(row);
-        if(row.token && row.symbol){ 
+        if (row.token && row.symbol) {
             if (type == 'BUY') {
-                this.setState({ [spinnerIndex]: true}); 
-                var symbolInfo = { 
-                    token: row.token, 
+                this.setState({ [spinnerIndex]: true });
+                var symbolInfo = {
+                    token: row.token,
                     symbol: row.symbol
                 }
-               CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
-               this.setState({ [spinnerIndex]: false}); 
+                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
+                this.setState({ [spinnerIndex]: false });
 
             }
 
             if (type == 'SELL') {
-                this.setState({ [spinnerIndex]: true}); 
-                var symbolInfo = { 
-                    token: row.token, 
+                this.setState({ [spinnerIndex]: true });
+                var symbolInfo = {
+                    token: row.token,
                     symbol: row.symbol
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
-                this.setState({ [spinnerIndex]: false}); 
+                this.setState({ [spinnerIndex]: false });
             }
-        }else{
+        } else {
             Notify.showError(" Symbol Not found!!!");
         }
     }
@@ -584,7 +628,7 @@ class Home extends React.Component {
 
                     <Grid item xs={12} sm={4} >
                         <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                            10min BB Blast ({this.state.findlast5minMovement && this.state.findlast5minMovement.length}) 
+                            &nbsp;BB Blast ({this.state.findlast5minMovement && this.state.findlast5minMovement.length})
                             <span id="stockTesting" style={{ fontSize: "18px", color: 'gray' }}> {this.state.findlast5minMovementUpdate} </span>
                         </Typography>
 
@@ -604,7 +648,7 @@ class Home extends React.Component {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={2} >
+                    <Grid item xs={12} sm={1} >
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Select Time</InputLabel>
                             <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onChangeWatchlist}>
@@ -619,9 +663,20 @@ class Home extends React.Component {
                         </FormControl>
                     </Grid>
 
+                    <Grid item xs={12} sm={1} >
+                        <FormControl style={styles.selectStyle} >
+                            <InputLabel htmlFor="gender">Select Time</InputLabel>
+                            <Select value={this.state.BBBlastType} name="BBBlastType" onChange={this.onChangeWatchlist}>
+                                <MenuItem value={'BBBlastOnly'}>{'BB Blast'}</MenuItem>
+                                <MenuItem value={'BBBlastDaily'}>{'BB Blast Daily'}</MenuItem>
+
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
                     <Grid item xs={12} sm={4} >
-                        <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.find10MinBBBlast()}>Start Searching</Button>
-                        <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.stopSearching()}>Stop Searching</Button>
+                        <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.find10MinBBBlast()}>Start</Button>
+                        <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.stopSearching()}>Stop</Button>
                     </Grid>
 
                 </Grid>
@@ -645,13 +700,13 @@ class Home extends React.Component {
                 </Table> */}
                 <Grid container spacing={2} >
 
-                
+
                     {this.state.findlast5minMovement ? this.state.findlast5minMovement.map((row, i) => (
 
-                        <Grid item   xs={12} sm={3}>
+                        <Grid item xs={12} sm={3}>
                             <Paper style={{ overflow: "auto", padding: '10px' }} >
                                 <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}%) </b></Typography>
-                                                                
+
                                 {/* <LightChart candleData={row.candleChartData.length} />  */}
 
                                 {row.candleChartData.length > 0 ? <ReactApexChart
@@ -683,36 +738,36 @@ class Home extends React.Component {
                                 /> : ""}
 
                                 {/* <div> {Parser(row.percentChangeList)}</div> */}
-                                
+
                                 <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
 
 
-                                
-                                     <Grid item xs={12} sm={12} style={{color: row.ltp> row.DSMALastValue ? "green" : "red", fontWeight: "bold"}}>
-                                      Daily SMA: {row.DSMALastValue} {row.ltp > row.DSMALastValue ? "BUY" : "SELL"}
-                                    </Grid>
-                                    <Grid item xs={12} sm={12} style={{color: row.ltp> row.VWAP ? "green" : "red", fontWeight: "bold"}}>
-                                      VWAP:  {row.VWAP}
+
+                                    {row.DSMALastValue ? <Grid item xs={12} sm={12} style={{ color: row.ltp > row.DSMALastValue ? "green" : "red", fontWeight: "bold" }}>
+                                        Daily SMA: {row.DSMALastValue} {row.ltp > row.DSMALastValue ? "BUY" : "SELL"}
+                                    </Grid> : ""}
+                                    <Grid item xs={12} sm={12} style={{ color: row.ltp > row.VWAP ? "green" : "red", fontWeight: "bold" }}>
+                                        VWAP:  {row.VWAP}
                                     </Grid>
                                     <Grid item xs={12} sm={12}>
-                                   
-                                     RSI: { row.RSI.map((item, j) => (
-                                        item >= 60 ? <span style={{color: 'green' ,fontWeight: "bold"}}> {item} &nbsp;</span> :  <span style={{color:  item <= 40 ? 'red' : "" ,fontWeight: "bold"}}> {item} &nbsp;</span>
-                                     ))} 
 
-                                    
+                                        RSI: {row.RSI.map((item, j) => (
+                                            item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
+                                        ))}
+
+
                                     </Grid>
                                     <Grid item xs={12} sm={12} >
-                                       BB 
-                                       &nbsp; <span style={{color: row.ltp >= row.BB.upper ? "green" : "", fontWeight: "bold"}}>Upper: {row.BB.upper}</span> 
-                                       &nbsp; Middle: {row.BB.middle} 
-                                       &nbsp; <span style={{color: row.ltp <= row.BB.lower ? "red" : "", fontWeight: "bold"}}> Lower: {row.BB.lower}</span>
+                                        BB
+                                        &nbsp; <span style={{ color: row.ltp >= row.BB.upper ? "green" : "", fontWeight: "bold" }}>Upper: {row.BB.upper}</span>
+                                        &nbsp; Middle: {row.BB.middle}
+                                        &nbsp; <span style={{ color: row.ltp <= row.BB.lower ? "red" : "", fontWeight: "bold" }}> Lower: {row.BB.lower}</span>
                                     </Grid>
 
                                 </Grid>
 
                                 <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
-                                    <Grid item>              
+                                    <Grid item>
                                         {!this.state['buyButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="primary" onClick={() => this.handleClick(row, 'BUY', 'buyButtonClicked' + row.symbol + i)}>BUY</Button> : <Spinner />}
                                     </Grid>
 

@@ -115,8 +115,8 @@ class OrderBook extends React.Component{
     }
 
     callBackUpdate =(row) => {
-
-      this.deleteInOrderPenidngList(row); 
+       console.log("call back called");
+     // this.deleteInOrderPenidngList(row); 
     }
 
     updateLTP = async()=> {
@@ -136,8 +136,11 @@ class OrderBook extends React.Component{
                     console.log("ltp update",element.symbol,element)
 
                     if(element.buyAt && LtpData.ltp >= parseFloat(element.buyAt)){
+                        this.deleteInOrderPenidngList(element); 
                         CommonOrderMethod.historyWiseOrderPlace(element, 'BUY', "isAutomatic", this.callBackUpdate);
+                       
                     }else if(element.sellAt && LtpData.ltp <= parseFloat(element.sellAt)){
+                        this.deleteInOrderPenidngList(element); 
                         CommonOrderMethod.historyWiseOrderPlace(element, 'SELL', "isAutomatic", this.callBackUpdate);
                     }
 
@@ -304,28 +307,27 @@ class OrderBook extends React.Component{
 
                 <Grid justify="space-between"
                     container>
-                    <Grid item  >
-                     
-                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                      Orders Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
-                      {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
-                      {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
-                    </Typography> 
+                    <Grid item> 
+                        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                        Orders Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
+                        {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
+                        {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
+                        </Typography> 
 
-
-                       
 
                     </Grid>
-                    <Grid item  >
 
-                        <Grid justify="space-between" container spacing={2}>
+                   
 
+                    <Grid item >
 
-                            <Grid item  >
+                        <Grid container spacing={2}>
+                        <Grid item >
                                 {/* <TextField label="Type full Symbol" name="searchSymbolPending" value={this.state.searchSymbolPending} onChange={this.searchSymbolPendingOrder} /> */}
                                 <Autocomplete
                                         freeSolo
                                         id="free-solo-2-demo"
+                                        
                                         disableClearable
                                         onChange={this.onSelectItem}
                                         value={this.state.searchSymbolPending}
@@ -339,7 +341,7 @@ class OrderBook extends React.Component{
                                                 {...params}
                                                 label={"Search Symbol"}
                                                 margin="normal"
-                                                style={{  width:"200px",marginTop: 'inherit' }}
+                                                style={{  width:"500px",marginTop: 'inherit' }}
                                                 name="searchSymbolPending"
                                                 variant="standard"
                                                 InputProps={{ ...params.InputProps, type: 'search' }}
@@ -347,7 +349,9 @@ class OrderBook extends React.Component{
                                         )}
                                     />
                               {this.state.lastTradedData.symbol}  Ltp: <b style={{ color:this.state.lastTradedData.perChange == 0 ? "none" : this.state.lastTradedData.perChange > 0 ? "green" : "red"}}> {this.state.lastTradedData.ltp} {this.state.lastTradedData.ltp ? "("+this.state.lastTradedData.perChange+"%)"  : ""}</b> 
-                            </Grid>
+                    </Grid>
+
+                            
                             <Grid item  >
                                 <TextField label="BuyAt(limit)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
                               <br /> High: {this.state.lastTradedData.high}

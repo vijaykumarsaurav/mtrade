@@ -285,7 +285,13 @@ app.get('/search/:query', function (req, res) {
 
     for (let index = 0; index < obj.length; index++) {
 
-      if (obj[index].name.startsWith(symbolName) && obj[index].lotsize == "1" && !obj[index].symbol.endsWith("-BL")) {
+      if(obj[index].name.startsWith(symbolName) && obj[index].lotsize == "1" && !obj[index].symbol.endsWith("-BL")) {
+        fillertedData.push(obj[index])
+      }
+
+
+      //BANKNIFTY16SEP2137700CE
+      if(obj[index].symbol.includes(symbolName) && obj[index].lotsize == "25" && (obj[index].symbol.endsWith("CE") || obj[index].symbol.endsWith("PE"))) {
         fillertedData.push(obj[index])
       }
 
