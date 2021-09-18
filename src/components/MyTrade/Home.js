@@ -70,6 +70,7 @@ class Home extends React.Component {
             openEqualHighList: [],
             openEqualLowList: [],
             chartStaticData: [],
+            volumeCrossedList: [],
             timeFrame : "TEN_MINUTE",
             cursor : '',
             advanceShareCount: 0, 
@@ -137,8 +138,8 @@ class Home extends React.Component {
     }
     checkOpenEqualToLow = async () => {
 
-        this.setState({ openEqualHighList: [], openEqualLowList: [],  advanceShareCount: 0, 
-            declineShareCount: 0,UnchangeShareCount: 0  });
+        this.setState({ openEqualHighList: [], openEqualLowList: [],openEqualLowList:[],  advanceShareCount: 0, 
+            declineShareCount: 0,UnchangeShareCount: 0 , volumeCrossedList: [] });
 
 
         for (let index = 0; index < this.state.symbolList.length; index++) {
@@ -181,6 +182,9 @@ class Home extends React.Component {
                         return b.nc - a.nc;
                     });
                     this.setState({ symbolList: this.state.symbolList });
+
+                    this.dailyBollingCheck(element.token, element); 
+
                 }
             })
             await new Promise(r => setTimeout(r, 310));
@@ -1985,6 +1989,18 @@ class Home extends React.Component {
         }
         return result;
       }
+
+    //   calculateBBValue = (data, type ) => {
+
+    //     console.log("smarowdata", data , count); 
+
+    //     var result = [];
+    //     for (var i=count - 1, len=data.length; i < len; i++){
+    //       var val = avg(data.slice(i - count + 1, i));
+    //       result.push({ time: data[i].time, value: val});
+    //     }
+    //     return result;
+    //   }
       
 
 
@@ -2069,26 +2085,46 @@ class Home extends React.Component {
                     
                     this.state.volumeSeries.setData(volumeSeriesData);
 
-
                     var smaData = this.calculateSMA(this.state.chartStaticData, 20);
-                    console.log("smadata", smaData); 
-
+                    
                     this.state.smaLineSeries.setData(smaData);
 
-                    function setLegendText(priceValue) {
-                        let val = 'n/a';
-                        if (priceValue !== undefined) {
-                            val = (Math.round(priceValue * 100) / 100).toFixed(2);
-                        }
-                        const domElement = document.getElementById('showChartTitle');
-                        domElement.innerHTML = "MA: " +val ; 
-                    }
-                    
-                    setLegendText(smaData[smaData.length - 1].value);
                     
                     this.state.chart.subscribeCrosshairMove((param) => {
-                        console.log("chart param", param); 
-                       // setLegendText(param.seriesPrices.get(smaLine));
+                        
+                        var getit = param.seriesPrices[Symbol.iterator]();
+                        
+                       var string =  ""; 
+                       var change = ""; 
+                       
+                        for(var elem of getit){
+                       
+                            if(typeof elem[1] == 'object'){
+                                string +=  " Open: <b>" + elem[1].open+"</b>"; 
+                                string +=  " High: <b>" + elem[1].high+"</b>"; 
+                                string +=  " Low: <b>" + elem[1].low + "</b>"; 
+                                string +=  " Close: <b>" + elem[1].close + "</b>"; 
+                                change = (elem[1].close - elem[1].open)*100/elem[1].open; 
+                                string +=  " Chng: <b>" +  change.toFixed(2) + '%</b>'; 
+                            }else{
+                                string +=  " &nbsp; " + elem[1].toFixed(2) + " "; 
+                            }
+                        }
+
+                        if(param.time)
+                        string += " Time: <b>" + new Date(param.time).toLocaleString()+"</b>"; 
+                        else
+                        string += " <b>Time: </b>"; 
+
+ 
+                        const domElement = document.getElementById('showChartTitle');
+
+                        
+                        var str = "<span style=color:green>"+string+"</span> "; 
+                        if(change < 0)
+                        str = "<span style=color:red>"+string+"</span> ";  
+
+                        domElement.innerHTML = str; 
                     });
 
 
@@ -2117,13 +2153,7 @@ class Home extends React.Component {
                     });
 
                     this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount });
-
-
                 }
-
-                
-
-
             }
         })
 
@@ -2133,9 +2163,8 @@ class Home extends React.Component {
     
 
 
-    dailyBollingCheck =(token)=>{
+    dailyBollingCheck =(token, element)=>{
         //this.setState({DailyBulishStatus: ''}); 
-
          
         const format1 = "YYYY-MM-DD HH:mm";
 
@@ -2165,15 +2194,20 @@ class Home extends React.Component {
                 
 
                 DSMA = SMA.calculate({ period: 20, values: closeingDatadaily });
-                this.setState({dailyAvgValume: valumeSum/histdatad.data.length}); 
+                this.setState({dailyAvgValume: valumeSum/20}); 
 
                 var DSMALastValue = DSMA && DSMA[DSMA.length - 1];
                 console.log(token, "DSMA", DSMALastValue);
 
                 if(DSMALastValue){
                     this.setState({DailyBulishStatus: DSMALastValue,  todayCurrentVolume: candleDatad[candleDatad.length-1][5] }); 
-
                 }
+
+                if(candleDatad[candleDatad.length-1][5] > valumeSum/20){
+                    console.log("crosssed voliue", element);
+                    this.setState({volumeCrossedList: [...this.state.volumeCrossedList, element]})
+                }
+
             }
 
 
@@ -2625,7 +2659,7 @@ class Home extends React.Component {
 
                                         
                                     <br />
-                                    <b>Volume:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
+                                    <b>Vol:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
                                         <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item/100000).toFixed(2)}L &nbsp;</span>
                                     ))}
 
@@ -2649,7 +2683,18 @@ class Home extends React.Component {
                                     </Grid>
 
                                     <Grid item xs={12} sm={9}  >
-                                      <div id="showChartTitle"> </div>
+                                      <div id="showChartTitle"> 
+                                      Time: {this.state.candletime}  
+                                      Open: {this.state.candleChartDetail && this.state.candleChartDetail.open}
+                                      High: {this.state.candleChartDetail && this.state.candleChartDetail.high}
+                                      Low: {this.state.candleChartDetail && this.state.candleChartDetail.low}
+                                      Close: {this.state.candleChartDetail && this.state.candleChartDetail.close}
+                                      Volume: {this.state.candleChartDetail && this.state.candleChartDetail.volume}
+                                      Change: {this.state.candleChartDetail && this.state.candleChartDetail.change}
+
+                                    
+                                      
+                                      </div>
                                      <div id="tvchart"></div>
 
                                     </Grid>
@@ -3149,17 +3194,26 @@ class Home extends React.Component {
 
                             <Grid item xs={12} sm={12}>
                                 <Paper>
-                                    <Typography style={{ textAlign: "center", background: "lightgray" }}>Weekly, Daily, Hourly Bullish = Buy</Typography>
+                                    <Typography style={{ textAlign: "center", background: "lightgray" }}>{this.state.volumeCrossedList.length} Average Volume Crossed</Typography>
                                     <div style={{ overflowY: 'scroll', height: "25vh" }}>
-
+                                        {this.state.volumeCrossedList && this.state.volumeCrossedList.length ? this.state.volumeCrossedList.map(row => (
+                                            <>
+                                            {row ? <ListItem button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }}  >
+                                                    <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.symbol} /> {row.ltp} ({row.nc}%)
+                                                </ListItem> : ""}
+                                                
+                                            </>
+                                        )) : ''}
                                     </div>
+
+
                                 </Paper>
                             </Grid>
 
                         </Grid>
 
 
-
+                        
 
 
 
