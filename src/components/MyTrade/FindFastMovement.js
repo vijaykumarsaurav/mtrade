@@ -32,6 +32,7 @@ import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import vwap from 'vwap';
 import CommonOrderMethod from "../../utils/CommonMethods";
 import LightChart from "./LightChart";
+import LightChartCom from "./LightChartCom";
 
 
 class Home extends React.Component {
@@ -40,11 +41,11 @@ class Home extends React.Component {
         this.state = {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
-            selectedWatchlist: "NIFTY BANK",
+            selectedWatchlist: "NIFTY 50",
             totalStockToWatch: 0,
-            timeFrame: "TEN_MINUTE",
+            timeFrame: "FIFTEEN_MINUTE",
             chartStaticData: [],
-            BBBlastType : "BBBlastOnly"
+            BBBlastType : "BBBlastOnly",
 
         };
         this.findlast5minMovement = this.findlast5minMovement.bind(this);
@@ -220,7 +221,7 @@ class Home extends React.Component {
             var beginningTime = moment('9:15am', 'h:mma').format(format1);
 
             let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
-            var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
+            var time = moment.duration("50:00:00");  //22:00:00" for last day  2hours  timeDuration
             var startDate = moment(new Date()).subtract(time);
 
             var data = {
@@ -238,9 +239,18 @@ class Home extends React.Component {
                 if (histdata && histdata.data && histdata.data.length) {
 
                     var candleData = histdata.data;
-                    var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [];
+                    var candleChartData = [],lightcandleChartData=[], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [];
                     candleData.forEach((element, loopindex) => {
                         candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+
+                        var time = { year: new Date(element[0]).getFullYear() ,month: new Date(element[0]).getMonth() ,day: new Date(element[0]).getDate() }
+                      
+                    //    { time: '2018-10-24', open: 178.58, high: 182.37, low: 176.31, close: 176.97 },
+                        lightcandleChartData.push({
+                            x: new Date(element[0]).getTime(),
+                            y:  (element[2] + element[3] + element[4]) / 3
+                          });
+                           
                         vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
                         closeingData.push(element[4]);
                         highData.push(element[2]);
@@ -250,6 +260,8 @@ class Home extends React.Component {
                         bbdata.push((element[2] + element[3] + element[4]) / 3);
 
                     });
+
+                   // { time: '2018-10-19', value: 19103293.00, color: 'rgba(0, 150, 136, 0.8)' },
 
                     var sma = SMA.calculate({ period: 20, values: closeingData });
                     console.log(watchList[index].symbol, "SMA", sma);
@@ -324,7 +336,7 @@ class Home extends React.Component {
 
                             console.log(watchList[index].symbol, "last continue rsi", upsidecount);
                             this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " RSI rising :" + upsidecount });
-                            if (upsidecount >= 2 || downsidecount >= 2) {
+                            if (upsidecount >= 1 || downsidecount >= 1) {
                                 if (this.state.BBBlastType == 'BBBlastOnly') {
                                     if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
                                         var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
@@ -337,7 +349,8 @@ class Home extends React.Component {
                                             RSI: lastRsiValue,
                                             VWAP: vwap(vwapdata),
                                             BB: bbvlastvalue,
-                                            candleChartData: candleChartData
+                                            candleChartData: candleChartData,
+                                            lightcandleChartData: lightcandleChartData
                                         })
                                         this.setState({ findlast5minMovement: foundData });
                                         this.speckIt(watchList[index].symbol + ' BB  buy');
@@ -355,7 +368,8 @@ class Home extends React.Component {
                                             RSI: lastRsiValue,
                                             VWAP: vwap(vwapdata),
                                             BB: bbvlastvalue,
-                                            candleChartData: candleChartData
+                                            candleChartData: candleChartData,
+                                            lightcandleChartData: lightcandleChartData
                                         })
                                         this.setState({ findlast5minMovement: foundData });
                                         this.speckIt(watchList[index].symbol + ' BB sell');
@@ -400,7 +414,9 @@ class Home extends React.Component {
                                                     VWAP: vwap(vwapdata),
                                                     BB: bbvlastvalue,
                                                     DSMALastValue: DSMALastValue,
-                                                    candleChartData: candleChartData
+                                                    candleChartData: candleChartData,
+                                                    lightcandleChartData: lightcandleChartData
+                                                    
                                                 })
                                                 this.setState({ findlast5minMovement: foundData });
                                                 this.speckIt(watchList[index].symbol + ' BB  buy');
@@ -419,7 +435,8 @@ class Home extends React.Component {
                                                     VWAP: vwap(vwapdata),
                                                     BB: bbvlastvalue,
                                                     DSMALastValue: DSMALastValue,
-                                                    candleChartData: candleChartData
+                                                    candleChartData: candleChartData,
+                                                    lightcandleChartData: lightcandleChartData
                                                 })
                                                 this.setState({ findlast5minMovement: foundData });
                                                 this.speckIt(watchList[index].symbol + ' BB sell');
@@ -615,6 +632,8 @@ class Home extends React.Component {
 
     render() {
 
+        console.log("findlast5minMovement",  this.state.findlast5minMovement); 
+
         //var foundPatternList = localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')).reverse(); 
 
         return (
@@ -708,8 +727,14 @@ class Home extends React.Component {
                                 <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}%) </b></Typography>
 
                                 {/* <LightChart candleData={row.candleChartData.length} />  */}
+                                
 
-                                {row.candleChartData.length > 0 ? <ReactApexChart
+                                {/* {row.lightcandleChartData.length > 0 ?  <div id="showchart"> 
+                                    <LightChartCom ChartData={{lightcandleChartData: row.lightcandleChartData.slice(Math.max(row.candleChartData.length - 10, 1)), volumeData : this.state.volumeData}}/>
+                                </div>
+                                : ""} */}
+
+                                {row.candleChartData.length > 0 ?  <ReactApexChart
                                     options={{
                                         chart: {
                                             type: 'candlestick',
@@ -729,12 +754,24 @@ class Home extends React.Component {
                                         }
                                     }}
                                     series={[{
-                                        data: row.candleChartData
-
-                                    }]}
+                                        data: row.candleChartData.slice(Math.max(row.candleChartData.length - 10, 1))
+                                    }, 
+                                    // {
+                                    //     name: 'line',
+                                    //     type: 'line',
+                                    //     data: [
+                                    //         row.lightcandleChartData
+                                    //     ]
+                                    //   }
+                                
+                                    ]}
+                                   
                                     type="candlestick"
                                     width={350}
                                     height={250}
+
+                                    
+
                                 /> : ""}
 
                                 {/* <div> {Parser(row.percentChangeList)}</div> */}

@@ -80,7 +80,7 @@ class CommonOrderMethod {
     updateOrderList = () => {
         AdminService.retrieveOrderBook()
             .then((res) => {
-                let data = resolveResponse(res);
+                let data = resolveResponse(res, "noPop");
                 if (data && data.data) {
                     var orderlist = data.data;
                     orderlist.sort(function (a, b) {
@@ -114,8 +114,8 @@ class CommonOrderMethod {
             }
 
 
-            quantity = quantity > 0 ? 1 : 0;
-            console.log(symbol, "  quantity can be order ", quantity);
+           quantity = quantity > 0 ? 1 : 0;
+           console.log(symbol, "  quantity can be order ", quantity);
 
             if (quantity) {
                 const format1 = "YYYY-MM-DD HH:mm";

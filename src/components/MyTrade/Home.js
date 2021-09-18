@@ -32,6 +32,10 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import ChartDialog from './ChartDialog';
 import EqualizerIcon from '@material-ui/icons/Equalizer';
 import pako from 'pako';
+import vwap from 'vwap';
+import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
+import LightChartCom from "./LightChartCom";
+
 
 class Home extends React.Component {
     constructor(props) {
@@ -72,9 +76,6 @@ class Home extends React.Component {
             declineShareCount: 0, 
             UnchangeShareCount: 0,
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
-
-
-
 
         };
         this.myCallback = this.myCallback.bind(this);
@@ -138,8 +139,6 @@ class Home extends React.Component {
 
         this.setState({ openEqualHighList: [], openEqualLowList: [],  advanceShareCount: 0, 
             declineShareCount: 0,UnchangeShareCount: 0  });
-
-       
 
 
         for (let index = 0; index < this.state.symbolList.length; index++) {
@@ -273,7 +272,8 @@ class Home extends React.Component {
                 if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
                     symbolListArray[index].ltp = foundLive[0].ltp;
                     symbolListArray[index].nc = foundLive[0].nc;
-                    console.log("ws onmessage: ", foundLive);
+                  //  console.log("ws onmessage: ", foundLive);
+                    
                 }
             });
             symbolListArray && symbolListArray.sort(function (a, b) {
@@ -308,10 +308,25 @@ class Home extends React.Component {
 
         const domElement = document.getElementById('tvchart');
         document.getElementById('tvchart').innerHTML = '';
-        const chart = createChart(domElement, { width: 1000, height: 400, timeVisible: true, secondsVisible: true, });
+        const chart = createChart(domElement, { width: 900, height: 400, timeVisible: true, secondsVisible: true, });
         const candleSeries = chart.addCandlestickSeries();
-        this.setState({ candleSeries: candleSeries });
+        var smaLineSeries = chart.addLineSeries({
+            color: 'rgba(4, 111, 232, 1)',
+            lineWidth: 2,
+        });
+        var volumeSeries = chart.addHistogramSeries({
+            color: '#26a69a',
+            priceFormat: {
+                type: 'volume',
+            },
+            priceScaleId: '',
+            scaleMargins: {
+                top: 0.8,
+                bottom: 0,
+            },
+        });
 
+        this.setState({ chart:  chart, candleSeries: candleSeries, smaLineSeries : smaLineSeries, volumeSeries: volumeSeries });
 
         this.checkOpenEqualToLow();
 
@@ -1904,7 +1919,7 @@ class Home extends React.Component {
             }
         }
         this.setState({ cursor : i}, function(){
-            this.getHistory(token);
+            this.getLTP(); 
             this.showStaticChart(token);
         } ); 
 
@@ -1952,11 +1967,35 @@ class Home extends React.Component {
         }
     }
 
+     calculateSMA = (data, count) => {
+
+        console.log("smarowdata", data , count); 
+
+        var avg = function(data) {
+          var sum = 0;
+          for (var i = 0; i < data.length; i++) {
+             sum += data[i].close;
+          }
+          return sum / data.length;
+        };
+        var result = [];
+        for (var i=count - 1, len=data.length; i < len; i++){
+          var val = avg(data.slice(i - count + 1, i));
+          result.push({ time: data[i].time, value: val});
+        }
+        return result;
+      }
+      
+
+
     showStaticChart = (token) => {
 
         this.setState({ chartStaticData: '' }, function () {
             console.log('reset done', token);
         });
+
+        this.dailyBollingCheck(token); 
+
 
         console.log("time in function ", this.state.timeFrame); 
 
@@ -1991,16 +2030,154 @@ class Home extends React.Component {
                     return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
                 });
 
+                var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [],volumeSeriesData=[] ;
+                data.forEach((element, loopindex) => {
+                    candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                    vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
+                    closeingData.push(element[4]);
+                    highData.push(element[2]);
+                    lowData.push(element[3]);
+                    openData.push(element[3]);
+                    valumeData.push(element[5]);
+                    bbdata.push((element[2] + element[3] + element[4]) / 3);
+                    volumeSeriesData.push({ time: new Date(element[0]).getTime() , value: element[5], color: 'rgba(211, 211, 211, 1)' })
+                    
+                });
 
-                this.setState({ chartStaticData: cdata }, function () {
+                var input = {
+                    period: 20,
+                    values: bbdata,
+                    stdDev: 2
+                }
+
+                var bb = BollingerBands.calculate(input);
+                console.log(token, "Bolinger band", input, bb);
+
+                var bb = BollingerBands.calculate(input);
+                console.log(token, "Bolinger band", input, bb);
+
+                var inputRSI = { values: closeingData, period: 14 };
+                var rsiValues = RSI.calculate(inputRSI);
+
+                console.log(token, "Rsi", inputRSI, rsiValues);
+                console.log(token, "vwap", vwapdata, vwap(vwapdata));
+
+
+                this.setState({ chartStaticData: cdata, bblastValue: bb[bb.length-1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1))   }, function () {
                     // candleSeries.setData(this.state.chartStaticData); 
                     this.state.candleSeries.setData(this.state.chartStaticData);
+                    
+                    this.state.volumeSeries.setData(volumeSeriesData);
+
+
+                    var smaData = this.calculateSMA(this.state.chartStaticData, 20);
+                    console.log("smadata", smaData); 
+
+                    this.state.smaLineSeries.setData(smaData);
+
+                    function setLegendText(priceValue) {
+                        let val = 'n/a';
+                        if (priceValue !== undefined) {
+                            val = (Math.round(priceValue * 100) / 100).toFixed(2);
+                        }
+                        const domElement = document.getElementById('showChartTitle');
+                        domElement.innerHTML = "MA: " +val ; 
+                    }
+                    
+                    setLegendText(smaData[smaData.length - 1].value);
+                    
+                    this.state.chart.subscribeCrosshairMove((param) => {
+                        console.log("chart param", param); 
+                       // setLegendText(param.seriesPrices.get(smaLine));
+                    });
+
+
                 });
+
+
+                data && data.sort(function (a, b) {
+                    return new Date(b[0]) - new Date(a[0]);
+                });
+                if (data.length > 0) {
+                    localStorage.setItem('InstrumentHistroy', JSON.stringify(data));
+                    this.setState({ InstrumentHistroy: data });
+
+
+                    var upsideMoveCount = 0, downMoveCount = 0;
+                    data.forEach(element => {
+
+                        var per = (element[4] - element[1]) * 100 / element[1];
+                        if (per >= 0.3) {
+                            upsideMoveCount += 1;
+                        }
+                        if (per <= -0.3) {
+                            downMoveCount += 1;
+                        }
+
+                    });
+
+                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount });
+
+
+                }
+
+                
+
 
             }
         })
 
 
+    }
+
+    
+
+
+    dailyBollingCheck =(token)=>{
+        //this.setState({DailyBulishStatus: ''}); 
+
+         
+        const format1 = "YYYY-MM-DD HH:mm";
+
+        let timeDuration = this.getTimeFrameValue('ONE_DAY');
+        var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
+        var startDateforDaily = moment(new Date()).subtract(time);
+        var dataDay = {
+            "exchange": 'NSE',
+            "symboltoken": token,
+            "interval": 'ONE_DAY',
+            "fromdate": moment(startDateforDaily).format(format1),
+            "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+        }
+        AdminService.getHistoryData(dataDay).then(resd => {
+            let histdatad = resolveResponse(resd, 'noPop');
+            var DSMA = '';
+            if (histdatad && histdatad.data && histdatad.data.length) {
+                var candleDatad = histdatad.data;
+                var closeingDatadaily = [], valumeSum=0; 
+
+
+                for (let index = candleDatad.length-20; index < candleDatad.length; index++) {
+                    const element = candleDatad[index];
+                    closeingDatadaily.push(element[4]);
+                    valumeSum+=element[5];  
+                }
+                
+
+                DSMA = SMA.calculate({ period: 20, values: closeingDatadaily });
+                this.setState({dailyAvgValume: valumeSum/histdatad.data.length}); 
+
+                var DSMALastValue = DSMA && DSMA[DSMA.length - 1];
+                console.log(token, "DSMA", DSMALastValue);
+
+                if(DSMALastValue){
+                    this.setState({DailyBulishStatus: DSMALastValue,  todayCurrentVolume: candleDatad[candleDatad.length-1][5] }); 
+
+                }
+            }
+
+
+        });
     }
 
     placeSLMOrder = (slmOrderType) => {
@@ -2229,9 +2406,11 @@ class Home extends React.Component {
   updateCandleOnkey=()=>{
     var selectedKeyRow =  localStorage.getItem('selectedKeyRow') && JSON.parse( localStorage.getItem('selectedKeyRow')); 
     if(selectedKeyRow.token && selectedKeyRow.symbol ){
-         this.setState({tradingsymbol:selectedKeyRow.symbol, symboltoken :  selectedKeyRow.token}); 
-         this.showStaticChart(selectedKeyRow.token);
-         this.getLTP();
+         this.setState({tradingsymbol:selectedKeyRow.symbol, symboltoken :  selectedKeyRow.token},function(){
+            this.getLTP();
+            this.showStaticChart(selectedKeyRow.token);
+         }); 
+        
      }
   }
 
@@ -2276,6 +2455,7 @@ class Home extends React.Component {
                                         margin="normal"
                                         variant="standard"
                                         name="search"
+                                        onKeyDown={ this.handleKeyDown }
                                         value={this.state.search}
                                         InputProps={{ ...params.InputProps, type: 'search' }}
                                     />
@@ -2297,8 +2477,6 @@ class Home extends React.Component {
                                 </FormControl>
 
                             </div>
-
-                            {/* <Input onKeyDown={ this.handleKeyDown } > </Input> */}
 
 
                             <div style={{ overflowY: 'scroll', height: "75vh" }} >
@@ -2423,9 +2601,71 @@ class Home extends React.Component {
                                 </Grid>
 
 
+                               
+                                <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
+
+
+                                <Grid item xs={12} sm={3}  >
+                                       <b>  Symbol - {this.state.tradingsymbol}</b> <br />
+                                        Bollinger Bands - {this.state.timeFrame} <br />
+                                    {this.state.bblastValue? <Grid item xs={12} sm={12} >
+                                      
+                                      <span title="Green color mean price running above upper bb band" style={{ color: this.state.InstrumentLTP.ltp  >= this.state.bblastValue.upper ? "green" : "", fontWeight: "bold" }}>BB Upper: {this.state.bblastValue.upper.toFixed(2)}</span><br />
+                                       BB Middle(20 SMA): {this.state.bblastValue.middle.toFixed(2)}<br />
+                                      <span  title="Green red mean price running below lower bb band" style={{ color: this.state.InstrumentLTP.ltp  <= this.state.bblastValue.lower ? "red" : "", fontWeight: "bold" }}>BB Lower: {this.state.bblastValue.lower.toFixed(2)}</span><br />
+                                    </Grid>: ""}
+
+                                    <Grid item xs={12} sm={12} style={{ color: this.state.InstrumentLTP.ltp > this.state.vwapvalue ? "green" : "red", fontWeight: "bold" }}>
+                                      VWAP:  {this.state.vwapvalue}
+                                    </Grid>
+                                
+                                    <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
+                                        item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
+                                    ))}
+
+                                        
+                                    <br />
+                                    <b>Volume:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
+                                        <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item/100000).toFixed(2)}L &nbsp;</span>
+                                    ))}
+
+                                    <br />  <br />
+
+                                    <Grid title="20SMA" item xs={12} sm={12} style={{ color: this.state.InstrumentLTP.ltp > this.state.DailyBulishStatus ? "green" : "red", fontWeight: "bold" }}>
+                                        Daily Avg Price: {this.state.DailyBulishStatus && this.state.DailyBulishStatus.toFixed(0)} {this.state.DailyBulishStatus ? this.state.InstrumentLTP.ltp > this.state.DailyBulishStatus ? "BUY" : "SELL" : ""}  
+                                    </Grid>
+
+  
+                                    <Grid title="averge of showed candle volume" item xs={12} sm={12}>
+                                        <b>Daily Avg Volume:</b>  {(this.state.dailyAvgValume/100000).toFixed(2)}L
+                                    </Grid>
+                                    <Grid title="averge of showed candle volume" item xs={12} sm={12}>
+                                      {this.state.todayCurrentVolume > this.state.dailyAvgValume ? <b title="if cossed avg volume then its green" style={{ color: "green" }}>Today Volume: {(this.state.todayCurrentVolume/100000).toFixed(2)}L </b>:  "Today Volume:" + (this.state.todayCurrentVolume/100000).toFixed(2) + "L"}
+                                    </Grid>
+
+                                    
+
+                                   
+                                    </Grid>
+
+                                    <Grid item xs={12} sm={9}  >
+                                      <div id="showChartTitle"> </div>
+                                     <div id="tvchart"></div>
+
+                                    </Grid>
+
+                                    
+                                </Grid>
+
+
                                 <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "50vh" }} >
 
-                                    <div id="tvchart"></div>
+
+                                   
+
+
+                                        
+                                   
 
                                     <Table size="small" aria-label="sticky table" >
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
@@ -2468,14 +2708,7 @@ class Home extends React.Component {
                         </Paper>
                         <br />
 
-                        {/* <Paper > 
-                            <iframe style={{width: "100%", height: "550px"}} src={"http://localhost:3001/TradingViewChart.html?symbol="+this.state.tradingsymbol.split('-')[0]} > </iframe>
-                        </Paper> */}
-
-                        {/* <Paper > 
-                            <iframe style={{width: "100%", height: "550px"}} src="http://localhost:3001/TradingViewTL.html"> </iframe>
-                        </Paper>
-                       */}
+                     
 
                         <Paper style={{ padding: "10px" }}>
                             <Typography style={{ textAlign: "center", background: "lightgray" }}>Backtest</Typography>

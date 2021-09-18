@@ -98,18 +98,22 @@ class OrderBook extends React.Component{
     deleteInOrderPenidngList =(row)=> {
 
         console.log("callback", row); 
-
+        var isDeleted = false, delitem =''; 
        var orderPenidngList =  localStorage.getItem('orderPenidngList') && JSON.parse( localStorage.getItem('orderPenidngList')); 
-
        for (let index = 0; index < this.state.orderPenidngList.length; index++) {
            const element = orderPenidngList[index];
-
            if(row.token == element.token){
-            orderPenidngList.splice(index, 1);
+            var delitem = orderPenidngList.splice(index, 1); 
             localStorage.setItem('orderPenidngList', JSON.stringify(orderPenidngList)); 
             this.setState({orderPenidngList : orderPenidngList}); 
             break; 
            }
+       }
+
+       if(delitem[0].token == row.token){
+        return true;
+       }else {
+        return false;
        }
         
     }
@@ -136,12 +140,15 @@ class OrderBook extends React.Component{
                     console.log("ltp update",element.symbol,element)
 
                     if(element.buyAt && LtpData.ltp >= parseFloat(element.buyAt)){
-                        this.deleteInOrderPenidngList(element); 
-                        CommonOrderMethod.historyWiseOrderPlace(element, 'BUY', "isAutomatic", this.callBackUpdate);
-                       
+                        var isDelete = this.deleteInOrderPenidngList(element); 
+                        if(isDelete){
+                            CommonOrderMethod.historyWiseOrderPlace(element, 'BUY', "isAutomatic", this.callBackUpdate);
+                        }
                     }else if(element.sellAt && LtpData.ltp <= parseFloat(element.sellAt)){
-                        this.deleteInOrderPenidngList(element); 
-                        CommonOrderMethod.historyWiseOrderPlace(element, 'SELL', "isAutomatic", this.callBackUpdate);
+                        var isDelete = this.deleteInOrderPenidngList(element); 
+                        if(isDelete){
+                            CommonOrderMethod.historyWiseOrderPlace(element, 'SELL', "isAutomatic", this.callBackUpdate);
+                        }
                     }
 
                 }
