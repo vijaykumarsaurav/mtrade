@@ -2139,7 +2139,7 @@ class Home extends React.Component {
                     this.setState({ InstrumentHistroy: data });
 
 
-                    var upsideMoveCount = 0, downMoveCount = 0;
+                    var upsideMoveCount = 0, downMoveCount = 0, totalSum = 0;
                     data.forEach(element => {
 
                         var per = (element[4] - element[1]) * 100 / element[1];
@@ -2150,9 +2150,13 @@ class Home extends React.Component {
                             downMoveCount += 1;
                         }
 
+                        totalSum += per; 
+
                     });
 
-                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount });
+      
+                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount, totalPerchentageChange: totalSum,  startingFrom: moment(startDate).format(format1) });
+
                 }
             }
         })
@@ -2244,64 +2248,47 @@ class Home extends React.Component {
 
     }
 
-    getHistory = (token) => {
+    // getHistory = (token) => {
 
 
-        this.setState({ downMoveCount: 0, upsideMoveCount: 0 });
-        this.setState({ InstrumentHistroy: [] });
-        this.getLTP();
+    //     this.setState({ downMoveCount: 0, upsideMoveCount: 0 });
+    //     this.setState({ InstrumentHistroy: [] });
+    //     this.getLTP();
 
 
-        const format1 = "YYYY-MM-DD HH:mm";
+    //     const format1 = "YYYY-MM-DD HH:mm";
 
-        var time = moment.duration("00:50:00");
-        var startdate = moment(new Date()).subtract(time);
-        // var startdate = moment(this.state.startDate).subtract(time);
-        var beginningTime = moment('9:15am', 'h:mma');
+    //     var time = moment.duration("00:50:00");
+    //     var startdate = moment(new Date()).subtract(time);
+    //     // var startdate = moment(this.state.startDate).subtract(time);
+    //     var beginningTime = moment('9:15am', 'h:mma');
 
-        var data = {
-            "exchange": "NSE",
-            "symboltoken": token,
-            "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE 
-            "fromdate": moment(startdate).format(format1),
-            "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
-        }
+    //     var data = {
+    //         "exchange": "NSE",
+    //         "symboltoken": token,
+    //         "interval": "ONE_MINUTE", //ONE_DAY FIVE_MINUTE 
+    //         "fromdate": moment(startdate).format(format1),
+    //         "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+    //     }
 
-        AdminService.getHistoryData(data).then(res => {
-            let data = resolveResponse(res, 'noPop');
-            //    console.log(data); 
-            if (data && data.data) {
+    //     AdminService.getHistoryData(data).then(res => {
+    //         let data = resolveResponse(res, 'noPop');
+    //         //    console.log(data); 
+    //         if (data && data.data) {
 
-                var histCandles = data.data;
-                histCandles && histCandles.sort(function (a, b) {
-                    return new Date(b[0]) - new Date(a[0]);
-                });
-                if (histCandles.length > 0) {
-                    localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
-                    this.setState({ InstrumentHistroy: histCandles });
+    //             var histCandles = data.data;
+    //             histCandles && histCandles.sort(function (a, b) {
+    //                 return new Date(b[0]) - new Date(a[0]);
+    //             });
+    //             if (histCandles.length > 0) {
+    //                 localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
+    //                 this.setState({ InstrumentHistroy: histCandles });
+                   
+    //             }
 
-
-                    var upsideMoveCount = 0, downMoveCount = 0;
-                    histCandles.forEach(element => {
-
-                        var per = (element[4] - element[1]) * 100 / element[1];
-                        if (per >= 0.3) {
-                            upsideMoveCount += 1;
-                        }
-                        if (per <= -0.3) {
-                            downMoveCount += 1;
-                        }
-
-                    });
-
-                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount });
-
-
-                }
-
-            }
-        })
-    }
+    //         }
+    //     })
+    // }
 
     onSelectItem = (event, values) => {
 
@@ -2718,7 +2705,7 @@ class Home extends React.Component {
 
                                                 <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> </TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> | Total:  <b style={{ color:  this.state.totalPerchentageChange > 0 ? "green": 'red' }}>  {this.state.totalPerchentageChange && this.state.totalPerchentageChange.toFixed(2)}% </b> from {this.state.startingFrom} </TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Open</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">High</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Low</TableCell>
