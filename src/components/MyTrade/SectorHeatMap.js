@@ -931,7 +931,6 @@ class MyView extends React.Component {
                     var lastRsiValue = RSI.calculate(inputRSI)
                     console.log(sectorStocks[index].symbol, "lastRsiValue", lastRsiValue[lastRsiValue.length - 1]);
 
-
                     var inputVWAP = {
                         open: openData,
                         high: highData,
@@ -944,7 +943,6 @@ class MyView extends React.Component {
                     period : 20, 
                     values : bbdata,
                     stdDev : 2
-                        
                     }
 
                     var bb = BollingerBands.calculate(input); 

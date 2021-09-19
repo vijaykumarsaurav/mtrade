@@ -55,6 +55,8 @@ var volumeSeries = chart.addHistogramSeries({
 		bottom: 0,
 	},
 });
+
+
 volumeSeries.setData(props.ChartData.volumeData);
 
 

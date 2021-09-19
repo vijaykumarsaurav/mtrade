@@ -59,7 +59,7 @@ class Home extends React.Component {
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1500) })
+            this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1) })
             //  this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
         } else {
             clearInterval(this.state.positionInterval);
@@ -944,7 +944,7 @@ class Home extends React.Component {
                 } else if (row.netqty < 0) {
                     console.log(row.tradingsymbol, "sellage", row.sellavgprice, "trigger", element.triggerprice);
                     data.stopLoss = element.triggerprice + "(" + ((element.triggerprice - row.sellavgprice) * 100 / row.sellavgprice).toFixed(2) + "%)";
-                    data.maxLossAmount = ((row.sellavgprice - element.triggerprice) * parseInt(row.netqty)).toFixed(2);
+                    data.maxLossAmount = ((element.triggerprice - row.sellavgprice) * parseInt(row.netqty)).toFixed(2);
                 }
                 break;
             }
@@ -1020,6 +1020,30 @@ class Home extends React.Component {
     //    });
 
     }
+    calculateBrokerCharge =(element)=>{
+        var buyCharge = parseFloat(element.totalbuyvalue) * 0.25/100; 
+        if(buyCharge > 20){
+            buyCharge = 20; 
+        }
+        var totalsellvalue =  parseFloat(element.totalsellvalue) === 0 ? parseFloat(element.totalbuyvalue) : parseFloat(element.totalsellvalue);
+        var sellCharge = parseFloat(totalsellvalue) * 0.25/100; 
+        if(sellCharge > 20){
+            sellCharge = 20; 
+        }
+        let turnOver = element.totalbuyvalue + totalsellvalue; 
+        let totalBroker = buyCharge+sellCharge;
+        let sstCharge = totalsellvalue *  0.025/100; 
+        let transCharge = turnOver *  0.00345/100; 
+        let stampDuty  = element.totalbuyvalue *   0.003/100; 
+        let sebiCharge = turnOver * 10/10000000; 
+        let gstCharge = (totalBroker+transCharge+sebiCharge) * 18/100; 
+
+        var chargeInfo ={
+          tradeExpence:  totalBroker+sstCharge+transCharge+stampDuty+sebiCharge+gstCharge, 
+          expenceInfo : "Brokerage: "+totalBroker+ " STT: "+ sstCharge + " Transaction: "+ transCharge + " Stamp Duty: "+stampDuty + " Sebi: "+sebiCharge + " GST: " + gstCharge 
+        }
+        return chargeInfo; 
+    }
     getPositionData = async () => {
         //   document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
         var maxPnL = 0, totalMaxPnL = 0;
@@ -1029,7 +1053,7 @@ class Home extends React.Component {
             if (positionList && positionList.length > 0) {
 
 
-                var todayProfitPnL = 0, totalbuyvalue = 0, totalsellvalue = 0, totalQtyTraded = 0, allbuyavgprice = 0, allsellavgprice = 0, totalPercentage = 0;
+                var todayProfitPnL = 0, totalbuyvalue = 0, totalsellvalue = 0, totalQtyTraded = 0, allbuyavgprice = 0, allsellavgprice = 0, totalPercentage = 0, totalExpence=0; 
                 positionList.forEach(element => {
 
                     if (element.producttype == "DELIVERY") {
@@ -1047,6 +1071,11 @@ class Home extends React.Component {
                     totalPercentage += parseFloat(percentPnL);
                     element.pattenName = this.tagPatternWhichTaken(element.symboltoken); 
 
+                    let chargeInfo = this.calculateBrokerCharge(element);
+                    element.tradeExpence = chargeInfo.tradeExpence.toFixed(2); 
+                    element.expenceInfo = chargeInfo.expenceInfo; 
+                    totalExpence += chargeInfo.tradeExpence; 
+
                     var slData = this.getStoplossFromOrderbook(element);
                     if (slData) {
                         element.stopLoss = slData.stopLoss;
@@ -1060,11 +1089,11 @@ class Home extends React.Component {
 
                 var brokerageOnlyCharges = ((totalbuyvalue + totalsellvalue) * 0.25 / 100);
                 var allCharges = brokerageOnlyCharges + brokerageOnlyCharges * 25 / 100;
-                this.setState({ totalBrokerCharges: allCharges.toFixed(2) });
+                this.setState({ totalBrokerCharges: allCharges.toFixed(2), totalExpence: totalExpence.toFixed(2) });
 
                 this.setState({ totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL: totalMaxPnL.toFixed(2) });
 
-
+                
                 positionList.sort(function (a, b) {
                     return (b.netqty - a.netqty);
 
@@ -1723,14 +1752,17 @@ class Home extends React.Component {
 
                     <Grid item  >
                         <Typography component="h3">
-                            <b>Total Turnover {this.state.totalTornOver} </b>
+                            <b>Turnover {this.state.totalTornOver} </b>
                         </Typography>
                     </Grid>
 
 
                     <Grid item >
                         <Typography component="h3"  >
-                            <b> Charges</b> <b style={{ color: "red" }}>-{this.state.totalBrokerCharges} </b>
+
+                        <b style={{ color: "red" }}>Charges: {this.state.totalBrokerCharges}  </b>
+                        <b style={{ color: "red" }}>Expenses: {this.state.totalExpence} </b>
+
                         </Typography>
                     </Grid>
 
@@ -1779,6 +1811,7 @@ class Home extends React.Component {
                                         <TableCell className="TableHeadFormat" align="left">Qty Taken</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">Net Qty</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">Expense</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">Trailing SL</TableCell>
                                         <TableCell className="TableHeadFormat" align="left">Max P/L</TableCell>
@@ -1824,6 +1857,8 @@ class Home extends React.Component {
                                             <TableCell align="left">{row.totalsellavgprice}</TableCell>
                                             <TableCell align="left">{row.buyqty || row.sellqty}</TableCell>
                                             <TableCell align="left">{row.netqty}</TableCell>
+                                            <TableCell title={row.expenceInfo} align="left">{row.tradeExpence}</TableCell>
+
                                             {/* <TableCell align="left">{row.totalsellvalue}</TableCell> */}
                                             <TableCell align="left"> {row.stopLoss}</TableCell>
                                             <TableCell align="left"> {row.stopLossAmount}</TableCell>

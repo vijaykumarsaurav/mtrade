@@ -46,6 +46,8 @@ class Home extends React.Component {
             timeFrame: "FIFTEEN_MINUTE",
             chartStaticData: [],
             BBBlastType : "BBBlastOnly",
+            fastMovementList:  localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
+
 
         };
         this.findlast5minMovement = this.findlast5minMovement.bind(this);
@@ -159,6 +161,7 @@ class Home extends React.Component {
     getTimeFrameValue = (timeFrame) => {
 
         //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
+        
 
         switch (timeFrame) {
             case 'ONE_MINUTE':
@@ -199,6 +202,29 @@ class Home extends React.Component {
         }
     }
 
+    updateToLocalStorage =(row)=>{
+
+        let foundAt = new Date(row.foundAt).toLocaleString();
+      
+       var isfound = this.state.fastMovementList.filter(element => (element.token == row.token && element.foundAt == foundAt));
+       console.log("isfound", isfound); 
+
+        if(!isfound.length){
+
+            var updateData = {
+                token: row.token, 
+                foundAt: foundAt, 
+                ltp: row.ltp, 
+                symbol: row.symbol, 
+                nc:  row.perChange.toFixed(2),
+                orderType: row.orderType
+            }
+            this.state.fastMovementList.push(updateData); 
+            //this.setState({ fastMovementList: [..., updateData] });
+            localStorage.setItem("fastMovementList", JSON.stringify(this.state.fastMovementList)  ); 
+        }
+
+    }
 
     find10MinBBBlast = async () => {
 
@@ -221,7 +247,7 @@ class Home extends React.Component {
             var beginningTime = moment('9:15am', 'h:mma').format(format1);
 
             let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
-            var time = moment.duration("50:00:00");  //22:00:00" for last day  2hours  timeDuration
+            var time = moment.duration("100:00:00");  //22:00:00" for last day  2hours  timeDuration
             var startDate = moment(new Date()).subtract(time);
 
             var data = {
@@ -332,15 +358,13 @@ class Home extends React.Component {
                                 }
                             });
 
-
-
                             console.log(watchList[index].symbol, "last continue rsi", upsidecount);
                             this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " RSI rising :" + upsidecount });
                             if (upsidecount >= 1 || downsidecount >= 1) {
                                 if (this.state.BBBlastType == 'BBBlastOnly') {
                                     if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
                                         var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                        foundData.push({
+                                        let data = {
                                             symbol: watchList[index].symbol,
                                             token: watchList[index].token,
                                             ltp: LtpData.ltp,
@@ -350,16 +374,21 @@ class Home extends React.Component {
                                             VWAP: vwap(vwapdata),
                                             BB: bbvlastvalue,
                                             candleChartData: candleChartData,
-                                            lightcandleChartData: lightcandleChartData
-                                        })
+                                            lightcandleChartData: lightcandleChartData,
+                                            foundAt : candleData && candleData[candleData.length-1][0],
+                                            orderType: "BUY",
+                                            name: watchList[index].name,
+                                        }
+                                        foundData.push(data)
                                         this.setState({ findlast5minMovement: foundData });
+                                        this.updateToLocalStorage(data); 
+
                                         this.speckIt(watchList[index].symbol + ' BB  buy');
                                         window.document.title = "FM: Buy " + watchList[index].symbol;
-
                                     }
                                     if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
                                         var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                        foundData.push({
+                                       let data = {
                                             symbol: watchList[index].symbol,
                                             token: watchList[index].token,
                                             ltp: LtpData.ltp,
@@ -369,9 +398,15 @@ class Home extends React.Component {
                                             VWAP: vwap(vwapdata),
                                             BB: bbvlastvalue,
                                             candleChartData: candleChartData,
-                                            lightcandleChartData: lightcandleChartData
-                                        })
+                                            lightcandleChartData: lightcandleChartData,
+                                            foundAt : candleData && candleData[candleData.length-1][0],
+                                            orderType: "SELL",
+                                            name: watchList[index].name,
+                                        }
+                                        foundData.push(data)
                                         this.setState({ findlast5minMovement: foundData });
+                                        this.updateToLocalStorage(data); 
+
                                         this.speckIt(watchList[index].symbol + ' BB sell');
                                         window.document.title = "FM: Sell " + watchList[index].symbol;
                                     }
@@ -404,7 +439,8 @@ class Home extends React.Component {
 
                                             if (LtpData.ltp > DSMALastValue && bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
                                                 var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                                foundData.push({
+                                                
+                                                let data = {
                                                     symbol: watchList[index].symbol,
                                                     token: watchList[index].token,
                                                     ltp: LtpData.ltp,
@@ -415,17 +451,24 @@ class Home extends React.Component {
                                                     BB: bbvlastvalue,
                                                     DSMALastValue: DSMALastValue,
                                                     candleChartData: candleChartData,
-                                                    lightcandleChartData: lightcandleChartData
+                                                    lightcandleChartData: lightcandleChartData,
+                                                    foundAt : candleData && candleData[candleData.length-1][0],
+                                                    orderType: "BUY",
+                                                    name: watchList[index].name,
                                                     
-                                                })
+                                                }; 
+                                                
+                                                foundData.push(data)
                                                 this.setState({ findlast5minMovement: foundData });
+                                                this.updateToLocalStorage(data); 
+
                                                 this.speckIt(watchList[index].symbol + ' BB  buy');
                                                 window.document.title = "FM: Buy " + watchList[index].symbol;
 
                                             }
                                             if (LtpData.ltp < DSMALastValue && bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
                                                 var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                                foundData.push({
+                                                let data = {
                                                     symbol: watchList[index].symbol,
                                                     token: watchList[index].token,
                                                     ltp: LtpData.ltp,
@@ -436,9 +479,15 @@ class Home extends React.Component {
                                                     BB: bbvlastvalue,
                                                     DSMALastValue: DSMALastValue,
                                                     candleChartData: candleChartData,
-                                                    lightcandleChartData: lightcandleChartData
-                                                })
+                                                    lightcandleChartData: lightcandleChartData,
+                                                    foundAt : candleData && candleData[candleData.length-1][0],
+                                                    orderType: "SELL",
+                                                    name: watchList[index].name,
+                                                }
+                                                foundData.push(data)
                                                 this.setState({ findlast5minMovement: foundData });
+                                                this.updateToLocalStorage(data); 
+
                                                 this.speckIt(watchList[index].symbol + ' BB sell');
                                                 window.document.title = "FM: Sell " + watchList[index].symbol;
                                             }
@@ -631,8 +680,6 @@ class Home extends React.Component {
     }
 
     render() {
-
-        console.log("findlast5minMovement",  this.state.findlast5minMovement); 
 
         //var foundPatternList = localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')).reverse(); 
 

@@ -35,6 +35,9 @@ import pako from 'pako';
 import vwap from 'vwap';
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import LightChartCom from "./LightChartCom";
+import SimpleExpansionPanel from "./SimpleExpansionPanel";
+import SimpleExpansionFastMovement from "./SimpleExpansionFastMovement";
+
 
 
 class Home extends React.Component {
@@ -71,12 +74,14 @@ class Home extends React.Component {
             openEqualLowList: [],
             chartStaticData: [],
             volumeCrossedList: [],
-            timeFrame : "TEN_MINUTE",
-            cursor : '',
-            advanceShareCount: 0, 
-            declineShareCount: 0, 
+            timeFrame: "TEN_MINUTE",
+            cursor: '',
+            advanceShareCount: 0,
+            declineShareCount: 0,
             UnchangeShareCount: 0,
-            FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || []
+            FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || [],
+            fastMovementList:  localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
+
 
         };
         this.myCallback = this.myCallback.bind(this);
@@ -95,19 +100,16 @@ class Home extends React.Component {
 
     }
     onInputChange = (e) => {
-
-
-        this.setState({ [e.target.name]: e.target.value }, function(){
-
-            console.log("time", this.state.timeFrame); 
+        this.setState({ [e.target.name]: e.target.value }, function () {
+            console.log("time", this.state.timeFrame);
             if (this.state.tradingsymbol) {
                 this.showStaticChart(this.state.symboltoken);
             }
         });
 
-       
+
     }
-   
+
     onChangePattern = (e) => {
         this.setState({ [e.target.name]: e.target.value });
 
@@ -123,23 +125,25 @@ class Home extends React.Component {
         this.setState({ [e.target.name]: e.target.value });
         var staticData = this.state.staticData;
         this.setState({ symbolList: staticData[e.target.value] }, function () {
-        //    this.updateSocketWatch();
+            //    this.updateSocketWatch();
             this.checkOpenEqualToLow();
-            this.setState({ cursor : ''}); 
+            this.setState({ cursor: '' });
         });
 
         if (e.target.value == "selectall") {
             this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) }, function () {
-          //      this.updateSocketWatch();
+                //      this.updateSocketWatch();
                 this.checkOpenEqualToLow();
-                this.setState({ cursor :''}); 
+                this.setState({ cursor: '' });
             });
         }
     }
     checkOpenEqualToLow = async () => {
 
-        this.setState({ openEqualHighList: [], openEqualLowList: [],openEqualLowList:[],  advanceShareCount: 0, 
-            declineShareCount: 0,UnchangeShareCount: 0 , volumeCrossedList: [] });
+        this.setState({
+            openEqualHighList: [], openEqualLowList: [], openEqualLowList: [], advanceShareCount: 0,
+            declineShareCount: 0, UnchangeShareCount: 0, volumeCrossedList: []
+        });
 
 
         for (let index = 0; index < this.state.symbolList.length; index++) {
@@ -155,35 +159,42 @@ class Home extends React.Component {
                 var LtpData = data && data.data;
                 if (LtpData) {
 
-                    LtpData.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
+                    let change = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2); 
+                    LtpData.nc = change;
+                    LtpData.symbol = element.symbol; 
+                    
+                    this.state.symbolList[index].ltp = LtpData.ltp;
+                    this.state.symbolList[index].nc =change; 
 
                     if (LtpData && LtpData.open == LtpData.low) {
                         console.log("o=l", LtpData);
-                        this.setState({ openEqualHighList: [...this.state.openEqualHighList, LtpData] });
+                        var isfound = this.state.openEqualLowList.filter(row => row.symboltoken == element.token);
+                        if(!isfound.length)
+                        this.setState({ openEqualLowList: [...this.state.openEqualLowList, LtpData] });
                     }
 
                     if (LtpData && LtpData.open == LtpData.high) {
                         console.log("o=h", LtpData);
-                        this.setState({ openEqualLowList: [...this.state.openEqualLowList, LtpData] });
+                        var isfound = this.state.openEqualHighList.filter(row => row.symboltoken == element.token);
+                        if(!isfound.length)
+                        this.setState({ openEqualHighList: [...this.state.openEqualHighList, LtpData] });
+
                     }
 
-                    this.state.symbolList[index].ltp = LtpData.ltp;
-                    this.state.symbolList[index].nc = LtpData.perChange;
-
                     if (LtpData.perChange > 0)
-                    this.setState({ advanceShareCount: this.state.advanceShareCount+1 });
+                        this.setState({ advanceShareCount: this.state.advanceShareCount + 1 });
                     else if (LtpData.perChange < 0)
-                    this.setState({ declineShareCount: this.state.declineShareCount +1 });
+                        this.setState({ declineShareCount: this.state.declineShareCount + 1 });
                     else
-                    this.setState({ UnchangeShareCount: this.state.UnchangeShareCount +1 });
+                        this.setState({ UnchangeShareCount: this.state.UnchangeShareCount + 1 });
 
 
                     this.state.symbolList && this.state.symbolList.sort(function (a, b) {
                         return b.nc - a.nc;
                     });
-                    this.setState({ symbolList: this.state.symbolList });
+                    this.setState({ symbolList: this.state.symbolList, tradingsymbol: element.symbol });
 
-                    this.dailyBollingCheck(element.token, element); 
+                    this.dailyBasisInfoCheck(element.token, element);
 
                 }
             })
@@ -236,7 +247,7 @@ class Home extends React.Component {
         return newarray.join('');
     }
 
-   
+
 
     makeConnection = (wsClint) => {
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
@@ -260,9 +271,9 @@ class Home extends React.Component {
         wsClint.send(JSON.stringify(updateSocket));
     }
 
-    updateSocketDetails=(wsClint)=>{
+    updateSocketDetails = (wsClint) => {
         wsClint.onopen = (res) => {
-            this.makeConnection( wsClint );
+            this.makeConnection(wsClint);
             this.updateSocketWatch(wsClint);
         }
 
@@ -276,8 +287,8 @@ class Home extends React.Component {
                 if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
                     symbolListArray[index].ltp = foundLive[0].ltp;
                     symbolListArray[index].nc = foundLive[0].nc;
-                  //  console.log("ws onmessage: ", foundLive);
-                    
+                    //  console.log("ws onmessage: ", foundLive);
+
                 }
             });
             symbolListArray && symbolListArray.sort(function (a, b) {
@@ -291,7 +302,7 @@ class Home extends React.Component {
         }
 
         setInterval(() => {
-          //  this.makeConnection();
+            //  this.makeConnection();
             var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
             // console.log("Request :- " + _req);
             wsClint.send(_req);
@@ -330,7 +341,7 @@ class Home extends React.Component {
             },
         });
 
-        this.setState({ chart:  chart, candleSeries: candleSeries, smaLineSeries : smaLineSeries, volumeSeries: volumeSeries });
+        this.setState({ chart: chart, candleSeries: candleSeries, smaLineSeries: smaLineSeries, volumeSeries: volumeSeries });
 
         this.checkOpenEqualToLow();
 
@@ -342,15 +353,21 @@ class Home extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
-            this.updateSocketDetails(wsClint); 
+            this.updateSocketDetails(wsClint);
             setInterval(() => {
                 if (this.state.tradingsymbol) {
                     this.getLTP();
                     this.showStaticChart(this.state.symboltoken);
                 }
+
+
+                var fastMovementList  = localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')); 
+                fastMovementList.reverse(); 
+                this.setState({fastMovementList :fastMovementList })
             }, 1000);
         }
 
+      
         // setInterval(() => {
         //     AdminService.getAutoScanStock().then(res => {
         //         let data = resolveResponse(res);
@@ -1915,80 +1932,87 @@ class Home extends React.Component {
 
         console.log("name", name);
         var token = '';
-        for (let index = 0; index < this.state.symbolList.length; index++) {
-            if (this.state.symbolList[index].symbol === name) {
-                token = this.state.symbolList[index].token;
-                this.setState({ tradingsymbol: name, symboltoken: this.state.symbolList[index].token });
+
+         var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || []; 
+
+        for (let index = 0; index < watchList.length; index++) {
+
+            if (watchList[index].symbol === name) {
+               
+                token = watchList[index].token;
+
+                console.log("name % token", name,token );
+                this.setState({ tradingsymbol: name, symboltoken:watchList[index].token },function(){
+                    this.setState({ cursor: i }, function () {
+                        this.getLTP();
+                        this.showStaticChart(token);
+                    });
+                });
                 break;
             }
         }
-        this.setState({ cursor : i}, function(){
-            this.getLTP(); 
-            this.showStaticChart(token);
-        } ); 
 
-       
     }
-    getTimeFrameValue=(timeFrame)=> {
+    getTimeFrameValue = (timeFrame) => {
         //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
 
         switch (timeFrame) {
             case 'ONE_MINUTE':
-                if (new Date().toLocaleTimeString() < "10:05:00") 
-                return "19:00:00"; 
+                if (new Date().toLocaleTimeString() < "10:05:00")
+                    return "19:00:00";
                 else
-                return "01:00:00"; 
+                    return "01:00:00";
                 break;
             case 'FIVE_MINUTE':
-                if (new Date().toLocaleTimeString() < "11:00:00") 
-                return "23:00:00"; 
-                else                
-                return "03:00:00"; 
+                if (new Date().toLocaleTimeString() < "11:00:00")
+                    return "23:00:00";
+                else
+                    return "03:00:00";
                 break;
             case 'TEN_MINUTE':
-                if (new Date().toLocaleTimeString() < "12:35:00") 
-                return "24:21:00"; 
-                else                
-                return "07:00:00"; 
+                if (new Date().toLocaleTimeString() < "12:35:00")
+                    return "24:21:00";
+                else
+                    return "07:00:00";
                 break;
             case 'FIFTEEN_MINUTE':
-                if (new Date().toLocaleTimeString() < "14:15:00") 
-                return "28:01:00"; 
-                else                
-                return "10:01:00"; 
+                if (new Date().toLocaleTimeString() < "14:15:00")
+                    return "28:01:00";
+                else
+                    return "10:01:00";
                 break;
-            case 'THIRTY_MINUTE':                    
-                return "100:01:00"; 
+            case 'THIRTY_MINUTE':
+                return "100:01:00";
                 break;
             case 'ONE_HOUR':
-                return "200:01:00"; 
+                return "200:01:00";
                 break;
             case 'ONE_DAY':
-                return "1000:01:00"; 
+                return "1000:01:00";
                 break;
             default:
                 break;
         }
     }
 
-     calculateSMA = (data, count) => {
+    calculateSMA = (data, count) => {
 
-        console.log("smarowdata", data , count); 
+        console.log("smarowdata", data, count);
 
-        var avg = function(data) {
-          var sum = 0;
-          for (var i = 0; i < data.length; i++) {
-             sum += data[i].close;
-          }
-          return sum / data.length;
+        var avg = function (data) {
+            var sum = 0;
+            for (var i = 0; i < data.length; i++) {
+                sum += data[i].close;
+            }
+            return sum / data.length;
         };
         var result = [];
-        for (var i=count - 1, len=data.length; i < len; i++){
-          var val = avg(data.slice(i - count + 1, i));
-          result.push({ time: data[i].time, value: val});
+        for (var i = count - 1, len = data.length; i < len; i++) {
+            var val = avg(data.slice(i - count + 1, i));
+            result.push({ time: data[i].time, value: val });
         }
         return result;
-      }
+    }
 
     //   calculateBBValue = (data, type ) => {
 
@@ -2001,7 +2025,7 @@ class Home extends React.Component {
     //     }
     //     return result;
     //   }
-      
+
 
 
     showStaticChart = (token) => {
@@ -2010,10 +2034,10 @@ class Home extends React.Component {
             console.log('reset done', token);
         });
 
-        this.dailyBollingCheck(token); 
+        this.dailyBasisInfoCheck(token);
 
 
-        console.log("time in function ", this.state.timeFrame); 
+        console.log("time in function ", this.state.timeFrame);
 
         const format1 = "YYYY-MM-DD HH:mm";
         // var time = moment.duration("10:50:00");
@@ -2046,7 +2070,7 @@ class Home extends React.Component {
                     return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
                 });
 
-                var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [],volumeSeriesData=[] ;
+                var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [], volumeSeriesData = [];
                 data.forEach((element, loopindex) => {
                     candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
                     vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
@@ -2056,8 +2080,8 @@ class Home extends React.Component {
                     openData.push(element[3]);
                     valumeData.push(element[5]);
                     bbdata.push((element[2] + element[3] + element[4]) / 3);
-                    volumeSeriesData.push({ time: new Date(element[0]).getTime() , value: element[5], color: 'rgba(211, 211, 211, 1)' })
-                    
+                    volumeSeriesData.push({ time: new Date(element[0]).getTime(), value: element[5], color: 'rgba(211, 211, 211, 1)' })
+
                 });
 
                 var input = {
@@ -2079,52 +2103,52 @@ class Home extends React.Component {
                 console.log(token, "vwap", vwapdata, vwap(vwapdata));
 
 
-                this.setState({ chartStaticData: cdata, bblastValue: bb[bb.length-1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1))   }, function () {
+                this.setState({ chartStaticData: cdata, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
                     // candleSeries.setData(this.state.chartStaticData); 
                     this.state.candleSeries.setData(this.state.chartStaticData);
-                    
+
                     this.state.volumeSeries.setData(volumeSeriesData);
 
                     var smaData = this.calculateSMA(this.state.chartStaticData, 20);
-                    
+
                     this.state.smaLineSeries.setData(smaData);
 
-                    
+
                     this.state.chart.subscribeCrosshairMove((param) => {
-                        
+
                         var getit = param.seriesPrices[Symbol.iterator]();
-                        
-                       var string =  ""; 
-                       var change = ""; 
-                       
-                        for(var elem of getit){
-                       
-                            if(typeof elem[1] == 'object'){
-                                string +=  " Open: <b>" + elem[1].open+"</b>"; 
-                                string +=  " High: <b>" + elem[1].high+"</b>"; 
-                                string +=  " Low: <b>" + elem[1].low + "</b>"; 
-                                string +=  " Close: <b>" + elem[1].close + "</b>"; 
-                                change = (elem[1].close - elem[1].open)*100/elem[1].open; 
-                                string +=  " Chng: <b>" +  change.toFixed(2) + '%</b>'; 
-                            }else{
-                                string +=  " &nbsp; " + elem[1].toFixed(2) + " "; 
+
+                        var string = "";
+                        var change = "";
+
+                        for (var elem of getit) {
+
+                            if (typeof elem[1] == 'object') {
+                                string += " Open: <b>" + elem[1].open + "</b>";
+                                string += " High: <b>" + elem[1].high + "</b>";
+                                string += " Low: <b>" + elem[1].low + "</b>";
+                                string += " Close: <b>" + elem[1].close + "</b>";
+                                change = (elem[1].close - elem[1].open) * 100 / elem[1].open;
+                                string += " Chng: <b>" + change.toFixed(2) + '%</b>';
+                            } else {
+                                string += " &nbsp; " + elem[1].toFixed(2) + " ";
                             }
                         }
 
-                        if(param.time)
-                        string += " Time: <b>" + new Date(param.time).toLocaleString()+"</b>"; 
+                        if (param.time)
+                            string += " Time: <b>" + new Date(param.time).toLocaleString() + "</b>";
                         else
-                        string += " <b>Time: </b>"; 
+                            string += " <b>Time: </b>";
 
- 
+
                         const domElement = document.getElementById('showChartTitle');
 
-                        
-                        var str = "<span style=color:green>"+string+"</span> "; 
-                        if(change < 0)
-                        str = "<span style=color:red>"+string+"</span> ";  
 
-                        domElement.innerHTML = str; 
+                        var str = "<span style=color:green>" + string + "</span> ";
+                        if (change < 0)
+                            str = "<span style=color:red>" + string + "</span> ";
+
+                        domElement.innerHTML = str;
                     });
 
 
@@ -2150,12 +2174,12 @@ class Home extends React.Component {
                             downMoveCount += 1;
                         }
 
-                        totalSum += per; 
+                        totalSum += per;
 
                     });
 
-      
-                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount, totalPerchentageChange: totalSum,  startingFrom: moment(startDate).format(format1) });
+
+                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount, totalPerchentageChange: totalSum, startingFrom: moment(startDate).format(format1) });
 
                 }
             }
@@ -2164,12 +2188,12 @@ class Home extends React.Component {
 
     }
 
-    
 
 
-    dailyBollingCheck =(token, element)=>{
+
+    dailyBasisInfoCheck = (token, element) => {
         //this.setState({DailyBulishStatus: ''}); 
-         
+
         const format1 = "YYYY-MM-DD HH:mm";
 
         let timeDuration = this.getTimeFrameValue('ONE_DAY');
@@ -2187,29 +2211,29 @@ class Home extends React.Component {
             var DSMA = '';
             if (histdatad && histdatad.data && histdatad.data.length) {
                 var candleDatad = histdatad.data;
-                var closeingDatadaily = [], valumeSum=0; 
+                var closeingDatadaily = [], valumeSum = 0;
 
 
-                for (let index = candleDatad.length-20; index < candleDatad.length; index++) {
+                for (let index = candleDatad.length - 20; index < candleDatad.length; index++) {
                     const element = candleDatad[index];
                     closeingDatadaily.push(element[4]);
-                    valumeSum+=element[5];  
+                    valumeSum += element[5];
                 }
-                
+
 
                 DSMA = SMA.calculate({ period: 20, values: closeingDatadaily });
-                this.setState({dailyAvgValume: valumeSum/20}); 
+                this.setState({ dailyAvgValume: valumeSum / 20 });
 
                 var DSMALastValue = DSMA && DSMA[DSMA.length - 1];
                 console.log(token, "DSMA", DSMALastValue);
 
-                if(DSMALastValue){
-                    this.setState({DailyBulishStatus: DSMALastValue,  todayCurrentVolume: candleDatad[candleDatad.length-1][5] }); 
+                if (DSMALastValue) {
+                    this.setState({ DailyBulishStatus: DSMALastValue, todayCurrentVolume: candleDatad[candleDatad.length - 1][5] });
                 }
 
-                if(candleDatad[candleDatad.length-1][5] > valumeSum/20){
+                if (candleDatad[candleDatad.length - 1][5] > valumeSum / 20) {
                     console.log("crosssed voliue", element);
-                    this.setState({volumeCrossedList: [...this.state.volumeCrossedList, element]})
+                    this.setState({ volumeCrossedList: [...this.state.volumeCrossedList, element] })
                 }
 
             }
@@ -2283,7 +2307,7 @@ class Home extends React.Component {
     //             if (histCandles.length > 0) {
     //                 localStorage.setItem('InstrumentHistroy', JSON.stringify(histCandles));
     //                 this.setState({ InstrumentHistroy: histCandles });
-                   
+
     //             }
 
     //         }
@@ -2319,7 +2343,7 @@ class Home extends React.Component {
                 });
 
                 this.setState({ symbolList: watchlist }, function () {
-                  //  this.updateSocketWatch();
+                    //  this.updateSocketWatch();
                 });
 
             }
@@ -2344,7 +2368,7 @@ class Home extends React.Component {
                 this.showStaticChart(fdata.token);
                 this.LoadSymbolDetails(fdata.symbol);
             });
-           
+
         }
 
     }
@@ -2406,38 +2430,35 @@ class Home extends React.Component {
         document.getElementById('showCandleChart').click();
     }
 
-  handleKeyDown =(e) => {
-  
-    //38 for down and 40 for up key
-    if (e.keyCode === 38 && this.state.cursor > 0) {
-        this.setState( prevState => ({cursor: prevState.cursor - 1})); 
-    } else if (e.keyCode === 40 && this.state.cursor < this.state.symbolList.length - 1) {
-        this.setState( prevState => ({cursor: prevState.cursor + 1}))
+    handleKeyDown = (e) => {
+
+        console.log("key", e.keyCode);
+        //38 for down and 40 for up key
+        if (e.keyCode === 38 && this.state.cursor > 0) {
+            this.setState(prevState => ({ cursor: prevState.cursor - 1 }));
+        } else if (e.keyCode === 40 && this.state.cursor < this.state.symbolList.length - 1) {
+            this.setState(prevState => ({ cursor: prevState.cursor + 1 }))
+        }
+
+        setTimeout(() => {
+            this.updateCandleOnkey();
+        }, 100);
+
     }
-    
-     setTimeout(() => {
-        this.updateCandleOnkey(); 
-     }, 100);
-    
-  }
-
- 
 
 
-  updateCandleOnkey=()=>{
-    var selectedKeyRow =  localStorage.getItem('selectedKeyRow') && JSON.parse( localStorage.getItem('selectedKeyRow')); 
-    if(selectedKeyRow.token && selectedKeyRow.symbol ){
-         this.setState({tradingsymbol:selectedKeyRow.symbol, symboltoken :  selectedKeyRow.token},function(){
-            this.getLTP();
-            this.showStaticChart(selectedKeyRow.token);
-         }); 
-        
-     }
-  }
+    updateCandleOnkey = () => {
+        var selectedKeyRow = localStorage.getItem('selectedKeyRow') && JSON.parse(localStorage.getItem('selectedKeyRow'));
+        if (selectedKeyRow.token && selectedKeyRow.symbol) {
+            this.setState({ tradingsymbol: selectedKeyRow.symbol, symboltoken: selectedKeyRow.token }, function () {
+                this.getLTP();
+                this.showStaticChart(selectedKeyRow.token);
+            });
+
+        }
+    }
 
 
-
- 
     render() {
         const dateParam = {
             myCallback: this.myCallback,
@@ -2476,7 +2497,7 @@ class Home extends React.Component {
                                         margin="normal"
                                         variant="standard"
                                         name="search"
-                                        onKeyDown={ this.handleKeyDown }
+                                        onKeyDown={this.handleKeyDown}
                                         value={this.state.search}
                                         InputProps={{ ...params.InputProps, type: 'search' }}
                                     />
@@ -2486,7 +2507,7 @@ class Home extends React.Component {
                             <div style={{ marginLeft: '10px' }}>
                                 <FormControl style={{ paddingLeft: '12px' }} style={styles.selectStyle} >
                                     <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
-                                    <Select  value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
+                                    <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
                                         <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
 
                                         {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
@@ -2504,15 +2525,15 @@ class Home extends React.Component {
 
                                 {this.state.symbolList && this.state.symbolList.length ? this.state.symbolList.map((row, i) => (
                                     <>
-                                        <ListItem onKeyDown={ this.handleKeyDown }  button selected={this.state.cursor === i ? 'active' : null} 
-                                         
+                                        <ListItem onKeyDown={this.handleKeyDown} button selected={this.state.cursor === i ? 'active' : null}
+
                                             style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }} >
 
-                                                {this.state.cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
-                                                
-                                            <ListItemText  style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol, i)} primary={row.name} /> {row.ltp} ({row.nc}%)
+                                            {this.state.cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
-                                           
+                                            <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol, i)} primary={row.name} /> {row.ltp} ({row.nc}%)
+
+
                                         </ListItem>
 
                                     </>
@@ -2521,18 +2542,18 @@ class Home extends React.Component {
 
                             {/* <Tab style={{position: 'fixed'}}  data={{symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/> */}
                         </Paper>
-                        <Typography style={{fontWeight:'bold'}}><span  style={{color:"green"}}> Advance {this.state.advanceShareCount} </span> <span  style={{color:"red"}}> Decline {this.state.declineShareCount} </span> <span> Unchange {this.state.UnchangeShareCount} </span> </Typography>
+                        <Typography style={{ fontWeight: 'bold' }}><span style={{ color: "green" }}> Advance {this.state.advanceShareCount} </span> <span style={{ color: "red" }}> Decline {this.state.declineShareCount} </span> <span> Unchange {this.state.UnchangeShareCount} </span> </Typography>
 
                     </Grid>
 
                     <Grid item xs={12} sm={8}>
                         <Paper style={{ padding: "10px" }}>
 
-                                    
+
                             <Typography style={{ textAlign: "center", background: "lightgray" }}>Place Order</Typography>
 
                             <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
-                                
+
                                 <Grid item xs={10} sm={3}>
 
                                     {this.state.tradingsymbol ?
@@ -2550,35 +2571,35 @@ class Home extends React.Component {
                                 </Grid>
 
                                 <Grid item xs={10} sm={2}>
-                                   
-                                   <Autocomplete
-                                       freeSolo
-                                       id="free-solo-2-demo"
-                                       disableClearable
-                                       style={{ paddingLeft: "10px", paddingRight: "10px" }}
-                                       onChange={this.onSelectItemChart}
-                                       value={this.state.seachSumbol}
-                                       //+ ' '+  option.exch_seg
-                                       options={this.state.autoSearchList.length > 0 ? this.state.autoSearchList.map((option) =>
-                                           option.symbol
-                                       ) : []}
-                                       renderInput={(params) => (
-                                           <TextField
-                                               onChange={this.onChange}
-                                               {...params}
-                                               label={"Search"}
-                                               margin="normal"
-                                               variant="standard"
-                                               name="seachSumbol"
-                                               InputProps={{ ...params.InputProps, type: 'search' }}
-                                           />
-                                       )}
-                                   />
-                               </Grid>
-                               
+
+                                    <Autocomplete
+                                        freeSolo
+                                        id="free-solo-2-demo"
+                                        disableClearable
+                                        style={{ paddingLeft: "10px", paddingRight: "10px" }}
+                                        onChange={this.onSelectItemChart}
+                                        value={this.state.seachSumbol}
+                                        //+ ' '+  option.exch_seg
+                                        options={this.state.autoSearchList.length > 0 ? this.state.autoSearchList.map((option) =>
+                                            option.symbol
+                                        ) : []}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                onChange={this.onChange}
+                                                {...params}
+                                                label={"Search"}
+                                                margin="normal"
+                                                variant="standard"
+                                                name="seachSumbol"
+                                                InputProps={{ ...params.InputProps, type: 'search' }}
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+
 
                                 <Grid item xs={10} sm={1}>
-                                    <FormControl style={styles.selectStyle} style={{marginTop: '10px'}} >
+                                    <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
                                         <InputLabel htmlFor="gender">Time</InputLabel>
                                         <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
                                             <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
@@ -2594,10 +2615,10 @@ class Home extends React.Component {
 
                                 </Grid>
 
-                               
-                               
+
+
                                 <Grid item xs={12} sm={1}>
-                                    <FormControl style={styles.selectStyle}  style={{marginTop: '3px'}} >
+                                    <FormControl style={styles.selectStyle} style={{ marginTop: '3px' }} >
                                         <InputLabel htmlFor="gender">Order Type</InputLabel>
                                         <Select value={this.state.producttype} name="producttype" onChange={this.onChange}>
                                             <MenuItem value={"INTRADAY"}>Interaday</MenuItem>
@@ -2622,82 +2643,73 @@ class Home extends React.Component {
                                 </Grid>
 
 
-                               
+
                                 <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
 
+                                         <br />
+                                    <Grid item xs={12} sm={3} style={{ background: "#00000014", marginTop: '-24vh' }} >
+                                          
+                                        <div style={{ background: '#bdbdbd' }}>
+                                            <b>  Daily: {this.state.tradingsymbol}</b> <br />
 
-                                <Grid item xs={12} sm={3}  >
-                                       <b>  Symbol - {this.state.tradingsymbol}</b> <br />
-                                        Bollinger Bands - {this.state.timeFrame} <br />
-                                    {this.state.bblastValue? <Grid item xs={12} sm={12} >
-                                      
-                                      <span title="Green color mean price running above upper bb band" style={{ color: this.state.InstrumentLTP.ltp  >= this.state.bblastValue.upper ? "green" : "", fontWeight: "bold" }}>BB Upper: {this.state.bblastValue.upper.toFixed(2)}</span><br />
-                                       BB Middle(20 SMA): {this.state.bblastValue.middle.toFixed(2)}<br />
-                                      <span  title="Green red mean price running below lower bb band" style={{ color: this.state.InstrumentLTP.ltp  <= this.state.bblastValue.lower ? "red" : "", fontWeight: "bold" }}>BB Lower: {this.state.bblastValue.lower.toFixed(2)}</span><br />
-                                    </Grid>: ""}
+                                            <span title="20SMA" item xs={12} sm={12} style={{ color: this.state.InstrumentLTP.ltp > this.state.DailyBulishStatus ? "green" : "red", fontWeight: "bold" }}>
+                                                Daily Avg Price: {this.state.DailyBulishStatus && this.state.DailyBulishStatus.toFixed(0)} {this.state.DailyBulishStatus ? this.state.InstrumentLTP.ltp > this.state.DailyBulishStatus ? "BUY" : "SELL" : ""}
+                                            </span><br />
 
-                                    <Grid item xs={12} sm={12} style={{ color: this.state.InstrumentLTP.ltp > this.state.vwapvalue ? "green" : "red", fontWeight: "bold" }}>
-                                      VWAP:  {this.state.vwapvalue}
-                                    </Grid>
-                                
-                                    <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
-                                        item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
-                                    ))}
 
-                                        
-                                    <br />
-                                    <b>Vol:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
-                                        <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item/100000).toFixed(2)}L &nbsp;</span>
-                                    ))}
+                                            <span title="averge of showed candle volume" item xs={12} sm={12}>
+                                                <b>Daily Avg Volume:</b>  {(this.state.dailyAvgValume / 100000).toFixed(2)}L
+                                            </span><br />
+                                            <span title="averge of showed candle volume" item xs={12} sm={12}>
+                                                {this.state.todayCurrentVolume > this.state.dailyAvgValume ? <b title="if cossed avg volume then its green" style={{ color: "green" }}>Today Volume: {(this.state.todayCurrentVolume / 100000).toFixed(2)}L </b> : "Today Volume:" + (this.state.todayCurrentVolume / 100000).toFixed(2) + "L"}
+                                            </span>
+                                        </div>
+                                        <br />
 
-                                    <br />  <br />
 
-                                    <Grid title="20SMA" item xs={12} sm={12} style={{ color: this.state.InstrumentLTP.ltp > this.state.DailyBulishStatus ? "green" : "red", fontWeight: "bold" }}>
-                                        Daily Avg Price: {this.state.DailyBulishStatus && this.state.DailyBulishStatus.toFixed(0)} {this.state.DailyBulishStatus ? this.state.InstrumentLTP.ltp > this.state.DailyBulishStatus ? "BUY" : "SELL" : ""}  
-                                    </Grid>
 
-  
-                                    <Grid title="averge of showed candle volume" item xs={12} sm={12}>
-                                        <b>Daily Avg Volume:</b>  {(this.state.dailyAvgValume/100000).toFixed(2)}L
-                                    </Grid>
-                                    <Grid title="averge of showed candle volume" item xs={12} sm={12}>
-                                      {this.state.todayCurrentVolume > this.state.dailyAvgValume ? <b title="if cossed avg volume then its green" style={{ color: "green" }}>Today Volume: {(this.state.todayCurrentVolume/100000).toFixed(2)}L </b>:  "Today Volume:" + (this.state.todayCurrentVolume/100000).toFixed(2) + "L"}
-                                    </Grid>
+                                        <b>  Intraday: {this.state.timeFrame} : {this.state.tradingsymbol}</b> <br />
+                                        {this.state.bblastValue ? <span item xs={12} sm={12} >
 
-                                    
+                                            <span title="Green color mean price running above upper bb band" style={{ color: this.state.InstrumentLTP.ltp >= this.state.bblastValue.upper ? "green" : "", fontWeight: "bold" }}>BB Upper: {this.state.bblastValue.upper.toFixed(2)}</span><br />
+                                            BB Middle(20 SMA): {this.state.bblastValue.middle.toFixed(2)}<br />
+                                            <span title="Green red mean price running below lower bb band" style={{ color: this.state.InstrumentLTP.ltp <= this.state.bblastValue.lower ? "red" : "", fontWeight: "bold" }}>BB Lower: {this.state.bblastValue.lower.toFixed(2)}</span><br />
+                                        </span> : ""}
 
-                                   
+                                        <span item xs={12} sm={12} style={{ color: this.state.InstrumentLTP.ltp > this.state.vwapvalue ? "green" : "red", fontWeight: "bold" }}>
+                                            VWAP:  {this.state.vwapvalue && this.state.vwapvalue.toFixed(2)}
+                                        </span>
+                                        <br />
+                                        <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
+                                            item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
+                                        ))}
+
+
+                                        <br />
+                                        <b>Vol:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
+                                            <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item / 100000).toFixed(2)}L &nbsp;</span>
+                                        ))}
+
+                                        <br />  <br />
+
                                     </Grid>
 
                                     <Grid item xs={12} sm={9}  >
-                                      <div id="showChartTitle"> 
-                                      Time: {this.state.candletime}  
-                                      Open: {this.state.candleChartDetail && this.state.candleChartDetail.open}
-                                      High: {this.state.candleChartDetail && this.state.candleChartDetail.high}
-                                      Low: {this.state.candleChartDetail && this.state.candleChartDetail.low}
-                                      Close: {this.state.candleChartDetail && this.state.candleChartDetail.close}
-                                      Volume: {this.state.candleChartDetail && this.state.candleChartDetail.volume}
-                                      Change: {this.state.candleChartDetail && this.state.candleChartDetail.change}
+                                        <div id="showChartTitle">
 
-                                    
-                                      
-                                      </div>
-                                     <div id="tvchart"></div>
+
+
+                                        </div>
+                                        <div id="tvchart"></div>
 
                                     </Grid>
 
-                                    
+
                                 </Grid>
 
 
                                 <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "50vh" }} >
 
-
-                                   
-
-
-                                        
-                                   
 
                                     <Table size="small" aria-label="sticky table" >
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
@@ -2705,7 +2717,7 @@ class Home extends React.Component {
 
                                                 <TableCell className="TableHeadFormat" align="center">Symbol</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> | Total:  <b style={{ color:  this.state.totalPerchentageChange > 0 ? "green": 'red' }}>  {this.state.totalPerchentageChange && this.state.totalPerchentageChange.toFixed(2)}% </b> from {this.state.startingFrom} </TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Chng% <b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> | Total:  <b style={{ color: this.state.totalPerchentageChange > 0 ? "green" : 'red' }}>  {this.state.totalPerchentageChange && this.state.totalPerchentageChange.toFixed(2)}% </b> from {this.state.startingFrom} </TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Open</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">High</TableCell>
                                                 <TableCell className="TableHeadFormat" align="center">Low</TableCell>
@@ -2740,7 +2752,7 @@ class Home extends React.Component {
                         </Paper>
                         <br />
 
-                     
+
 
                         <Paper style={{ padding: "10px" }}>
                             <Typography style={{ textAlign: "center", background: "lightgray" }}>Backtest</Typography>
@@ -3140,67 +3152,37 @@ class Home extends React.Component {
                         </Paper>
                     </Grid>
 
-                    <Grid item xs={12} sm={2}  >
+                    <Grid item xs={12} sm={2}>
 
 
                         <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
+                       
+                            
+                        
+
                             <Grid item xs={12} sm={12}>
-                                <Paper>
-                                    <Typography style={{ textAlign: "center", background: "#20d020" }}>{this.state.openEqualHighList.length} Open = Low : BUY </Typography>
-                                    <div style={{ overflowY: 'scroll', height: "25vh" }}>
-                                        {this.state.openEqualHighList && this.state.openEqualHighList.length ? this.state.openEqualHighList.map(row => (
-                                            <>
-                                                <ListItem button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }}  >
-                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
-                                                </ListItem>
-                                            </>
-                                        )) : ''}
-                                    </div>
-                                </Paper>
+                                <SimpleExpansionFastMovement data={{ list: this.state.fastMovementList, title: "Fast Movement", LoadSymbolDetails: this.LoadSymbolDetails }} />
+                            </Grid>
+                            <Grid item xs={12} sm={12}>
+                                <SimpleExpansionPanel data={{ list: this.state.volumeCrossedList, title: "Average Volume Crossed", LoadSymbolDetails: this.LoadSymbolDetails }} />
+                            </Grid>
+
+                            <Grid item xs={12} sm={12}>
+                                <SimpleExpansionPanel data={{ list: this.state.openEqualLowList, title: "Open = Low : Buy", LoadSymbolDetails: this.LoadSymbolDetails }} />
                             </Grid>
 
 
                             <Grid item xs={12} sm={12}>
-                                <Paper >
-                                    <Typography style={{ textAlign: "center", background: "#e66e6e" }}>{this.state.openEqualLowList.length} Open = High : Sell </Typography>
-                                    <div style={{ overflowY: 'scroll', height: "25vh" }}>
-                                        {this.state.openEqualLowList && this.state.openEqualLowList.length ? this.state.openEqualLowList.map(row => (
-                                            <>
-                                                <ListItem button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }}  >
-                                                    <ListItemText style={{ color: !row.perChange || row.perChange == 0 ? "" : row.perChange > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.tradingsymbol)} primary={row.tradingsymbol} /> {row.ltp} ({row.perChange}%)
-                                                </ListItem>
-                                            </>
-                                        )) : ''}
-                                    </div>
-                                </Paper>
+                                <SimpleExpansionPanel data={{ list: this.state.openEqualHighList, title: "Open = High : Sell", LoadSymbolDetails: this.LoadSymbolDetails }} />
                             </Grid>
 
 
-
-
-
-                            <Grid item xs={12} sm={12}>
-                                <Paper>
-                                    <Typography style={{ textAlign: "center", background: "lightgray" }}>{this.state.volumeCrossedList.length} Average Volume Crossed</Typography>
-                                    <div style={{ overflowY: 'scroll', height: "25vh" }}>
-                                        {this.state.volumeCrossedList && this.state.volumeCrossedList.length ? this.state.volumeCrossedList.map(row => (
-                                            <>
-                                            {row ? <ListItem button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }}  >
-                                                    <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => this.LoadSymbolDetails(row.symbol)} primary={row.symbol} /> {row.ltp} ({row.nc}%)
-                                                </ListItem> : ""}
-                                                
-                                            </>
-                                        )) : ''}
-                                    </div>
-
-
-                                </Paper>
-                            </Grid>
+                           
 
                         </Grid>
 
 
-                        
+
 
 
 
