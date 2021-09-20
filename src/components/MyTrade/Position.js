@@ -1020,7 +1020,7 @@ class Home extends React.Component {
     //    });
 
     }
-    calculateBrokerCharge =(element)=>{
+    calculateTradeExpence =(element)=>{
         var buyCharge = parseFloat(element.totalbuyvalue) * 0.25/100; 
         if(buyCharge > 20){
             buyCharge = 20; 
@@ -1030,7 +1030,7 @@ class Home extends React.Component {
         if(sellCharge > 20){
             sellCharge = 20; 
         }
-        let turnOver = element.totalbuyvalue + totalsellvalue; 
+        let turnOver = parseFloat(element.totalbuyvalue) + totalsellvalue; 
         let totalBroker = buyCharge+sellCharge;
         let sstCharge = totalsellvalue *  0.025/100; 
         let transCharge = turnOver *  0.00345/100; 
@@ -1038,9 +1038,11 @@ class Home extends React.Component {
         let sebiCharge = turnOver * 10/10000000; 
         let gstCharge = (totalBroker+transCharge+sebiCharge) * 18/100; 
 
+        let total = totalBroker+sstCharge+transCharge+stampDuty+sebiCharge+gstCharge; 
+
         var chargeInfo ={
-          tradeExpence:  totalBroker+sstCharge+transCharge+stampDuty+sebiCharge+gstCharge, 
-          expenceInfo : "Brokerage: "+totalBroker+ " STT: "+ sstCharge + " Transaction: "+ transCharge + " Stamp Duty: "+stampDuty + " Sebi: "+sebiCharge + " GST: " + gstCharge 
+          tradeExpence:  total,
+          expenceInfo : "Brokerage: "+totalBroker.toFixed(2)+ " \nSTT: "+ sstCharge.toFixed(2) + " \nTransaction: "+ transCharge.toFixed(2) + " \nStamp Duty: "+stampDuty.toFixed(2) + " \nSebi: "+sebiCharge.toFixed(2) + " \nGST: " + gstCharge.toFixed(2) + " \n\nTotal: "+ total.toFixed(2)
         }
         return chargeInfo; 
     }
@@ -1071,7 +1073,7 @@ class Home extends React.Component {
                     totalPercentage += parseFloat(percentPnL);
                     element.pattenName = this.tagPatternWhichTaken(element.symboltoken); 
 
-                    let chargeInfo = this.calculateBrokerCharge(element);
+                    let chargeInfo = this.calculateTradeExpence(element);
                     element.tradeExpence = chargeInfo.tradeExpence.toFixed(2); 
                     element.expenceInfo = chargeInfo.expenceInfo; 
                     totalExpence += chargeInfo.tradeExpence; 
@@ -1857,7 +1859,7 @@ class Home extends React.Component {
                                             <TableCell align="left">{row.totalsellavgprice}</TableCell>
                                             <TableCell align="left">{row.buyqty || row.sellqty}</TableCell>
                                             <TableCell align="left">{row.netqty}</TableCell>
-                                            <TableCell title={row.expenceInfo} align="left">{row.tradeExpence}</TableCell>
+                                            <TableCell style={{cursor:'help'}} title={row.expenceInfo} align="left">{row.tradeExpence}</TableCell>
 
                                             {/* <TableCell align="left">{row.totalsellvalue}</TableCell> */}
                                             <TableCell align="left"> {row.stopLoss}</TableCell>
