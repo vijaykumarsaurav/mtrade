@@ -59,7 +59,7 @@ class Home extends React.Component {
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1) })
+            this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1000) })
             //  this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
         } else {
             clearInterval(this.state.positionInterval);
