@@ -362,7 +362,7 @@ class Home extends React.Component {
 
 
                 var fastMovementList  = localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')); 
-                fastMovementList.reverse(); 
+                fastMovementList.length && fastMovementList.reverse(); 
                 this.setState({fastMovementList :fastMovementList })
             }, 1000);
         }
