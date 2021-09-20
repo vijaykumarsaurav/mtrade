@@ -43,7 +43,7 @@ class Home extends React.Component {
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             selectedWatchlist: "NIFTY 50",
             totalStockToWatch: 0,
-            timeFrame: "FIFTEEN_MINUTE",
+            timeFrame: "TEN_MINUTE",
             chartStaticData: [],
             BBBlastType : "BBBlastOnly",
             fastMovementList:  localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],

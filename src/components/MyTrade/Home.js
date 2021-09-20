@@ -192,7 +192,7 @@ class Home extends React.Component {
                     this.state.symbolList && this.state.symbolList.sort(function (a, b) {
                         return b.nc - a.nc;
                     });
-                    this.setState({ symbolList: this.state.symbolList, tradingsymbol: element.symbol });
+                    this.setState({ symbolList: this.state.symbolList, tradingsymbol: element.symbol, symboltoken: element.token });
 
                     this.dailyBasisInfoCheck(element.token, element);
 
@@ -2647,6 +2647,8 @@ class Home extends React.Component {
                                 <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
 
                                          <br />
+
+                                    {this.state.InstrumentLTP ? 
                                     <Grid item xs={12} sm={3} style={{ background: "#00000014", marginTop: '-24vh' }} >
                                           
                                         <div style={{ background: '#bdbdbd' }}>
@@ -2693,7 +2695,7 @@ class Home extends React.Component {
                                         <br />  <br />
 
                                     </Grid>
-
+                                    : ""}
                                     <Grid item xs={12} sm={9}  >
                                         <div id="showChartTitle">
 
