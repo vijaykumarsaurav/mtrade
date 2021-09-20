@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/mtrade/static/css/main.846c3ea8.chunk.css",
-    "main.js": "/mtrade/static/js/main.3be3784d.chunk.js",
-    "main.js.map": "/mtrade/static/js/main.3be3784d.chunk.js.map",
+    "main.js": "/mtrade/static/js/main.b7b265f7.chunk.js",
+    "main.js.map": "/mtrade/static/js/main.b7b265f7.chunk.js.map",
     "runtime~main.js": "/mtrade/static/js/runtime~main.72b3d60e.js",
     "runtime~main.js.map": "/mtrade/static/js/runtime~main.72b3d60e.js.map",
     "static/css/2.39017165.chunk.css": "/mtrade/static/css/2.39017165.chunk.css",
     "static/js/2.4d6156ec.chunk.js": "/mtrade/static/js/2.4d6156ec.chunk.js",
     "static/js/2.4d6156ec.chunk.js.map": "/mtrade/static/js/2.4d6156ec.chunk.js.map",
     "index.html": "/mtrade/index.html",
-    "precache-manifest.bfb777499495d412c60d6ab47ef3c62e.js": "/mtrade/precache-manifest.bfb777499495d412c60d6ab47ef3c62e.js",
+    "precache-manifest.8adaa572c79a6d51e3228fda345eb065.js": "/mtrade/precache-manifest.8adaa572c79a6d51e3228fda345eb065.js",
     "service-worker.js": "/mtrade/service-worker.js",
     "static/css/2.39017165.chunk.css.map": "/mtrade/static/css/2.39017165.chunk.css.map",
     "static/css/main.846c3ea8.chunk.css.map": "/mtrade/static/css/main.846c3ea8.chunk.css.map",
