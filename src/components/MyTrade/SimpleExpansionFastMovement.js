@@ -44,14 +44,14 @@ export default function SimpleExpansionPanel(props) {
           aria-controls="panel1a-content"
           id="panel1a-header"
         >
-          <Typography> {data.title} ({data.list.length})</Typography>
+          <Typography> {data.title} ({data.list && data.list.length})</Typography>
 
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
         
 
           <div style={{ overflowY: 'scroll', width:"100%", height: "50vh" }}>
-              {data && data.list.length ? data.list.map((row, i)  => (
+              {data && data.list ? data.list.map((row, i)  => (
                   <>
                       {/* {row ? 
                       <div  button style={{ fontSize: '10px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }}  >
