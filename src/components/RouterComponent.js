@@ -27,6 +27,8 @@ import SectorHeatMap from "./MyTrade/SectorHeatMap";
 import SectorHeatMap2 from "./MyTrade/SectorHeatMap2";
 
 import FindFastMovement from "./MyTrade/FindFastMovement";
+import FindFastMovement2 from "./MyTrade/FindFastMovement2";
+
 import OrderWatchlist from "./MyTrade/OrderWatchlist";
 
 
@@ -58,7 +60,10 @@ const AppRouter = () => {
 
                     
                     <Route path="/find-fast-movement" component={FindFastMovement}/>
+                    <Route path="/find-fast-movement2" component={FindFastMovement2}/>
+
                     <Route path="/order-watchlist" component={OrderWatchlist}/>
+
 
                     <Route path="/test" component={Test}/>
                     

@@ -114,7 +114,7 @@ class CommonOrderMethod {
             }
 
 
-           quantity = quantity > 0 ? 1 : 0;
+          // quantity = quantity > 0 ? 1 : 0;
            console.log(symbol, "  quantity can be order ", quantity);
 
             if (quantity) {

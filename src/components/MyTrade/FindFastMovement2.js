@@ -43,9 +43,9 @@ class Home extends React.Component {
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             selectedWatchlist: "NIFTY 50",
             totalStockToWatch: 0,
-            timeFrame: "TEN_MINUTE",
+            timeFrame: "FIFTEEN_MINUTE",
             chartStaticData: [],
-            BBBlastType : "BBBlastOnly",
+            BBBlastType : "BBStrongBreakout",
             fastMovementList:  localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
 
 
@@ -57,7 +57,7 @@ class Home extends React.Component {
 
     componentDidMount() {
 
-        window.document.title = "Fast Movement";
+        window.document.title = "FM2";
 
         var watchList = this.state.staticData[this.state.selectedWatchlist];
         this.setState({ totalStockToWatch: watchList.length });
@@ -75,7 +75,7 @@ class Home extends React.Component {
         var tostartInteral = setInterval(() => {
             var time = new Date();
             console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());
-            if (time.getMinutes() % 5 === 0) {
+            if (time.getMinutes() % 2 === 0) {
                 console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());
 
                 setTimeout(() => {
@@ -88,7 +88,7 @@ class Home extends React.Component {
                             if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
                                 this.find10MinBBBlast();
                             }
-                        }, 60000 * 5 + 70000)
+                        }, 60000 * 2 + 70000)
                 });
 
                 clearInterval(tostartInteral);
@@ -290,14 +290,14 @@ class Home extends React.Component {
                    // { time: '2018-10-19', value: 19103293.00, color: 'rgba(0, 150, 136, 0.8)' },
 
                     var sma = SMA.calculate({ period: 20, values: closeingData });
-                    console.log(watchList[index].symbol, "SMA", sma);
+                 //   console.log(watchList[index].symbol, "SMA", sma);
 
 
                     var inputRSI = { values: closeingData, period: 14 };
                     var lastRsiValue = RSI.calculate(inputRSI);
 
-                    console.log(watchList[index].symbol, "Rsi", inputRSI, lastRsiValue);
-                    console.log(watchList[index].symbol, "vwap", vwapdata, vwap(vwapdata));
+                    // console.log(watchList[index].symbol, "Rsi", inputRSI, lastRsiValue);
+                    // console.log(watchList[index].symbol, "vwap", vwapdata, vwap(vwapdata));
 
 
                     var inputVWAP = {
@@ -316,7 +316,7 @@ class Home extends React.Component {
                     }
 
                     var bb = BollingerBands.calculate(input);
-                    console.log(watchList[index].symbol, "Bolinger band", input, bb);
+                 //   console.log(watchList[index].symbol, "Bolinger band", input, bb);
 
 
                     var bbvlastvalue = bb[bb.length - 1];
@@ -341,176 +341,70 @@ class Home extends React.Component {
 
                             lastRsiValue = lastRsiValue.slice((lastRsiValue.length - 6), lastRsiValue.length);
 
-                            var upsidecount = 0, downsidecount = 0, startingRsiupside = lastRsiValue[2], startingRsiDownside = lastRsiValue[2];
-                            lastRsiValue.forEach((element, i) => {
-                                if (i > 2 && element >= 55 && element <= 65) {
-                                    if (startingRsiupside <= element) {
-                                        startingRsiupside = element;
-                                        upsidecount += 1;
-                                    }
-                                }
+                        
+                            // var volumeUpside = valumeData[2], volUpCount =0;                          
+                            // valumeData.forEach((element, i) => {
+                            //     if (i > 2 && volumeUpside < element) {
+                            //         volumeUpside = element;
+                            //         volUpCount += 1;
+                            //     }
+                            // });
 
-                                if (i > 2 && element >= 35 && element <= 45) {
-                                    if (element <= startingRsiDownside) {
-                                        startingRsiDownside = element;
-                                        downsidecount += 1;
-                                    }
-                                }
-                            });
+                            console.log(watchList[index].symbol,bbvlastvalue, candleData[candleData.length-2],  candleData[candleData.length-2][2], candleData[candleData.length-2][4] );
 
-                            var volumeUpside = valumeData[2], volUpCount =0;                          
-                            valumeData.forEach((element, i) => {
-                                if (i > 2 && volumeUpside < element) {
-                                    volumeUpside = element;
-                                    volUpCount += 1;
-                                }
-                            });
-
-                            console.log(watchList[index].symbol, "valumeData", valumeData, );
-
-                            console.log(watchList[index].symbol, "last continue rsi", upsidecount);
-                            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " RSI rising :" + upsidecount });
+                            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString()  });
                         
 
-                            if (upsidecount >= 2 || downsidecount >= 2) {
-                                if (this.state.BBBlastType == 'BBBlastOnly') {
-                                    if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
-                                        var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                        let data = {
-                                            symbol: watchList[index].symbol,
-                                            token: watchList[index].token,
-                                            ltp: LtpData.ltp,
-                                            perChange: perChange,
-                                            RSIValue: lastRsiValue[lastRsiValue.length - 1],
-                                            RSI: lastRsiValue,
-                                            VWAP: vwap(vwapdata),
-                                            BB: bbvlastvalue,
-                                            candleChartData: candleChartData,
-                                            lightcandleChartData: lightcandleChartData,
-                                            foundAt : candleData && candleData[candleData.length-1][0],
-                                            orderType: "BUY",
-                                            name: watchList[index].name,
-                                        }
-                                        foundData.push(data)
-                                        this.setState({ findlast5minMovement: foundData });
-                                        this.updateToLocalStorage(data); 
-
-                                        this.speckIt(watchList[index].symbol + ' BB  buy');
-                                        window.document.title = "FM: Buy " + watchList[index].symbol;
+                            if (this.state.BBBlastType == 'BBStrongBreakout') {
+                                if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper && candleData[candleData.length-2][2] == candleData[candleData.length-2][4]) {
+                                    var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                    let data = {
+                                        symbol: watchList[index].symbol,
+                                        token: watchList[index].token,
+                                        ltp: LtpData.ltp,
+                                        perChange: perChange,
+                                        RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                        RSI: lastRsiValue,
+                                        VWAP: vwap(vwapdata),
+                                        BB: bbvlastvalue,
+                                        candleChartData: candleChartData,
+                                        lightcandleChartData: lightcandleChartData,
+                                        foundAt : candleData && candleData[candleData.length-1][0],
+                                        orderType: "BUY",
+                                        name: watchList[index].name,
                                     }
-                                    if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
-                                        var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                       let data = {
-                                            symbol: watchList[index].symbol,
-                                            token: watchList[index].token,
-                                            ltp: LtpData.ltp,
-                                            perChange: perChange,
-                                            RSIValue: lastRsiValue[lastRsiValue.length - 1],
-                                            RSI: lastRsiValue,
-                                            VWAP: vwap(vwapdata),
-                                            BB: bbvlastvalue,
-                                            candleChartData: candleChartData,
-                                            lightcandleChartData: lightcandleChartData,
-                                            foundAt : candleData && candleData[candleData.length-1][0],
-                                            orderType: "SELL",
-                                            name: watchList[index].name,
-                                        }
-                                        foundData.push(data)
-                                        this.setState({ findlast5minMovement: foundData });
-                                        this.updateToLocalStorage(data); 
+                                    foundData.push(data)
+                                    this.setState({ findlast5minMovement: foundData });
+                                    this.updateToLocalStorage(data); 
 
-                                        this.speckIt(watchList[index].symbol + ' BB sell');
-                                        window.document.title = "FM: Sell " + watchList[index].symbol;
+                                    this.speckIt(watchList[index].symbol + ' BB  buy');
+                                    window.document.title = "FM2: Buy " + watchList[index].symbol;
+                                }
+                                if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower && candleData[candleData.length-2][3] == candleData[candleData.length-2][4]) {
+                                    var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                   let data = {
+                                        symbol: watchList[index].symbol,
+                                        token: watchList[index].token,
+                                        ltp: LtpData.ltp,
+                                        perChange: perChange,
+                                        RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                        RSI: lastRsiValue,
+                                        VWAP: vwap(vwapdata),
+                                        BB: bbvlastvalue,
+                                        candleChartData: candleChartData,
+                                        lightcandleChartData: lightcandleChartData,
+                                        foundAt : candleData && candleData[candleData.length-1][0],
+                                        orderType: "SELL",
+                                        name: watchList[index].name,
                                     }
-                                } else {
+                                    foundData.push(data)
+                                    this.setState({ findlast5minMovement: foundData });
+                                    this.updateToLocalStorage(data); 
 
-                                    let timeDuration = this.getTimeFrameValue('ONE_DAY');
-                                    var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
-                                    var startDateforDaily = moment(new Date()).subtract(time);
-                                    var dataDay = {
-                                        "exchange": watchList[index].exch_seg,
-                                        "symboltoken": watchList[index].token,
-                                        "interval": 'ONE_DAY',
-                                        "fromdate": moment(startDateforDaily).format(format1),
-                                        "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
-                                    }
-                                    AdminService.getHistoryData(dataDay).then(resd => {
-                                        let histdatad = resolveResponse(resd, 'noPop');
-                                        var DSMA = '';
-                                        if (histdatad && histdatad.data && histdatad.data.length) {
-                                            var candleDatad = histdatad.data;
-                                            var closeingDatadaily = [];
-                                            candleDatad.forEach((element, loopindex) => {
-                                                closeingDatadaily.push(element[4]);
-                                            });
-
-                                            DSMA = SMA.calculate({ period: 20, values: closeingDatadaily });
-
-                                            var DSMALastValue = DSMA && DSMA[DSMA.length - 1];
-                                            console.log(watchList[index].symbol, "DSMA", DSMALastValue);
-
-                                            if (LtpData.ltp > DSMALastValue && bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper) {
-                                                var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                                
-                                                let data = {
-                                                    symbol: watchList[index].symbol,
-                                                    token: watchList[index].token,
-                                                    ltp: LtpData.ltp,
-                                                    perChange: perChange,
-                                                    RSIValue: lastRsiValue[lastRsiValue.length - 1],
-                                                    RSI: lastRsiValue,
-                                                    VWAP: vwap(vwapdata),
-                                                    BB: bbvlastvalue,
-                                                    DSMALastValue: DSMALastValue,
-                                                    candleChartData: candleChartData,
-                                                    lightcandleChartData: lightcandleChartData,
-                                                    foundAt : candleData && candleData[candleData.length-1][0],
-                                                    orderType: "BUY",
-                                                    name: watchList[index].name,
-                                                    
-                                                }; 
-                                                
-                                                foundData.push(data)
-                                                this.setState({ findlast5minMovement: foundData });
-                                                this.updateToLocalStorage(data); 
-
-                                                this.speckIt(watchList[index].symbol + ' BB  buy');
-                                                window.document.title = "FM: Buy " + watchList[index].symbol;
-
-                                            }
-                                            if (LtpData.ltp < DSMALastValue && bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower) {
-                                                var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
-                                                let data = {
-                                                    symbol: watchList[index].symbol,
-                                                    token: watchList[index].token,
-                                                    ltp: LtpData.ltp,
-                                                    perChange: perChange,
-                                                    RSIValue: lastRsiValue[lastRsiValue.length - 1],
-                                                    RSI: lastRsiValue,
-                                                    VWAP: vwap(vwapdata),
-                                                    BB: bbvlastvalue,
-                                                    DSMALastValue: DSMALastValue,
-                                                    candleChartData: candleChartData,
-                                                    lightcandleChartData: lightcandleChartData,
-                                                    foundAt : candleData && candleData[candleData.length-1][0],
-                                                    orderType: "SELL",
-                                                    name: watchList[index].name,
-                                                }
-                                                foundData.push(data)
-                                                this.setState({ findlast5minMovement: foundData });
-                                                this.updateToLocalStorage(data); 
-
-                                                this.speckIt(watchList[index].symbol + ' BB sell');
-                                                window.document.title = "FM: Sell " + watchList[index].symbol;
-                                            }
-                                        }
-
-
-                                    });
-
+                                    this.speckIt(watchList[index].symbol + ' BB sell');
+                                    window.document.title = "FM2: Sell " + watchList[index].symbol;
                                 }
                             }
-
 
 
                         }
@@ -740,8 +634,11 @@ class Home extends React.Component {
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Select Time</InputLabel>
                             <Select value={this.state.BBBlastType} name="BBBlastType" onChange={this.onChangeWatchlist}>
-                                <MenuItem value={'BBBlastOnly'}>{'BB Blast'}</MenuItem>
-                                <MenuItem value={'BBBlastDaily'}>{'BB Blast Daily'}</MenuItem>
+                                {/* <MenuItem value={'BBBlastOnly'}>{'BB Blast'}</MenuItem>
+                                <MenuItem value={'BBBlastDaily'}>{'BB Blast Daily'}</MenuItem> */}
+                                <MenuItem value={'BBStrongBreakout'}>{'BB Strong Breakout'}</MenuItem>
+
+                                
 
                             </Select>
                         </FormControl>

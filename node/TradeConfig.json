@@ -1,8 +1,7 @@
 {
     "monthlyTargetPer" :5, 
     "dailyLossPer" :1, 
-    "totalCapital" :10808, 
-    "perTradeExposurePer" : 15,
+    "totalCapital" :10000, 
+    "perTradeExposurePer" : 50,
     "perTradeStopLossPer": 1
-
-}
+}    

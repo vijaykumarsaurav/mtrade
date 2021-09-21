@@ -2649,7 +2649,7 @@ class Home extends React.Component {
                                          <br />
 
                                     {this.state.InstrumentLTP ? 
-                                    <Grid item xs={12} sm={3} style={{ background: "#00000014", marginTop: '-24vh' }} >
+                                    <Grid item xs={12} sm={3} style={{ background: "#00000014" }} >
                                           
                                         <div style={{ background: '#bdbdbd' }}>
                                             <b>  Daily: {this.state.tradingsymbol}</b> <br />

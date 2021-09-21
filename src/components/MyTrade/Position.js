@@ -61,6 +61,26 @@ class Home extends React.Component {
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1000) })
             //  this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
+
+            var squireInterval = setInterval(() => {
+                console.log("squireoff", new Date().toLocaleString()); 
+                let sqrOffbeginningTime = moment('3:14pm', 'h:mma');
+                let sqrOffendTime = moment('3:15pm', 'h:mma');
+                let sqrOffcurrentTime = moment(new Date(), "h:mma");
+            
+                if (sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)) {
+                    this.state.positionList.forEach((element, i)=> {
+                        if(element.netqty > 0 || element.netqty < 0){
+                            this.squareOff(element);
+                        }
+                        if(this.state.positionList.length == i+1){
+                            clearInterval(squireInterval);
+                            console.log("squireInterval ended"); 
+                        }
+                    });
+                } 
+            }, 5000);
+
         } else {
             clearInterval(this.state.positionInterval);
             clearInterval(this.state.scaninterval);
@@ -96,11 +116,11 @@ class Home extends React.Component {
             setInterval(() => {
                 this.refreshLtpOnFoundPattern();
             }, foundPatternsFromStored.length * 100 + 300000);
-
-
-
         }
 
+       
+
+       
         //this.getCandleHistoryAndStore(); 
 
         // this.findNR4PatternLive();
@@ -1021,7 +1041,9 @@ class Home extends React.Component {
 
     }
     calculateTradeExpence =(element)=>{
-        var buyCharge = parseFloat(element.totalbuyvalue) * 0.25/100; 
+
+        var totalbuyvalue =  parseFloat(element.totalbuyvalue) === 0 ? parseFloat(element.totalsellvalue) : parseFloat(element.totalbuyvalue);
+        var buyCharge = parseFloat(totalbuyvalue) * 0.25/100; 
         if(buyCharge > 20){
             buyCharge = 20; 
         }
@@ -1030,11 +1052,11 @@ class Home extends React.Component {
         if(sellCharge > 20){
             sellCharge = 20; 
         }
-        let turnOver = parseFloat(element.totalbuyvalue) + totalsellvalue; 
+        let turnOver = totalbuyvalue + totalsellvalue; 
         let totalBroker = buyCharge+sellCharge;
         let sstCharge = totalsellvalue *  0.025/100; 
         let transCharge = turnOver *  0.00345/100; 
-        let stampDuty  = element.totalbuyvalue *   0.003/100; 
+        let stampDuty  = totalbuyvalue *   0.003/100; 
         let sebiCharge = turnOver * 10/10000000; 
         let gstCharge = (totalBroker+transCharge+sebiCharge) * 18/100; 
 
@@ -1710,24 +1732,14 @@ class Home extends React.Component {
             }
         }
 
-        let sqrOffbeginningTime = moment('3:14pm', 'h:mma');
-        let sqrOffendTime = moment('3:15pm', 'h:mma');
-        let sqrOffcurrentTime = moment(new Date(), "h:mma");
-        if (sqrOffcurrentTime.isBetween(sqrOffbeginningTime, sqrOffendTime)) {
-
-            if (!localStorage.getItem('squiredOff' + row.symboltoken)) {
-                localStorage.setItem('squiredOff' + row.symboltoken, 'yes');
-                this.squareOff(row);
-                console.log("Sqr off called for", row.symbolname);
-            }
-        }
-
         if(!trailPerChange){
             return percentChange.toFixed(2) + "%"; 
         }else{
             return percentChange.toFixed(2) + "% | Trailing "+ trailPerChange.toFixed(2) + "%"; 
         }
     }
+
+  
 
 
     render() {
@@ -1907,6 +1919,8 @@ class Home extends React.Component {
 
                                         <TableCell className="TableHeadFormat" align="left">{this.state.totalQtyTraded}</TableCell>
                                         <TableCell className="TableHeadFormat" align="left"></TableCell>
+                                        <TableCell className="TableHeadFormat" align="left"></TableCell>
+
                                         {/* <TableCell  className="TableHeadFormat" align="left">{this.state.totalsellvalue}</TableCell> */}
 
                                         <TableCell className="TableHeadFormat" align="left"></TableCell>
