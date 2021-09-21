@@ -6,6 +6,7 @@ var MARKET_STATUS_URL = require('../constant').MARKET_STATUS_URL;
 var INDICES_WATCH_URL = require('../constant').INDICES_WATCH_URL;
 var SECTORS_LIST = require('../constant').SECTORS_LIST;
 var QUOTE_INFO_URL = require('../constant').QUOTE_INFO_URL;
+var OPTION_CHAIN_INFO_URL = require('../constant').OPTION_CHAIN_INFO_URL;
 var GET_QUOTE_URL = require('../constant').GET_QUOTE_URL;
 var GAINERS_URL = require('../constant').GAINERS_URL;
 var LOSERS_URL = require('../constant').LOSERS_URL;
@@ -120,6 +121,16 @@ function getQuoteInfo(symbol) {
     }
   })
 }
+function getQuoteInfo(symbol) {
+  console.log("url",OPTION_CHAIN_INFO_URL + encodeURIComponent(symbol));
+  return axios.get(OPTION_CHAIN_INFO_URL + encodeURIComponent(symbol), {
+    headers: {
+      Referer: OPTION_CHAIN_INFO_URL + encodeURIComponent(symbol),
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+}
+
 
 function getGainers() {
   return axios.get(GAINERS_URL);

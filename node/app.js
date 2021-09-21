@@ -271,6 +271,14 @@ app.get("/bse/getTopTurnOvers", (req, res, next) => {
 });
 
 
+// Example: http://localhost:3000/nse/get_quote_info?companyName=TCS
+app.get("/nse/getOptionChain", (req, res, next) => {
+  console.log("req.query.symbol",req.query.symbol);
+  NSEAPI.getQuoteInfo(req.query.symbol)
+    .then(function (response) {
+      res.json(response.data);
+    });
+});
 
 
 // On localhost:3000/welcome
@@ -291,7 +299,7 @@ app.get('/search/:query', function (req, res) {
 
 
       //BANKNIFTY16SEP2137700CE
-      if(obj[index].symbol.includes(symbolName) && obj[index].lotsize == "25" && (obj[index].symbol.endsWith("CE") || obj[index].symbol.endsWith("PE"))) {
+      if(obj[index].symbol  == symbolName) {
         fillertedData.push(obj[index])
       }
 

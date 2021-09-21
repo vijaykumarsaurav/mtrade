@@ -255,7 +255,7 @@ class MyView extends React.Component{
 
 
         var data = { allPacks:true, portal: true};
-        AdminService.getCPData(data)
+        AdminService.getBNcpdata("NIFTY")
             .then((res) => {
         //     let data = resolveResponse(res);
 

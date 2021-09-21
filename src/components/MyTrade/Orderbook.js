@@ -57,7 +57,9 @@ class OrderBook extends React.Component{
 
     componentDidMount() {
         
-        this.getTodayOrder();
+        setInterval(() => {
+            this.getTodayOrder();
+        }, 10000);
        
     }
 

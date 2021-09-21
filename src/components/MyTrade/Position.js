@@ -39,7 +39,6 @@ class Home extends React.Component {
             producttype: "DELIVERY",
             nr4TotalPer: 0,
             pnlAmountTotal: 0,
-            totalBrokerCharges: '',
             totalNetProfit: 0,
             totelActivatedCount: 0,
             totalBrokerChargesNR4: 0,
@@ -1054,8 +1053,14 @@ class Home extends React.Component {
         }
         let turnOver = totalbuyvalue + totalsellvalue; 
         let totalBroker = buyCharge+sellCharge;
-        let sstCharge = totalsellvalue *  0.025/100; 
-        let transCharge = turnOver *  0.00345/100; 
+
+        let sst = 0.025; //stock intraday
+        if(element.optiontype  == 'CE' || element.optiontype  == 'PE'){
+            sst = 0.05;  
+        }
+
+        let sstCharge = totalsellvalue *  sst/100; 
+        let transCharge = turnOver *  0.00335/100; 
         let stampDuty  = totalbuyvalue *   0.003/100; 
         let sebiCharge = turnOver * 10/10000000; 
         let gstCharge = (totalBroker+transCharge+sebiCharge) * 18/100; 
@@ -1113,7 +1118,7 @@ class Home extends React.Component {
 
                 var brokerageOnlyCharges = ((totalbuyvalue + totalsellvalue) * 0.25 / 100);
                 var allCharges = brokerageOnlyCharges + brokerageOnlyCharges * 25 / 100;
-                this.setState({ totalBrokerCharges: allCharges.toFixed(2), totalExpence: totalExpence.toFixed(2) });
+                this.setState({ totalExpence: totalExpence.toFixed(2) });
 
                 this.setState({ totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL: totalMaxPnL.toFixed(2) });
 
@@ -1635,7 +1640,7 @@ class Home extends React.Component {
 
             if (data.status && data.message === 'SUCCESS') {
                 //  this.setState({ ['lastTriggerprice_' + row.tradingsymbol]:  parseFloat(minPrice)})
-                msg.text = row.tradingsymbol + ' modified ' + data.message;
+                msg.text = row.symbolname + ' modified ' + data.message;
                 window.speechSynthesis.speak(msg);
                 localStorage.setItem('firstTimeModify' + row.tradingsymbol, 'No');
                 localStorage.setItem('lastTriggerprice_' + row.tradingsymbol, parseFloat(minPrice));
@@ -1664,7 +1669,7 @@ class Home extends React.Component {
 
         row.buyavgprice = parseFloat(row.buyavgprice);
         percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 5) {
+        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 3) {
             var minPrice = row.buyavgprice + (row.buyavgprice * 1 / 100);
             minPrice = this.getMinPriceAllowTick(minPrice);
             this.modifyOrderMethod(row, minPrice);
@@ -1672,7 +1677,7 @@ class Home extends React.Component {
             var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
             var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
             trailPerChange = perchngfromTriggerPrice; 
-            if (perchngfromTriggerPrice >= 5) {
+            if (perchngfromTriggerPrice >= 3) {
                 minPrice = lastTriggerprice + (lastTriggerprice * 1 / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
                 this.modifyOrderMethod(row, minPrice);
@@ -1774,7 +1779,6 @@ class Home extends React.Component {
                     <Grid item >
                         <Typography component="h3"  >
 
-                        <b style={{ color: "red" }}>Charges: {this.state.totalBrokerCharges}  </b>
                         <b style={{ color: "red" }}>Expenses: {this.state.totalExpence} </b>
 
                         </Typography>
@@ -1787,8 +1791,8 @@ class Home extends React.Component {
                     </Grid>
 
                     <Grid item>
-                        <Typography component="h3"  {...window.document.title = "PnL:" + (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2)}>
-                            <b> Net P/L </b> <b style={{ color: (this.state.todayProfitPnL - this.state.totalBrokerCharges) > 0 ? "green" : "red" }}>{this.state.totalBrokerCharges ? (this.state.todayProfitPnL - this.state.totalBrokerCharges).toFixed(2) : ""} </b>
+                        <Typography component="h3"  {...window.document.title = "PnL:" + (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2)}>
+                            <b> Net P/L </b> <b style={{ color: (this.state.todayProfitPnL - this.state.totalExpence) > 0 ? "green" : "red" }}>{this.state.totalExpence ? (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2) : ""} </b>
 
                         </Typography>
                     </Grid>

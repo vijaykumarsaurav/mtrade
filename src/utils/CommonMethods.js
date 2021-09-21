@@ -291,6 +291,92 @@ class CommonOrderMethod {
         // await new Promise(r => setTimeout(r, 2000)); 
     }
 
+    getMinPriceAllowTick = (minPrice) => {
+        minPrice = minPrice.toFixed(2);
+        // console.log("minPrice",minPrice); 
+        var wholenumber = parseInt(minPrice.split('.')[0]);
+        //  console.log("wholenumber",wholenumber); 
+        var decimal = parseFloat(minPrice.split('.')[1]);
+        // console.log("decimal",decimal); 
+        var tickedecimal = decimal - decimal % 5;
+        minPrice = parseFloat(wholenumber + '.' + tickedecimal);
+        //   console.log("minPricexxxx",minPrice); 
+        return minPrice;
+    }
+    
+
+    placeOptionOrder = (orderOption) => {
+        var data = {
+            "transactiontype": orderOption.transactiontype,//BUY OR SELL
+            "tradingsymbol": orderOption.tradingsymbol,
+            "symboltoken": orderOption.symboltoken,
+            "quantity": orderOption.quantity,
+            "ordertype": orderOption.buyPrice === 0 ? "MARKET" : "LIMIT",
+            "price": orderOption.buyPrice,
+            "producttype": orderOption.producttype ? orderOption.producttype : "INTRADAY",//"DELIVERY",
+            "duration": "DAY",
+            "squareoff": "0",
+            "stoploss": "0",
+            "exchange": orderOption.exchange ? orderOption.exchange : "NSE",
+            "variety": "NORMAL"
+        }
+        console.log("place order option", data);
+
+       
+
+        AdminService.placeOrder(data).then(res => {
+            let data = resolveResponse(res);
+            //  console.log(data);   
+            if (data.status && data.message === 'SUCCESS') {
+                if (orderOption.stopLossPrice) {
+                    this.placeOptionSLMOrder(orderOption);
+                }
+                this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
+             
+                var callData = {
+                    "token": orderOption.symboltoken,
+                    "status": true
+                }
+            }
+
+        })
+    }
+
+    placeOptionSLMOrder = (slmOption) => {
+
+        var data = {
+            "triggerprice": slmOption.stopLossPrice,
+            "tradingsymbol": slmOption.tradingsymbol,
+            "symboltoken": slmOption.symboltoken,
+            "quantity": slmOption.quantity,
+            "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
+            "exchange": slmOption.exchange,
+            "producttype": slmOption.producttype, 
+            "duration": "DAY",
+            "price": 0,
+            "squareoff": "0",
+            "stoploss": "0",
+            "ordertype": "STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
+            "variety": "STOPLOSS"
+        }
+        console.log("SLM option data", data);
+        AdminService.placeOrder(data).then(res => {
+            let data = resolveResponse(res);
+            //  console.log(data);   
+            if (data.status && data.message === 'SUCCESS') {
+             //   this.setState({ orderid: data.data && data.data.orderid });
+                // this.updateOrderList(); 
+                this.speckIt('hey Vijay, ' + slmOption.tradingsymbol + " stop loss order placed");
+            //    this.getTodayOrder();
+                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
+                this.updateOrderList(); 
+            }
+        })
+    }
+
+    
+
+
 
     placeOrderMethod = (orderOption, callback) => {
         var data = {

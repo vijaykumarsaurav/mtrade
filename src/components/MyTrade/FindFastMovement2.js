@@ -241,7 +241,7 @@ class Home extends React.Component {
 
         for (let index = 0; index < watchList.length; index++) {
 
-            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() });
+            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " Scaning" });
 
             const format1 = "YYYY-MM-DD HH:mm";
             var beginningTime = moment('9:15am', 'h:mma').format(format1);
@@ -350,13 +350,12 @@ class Home extends React.Component {
                             //     }
                             // });
 
-                            console.log(watchList[index].symbol,bbvlastvalue, candleData[candleData.length-2],  candleData[candleData.length-2][2], candleData[candleData.length-2][4] );
-
-                            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString()  });
+                            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " Searching"  });
                         
+                            let isFound = false; 
 
                             if (this.state.BBBlastType == 'BBStrongBreakout') {
-                                if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper && candleData[candleData.length-2][2] == candleData[candleData.length-2][4]) {
+                                if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper && candleData[candleData.length-1][2] == candleData[candleData.length-1][4]) {
                                     var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                     let data = {
                                         symbol: watchList[index].symbol,
@@ -379,8 +378,8 @@ class Home extends React.Component {
 
                                     this.speckIt(watchList[index].symbol + ' BB  buy');
                                     window.document.title = "FM2: Buy " + watchList[index].symbol;
-                                }
-                                if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower && candleData[candleData.length-2][3] == candleData[candleData.length-2][4]) {
+                                    this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() +   " BUY Eligible" });
+                                } else if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower && candleData[candleData.length-1][3] == candleData[candleData.length-1][4]) {
                                     var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                    let data = {
                                         symbol: watchList[index].symbol,
@@ -403,8 +402,14 @@ class Home extends React.Component {
 
                                     this.speckIt(watchList[index].symbol + ' BB sell');
                                     window.document.title = "FM2: Sell " + watchList[index].symbol;
+                                    this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() +   " SELL Eligible" });
+
+                                }else{
+                                    this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() +   " Not Eligible" });
                                 }
                             }
+
+
 
 
                         }

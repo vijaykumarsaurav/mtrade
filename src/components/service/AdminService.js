@@ -125,7 +125,11 @@ class AdminService {
         return axios.get('http://localhost:8081/nse/get_indices', '');
         // return axios.get(apiConstant.allIndices2Json);
      }
- 
+
+     getBNcpdata(symbol){
+        return axios.get('http://localhost:8081/nse/getOptionChain?symbol='+symbol, '');
+     }
+
 }
 
 

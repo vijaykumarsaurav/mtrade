@@ -94,13 +94,15 @@ class Home extends React.Component{
     makeConnection = (feedToken ,clientcode ) => {
 
 
+
         var firstTime_req =  {
             "actiontype": "subscribe",
             "feedtype": "order_feed",
-            "jwttoken": this.state.feedToken ,
+            "jwttoken": this.state.jwtToken,
             "clientcode": this.state.clientcode ,
             "apikey": API_KEY
        }
+
        
         console.log("1st Request :- " + JSON.stringify( firstTime_req));
         wsClint.send(JSON.stringify( firstTime_req));
@@ -128,21 +130,33 @@ class Home extends React.Component{
 
         var tokens = JSON.parse(localStorage.getItem("userTokens")); 
         var feedToken =   tokens &&  tokens.feedToken;
+        var jwtToken =   tokens &&  tokens.jwtToken;
 
         var userProfile = JSON.parse(localStorage.getItem("userProfile")); 
         var clientcode =   userProfile &&  userProfile.clientcode;
-        this.setState({ feedToken : feedToken,clientcode : clientcode  });
+        this.setState({ feedToken : feedToken,clientcode : clientcode , jwtToken: jwtToken });
 
             
         wsClint.onopen  = (res) => {
 
-             this.makeConnection();
-             console.log('connected');
-         //    this.updateSocketWatch();
+
+            var firstTime_req =  {
+                "jwttoken": this.state.jwtToken,
+                "clientcode": this.state.clientcode ,
+                "apikey": API_KEY
+           }
+    
+           
+            console.log("1st Request :- " + JSON.stringify( firstTime_req));
+            wsClint.send(firstTime_req);
+
+            // this.makeConnection();
+            // console.log('connected');
+            // this.updateSocketWatch();
                 
-            //  setTimeout(function(){
-            //    this.updateSocketWatch(feedToken ,clientcode);
-            //  }, 800);
+             setTimeout(function(){
+               this.makeConnection(feedToken ,clientcode);
+             }, 1000);
         }
 
         wsClint.onmessage = (message) => {

@@ -21,6 +21,8 @@ import * as moment from 'moment';
 import Notify from "../../utils/Notify";
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 
+import SymbolOptions from './BankNiftyView'
+
 class OrderBook extends React.Component{
 
     constructor(props) {
@@ -301,6 +303,74 @@ class OrderBook extends React.Component{
 
     }
 
+    buyOption =(optiontype ,symbol, strikePrice, expiryDate)=>{
+      console.log(optiontype ,symbol, strikePrice, expiryDate); 
+      let exp = expiryDate.toUpperCase().split('-'); 
+       exp = exp[0]+exp[1]+exp[2]%1000; 
+
+      let optionName = symbol + exp + strikePrice + optiontype; 
+      console.log(optionName); 
+
+      AdminService.autoCompleteSearch(optionName).then(res => {
+        let data = res.data; 
+        let optionData = data && data[0]; 
+        console.log("optionData", optionData);
+
+
+        if(optionData && optionData.symbol && optionData.symbol ==  optionName){
+            var  ltpparam = { "exchange":optionData.exch_seg, "tradingsymbol": optionData.symbol , "symboltoken": optionData.token}; 
+
+            AdminService.getLTP(ltpparam).then(res => {
+                let data = resolveResponse(res, 'noPop');
+                var LtpData = data && data.data;
+                if(LtpData && LtpData.ltp) {
+                    
+                    console.log("option ltp", LtpData);
+
+                   let quantity = optionData.lotsize; 
+    
+                   let perStopLoss = LtpData.ltp - (LtpData.ltp * 10/100); 
+                   perStopLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopLoss); 
+    
+                    let element = {
+                        tradingsymbol : optionData.symbol, 
+                        symboltoken : optionData.token, 
+                        transactiontype: "BUY", 
+                        ordertype: "LIMIT", 
+                        buyPrice : LtpData.ltp,  
+                        producttype : "CARRYFORWARD", 
+                        exchange : optionData.exch_seg,
+                        stopLossPrice: perStopLoss,
+                        quantity : quantity
+                    }
+            
+        
+                    console.log( "orderdata", element);
+                    CommonOrderMethod.placeOptionOrder(element);
+                }
+            })
+        }else{
+            Notify.showError(optionName + " not found");
+        }
+
+
+       
+
+
+
+       
+
+        //localStorage.setItem('autoSearchTemp', JSON.stringify(data));
+    //    this.setState({ autoSearchList: data });
+
+    
+      
+    })
+
+
+
+    }
+
 
     render(){
         
@@ -310,7 +380,7 @@ class OrderBook extends React.Component{
 
             {window.location.hash == "#/order-watchlist" ? <PostLoginNavBar/> : ""}
 
-             <Paper style={{ overflow: "auto", padding: '5px' }} >
+             <Paper style={{ overflow: "auto", padding: '5px',  background:"#f500570a"}} >
 
                 <Grid justify="space-between"
                     container>
@@ -436,6 +506,23 @@ class OrderBook extends React.Component{
 
 
                 </Paper>
+
+                <br />
+
+                <Paper style={{ overflow: "auto", padding: '5px'}} > 
+                    <Grid item> 
+                        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                          Option Chain (Equity Derivatives)
+                        </Typography> 
+
+
+                    </Grid>
+
+
+                        <SymbolOptions buyOption={this.buyOption} />
+                </Paper>
+
+               
 
 
          

@@ -4,8 +4,8 @@ import LoginComponent from "./login/LoginComponent";
 
 import Home from './MyTrade/Home';
 
-// import NiftyView from "./MyTrade/NiftyView";
-//import BankNiftyView from "./MyTrade/BankNiftyView";
+import NiftyView from "./MyTrade/NiftyView";
+import BankNiftyView from "./MyTrade/BankNiftyView";
 
 import MySectorTop from "./MyTrade/MySectorTop";
 
@@ -40,8 +40,8 @@ const AppRouter = () => {
                 <Switch>
                     <Route path="/" exact component={LoginComponent}/>
                     <Route path="/login" component={LoginComponent}/>
-                    {/* <Route path="/nifty-view" component={NiftyView}/> */}
-                    {/* <Route path="/bn-view" component={BankNiftyView}/> */}
+                    <Route path="/nifty-view" component={NiftyView}/>
+                    <Route path="/bn-view" component={BankNiftyView}/>
                     <Route path="/sector" component={MySectorTop}/>
                     <Route path="/chart" component={Chart}/>
                     <Route path="/candle-chart" component={CandleChart}/>
