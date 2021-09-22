@@ -35,7 +35,6 @@ export default function App( props ) {
   //   startpage =  0; 
   // }
 
- // data.reverse();
 
 
   // console.log('scrollcount', props.diffData.scrollcount); 
@@ -46,8 +45,9 @@ export default function App( props ) {
   //for (let index = startpage; index <  startpage + 10; index++) {
   
 
+  data.reverse();
 
-  for (let index = 0; index <  (data.length < 10 ? data.length : 10); index++) {
+  for (let index = data.length - 10; index <  data.length; index++) {
     if(data[index]){
       putData.push(data[index].totPEOI); 
       callData.push(data[index].totCEOI); 
@@ -56,7 +56,6 @@ export default function App( props ) {
     }
   
   }
-
 
 
 

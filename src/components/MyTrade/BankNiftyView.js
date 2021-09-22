@@ -167,11 +167,11 @@ class MyView extends React.Component {
         if (todayTime.getHours() >= 9 && todayTime.getHours() < 16) {
             setInterval(() => {
                 this.loadPackList();
-            }, 60001 * 10);
+            }, 60000 * 6);
         }
         setInterval(() => {
             this.updatepcr()
-        }, 60010 * 10);
+        }, 60000 * 6);
 
         this.findSupportResistence(this.state.optionChainDataBN ? this.state.optionChainDataBN : "");
 
@@ -325,7 +325,7 @@ class MyView extends React.Component {
                     this.setState({ curnewdata: newdata });
 
 
-                    document.getElementById('title').innerHTML = (diff / 100000).toFixed(2) + '|' + ((localStorage.getItem('totPEOIChange') - localStorage.getItem('totCEOIChange')) / 100000).toFixed(2) + "L" + " Nifty Bank ";
+                    document.getElementById('title').innerHTML = (diff / 100000).toFixed(2) + '|' + ((localStorage.getItem('totPEOIChange') - localStorage.getItem('totCEOIChange')) / 100000).toFixed(2) + "L " + this.state.selectOptionStock;
                     // createData.push(newdata); 
                     if (JSON.parse(localStorage.getItem('cpdataBN'))) {
                         var oldproducts = JSON.parse(localStorage.getItem('cpdataBN'));
@@ -511,38 +511,34 @@ class MyView extends React.Component {
 
                         <Grid container spacing={3} direction="row" alignItems="center" container>
                             <Grid item xs={3} sm={3} >
-
-                                <span>All PUT OI: <b>{this.state.PEoi} ({(this.state.PEoi / 100000).toFixed(3)}L)</b></span><br />
-                                <span>All CALL OI: <b>{this.state.CEoi} ({(this.state.CEoi / 100000).toFixed(3)}L)</b></span><br />
-                                <span>All Put-Call Diff: {
-                                    this.state.allStrikediff > 0 ? <b style={{ color: 'green' }}>{this.state.allStrikediff} ({((this.state.allStrikediff) / 100000).toFixed(3)}L)</b>
-                                        : <b style={{ color: 'red' }}>{this.state.allStrikediff} ({((this.state.allStrikediff) / 100000).toFixed(3)}L)</b>}
+                                <span> <b>Total </b></span> 
+                                <span> PE OI: <b> {(this.state.PEoi / 100000).toFixed(3)}L</b></span> 
+                                <span> CE OI: <b>{(this.state.CEoi / 100000).toFixed(3)}L</b></span>
+                                <span> PE-CE: {
+                                    this.state.allStrikediff > 0 ? <b style={{ color: 'green' }}>{((this.state.allStrikediff) / 100000).toFixed(3)}L</b>
+                                        : <b style={{ color: 'red' }}>{((this.state.allStrikediff) / 100000).toFixed(3)}L</b>}
                                 </span>
                             </Grid>
 
-                            <Grid item xs={3} sm={3} >
-
-                                <span>All PUT Chng in OI: <b>{this.state.PEoiChange} ({(this.state.PEoiChange / 100000).toFixed(3)}L)</b></span><br />
-                                <span>All CALL Chng in  OI: <b>{this.state.CEoiChange} ({(this.state.CEoiChange / 100000).toFixed(3)}L)</b></span><br />
-                                <span>All Put-Call Chng in Diff: {
-                                    this.state.allStrikeChngeDiff > 0 ? <b style={{ color: 'green' }}>{this.state.allStrikeChngeDiff} ({((this.state.allStrikeChngeDiff) / 100000).toFixed(3)}L)</b>
-                                        : <b style={{ color: 'red' }}>{this.state.allStrikeChngeDiff} ({((this.state.allStrikeChngeDiff) / 100000).toFixed(3)}L)</b>}
+                            <Grid item xs={3} sm={5} >
+                                <span> <b>Total Chng </b></span> 
+                                <span> PE OI: <b>{(this.state.PEoiChange / 100000).toFixed(3)}L</b></span>
+                                <span> CE OI: <b>{(this.state.CEoiChange / 100000).toFixed(3)}L</b></span>
+                                <span> PE-CE: {
+                                    this.state.allStrikeChngeDiff > 0 ? <b style={{ color: 'green' }}>{((this.state.allStrikeChngeDiff) / 100000).toFixed(3)}L</b>
+                                        : <b style={{ color: 'red' }}> {((this.state.allStrikeChngeDiff) / 100000).toFixed(3)}L</b>}
                                 </span>
 
 
                             </Grid>
 
                             <Grid item xs={2} sm={2} >
-
-                                <Typography component="h3" variant="body1" color="primary" >
-                                    <span>ALL PCR: <b>{(this.state.PEoi / this.state.CEoi).toFixed(3)} </b></span>
-                                </Typography>
+                            <span>ALL PCR: <b>{(this.state.PEoi / this.state.CEoi).toFixed(3)} </b></span>
                             </Grid>
 
                             <Grid item xs={2} sm={2} >
-                                <Typography component="h3" variant="body1" color="primary" >
-                                    <span>Expire Week PCR: <b>{localStorage.getItem('thisWeekPCR')} </b></span>
-                                </Typography>
+                            <span>Expire Week PCR: <b>{localStorage.getItem('thisWeekPCR')} </b></span>
+
                             </Grid>
 
 
@@ -614,7 +610,7 @@ class MyView extends React.Component {
                         </Table>
 
                     </Grid>
-                    <Grid item xs={4} sm={4} style={{ padding: "2px", overflow: "auto", height: "250px" }}>
+                    <Grid item xs={4} sm={4} style={{ padding: "2px", overflow: "auto", height: "300px" }}>
 
                         <Chart diffData={{ data: this.state.products, scrollcount: this.state.scrollcount }} />
                     </Grid>
@@ -763,7 +759,7 @@ class MyView extends React.Component {
                                             <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center"><span style={{ color: '#3e85c5', fontWeight: 'bold' }}> {opdata.CE.lastPrice}</span>({opdata.CE.pChange > 0 ? <span style={{ color: 'green', fontWeight: 'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span> : opdata.CE.pChange == 0 ? <span>{opdata.CE.pChange.toFixed(2)}%</span> : <span style={{ color: 'red', fontWeight: 'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span>}) </TableCell>
                                             {/* <TableCell style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.pChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span>: opdata.CE.pChange == 0 ? <span>{opdata.CE.pChange.toFixed(2)}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{opdata.CE.pChange.toFixed(2)}%</span> } </TableCell> */}
                                             <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.CE.change.toFixed(2)} </TableCell>
-                                            <TableCell align="center">  <Button variant="contained" onClick={() => this.props.buyOption("CE",this.state.selectOptionStock, opdata.strikePrice, opdata.expiryDate)}> Call Buy </Button> </TableCell>
+                                            <TableCell align="center">  <Button  size={"small"}  variant="contained" onClick={() => this.props.buyOption("CE",this.state.selectOptionStock, opdata.strikePrice, opdata.expiryDate)}> Call Buy </Button> </TableCell>
 
                                             {/* <TableCell align="center">{opdata.CE.bidQty} </TableCell>
                                             <TableCell align="center">{opdata.CE.bidprice} </TableCell>
@@ -776,7 +772,7 @@ class MyView extends React.Component {
                                             <TableCell style={{ borderLeft: 'dashed', borderRight: 'dashed', fontWeight: '500' }} align="center"><span> <a href="#" style={{ textDecoration: 'none' }} onClick={() => this.filterOptionChain('strike', opdata.strikePrice)}> {opdata.strikePrice}</a> </span> </TableCell>
                                             <TableCell style={{ borderRight: 'dashed', whiteSpace: "nowrap" }} align="center" ><span style={{ paddingLeft: '5px', paddingRight: '5px' }}> <a href="#" style={{ textDecoration: 'none' }} onClick={() => this.filterOptionChain('expiry', opdata.expiryDate)}> {opdata.expiryDate}</a></span> </TableCell>
 
-                                            <TableCell align="center">  <Button  variant="contained" onClick={() =>  this.props.buyOption("PE",this.state.selectOptionStock, opdata.strikePrice,opdata.expiryDate)}>Put Buy </Button> </TableCell>
+                                            <TableCell align="center">  <Button size={"small"} variant="contained" onClick={() =>  this.props.buyOption("PE",this.state.selectOptionStock, opdata.strikePrice,opdata.expiryDate)}>Put Buy </Button> </TableCell>
 
                                             {/* <TableCell {...totPESell = totPESell + opdata.PE.totalSellQuantity} style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} title={'Total PUT Sell Qty'} align="center">{opdata.PE.totalSellQuantity}({(opdata.PE.totalSellQuantity/100000).toFixed(3)}L) </TableCell>
                                             <TableCell {...totPEBUY = totPEBUY + opdata.PE.totalBuyQuantity} style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} title={'Total PUT Buy Qty'} align="center">{opdata.PE.totalBuyQuantity}({(opdata.PE.totalBuyQuantity/100000).toFixed(3)}L)</TableCell>
@@ -816,7 +812,7 @@ class MyView extends React.Component {
                                     <TableCell {...localStorage.setItem('thisWeekPCR', (totPEOI / totCEOI).toFixed(3))} align="center" colSpan={2}><b> PCR : {(totPEOI / totCEOI).toFixed(3)}</b></TableCell>
 
 
-                                    <TableCell colSpan={3} align="center"></TableCell>
+                                    <TableCell colSpan={5} align="center"></TableCell>
 
 
                                     {/* <TableCell align="center"><b>{totPESell}<br />({(totPESell/100000).toFixed(3)}L)</b></TableCell>

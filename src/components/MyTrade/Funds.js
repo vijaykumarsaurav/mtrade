@@ -52,10 +52,11 @@ class MyView extends React.Component{
                let fundsResData = resolveResponse(fundsRes);
              //  var fundsResData =  fundsRes && fundsRes.data; 
                if(fundsResData.status & fundsResData.message === 'SUCCESS'){
-               
-                this.setState({  fundData :fundsResData.data })
+                this.setState({  fundData :fundsResData.data }); 
+                localStorage.setItem("netCapital", fundsResData.data && fundsResData.data.net); 
+
                }
-           })
+        })
 
     }
    

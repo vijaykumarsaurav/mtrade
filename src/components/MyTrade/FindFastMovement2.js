@@ -205,12 +205,9 @@ class Home extends React.Component {
     updateToLocalStorage =(row)=>{
 
         let foundAt = new Date(row.foundAt).toLocaleString();
-      
        var isfound = this.state.fastMovementList.filter(element => (element.token == row.token && element.foundAt == foundAt));
        console.log("isfound", isfound); 
-
         if(!isfound.length){
-
             var updateData = {
                 token: row.token, 
                 foundAt: foundAt, 
@@ -221,7 +218,11 @@ class Home extends React.Component {
             }
             this.state.fastMovementList.push(updateData); 
             //this.setState({ fastMovementList: [..., updateData] });
-            localStorage.setItem("fastMovementList", JSON.stringify(this.state.fastMovementList)  ); 
+            localStorage.setItem("fastMovementList", JSON.stringify(this.state.fastMovementList)  );
+            return true; 
+          
+        }else{
+            return false;
         }
 
     }
@@ -372,13 +373,15 @@ class Home extends React.Component {
                                         orderType: "BUY",
                                         name: watchList[index].name,
                                     }
-                                    foundData.push(data)
-                                    this.setState({ findlast5minMovement: foundData });
-                                    this.updateToLocalStorage(data); 
-
-                                    this.speckIt(watchList[index].symbol + ' BB  buy');
-                                    window.document.title = "FM2: Buy " + watchList[index].symbol;
-                                    this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() +   " BUY Eligible" });
+                                   
+                                    if(this.updateToLocalStorage(data)){
+                                        foundData.push(data)
+                                        this.setState({ findlast5minMovement: foundData });
+                                        this.speckIt(watchList[index].symbol + ' BB  buy');
+                                        window.document.title = "FM2: Buy " + watchList[index].symbol;
+                                        this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() +   " BUY Eligible" });
+                                    }
+                                
                                 } else if (bbvlastvalue && LtpData.ltp <= bbvlastvalue.lower && candleData[candleData.length-1][3] == candleData[candleData.length-1][4]) {
                                     var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                    let data = {
@@ -396,14 +399,14 @@ class Home extends React.Component {
                                         orderType: "SELL",
                                         name: watchList[index].name,
                                     }
-                                    foundData.push(data)
-                                    this.setState({ findlast5minMovement: foundData });
-                                    this.updateToLocalStorage(data); 
-
-                                    this.speckIt(watchList[index].symbol + ' BB sell');
-                                    window.document.title = "FM2: Sell " + watchList[index].symbol;
-                                    this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() +   " SELL Eligible" });
-
+                                    if(this.updateToLocalStorage(data)){
+                                        foundData.push(data)
+                                        this.setState({ findlast5minMovement: foundData });
+                                        this.speckIt(watchList[index].symbol + ' BB sell');
+                                        window.document.title = "FM2: Sell " + watchList[index].symbol;
+                                        this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() +   " SELL Eligible" });
+                                    }
+                                   
                                 }else{
                                     this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() +   " Not Eligible" });
                                 }

@@ -773,7 +773,7 @@ class Home extends React.Component {
         var data = {
             "exchange": "NSE",
             "symboltoken": row.symboltoken,
-            "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+            "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
             "fromdate": moment(beginningTime).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
             "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
         }
@@ -1043,12 +1043,12 @@ class Home extends React.Component {
 
         var totalbuyvalue =  parseFloat(element.totalbuyvalue) === 0 ? parseFloat(element.totalsellvalue) : parseFloat(element.totalbuyvalue);
         var buyCharge = parseFloat(totalbuyvalue) * 0.25/100; 
-        if(buyCharge > 20){
+        if(buyCharge > 20 || (element.optiontype  == 'CE' || element.optiontype  == 'PE')){
             buyCharge = 20; 
         }
         var totalsellvalue =  parseFloat(element.totalsellvalue) === 0 ? parseFloat(element.totalbuyvalue) : parseFloat(element.totalsellvalue);
         var sellCharge = parseFloat(totalsellvalue) * 0.25/100; 
-        if(sellCharge > 20){
+        if(sellCharge > 20 || (element.optiontype  == 'CE' || element.optiontype  == 'PE')){
             sellCharge = 20; 
         }
         let turnOver = totalbuyvalue + totalsellvalue; 
@@ -1089,15 +1089,18 @@ class Home extends React.Component {
                         return "";
                     }
 
-                    var percentPnL = ((parseFloat(element.sellavgprice) - parseFloat(element.buyavgprice)) * 100 / parseFloat(element.buyavgprice)).toFixed(2);
                     todayProfitPnL += parseFloat(element.pnl);
                     totalbuyvalue += parseFloat(element.totalbuyvalue);
                     totalsellvalue += parseFloat(element.totalsellvalue) === 0 ? parseFloat(element.totalbuyvalue) : parseFloat(element.totalsellvalue);
                     totalQtyTraded += parseInt(element.buyqty);
                     allbuyavgprice += parseFloat(element.buyavgprice);
                     allsellavgprice += parseFloat(element.sellavgprice);
-                    element.percentPnL = percentPnL;
-                    totalPercentage += parseFloat(percentPnL);
+                    if(element.netqty == 0){
+                        let percentPnL = ((parseFloat(element.sellavgprice) - parseFloat(element.buyavgprice)) * 100 / parseFloat(element.buyavgprice));
+                        element.percentPnL = percentPnL.toFixed(2) + "%";
+                        totalPercentage += parseFloat(percentPnL);
+                    }
+                   
                     element.pattenName = this.tagPatternWhichTaken(element.symboltoken); 
 
                     let chargeInfo = this.calculateTradeExpence(element);
@@ -1662,6 +1665,15 @@ class Home extends React.Component {
         return minPrice;
     }
 
+    get2DecimalNumber =(number)=>{
+        number = parseFloat(number); 
+        if(number){
+            return number.toFixed(2); 
+        }else{
+            return number;  
+        }
+    }
+
     getOptionPercentage =(row)=> {
 
         console.log("option per calling"); 
@@ -1708,8 +1720,8 @@ class Home extends React.Component {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
                 trailPerChange = perchngfromTriggerPrice; 
-                if (perchngfromTriggerPrice >= 0.5) {
-                    minPrice = lastTriggerprice + (lastTriggerprice * 0.15 / 100);
+                if (perchngfromTriggerPrice >= 0.3) {
+                    minPrice = lastTriggerprice + (lastTriggerprice * 0.10/ 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
                     this.modifyOrderMethod(row, minPrice);
                 }
@@ -1758,7 +1770,7 @@ class Home extends React.Component {
                 <ChartDialog /> <ChartMultiple />
                 <Grid style={{ padding: '5px' }} justify="space-between" direction="row" container>
                     <Grid item >
-                       <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                       <Typography component="h3" variant="h6" color="primary" gutterBottom>
                             Positions ({this.state.positionList && this.state.positionList.length}) 
                         </Typography>
                     </Grid>
@@ -1768,6 +1780,20 @@ class Home extends React.Component {
                         </Typography>
                     </Grid>
 
+                    
+                    <Grid item  >
+                        <Typography component="h3">
+                            <b>Net Capital  {this.get2DecimalNumber(localStorage.getItem('netCapital'))}  </b>
+                        </Typography>
+                    </Grid>
+
+                    <Grid item>
+                        <Typography component="h3" >
+                            <b> Net Cap P/L </b> <b style={{ color: ((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')) > 0 ? "green" : "red" }}>{((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')).toFixed(2)}% </b>
+                        </Typography>
+                    </Grid>
+
+                   
 
                     <Grid item  >
                         <Typography component="h3">
@@ -1793,9 +1819,12 @@ class Home extends React.Component {
                     <Grid item>
                         <Typography component="h3"  {...window.document.title = "PnL:" + (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2)}>
                             <b> Net P/L </b> <b style={{ color: (this.state.todayProfitPnL - this.state.totalExpence) > 0 ? "green" : "red" }}>{this.state.totalExpence ? (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2) : ""} </b>
-
                         </Typography>
                     </Grid>
+                    
+
+                    
+
 
                     <Grid item  >
                         <Button type="number" variant="contained" style={{ float: "right" }} onClick={() => this.getPositionData()}>Refresh</Button>
@@ -1887,7 +1916,8 @@ class Home extends React.Component {
                                             <TableCell align="left">
                                                 {row.netqty !== '0' && row.optiontype  == '' ? this.getPercentage(row) : ""}
                                                 {(row.optiontype  == 'CE' || row.optiontype  == 'PE') && row.netqty > 0 ? this.getOptionPercentage(row) : ""}  
-                                                {new Date().toLocaleTimeString() > "15:15:00" ? row.percentPnL : ""}
+                                                {row.percentPnL}
+                                                {/* new Date().toLocaleTimeString() > "15:15:00" ? */}
                                             </TableCell>
                                             <TableCell align="left">{row.ltp}</TableCell>
 
@@ -1934,7 +1964,8 @@ class Home extends React.Component {
 
                                         <TableCell className="TableHeadFormat" align="left">
 
-                                            {new Date().toLocaleTimeString() > "15:15:00" ? this.state.totalPercentage && this.state.totalPercentage.toFixed(2) + "%" : ""}
+                                        {/* new Date().toLocaleTimeString() > "15:15:00" ?  */}
+                                            {this.state.totalPercentage && this.state.totalPercentage.toFixed(2) + "%"}
 
                                         </TableCell>
                                         <TableCell className="TableHeadFormat" align="left"></TableCell>

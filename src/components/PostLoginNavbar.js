@@ -238,8 +238,14 @@ export default function PostLoginNavBar(props) {
                             >
 
                                 <Grid item>
-                                    <Button variant="outlined" color="primary" href={"/mtrade/#/sector-heat-map2"}>
-                                        Hit Map
+                                    <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/order-watchlist"}>
+                                        Option <OpenInNewIcon />
+                                    </Button>
+                                </Grid>
+
+                                <Grid item>
+                                    <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/sector-heat-map2"}>
+                                        Hit Map <OpenInNewIcon />
                                     </Button>
                                 </Grid>
                                 <Grid item>
@@ -264,15 +270,17 @@ export default function PostLoginNavBar(props) {
                               </Grid>
  */}
 
+                               
+
                                 <Grid item>
-                                    <Button variant="contained" autoFocus href={"/mtrade/#/home"} color="primary">
-                                        Home
+                                    <Button variant="contained" autoFocus href={"/mtrade/#/position"} color="primary">
+                                        Position 
                                     </Button>
                                 </Grid>
 
                                 <Grid item>
-                                    <Button variant="contained" autoFocus href={"/mtrade/#/position"} color="primary">
-                                        Position
+                                    <Button variant="contained" autoFocus href={"/mtrade/#/home"} color="primary">
+                                        Home
                                     </Button>
                                 </Grid>
 

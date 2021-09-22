@@ -106,6 +106,8 @@ class OrderBook extends React.Component{
             console.log(data);   
             if(data.status  && data.message === 'SUCCESS'){
                // localStorage.setItem('ifNotBought' ,  'false')
+               this.setState({triggerprice : 0}); 
+               this.getTodayOrder();
             }
         })
     }
@@ -162,10 +164,10 @@ class OrderBook extends React.Component{
                                 <TableCell align="center"><b>CNC/Intraday</b></TableCell>
                                 <TableCell align="center"><b>Qty </b></TableCell>
                         
-                                <TableCell align="center"><b>Average Price</b></TableCell>
+                                <TableCell align="center"><b>AvgPrice</b></TableCell>
                                 
                                 <TableCell align="center"><b>Price</b></TableCell>
-                                <TableCell align="center"><b>Trigger Price</b></TableCell>
+                                <TableCell align="center"><b>TriggerPrice</b></TableCell>
 
                                 <TableCell align="center">Action</TableCell>
                                 <TableCell align="center"><b>Status</b></TableCell>
@@ -193,10 +195,10 @@ class OrderBook extends React.Component{
                                     
 
                                     <TableCell align="center">
-                                        {row.orderstatus === 'trigger pending' ? 
+                                        {/* {row.orderstatus === 'trigger pending' ? 
                                         <TextField type="number" style={{textAlign:'center', width:'50px'}} id="lotsize"  value={row.quantity}  name="lotsize" onChange={this.onChange}/>
-                                        : row.quantity}
-                    
+                                        : row.quantity} */}
+                                    {row.quantity}
 
                                     </TableCell>
 

@@ -114,7 +114,7 @@ class CommonOrderMethod {
             }
 
 
-          // quantity = quantity > 0 ? 1 : 0;
+           quantity = quantity > 0 ? 1 : 0;
            console.log(symbol, "  quantity can be order ", quantity);
 
             if (quantity) {
@@ -329,7 +329,9 @@ class CommonOrderMethod {
             //  console.log(data);   
             if (data.status && data.message === 'SUCCESS') {
                 if (orderOption.stopLossPrice) {
-                    this.placeOptionSLMOrder(orderOption);
+                    setTimeout(() => {
+                        this.placeOptionSLMOrder(orderOption);
+                    }, 1000);
                 }
                 this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
              
@@ -349,7 +351,7 @@ class CommonOrderMethod {
             "tradingsymbol": slmOption.tradingsymbol,
             "symboltoken": slmOption.symboltoken,
             "quantity": slmOption.quantity,
-            "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
+            "transactiontype": "SELL", 
             "exchange": slmOption.exchange,
             "producttype": slmOption.producttype, 
             "duration": "DAY",
