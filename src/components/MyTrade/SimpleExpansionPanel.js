@@ -52,7 +52,7 @@ export default function SimpleExpansionPanel(props) {
               {data && data.list.length ? data.list.map((row, i)  => (
                   <>
                       {row ? <ListItem  button style={{ fontSize: '12px', padding: '0px', paddingLeft: '5px', paddingRight: '5px' }}  >
-                          <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e"}} onClick={() => data.LoadSymbolDetails(row.symbol)} primary={row.symbol} /> {row.ltp} ({row.nc}%)
+                          <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e", background:row.highlisht ? "#375a00": ""}} onClick={() => data.LoadSymbolDetails(row.symbol)} primary={row.symbol} /> {row.ltp} ({row.nc}%)
                       </ListItem> : ""}
                       
                   </>

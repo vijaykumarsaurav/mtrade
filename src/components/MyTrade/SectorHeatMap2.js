@@ -20,6 +20,7 @@ import PostLoginNavBar from "../PostLoginNavbar";
 import pako from 'pako';
 import { w3cwebsocket } from 'websocket';
 import ChartDialog from './ChartDialog';
+import LightChartDialog from './LightChartDialog';
 import LineChart from "./LineChart";
 import ReactApexChart from "react-apexcharts";
 import TradeConfig from './TradeConfig.json';
@@ -257,222 +258,7 @@ class MyView extends React.Component {
     }
 
 
-    placeSLMOrder = (slmOption) => {
-
-        var data = {
-            "triggerprice": slmOption.stopLossPrice,
-            "tradingsymbol": slmOption.tradingsymbol,
-            "symboltoken": slmOption.symboltoken,
-            "quantity": slmOption.quantity,
-            "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
-            "exchange": 'NSE',
-            "producttype": "INTRADAY",//"DELIVERY",
-            "duration": "DAY",
-            "price": 0,
-            "squareoff": "0",
-            "stoploss": "0",
-            "ordertype": "STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
-            "variety": "STOPLOSS"
-        }
-        console.log("SLM option data", data);
-        AdminService.placeOrder(data).then(res => {
-            let data = resolveResponse(res);
-            //  console.log(data);   
-            if (data.status && data.message === 'SUCCESS') {
-                this.setState({ orderid: data.data && data.data.orderid });
-                // this.updateOrderList(); 
-                this.speckIt('hey Vijay, ' + slmOption.tradingsymbol + " buy order placed");
-                this.getTodayOrder();
-                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
-            }
-        })
-    }
-
-    placeOrderMethod = (orderOption) => {
-
-        var data = {
-            "transactiontype": orderOption.transactiontype,//BUY OR SELL
-            "tradingsymbol": orderOption.tradingsymbol,
-            "symboltoken": orderOption.symboltoken,
-            "quantity": orderOption.quantity,
-            "ordertype": orderOption.buyPrice === 0 ? "MARKET" : "LIMIT",
-            "price": orderOption.buyPrice,
-            "producttype": "INTRADAY",//"DELIVERY",
-            "duration": "DAY",
-            "squareoff": "0",
-            "stoploss": "0",
-            "exchange": "NSE",
-            "variety": "NORMAL"
-        }
-        console.log("place order option", data);
-        AdminService.placeOrder(data).then(res => {
-            let data = resolveResponse(res);
-            //  console.log(data);   
-            if (data.status && data.message === 'SUCCESS') {
-                this.speckIt(orderOption.tradingsymbol + " Added");
-                this.setState({ orderid: data.data && data.data.orderid });
-                if (orderOption.stopLossPrice) {
-                    this.placeSLMOrder(orderOption);
-                }
-            }
-        })
-    }
-
-    getMinPriceAllowTick = (minPrice) => {
-        minPrice = minPrice.toFixed(2);
-        // console.log("minPrice",minPrice); 
-        var wholenumber = parseInt(minPrice.split('.')[0]);
-        //  console.log("wholenumber",wholenumber); 
-        var decimal = parseFloat(minPrice.split('.')[1]);
-        // console.log("decimal",decimal); 
-        var tickedecimal = decimal - decimal % 5;
-        minPrice = parseFloat(wholenumber + '.' + tickedecimal);
-        //   console.log("minPricexxxx",minPrice); 
-        return minPrice;
-    }
-
-
-    historyWiseOrderPlace = (sectorItem, orderType, isAutomatic, spinnerIndex) => {
-
-
-        this.setState({ [spinnerIndex]: true })
-
-        var token = sectorItem.token;
-        var symbol = sectorItem.symbol;
-
-        if (isAutomatic != "Automatic") {
-            if (!window.confirm(orderType + " " + symbol + " Are you sure ? ")) {
-                return;
-            }
-        }
-
-        var ltpdata = { "exchange": "NSE", "tradingsymbol": symbol, "symboltoken": token, }
-        AdminService.getLTP(ltpdata).then(res => {
-            let ltpres = resolveResponse(res, 'noPop');
-            var LtpData = ltpres && ltpres.data;
-            console.log(symbol, " ltd data ", LtpData);
-            let quantity = 0;
-            if (LtpData && LtpData.ltp) {
-                let perTradeExposureAmt = TradeConfig.totalCapital * TradeConfig.perTradeExposurePer / 100;
-                quantity = Math.floor(perTradeExposureAmt / LtpData.ltp);
-            }
-
-
-            quantity = quantity > 0 ? 1 : 0;
-            console.log(symbol, "  quantity can be order ", quantity);
-
-            if (quantity) {
-                const format1 = "YYYY-MM-DD HH:mm";
-                var beginningTime = moment('9:15am', 'h:mma').format(format1);
-
-                console.log("beginningTime", beginningTime);
-
-                var time = moment.duration("54:10:00");  //21:10:00"
-                var startdate = moment(new Date()).subtract(time);
-                var data = {
-                    "exchange": "NSE",
-                    "symboltoken": token,
-                    "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE 
-                    "fromdate": moment(startdate).format(format1),
-                    "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
-                }
-
-                AdminService.getHistoryData(data).then(res => {
-                    let histdata = resolveResponse(res, 'noPop');
-                    // console.log("candle history", histdata); 
-                    if (histdata && histdata.data && histdata.data.length) {
-
-                        var candleData = histdata.data, clossest = 0, lowerest = 0, highestHigh = 0, lowestLow = 0, highestsum = 0;
-                        candleData.reverse();
-                        lowestLow = candleData[0][3];
-                        highestHigh = candleData[0][2];
-                        if (candleData && candleData.length > 0) {
-                            for (let index = 0; index < 20; index++) {
-                                if (candleData[index]) {
-                                    clossest += candleData[index][4]; //close  
-                                    lowerest += candleData[index][3];  //low
-                                    highestsum += candleData[index][2];  //low
-                                    if (candleData[index][2] > highestHigh) {
-                                        console.log(index, highestHigh, candleData[index][2]);
-                                        highestHigh = candleData[index][2];
-                                    }
-                                    if (candleData[index][3] <= lowestLow) {
-                                        lowestLow = candleData[index][3];
-                                    }
-                                }
-                            }
-
-                            let devideLen = candleData.length > 20 ? 20 : candleData.length;
-
-                            var bbmiddleValue = clossest / devideLen;
-                            var bblowerValue = lowerest / devideLen;
-                            var bbhigerValue = highestsum / devideLen;
-
-                            var stoploss = 0, stoplossPer = 0;
-
-                            if (orderType == "BUY") {
-                                stoploss = bblowerValue - (highestHigh - lowestLow) * 3 / 100;
-                                stoploss = this.getMinPriceAllowTick(stoploss);
-                                stoplossPer = (LtpData.ltp - stoploss) * 100 / LtpData.ltp;
-
-                                console.log(symbol, orderType, " LTP ", LtpData.ltp);
-                                console.log(symbol + "highestHigh:", highestHigh, "lowestLow", lowestLow, "stoploss after tick:", stoploss, "stoploss%", stoplossPer);
-                                console.log(symbol + "  close avg middle ", bbmiddleValue, "lowerest avg", bblowerValue, "bbhigerValue", bbhigerValue);
-
-                            }
-
-
-                            if (orderType == "SELL") {
-                                stoploss = bbhigerValue + (highestHigh - lowestLow) * 3 / 100;
-                                stoploss = this.getMinPriceAllowTick(stoploss);
-                                stoplossPer = (stoploss - LtpData.ltp) * 100 / LtpData.ltp;
-
-                                console.log(symbol, orderType, " LTP ", LtpData.ltp);
-                                console.log(symbol + "highestHigh:", highestHigh, "lowestLow", lowestLow, "stoploss after tick:", stoploss, "stoploss%", stoplossPer);
-                                console.log(symbol + "  close avg middle ", bbmiddleValue, "lowerest avg", bblowerValue, "bbhigerValue", bbhigerValue);
-
-                            }
-
-
-
-                            var orderOption = {
-                                transactiontype: orderType,
-                                tradingsymbol: symbol,
-                                symboltoken: token,
-                                buyPrice: 0,
-                                quantity: quantity,
-                                stopLossPrice: stoploss
-                            }
-                            if (quantity) {
-
-                                this.placeOrderMethod(orderOption);
-                                this.setState({ [spinnerIndex]: false })
-
-                            } else {
-                                Notify.showError(symbol + " stoploss is > 1.5% Rejected");
-                                console.log(symbol + " its not fullfilled");
-
-                            }
-                        }
-
-
-                    } else {
-                        //localStorage.setItem('NseStock_' + symbol, "");
-                        Notify.showError(symbol + " candle data emply");
-                        console.log(symbol + " candle data emply");
-                        this.setState({ [spinnerIndex]: true })
-                    }
-                })
-
-            } else {
-                Notify.showError(quantity + "  quantity |  " + symbol + " " + orderType + " Rejected");
-                this.setState({ [spinnerIndex]: false })
-            }
-        }).catch(function (error) {
-            this.setState({ [spinnerIndex]: true })
-        })
-        // await new Promise(r => setTimeout(r, 2000)); 
-    }
+   
 
 
 
@@ -928,17 +714,6 @@ class MyView extends React.Component {
         return newarray.join('');
     }
 
-    makeConnection = () => {
-
-        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-        console.log("Connection sectior top firstTime_req :- " + firstTime_req);
-
-        if (!wsClintSectorUpdate) return;
-        wsClintSectorUpdate.send(firstTime_req);
-
-        this.updateSocketWatch();
-    }
-
     showCandleChart = (candleData, symbol, price, change, vwapDataChart) => {
 
         //  candleData  = candleData && candleData.reverse();
@@ -954,6 +729,221 @@ class MyView extends React.Component {
         if (candleData && candleData.length > 0) {
             document.getElementById('showCandleChart').click();
         }
+    }
+
+    getTimeFrameValue = (timeFrame) => {
+        //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
+
+        switch (timeFrame) {
+            case 'ONE_MINUTE':
+                if (new Date().toLocaleTimeString() < "10:05:00")
+                    return "19:00:00";
+                else
+                    return "01:00:00";
+                break;
+            case 'FIVE_MINUTE':
+                if (new Date().toLocaleTimeString() < "11:00:00")
+                    return "23:00:00";
+                else
+                    return "03:00:00";
+                break;
+            case 'TEN_MINUTE':
+                if (new Date().toLocaleTimeString() < "12:35:00")
+                    return "24:21:00";
+                else
+                    return "07:00:00";
+                break;
+            case 'FIFTEEN_MINUTE':
+                if (new Date().toLocaleTimeString() < "14:15:00")
+                    return "28:01:00";
+                else
+                    return "10:01:00";
+                break;
+            case 'THIRTY_MINUTE':
+                return "100:01:00";
+                break;
+            case 'ONE_HOUR':
+                return "200:01:00";
+                break;
+            case 'ONE_DAY':
+                return "1000:01:00";
+                break;
+            default:
+                break;
+        }
+    }
+    
+    dailyBasisInfoCheck = (token, element) => {
+        //this.setState({DailyBulishStatus: ''}); 
+
+        const format1 = "YYYY-MM-DD HH:mm";
+
+        let timeDuration = this.getTimeFrameValue('ONE_DAY');
+        var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
+        var startDateforDaily = moment(new Date()).subtract(time);
+        var dataDay = {
+            "exchange": 'NSE',
+            "symboltoken": token,
+            "interval": 'ONE_DAY',
+            "fromdate": moment(startDateforDaily).format(format1),
+            "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+        }
+        AdminService.getHistoryData(dataDay).then(resd => {
+            let histdatad = resolveResponse(resd, 'noPop');
+            var DSMA = '';
+            if (histdatad && histdatad.data && histdatad.data.length) {
+                var candleDatad = histdatad.data;
+                var closeingDatadaily = [], valumeSum = 0;
+
+
+                for (let index = candleDatad.length - 20; index < candleDatad.length; index++) {
+                    const element = candleDatad[index];
+                    if(element){
+                        closeingDatadaily.push(element[4]);
+                        valumeSum += element[5];
+                    }
+                  
+                }
+
+
+                DSMA = SMA.calculate({ period: 20, values: closeingDatadaily });
+                this.setState({ dailyAvgValume: valumeSum / 20 });
+
+                var DSMALastValue = DSMA && DSMA[DSMA.length - 1];
+                console.log(token, "DSMA", DSMALastValue);
+
+                if (DSMALastValue) {
+                    this.setState({ DailyBulishStatus: DSMALastValue, todayCurrentVolume: candleDatad[candleDatad.length - 1][5] });
+                }
+
+                if (candleDatad[candleDatad.length - 1][5] > valumeSum / 20) {
+                    console.log("crosssed voliue", element);
+                 //   this.setState({ volumeCrossedList: [...this.state.volumeCrossedList, element] })
+                }
+
+            }
+
+
+        });
+    }
+
+
+
+    showCandleChartPopUp = (symbol) => {
+
+
+        // //  candleData  = candleData && candleData.reverse();
+
+        // // localStorage.setItem('candleChartData', JSON.stringify(candleData));
+        // localStorage.setItem('cadleChartSymbol', symbol);
+        // // localStorage.setItem('candlePriceShow', price);
+        // // localStorage.setItem('candleChangeShow', change);
+        // // localStorage.setItem('vwapDataChart', vwapDataChart);
+
+        // document.getElementById('showCandleChart').click();
+
+  
+
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || []; 
+        var isThere = watchList.filter(row => row.name === symbol);
+        if(isThere && isThere.length){
+
+            let stock = isThere[0]; 
+
+            this.dailyBasisInfoCheck( stock.token);
+
+            const format1 = "YYYY-MM-DD HH:mm";
+
+
+            var beginningTime = moment('9:15am', 'h:mma');
+            var time = moment.duration("22:00:00");  //22:00:00" for last day  2hours 
+            var beginningTime = moment(new Date()).subtract(time);
+
+            var data = {
+                "exchange": "NSE",
+                "symboltoken":  stock.token,
+                "interval": 'FIVE_MINUTE',
+                "fromdate": moment(beginningTime).format(format1),
+                "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+            }
+    
+    
+            AdminService.getHistoryData(data).then(res => {
+                let historyData = resolveResponse(res, 'noPop');
+                //    console.log(data); 
+                if (historyData && historyData.data) {
+    
+                    var data = historyData.data;
+    
+                    const cdata = data.map(d => {
+                        return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
+                    });
+
+                    
+
+                    var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [], volumeSeriesData = [];
+                    data.forEach((element, loopindex) => {
+                        candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                        vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
+                        closeingData.push(element[4]);
+                        highData.push(element[2]);
+                        lowData.push(element[3]);
+                        openData.push(element[3]);
+                        valumeData.push(element[5]);
+                        bbdata.push((element[2] + element[3] + element[4]) / 3);
+                        volumeSeriesData.push({ time: new Date(element[0]).getTime(), value: element[5], color: 'rgba(211, 211, 211, 1)' })
+    
+                    });
+    
+                    var input = {
+                        period: 20,
+                        values: bbdata,
+                        stdDev: 2
+                    }
+    
+                    var bb = BollingerBands.calculate(input);
+                    console.log(stock.symbol, "Bolinger band", input, bb);
+    
+                    var bb = BollingerBands.calculate(input);
+                    console.log(stock.symbol, "Bolinger band", input, bb);
+    
+                    var inputRSI = { values: closeingData, period: 14 };
+                    var rsiValues = RSI.calculate(inputRSI);
+    
+                    console.log(stock.symbol, "Rsi", inputRSI, rsiValues);
+                    console.log(stock.symbol, "vwap", vwapdata, vwap(vwapdata));
+    
+                    var data = {
+                        "exchange":stock.exch_seg,
+                        "tradingsymbol": stock.symbol,
+                        "symboltoken": stock.token,
+                    }
+                    AdminService.getLTP(data).then(res => {
+                        let data = resolveResponse(res, 'noPop');
+                        var LtpData = data && data.data;  
+                        
+                        LtpData.change =  (LtpData.ltp - LtpData.close) * 100 /  LtpData.close; 
+                       
+                        this.setState({InstrumentLTP: LtpData , selectedSymbol : stock.symbol,  chartStaticData: candleChartData, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
+                            document.getElementById('showLightCandleChart').click();
+                        });
+            
+                    
+                    })
+
+
+                    
+
+                 
+
+
+                }
+            })
+        }
+
+       
+
+
     }
 
     updateSocketWatch = () => {
@@ -1055,13 +1045,14 @@ class MyView extends React.Component {
 
                 <ChartDialog />
 
+                <LightChartDialog LightChartData = {{InstrumentLTP : this.state.InstrumentLTP, DailyBulishStatus: this.state.DailyBulishStatus, todayCurrentVolume : this.state.todayCurrentVolume,  selectedSymbol : this.state.selectedSymbol,  chartStaticData: this.state.chartStaticData, bblastValue: this.state.bblastValue, vwapvalue: this.state.vwapvalue, rsiValues: this.state.rsiValues, valumeData: this.state.valumeData }} />
+
                 <Grid direction="row" container className="flexGrow" spacing={1} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
                     <Grid item xs={12} sm={12} >
                         <Typography component="h3" variant="h6" color="primary" >
                             Sectors HitMap ({Object.keys(this.state.sluglist).length}) at {this.state.indexTimeStamp}
                             &nbsp;
-                            {this.state.refreshFlag ? <Button variant="contained" onClick={() => this.loadIndexesList()}>Refresh</Button> : <> <Button> <Spinner /> &nbsp; {this.state.stockUpdate}  </Button> </>}
-                            {this.state.failedCount ? this.state.failedCount + "Failed" : ""}
+                            <Button variant="contained" onClick={() => this.loadIndexesList()}>Refresh</Button> 
 
                             &nbsp;
 
@@ -1181,7 +1172,7 @@ class MyView extends React.Component {
                             </Paper>
                         </Grid> : ""
 
-                    )) : <Spinner />}
+                    )) : ""}
 
 
                     <Table id="tabledata" aria-label="a dense table" stickyHeader size="small" >
@@ -1200,10 +1191,13 @@ class MyView extends React.Component {
                                    
                                     {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
                                         <TableCell style={{ textAlign: "left", }} >
-                                            <Typography variant="body1" > <span style={{ background: this.getPercentageColor(sectorItem.iislPercChange)}}>
-                                                <b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%)
-                                            </span>
-                                            </Typography>
+                                            <div style={{padding:"5px"}}> 
+                                            <Button size="small" style={{ background: this.getPercentageColor(sectorItem.iislPercChange)}}  onClick={() => this.showCandleChartPopUp(sectorItem.symbol)}><b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%)</Button>  
+
+
+                                            </div>
+
+
                                         </TableCell>
                                     ))
                                     }

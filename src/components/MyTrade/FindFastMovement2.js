@@ -779,10 +779,6 @@ class Home extends React.Component {
                                     <TextField label="Qty" type="number" name="qtyToTake" value={this.state.qtyToTake} onChange={this.onChangeQty} />
                                     </Grid>
 
-
-
-
-
                                     <Grid item >
                                         {/* onClick={() => this.historyWiseOrderPlace(row, 'SELL', "", 'sellButtonClicked' + row.symbol + i)} */}
                                         {!this.state['sellButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="Secondary" onClick={() => this.handleClick(row, 'SELL', 'sellButtonClicked' + row.symbol + i)}>SELL</Button> : <Spinner />}

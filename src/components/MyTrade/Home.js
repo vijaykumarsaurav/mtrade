@@ -143,7 +143,7 @@ class Home extends React.Component {
 
         this.setState({
             openEqualHighList: [], openEqualLowList: [], openEqualLowList: [], advanceShareCount: 0,
-            declineShareCount: 0, UnchangeShareCount: 0, volumeCrossedList: [], slowMotionStockList : []
+            declineShareCount: 0, UnchangeShareCount: 0, volumeCrossedList: []
         });
 
 
@@ -362,24 +362,20 @@ class Home extends React.Component {
                     this.getLTP();
                     //this.showStaticChart(this.state.symboltoken);
                 }
-
-
                 var fastMovementList  = localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')); 
                 fastMovementList && fastMovementList.length && fastMovementList.reverse(); 
                 this.setState({fastMovementList :fastMovementList })
             }, 1000);
+           
+            setInterval(() => {
+                this.checkSlowMotionCheckLive(); 
+             }, 5*75000);
+
         }
 
+
       
-        // setInterval(() => {
-        //     AdminService.getAutoScanStock().then(res => {
-        //         let data = resolveResponse(res);
-        //         console.log(data);  
-        //         if(data.status  && data.message == 'SUCCESS'){ 
-        //         //    this.setState({ orderid : data.data && data.data.orderid });  
-        //         }
-        //     })    
-        // }, 2000);
+      
 
     }
 
@@ -2192,7 +2188,6 @@ class Home extends React.Component {
     }
 
     checkSlowMotionStock = (token, stock) => {
-
     
         const format1 = "YYYY-MM-DD HH:mm";
         var time = moment.duration("240:00:00");  //22:00:00" for last day  2hours 
@@ -2221,12 +2216,12 @@ class Home extends React.Component {
 
                         if (per >= 0.4) {
                             bigCandleCount += 1;
-                            console.log(stock.symbol,  per);
+                            console.log(stock.symbol,  per , element[0]);
 
                         }
                         if (per <= -0.4) {
                             bigCandleCount += 1;
-                            console.log(stock.symbol,  per);
+                            console.log(stock.symbol,  per , element[0]);
 
                         }
                     }
@@ -2240,6 +2235,67 @@ class Home extends React.Component {
 
         });
     }
+
+    checkSlowMotionCheckLive = async() => {
+    
+        for (let index = 0; index < this.state.slowMotionStockList.length; index++) {
+            const row = this.state.slowMotionStockList[index];
+            const format1 = "YYYY-MM-DD HH:mm";
+            var time = moment.duration("22:00:00");  //22:00:00" for last day  2hours 
+            var startDate = moment(new Date()).subtract(time);
+            var dataDay = {
+                "exchange": 'NSE',
+                "symboltoken": row.token,
+                "interval": 'FIVE_MINUTE',
+                "fromdate": moment(startDate).format(format1),
+                "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+            }
+            AdminService.getHistoryData(dataDay).then(resd => {
+                let histdatad = resolveResponse(resd, 'noPop');
+                var DSMA = '';
+                if (histdatad && histdatad.data && histdatad.data.length) {
+                    var candleDatad = histdatad.data;
+                    var closeingDatadaily = [], valumeSum = 0;
+    
+                    var bigCandleCount = 0, bullishCount = 0; 
+    
+                    for (let index = candleDatad.length-3; index < candleDatad.length; index++) {
+                        const element = candleDatad[index];
+                        
+                        if(element){
+    
+                            var per = (element[4] - element[1]) * 100 / element[1];
+                            if (per >= 0.5) {
+                                bigCandleCount += 1;
+                            } 
+                            if (per >= 0) {
+                                bullishCount += 1;
+                            }
+    
+                        }
+                    }
+                    if(bigCandleCount >= 1 &&  bullishCount >= 1){
+                        row.highlisht =  true; 
+                        console.log('hey listen, slow motion stock' + row.symbol + " broken");
+
+                        this.speckIt('hey listen, slow motion stock' + row.symbol + " broken");
+
+                        this.setState({ slowMotionStockList: this.state.slowMotionStockList })
+                    }
+                }
+    
+            });
+            await new Promise(r => setTimeout(r, 310));  
+        }
+   
+    }
+
+    speckIt = (text) => {
+        var msg = new SpeechSynthesisUtterance();
+        msg.text = text.toString();
+        window.speechSynthesis.speak(msg);
+    }
+
 
 
 

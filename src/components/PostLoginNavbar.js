@@ -131,6 +131,10 @@ export default function PostLoginNavBar(props) {
         })
     }
 
+    function handleInputQty(e) {
+        setValues({ ...values, ['qtyToTake']: e.target.value });
+    }
+
     function callbackAfterOrderDone(order) {
         setValues({ ...values, ['buyFlag']: order.status });
         setValues({ ...values, ['sellFlag']: order.status });
@@ -144,7 +148,8 @@ export default function PostLoginNavBar(props) {
                 setValues({ ...values, ['buyFlag']: false });
                 var symbolInfo = {
                     token: values.token,
-                    symbol: values.searchSymbol
+                    symbol: values.searchSymbol, 
+                    qtyToTake : values.qtyToTake
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", callbackAfterOrderDone);
             }
@@ -153,7 +158,8 @@ export default function PostLoginNavBar(props) {
                 setValues({ ...values, ['sellFlag']: false });
                 var symbolInfo = {
                     token: values.token,
-                    symbol: values.searchSymbol
+                    symbol: values.searchSymbol,
+                    qtyToTake : values.qtyToTake
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", callbackAfterOrderDone);
             }
@@ -219,14 +225,17 @@ export default function PostLoginNavBar(props) {
                                     
                                 </Grid>
 
-                                <Grid item  >
+                                <Grid item>
                                     <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput} />
                                 </Grid>
-                                <Grid item  >
+                                <Grid item>
+                                    <TextField label="Qty" style={{width:"50px"}} type="number" name="qtyToTake" value={values.qtyToTake} onChange={handleInputQty} />
+                                </Grid>
+                                <Grid item>
                                     {values.buyFlag ? <Button variant="contained" color="primary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("BUY")}>Buy</Button> : <Spinner />}
                                 </Grid>
 
-                                <Grid item  >
+                                <Grid item>
                                     {values.sellFlag ? <Button variant="contained" color="secondary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("SELL")}>SELL</Button> : <Spinner />}
                                 </Grid>
 

@@ -229,6 +229,7 @@ for (var i = 1; i < datesForMarkers.length; i++) {
 		indexOfMinPrice = i;
 	}
 }
+
 var markers = [];
 for (var i = 0; i < datesForMarkers.length; i++) {
 	if (i !== indexOfMinPrice) {
