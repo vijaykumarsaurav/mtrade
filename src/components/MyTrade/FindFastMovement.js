@@ -22,6 +22,7 @@ import Notify from "../../utils/Notify";
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import Parser from 'html-react-parser';
 import Spinner from "react-spinner-material";
+import TextField from "@material-ui/core/TextField";
 
 import ReactApexChart from "react-apexcharts";
 import InputLabel from '@material-ui/core/InputLabel';
@@ -45,6 +46,7 @@ class Home extends React.Component {
             totalStockToWatch: 0,
             timeFrame: "TEN_MINUTE",
             chartStaticData: [],
+            qtyToTake:'',
             BBBlastType : "BBBlastOnly",
             fastMovementList:  localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
 
@@ -105,6 +107,9 @@ class Home extends React.Component {
         clearInterval(this.state.findlast5minMovementInterval);
         clearInterval(this.state.stop10bbSearch);
 
+    }
+    onChangeQty = (e) => {
+        this.setState({ [e.target.name]: e.target.value });
     }
 
 
@@ -665,7 +670,8 @@ class Home extends React.Component {
                 this.setState({ [spinnerIndex]: true });
                 var symbolInfo = {
                     token: row.token,
-                    symbol: row.symbol
+                    symbol: row.symbol,
+                    qtyToTake : this.state.qtyToTake
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
                 this.setState({ [spinnerIndex]: false });
@@ -676,7 +682,8 @@ class Home extends React.Component {
                 this.setState({ [spinnerIndex]: true });
                 var symbolInfo = {
                     token: row.token,
-                    symbol: row.symbol
+                    symbol: row.symbol,
+                    qtyToTake : this.state.qtyToTake
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
                 this.setState({ [spinnerIndex]: false });
@@ -861,6 +868,11 @@ class Home extends React.Component {
                                     <Grid item>
                                         {!this.state['buyButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="primary" onClick={() => this.handleClick(row, 'BUY', 'buyButtonClicked' + row.symbol + i)}>BUY</Button> : <Spinner />}
                                     </Grid>
+                                    
+                                    <Grid item>
+                                    <TextField label="Qty" type="number" name="qtyToTake" value={this.state.qtyToTake} onChange={this.onChangeQty} />
+                                    </Grid>
+
 
                                     <Grid item >
                                         {/* onClick={() => this.historyWiseOrderPlace(row, 'SELL', "", 'sellButtonClicked' + row.symbol + i)} */}

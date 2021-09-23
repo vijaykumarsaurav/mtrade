@@ -13,7 +13,6 @@ import {
 
 function MaterialUIPickers(props) {
 
- // console.log("startDatestartDate,",props ); 
   //var d = new Date(); 
   //d.setHours(0,0,0,0);
 

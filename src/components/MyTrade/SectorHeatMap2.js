@@ -38,7 +38,7 @@ class MyView extends React.Component {
         super(props);
         this.state = {
             // sectorList: [],
-            sluglist : {
+            sluglist: {
                 'NIFTY 50': 'nifty',
                 'NIFTY AUTO': 'cnxAuto',
                 'NIFTY BANK': 'bankNifty',
@@ -77,6 +77,7 @@ class MyView extends React.Component {
             refreshFlag: true,
             topGLCount: 0,
             refreshFlagCandle: true,
+            switchToListViewFlag: true,
             sectorStockList: localStorage.getItem('sectorStockList') && JSON.parse(localStorage.getItem('sectorStockList')) || [],
             sectorList: localStorage.getItem('sectorList') && JSON.parse(localStorage.getItem('sectorList')) || [],
             watchList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
@@ -88,12 +89,12 @@ class MyView extends React.Component {
     componentDidMount() {
         // window.location.reload(); 
 
-        window.document.title = "Hit Map2"; 
+        window.document.title = "Hit Map2";
 
 
-       this.loadIndexesList();
+        this.loadIndexesList();
 
-       
+
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
@@ -113,7 +114,7 @@ class MyView extends React.Component {
             setInterval(() => {
                 this.loadIndexesList();
             }, 30000);
-    
+
 
             wsClintSectorUpdate.onopen = (res) => {
                 // this.makeConnection();
@@ -483,35 +484,35 @@ class MyView extends React.Component {
 
 
                 if (res.data) {
-                
-                   var softedData = res.data && res.data.data; 
-                   softedData.sort(function (a, b) {
-                    return b.percChange - a.percChange;
-                   });
 
-                   
-                   this.setState({ indexTimeStamp: softedData[0].timeVal });
+                    var softedData = res.data && res.data.data;
+                    softedData.sort(function (a, b) {
+                        return b.percChange - a.percChange;
+                    });
+
+
+                    this.setState({ indexTimeStamp: softedData[0].timeVal });
 
 
                     for (let index = 0; index < softedData.length; index++) {
                         const element = softedData[index];
-                        var slugName =  this.state.sluglist[element.indexName]; 
+                        var slugName = this.state.sluglist[element.indexName];
 
-                        if(slugName){
+                        if (slugName) {
                             console.log("secName", element.indexName, slugName);
                             AdminService.checkSectorApiOther(slugName).then(res => {
                                 console.log(element.indexName, res.data.data);
-                                softedData[index].stockList = res.data && res.data.data; 
-                                softedData[index].time = res.data && res.data.time; 
+                                softedData[index].stockList = res.data && res.data.data;
+                                softedData[index].time = res.data && res.data.time;
                                 this.setState({ sectorList: softedData });
                             }).catch(error => {
-                               // Notify.showError(element.indexName + "fail to get stockdata"); 
-                               console.log("list fetch error", error)
+                                // Notify.showError(element.indexName + "fail to get stockdata"); 
+                                console.log("list fetch error", error)
                             })
                         }
                     }
 
-             
+
 
 
                     // this.state.sectorList.forEach(element => {
@@ -522,7 +523,7 @@ class MyView extends React.Component {
                     // });
 
 
-                    
+
                 }
             })
             .catch((reject) => {
@@ -1010,6 +1011,9 @@ class MyView extends React.Component {
             return number;
         }
     }
+    switchToListView = () => {
+        this.setState({ switchToListViewFlag: false });
+    }
 
     render() {
 
@@ -1068,7 +1072,7 @@ class MyView extends React.Component {
 
 
 
-
+                            <Button onClick={() => this.switchToListView()}>switch to list view</Button>
                         </Typography>
 
                         {/* {localStorage.getItem('autoTradeTopList')} */}
@@ -1077,14 +1081,14 @@ class MyView extends React.Component {
 
 
 
-                    {this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
+                    {!this.state.switchToListViewFlag && this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
 
                         //this.state.topGLCount <= 2 ? 6 : this.state.topGLCount == 3 ? 4 : 3
-                        indexdata.stockList ?  <Grid item xs={12} sm={3}>
-                        <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
+                        indexdata.stockList ? <Grid item xs={12} sm={3}>
+                            <Paper style={{ padding: '10px', background: "lightgray", textAlign: "center" }}>
 
 
-                            {/* <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
+                                {/* <Button size="small" variant="contained" title="update ltp" onClick={() => this.updateLTPMannually(indexdata.index)}>
                                 <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)</b> &nbsp; {indexdata.time.substr(13,8)}
                             </Button>
                             &nbsp;
@@ -1093,39 +1097,34 @@ class MyView extends React.Component {
                                 <ShowChartIcon />
                             </Button> */}
 
-                            <Typography variant="body1" >
-                                <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)</b> &nbsp; {indexdata.time.substr(13,8)}
-                            </Typography>
+                                <Typography variant="body1" >
+                                    <b> {index + 1}. {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)</b> &nbsp; {indexdata.time.substr(13, 8)}
+                                </Typography>
 
-                            <Grid direction="row" container className="flexGrow" spacing={1} >
+                                <Grid direction="row" container className="flexGrow" spacing={1} >
 
-                                {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
-
-                                    <Grid item xs={12} sm={6} >
-                                        <Paper style={{ textAlign: "center" }} >
-
-                                            {/* {sectorItem.cng} */}
-                                            <Typography style={{ background: this.getPercentageColor(sectorItem.iislPercChange), fontSize: '14px' }}>
-                                                {i + 1}. {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%)
-                                            </Typography>
-
-
-
-
-                                            {sectorItem.candleChartData ? <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
-                                                <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} />
-                                            </span> : ""}
-
-                                            {sectorItem.vwapValue ?
-                                                <Typography >
-                                                    {sectorItem.vwapValue ? <span style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:<b>{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)}</b> </span> : ""}
-                                                    &nbsp;
-                                                    {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:<b>{sectorItem.lastRsiValue}</b> {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
+                                    {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
+                                        <Grid item xs={12} sm={6} >
+                                            <Paper style={{ textAlign: "center" }} >
+                                                {/* {sectorItem.cng} */}
+                                                <Typography style={{ background: this.getPercentageColor(sectorItem.iislPercChange), fontSize: '14px' }}>
+                                                    {i + 1}. {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%)
                                                 </Typography>
-                                                : ""}
 
 
-                                            {/* {sectorItem.candleChartData ? <ReactApexChart
+                                                {sectorItem.candleChartData ? <span style={{ cursor: 'pointer' }} onClick={() => this.showCandleChart(sectorItem.candleChartData, sectorItem.name, sectorItem.ltp, sectorItem.nc, sectorItem.vwapDataChart)} >
+                                                    <LineChart candleChartData={sectorItem.candleChartData} percentChange={sectorItem.nc} vwapDataChart={sectorItem.vwapDataChart} />
+                                                </span> : ""}
+
+                                                {sectorItem.vwapValue ?
+                                                    <Typography >
+                                                        {sectorItem.vwapValue ? <span style={{ background: sectorItem.ltp > sectorItem.vwapValue ? "#00ff00" : "red", fontSize: '14px' }}>VWAP:<b>{sectorItem.vwapValue && sectorItem.vwapValue.toFixed(2)}</b> </span> : ""}
+                                                        &nbsp;
+                                                        {sectorItem.lastRsiValue ? <span title="OB means 'Overbought'" style={{ background: sectorItem.lastRsiValue >= 60 ? "#00ff00" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "lightgray" : "red", fontSize: '14px' }}>RSI:<b>{sectorItem.lastRsiValue}</b> {sectorItem.lastRsiValue > 80 ? "OB" : sectorItem.lastRsiValue >= 60 && sectorItem.lastRsiValue <= 80 ? "Buy" : sectorItem.lastRsiValue >= 40 && sectorItem.lastRsiValue < 60 ? "NoTrade" : "Sell"} </span> : ""}
+                                                    </Typography>
+                                                    : ""}
+
+                                                {/* {sectorItem.candleChartData ? <ReactApexChart
                                                 options={{
                                                     chart: {
                                                         type: 'candlestick',
@@ -1154,7 +1153,7 @@ class MyView extends React.Component {
                                             /> : ""} */}
 
 
-                                            {/* <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
+                                                {/* <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
 
                                                 <Grid item>
                                                     {!this.state['buyButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="primary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'BUY', "", 'buyButtonClicked' + indexdata.index + i)}>Buy</Button> : <Spinner />}
@@ -1168,23 +1167,55 @@ class MyView extends React.Component {
                                                     {!this.state['sellButtonClicked' + indexdata.index + i] ? <Button size="small" variant="contained" color="secondary" onClick={() => this.historyWiseOrderPlace(sectorItem, 'SELL', "", 'sellButtonClicked' + indexdata.index + i)}>Sell</Button> : <Spinner />}
                                                 </Grid>
                                             </Grid>
-*/}
+                                            */}
 
 
-                                        </Paper>
+                                            </Paper>
 
 
-                                    </Grid>
+                                        </Grid>
+                                    ))
+                                    }
+                                </Grid>
 
-                                ))
-                                }
+                            </Paper>
+                        </Grid> : ""
 
-                            </Grid>
-
-                        </Paper>
-                    </Grid> : "" 
-                  
                     )) : <Spinner />}
+
+
+                    <Table id="tabledata" aria-label="a dense table" stickyHeader size="small" >
+                        <TableBody hover style={{whiteSpace: "nowrap" }} >
+
+
+                            {this.state.switchToListViewFlag && this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
+
+                                indexdata.stockList ? <TableRow hover={true} key={index}>
+                                    <TableCell>
+                                        <Typography variant="body1" >
+                                          {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)
+                                            {/* &nbsp; {indexdata.time} */}
+                                        </Typography>
+                                    </TableCell>
+                                   
+                                    {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
+                                        <TableCell style={{ textAlign: "left", }} >
+                                            <Typography variant="body1" > <span style={{ background: this.getPercentageColor(sectorItem.iislPercChange)}}>
+                                                <b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%)
+                                            </span>
+                                            </Typography>
+                                        </TableCell>
+                                    ))
+                                    }
+
+                                </TableRow>
+                                : ""
+
+                            )) : <Spinner />}
+
+
+                        </TableBody>
+                    </Table>
 
 
                 </Grid>

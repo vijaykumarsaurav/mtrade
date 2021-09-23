@@ -213,6 +213,13 @@ export default function PostLoginNavBar(props) {
                             >
 
                                 <Grid item  >
+                                    <Typography style={{  marginTop: '20px' }}  variant="h6" noWrap >
+                                       <span id="niftySpid" onClick={() => props.LoadSymbolDetails("NIFTY")}  > </span>  &nbsp;&nbsp;  <span id="bankniftySpid" onClick={() => props.LoadSymbolDetails("BANKNIFTY")} > </span>  
+                                     </Typography> 
+                                    
+                                </Grid>
+
+                                <Grid item  >
                                     <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput} />
                                 </Grid>
                                 <Grid item  >

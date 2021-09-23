@@ -327,7 +327,7 @@ class OrderBook extends React.Component{
                     
                     console.log("option ltp", LtpData);
 
-                   let quantity = optionData.lotsize; 
+                   let quantity = optionData.lotsize * 2; 
     
                    let perStopLoss = LtpData.ltp - (LtpData.ltp * 10/100); 
                    perStopLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopLoss); 

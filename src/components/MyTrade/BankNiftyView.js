@@ -51,6 +51,7 @@ class MyView extends React.Component {
             AllspTotalOI: [],
             PEoi: 0,
             CEoi: 0,
+            waitForChainFlag:true, 
             scrollcount: 0,
             pcrTableBN: JSON.parse(localStorage.getItem('pcrTableBN')) && JSON.parse(localStorage.getItem('pcrTableBN')).data,
             optionChainDataBN: JSON.parse(localStorage.getItem('optionChainDataBN')),
@@ -290,6 +291,8 @@ class MyView extends React.Component {
 
     loadPackList() {
 
+        
+        this.setState({waitForChainFlag: false });
 
         AdminService.getBNcpdata(this.state.selectOptionStock)
             .then((res) => {
@@ -360,10 +363,15 @@ class MyView extends React.Component {
                             oldproducts.underlyingValue = data.records.underlyingValue;
                         }
 
+                        oldproducts.data.reverse(); 
 
                         localStorage.setItem("cpdataBN", JSON.stringify(oldproducts));
 
+                       
+
                         this.setState({ products: oldproducts.data, underlyingValue: data.records.underlyingValue, timestamp: data.records.timestamp })
+                        this.setState({waitForChainFlag: true });
+
                     }
 
                     //  console.log("dddd", this.state.curnewdata); 
@@ -489,9 +497,9 @@ class MyView extends React.Component {
                         </FormControl>
                     </Grid>
                     <Grid item xs={2} sm={2}>
-                        <Button variant="contained" onClick={() => this.loadPackList()}>
+                       { this.state.waitForChainFlag ? <Button variant="contained" onClick={() => this.loadPackList()}>
                             Refesh
-                        </Button>
+                        </Button> : <Spinner />}
                     </Grid>
 
                     <Grid item xs={6} sm={4}>

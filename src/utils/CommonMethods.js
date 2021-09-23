@@ -113,9 +113,10 @@ class CommonOrderMethod {
                 quantity = Math.floor(perTradeExposureAmt / LtpData.ltp);
             }
 
-
-           quantity = quantity > 0 ? 1 : 0;
-           console.log(symbol, "  quantity can be order ", quantity);
+           if(quantity > 0 && sectorItem.qtyToTake ) {
+                quantity = sectorItem.qtyToTake;
+           }           
+           console.log(symbol, "  quantity can be order ", sectorItem, quantity);
 
             if (quantity) {
                 const format1 = "YYYY-MM-DD HH:mm";

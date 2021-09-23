@@ -12,7 +12,6 @@ import {
 
 export default function MaterialUIPickers(props) {
 
-  console.log("startDatestartDate,",props ); 
   var startd = new Date(); 
   startd.setHours(9,0,0,0);
   startd.setMinutes(15,0,0,0);

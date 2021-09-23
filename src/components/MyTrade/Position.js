@@ -59,7 +59,7 @@ class Home extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1000) })
-            //  this.setState({bankNiftyInterval :  setInterval(() => {this.getLTP(); }, 1002)}) 
+              this.setState({bankNiftyInterval :  setInterval(() => {this.getNiftyLTP(); this.getBankNiftyLTP(); }, 30000)}) 
 
             var squireInterval = setInterval(() => {
                 console.log("squireoff", new Date().toLocaleString()); 
@@ -1099,6 +1099,9 @@ class Home extends React.Component {
                         let percentPnL = ((parseFloat(element.sellavgprice) - parseFloat(element.buyavgprice)) * 100 / parseFloat(element.buyavgprice));
                         element.percentPnL = percentPnL.toFixed(2) + "%";
                         totalPercentage += parseFloat(percentPnL);
+
+                        localStorage.removeItem('firstTimeModify' + element.tradingsymbol)
+                        localStorage.removeItem('lastTriggerprice_' + element.tradingsymbol)
                     }
                    
                     element.pattenName = this.tagPatternWhichTaken(element.symboltoken); 
@@ -1114,6 +1117,7 @@ class Home extends React.Component {
                         element.stopLossAmount = slData.maxLossAmount;
                         totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;
                     }
+
 
                 });
                 this.setState({ todayProfitPnL: todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue: totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded });
@@ -1338,7 +1342,27 @@ class Home extends React.Component {
     }
 
 
-    getLTP = () => {
+    getNiftyLTP = () => {
+        var data = {
+            "exchange": "NSE",
+            "tradingsymbol": "NIFTY",
+            "symboltoken": "26000",
+        }
+        AdminService.getLTP(data).then(res => {
+            let data = resolveResponse(res, 'noPop');
+            var LtpData = data && data.data;
+            //console.log(LtpData);
+            if (LtpData && LtpData.ltp) {
+                let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close; 
+                if(per > 0)
+                document.getElementById('niftySpid').innerHTML = "<span style='color:green'> Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+                else
+                document.getElementById('niftySpid').innerHTML = "<span style='color:red'> Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+            }
+        })
+    }
+
+    getBankNiftyLTP = () => {
         var data = {
             "exchange": "NSE",
             "tradingsymbol": "BANKNIFTY",
@@ -1349,10 +1373,12 @@ class Home extends React.Component {
             var LtpData = data && data.data;
             //console.log(LtpData);
             if (LtpData && LtpData.ltp) {
-                localStorage.setItem({ 'BankLtpltp': LtpData.ltp + '  ' + ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2) + '%' });
-                //  this.setState({ BankLtpltp : LtpData.ltp + '  '+ ((LtpData.ltp-LtpData.close)*100/LtpData.close).toFixed(2) +'%' });
+                let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close; 
+                if(per > 0)
+                document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Bank Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+                else
+                document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Bank Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
             }
-
         })
     }
 
@@ -1681,18 +1707,25 @@ class Home extends React.Component {
 
         row.buyavgprice = parseFloat(row.buyavgprice);
         percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 3) {
+        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 5) {
             var minPrice = row.buyavgprice + (row.buyavgprice * 1 / 100);
             minPrice = this.getMinPriceAllowTick(minPrice);
-            this.modifyOrderMethod(row, minPrice);
+        
+            if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
+                this.modifyOrderMethod(row, minPrice);
+            }
+
+
         } else {
             var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
             var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
             trailPerChange = perchngfromTriggerPrice; 
-            if (perchngfromTriggerPrice >= 3) {
+            if (perchngfromTriggerPrice >= 5) {
                 minPrice = lastTriggerprice + (lastTriggerprice * 1 / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
-                this.modifyOrderMethod(row, minPrice);
+                if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
+                    this.modifyOrderMethod(row, minPrice);
+                }
             }
         }
 
@@ -1715,7 +1748,9 @@ class Home extends React.Component {
             if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 0.3) {
                 var minPrice = row.buyavgprice + (row.buyavgprice * 0.15 / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
-                this.modifyOrderMethod(row, minPrice);
+                if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
+                    this.modifyOrderMethod(row, minPrice);
+                }
             } else {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
@@ -1723,7 +1758,9 @@ class Home extends React.Component {
                 if (perchngfromTriggerPrice >= 0.3) {
                     minPrice = lastTriggerprice + (lastTriggerprice * 0.10/ 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
-                    this.modifyOrderMethod(row, minPrice);
+                    if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
+                        this.modifyOrderMethod(row, minPrice);
+                    }
                 }
             }
         }
@@ -1735,7 +1772,9 @@ class Home extends React.Component {
             if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange <= -0.3) {
                 var minPrice = row.sellavgprice - (row.sellavgprice * 0.15 / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
-                this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.25 / 100));
+                if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
+                    this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.25 / 100));
+                }
             } else {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
@@ -1744,7 +1783,9 @@ class Home extends React.Component {
                 if (perchngfromTriggerPrice <= -0.5) {
                     minPrice = lastTriggerprice - (lastTriggerprice * 0.15 / 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
-                    this.modifyOrderMethod(row, minPrice);
+                    if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
+                        this.modifyOrderMethod(row, minPrice);
+                    }
                 }
             }
         }
@@ -1998,7 +2039,7 @@ class Home extends React.Component {
 
 
 
-                    <Grid item xs={12} sm={12} style={{ height: '300px', overflow: "auto" }}>
+                    <Grid item xs={12} sm={12} style={{ height: '100%', overflow: "auto" }}>
                          {localStorage.getItem('isOpenInNewPage') == "no" ?  <OrderWatchlist /> : ""}
                     </Grid>
 

@@ -33,12 +33,10 @@ export default function SimpleExpansionPanel(props) {
 
   var data = props.data; 
 
-  console.log("props", props); 
-
 
   return (
     <div className={classes.root}>
-      <ExpansionPanel defaultExpanded={ true } >
+      <ExpansionPanel defaultExpanded={ false } >
         <ExpansionPanelSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1a-content"

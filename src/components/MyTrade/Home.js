@@ -74,6 +74,7 @@ class Home extends React.Component {
             openEqualLowList: [],
             chartStaticData: [],
             volumeCrossedList: [],
+            slowMotionStockList: [],
             timeFrame: "TEN_MINUTE",
             cursor: '',
             advanceShareCount: 0,
@@ -93,7 +94,7 @@ class Home extends React.Component {
         var data = e.target.value;
         AdminService.autoCompleteSearch(data).then(res => {
             let data = res.data;
-            console.log(data);
+          //  console.log(data);
             localStorage.setItem('autoSearchTemp', JSON.stringify(data));
             this.setState({ autoSearchList: data });
         })
@@ -101,7 +102,7 @@ class Home extends React.Component {
     }
     onInputChange = (e) => {
         this.setState({ [e.target.name]: e.target.value }, function () {
-            console.log("time", this.state.timeFrame);
+        //    console.log("time", this.state.timeFrame);
             if (this.state.tradingsymbol) {
                 this.showStaticChart(this.state.symboltoken);
             }
@@ -142,7 +143,7 @@ class Home extends React.Component {
 
         this.setState({
             openEqualHighList: [], openEqualLowList: [], openEqualLowList: [], advanceShareCount: 0,
-            declineShareCount: 0, UnchangeShareCount: 0, volumeCrossedList: []
+            declineShareCount: 0, UnchangeShareCount: 0, volumeCrossedList: [], slowMotionStockList : []
         });
 
 
@@ -194,7 +195,9 @@ class Home extends React.Component {
                     });
                     this.setState({ symbolList: this.state.symbolList, tradingsymbol: element.symbol, symboltoken: element.token });
 
-                    this.dailyBasisInfoCheck(element.token, element);
+                 //   this.dailyBasisInfoCheck(element.token, element);
+
+                 this.checkSlowMotionStock(element.token, element);
 
                 }
             })
@@ -352,12 +355,12 @@ class Home extends React.Component {
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
-            this.updateSocketDetails(wsClint);
+            // const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+            // this.updateSocketDetails(wsClint);
             setInterval(() => {
                 if (this.state.tradingsymbol) {
                     this.getLTP();
-                    this.showStaticChart(this.state.symboltoken);
+                    //this.showStaticChart(this.state.symboltoken);
                 }
 
 
@@ -1997,7 +2000,7 @@ class Home extends React.Component {
 
     calculateSMA = (data, count) => {
 
-        console.log("smarowdata", data, count);
+      //  console.log("smarowdata", data, count);
 
         var avg = function (data) {
             var sum = 0;
@@ -2188,6 +2191,55 @@ class Home extends React.Component {
 
     }
 
+    checkSlowMotionStock = (token, stock) => {
+
+    
+        const format1 = "YYYY-MM-DD HH:mm";
+        var time = moment.duration("240:00:00");  //22:00:00" for last day  2hours 
+        var startDate = moment(new Date()).subtract(time);
+        var dataDay = {
+            "exchange": 'NSE',
+            "symboltoken": token,
+            "interval": 'FIVE_MINUTE',
+            "fromdate": moment(startDate).format(format1),
+            "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+        }
+        AdminService.getHistoryData(dataDay).then(resd => {
+            let histdatad = resolveResponse(resd, 'noPop');
+            var DSMA = '';
+            if (histdatad && histdatad.data && histdatad.data.length) {
+                var candleDatad = histdatad.data;
+                var closeingDatadaily = [], valumeSum = 0;
+
+                var bigCandleCount = 0; 
+
+                for (let index = candleDatad.length - 375; index < candleDatad.length; index++) {
+                    const element = candleDatad[index];
+                    
+                    if(element){
+                        var per = (element[4] - element[1]) * 100 / element[1];
+
+                        if (per >= 0.4) {
+                            bigCandleCount += 1;
+                            console.log(stock.symbol,  per);
+
+                        }
+                        if (per <= -0.4) {
+                            bigCandleCount += 1;
+                            console.log(stock.symbol,  per);
+
+                        }
+                    }
+                }
+                console.log("Totalcount", stock.symbol,  bigCandleCount);
+                if(bigCandleCount <= 15){
+                    
+                    this.setState({ slowMotionStockList: [...this.state.slowMotionStockList, stock] })
+                }
+            }
+
+        });
+    }
 
 
 
@@ -2216,8 +2268,11 @@ class Home extends React.Component {
 
                 for (let index = candleDatad.length - 20; index < candleDatad.length; index++) {
                     const element = candleDatad[index];
-                    closeingDatadaily.push(element[4]);
-                    valumeSum += element[5];
+                    if(element){
+                        closeingDatadaily.push(element[4]);
+                        valumeSum += element[5];
+                    }
+                  
                 }
 
 
@@ -2473,7 +2528,7 @@ class Home extends React.Component {
         var tradetotal = 0, totalWin = 0, totalLoss = 0;
         return (
             <React.Fragment>
-                <PostLoginNavBar />
+                <PostLoginNavBar   LoadSymbolDetails ={this.LoadSymbolDetails} />
                 <ChartDialog />
                 <Grid direction="row" container spacing={1} style={{ padding: "5px" }} >
 
@@ -3159,8 +3214,6 @@ class Home extends React.Component {
 
                         <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
                        
-                            
-                        
 
                             <Grid item xs={12} sm={12}>
                                 <SimpleExpansionFastMovement data={{ list: this.state.fastMovementList, title: "Fast Movement", LoadSymbolDetails: this.LoadSymbolDetails }} />
@@ -3178,8 +3231,9 @@ class Home extends React.Component {
                                 <SimpleExpansionPanel data={{ list: this.state.openEqualHighList, title: "Open = High : Sell", LoadSymbolDetails: this.LoadSymbolDetails }} />
                             </Grid>
 
-
-                           
+                            <Grid item xs={12} sm={12}>
+                                <SimpleExpansionPanel data={{ list: this.state.slowMotionStockList, title: "Last 5 days no Movement", LoadSymbolDetails: this.LoadSymbolDetails }} />
+                            </Grid>
 
                         </Grid>
 
