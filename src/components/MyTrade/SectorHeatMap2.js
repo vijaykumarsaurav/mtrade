@@ -857,7 +857,7 @@ class MyView extends React.Component {
 
             var beginningTime = moment('9:15am', 'h:mma');
             var time = moment.duration("22:00:00");  //22:00:00" for last day  2hours 
-            var beginningTime = moment(new Date()).subtract(time);
+         //   var beginningTime = moment(new Date()).subtract(time);
 
             var data = {
                 "exchange": "NSE",

@@ -2276,6 +2276,7 @@ class Home extends React.Component {
                     }
                     if(bigCandleCount >= 1 &&  bullishCount >= 1){
                         row.highlisht =  true; 
+                        window.document.title = "SM: " + row.symbol; 
                         console.log('hey listen, slow motion stock' + row.symbol + " broken");
 
                         this.speckIt('hey listen, slow motion stock' + row.symbol + " broken");
