@@ -53,6 +53,15 @@ function getQuoteInfo(symbol) {
   return NSEAPI.getQuoteInfo(symbol);
 }
 
+function getQuoteInfoOptionChain(symbol) {
+  return NSEAPI.getQuoteInfoOptionChain(symbol);
+}
+
+
+function getQuoteInfoOptionChainEquity(symbol) {
+  return NSEAPI.getQuoteInfoOptionChainEquity(symbol);
+}
+
 
 /**
  * Get List of Gainers
@@ -160,6 +169,9 @@ var nse = {
   getIndices: getIndices,
   getSectorsList: getSectorsList,
   getQuotes: getQuotes,
+  getQuoteInfoOptionChain:getQuoteInfoOptionChain, 
+  getQuoteInfoOptionChainEquity:getQuoteInfoOptionChainEquity, 
+
   getQuoteInfo: getQuoteInfo,
   getGainers: getGainers,
   getLosers: getLosers,

@@ -127,7 +127,12 @@ class AdminService {
      }
 
      getBNcpdata(symbol){
-        return axios.get('http://localhost:8081/nse/getOptionChain?symbol='+symbol, '');
+         if(symbol == 'NIFTY' || symbol == 'BANKNIFTY'){
+            return axios.get('http://localhost:8081/nse/getOptionChain?symbol='+symbol, '');
+         }else{
+            return axios.get('http://localhost:8081/nse/getOptionChainEquity?symbol='+symbol, '');
+         }
+        
      }
 
 }

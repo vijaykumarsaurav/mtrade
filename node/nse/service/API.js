@@ -6,7 +6,8 @@ var MARKET_STATUS_URL = require('../constant').MARKET_STATUS_URL;
 var INDICES_WATCH_URL = require('../constant').INDICES_WATCH_URL;
 var SECTORS_LIST = require('../constant').SECTORS_LIST;
 var QUOTE_INFO_URL = require('../constant').QUOTE_INFO_URL;
-var OPTION_CHAIN_INFO_URL = require('../constant').OPTION_CHAIN_INFO_URL;
+var OPTION_CHAIN_INDEX = require('../constant').OPTION_CHAIN_INDEX;
+var OPTION_CHAIN_EQUITY = require('../constant').OPTION_CHAIN_EQUITY;
 var GET_QUOTE_URL = require('../constant').GET_QUOTE_URL;
 var GAINERS_URL = require('../constant').GAINERS_URL;
 var LOSERS_URL = require('../constant').LOSERS_URL;
@@ -121,11 +122,24 @@ function getQuoteInfo(symbol) {
     }
   })
 }
-function getQuoteInfo(symbol) {
-  console.log("url",OPTION_CHAIN_INFO_URL + encodeURIComponent(symbol));
-  return axios.get(OPTION_CHAIN_INFO_URL + encodeURIComponent(symbol), {
+function getQuoteInfoOptionChain(symbol) {
+  console.log("index api",OPTION_CHAIN_INDEX + encodeURIComponent(symbol));
+
+  return axios.get(OPTION_CHAIN_INDEX + encodeURIComponent(symbol), {
     headers: {
-      Referer: OPTION_CHAIN_INFO_URL + encodeURIComponent(symbol),
+      Referer: OPTION_CHAIN_INDEX + encodeURIComponent(symbol),
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+}
+
+function getQuoteInfoOptionChainEquity(symbol) {
+
+  console.log("equity api",OPTION_CHAIN_EQUITY + encodeURIComponent(symbol));
+
+  return axios.get(OPTION_CHAIN_EQUITY + encodeURIComponent(symbol), {
+    headers: {
+      Referer: OPTION_CHAIN_EQUITY + encodeURIComponent(symbol),
       'X-Requested-With': 'XMLHttpRequest'
     }
   })
@@ -269,6 +283,8 @@ var NSEAPI = {
   getSectorsList: getSectorsList,
   getQuotes: getQuotes,
   getQuoteInfo: getQuoteInfo,
+  getQuoteInfoOptionChain:getQuoteInfoOptionChain, 
+  getQuoteInfoOptionChainEquity: getQuoteInfoOptionChainEquity, 
   getGainers: getGainers,
   getLosers: getLosers,
   getInclineDecline: getInclineDecline,

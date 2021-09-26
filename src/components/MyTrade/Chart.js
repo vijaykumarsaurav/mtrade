@@ -47,7 +47,7 @@ export default function App( props ) {
 
   data.reverse();
 
-  for (let index = data.length - 10; index <  data.length; index++) {
+  for (let index = data.length - 20; index <  data.length; index++) {
     if(data[index]){
       putData.push(data[index].totPEOI); 
       callData.push(data[index].totCEOI); 

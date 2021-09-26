@@ -63,7 +63,7 @@ class Home extends React.Component {
             symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
-            selectedWatchlist: 'NIFTY BANK',
+            selectedWatchlist: 'Securities in F&O',
             longExitPriceType: 4,
             shortExitPriceType: 4,
             candleChartData: [],
@@ -75,7 +75,8 @@ class Home extends React.Component {
             chartStaticData: [],
             volumeCrossedList: [],
             slowMotionStockList: [],
-            timeFrame: "TEN_MINUTE",
+            volumeBreakoutlast5CandleList: [], 
+            timeFrame: "FIFTEEN_MINUTE",
             cursor: '',
             advanceShareCount: 0,
             declineShareCount: 0,
@@ -197,7 +198,7 @@ class Home extends React.Component {
 
                  //   this.dailyBasisInfoCheck(element.token, element);
 
-                 this.checkSlowMotionStock(element.token, element);
+                  // this.checkSlowMotionStock(element.token, element);
 
                 }
             })
@@ -371,10 +372,16 @@ class Home extends React.Component {
                 this.checkSlowMotionCheckLive(); 
              }, 5*75000);
 
+            setInterval(() => {
+                this.searchValumeBreakoutStock(); 
+            }, 15*75000);
+
+             
+
         }
 
 
-      
+        this.searchValumeBreakoutStock();    
       
 
     }
@@ -2291,6 +2298,85 @@ class Home extends React.Component {
    
     }
 
+    searchValumeBreakoutStock = async() => {
+    
+        for (let index = 0; index < this.state.symbolList.length; index++) {
+            const row = this.state.symbolList[index];
+            const format1 = "YYYY-MM-DD HH:mm";
+            var time = moment.duration("60:00:00");  //22:00:00" for last day  2hours 
+            var startDate = moment(new Date()).subtract(time);
+            var dataDay = {
+                "exchange": 'NSE',
+                "symboltoken": row.token,
+                "interval": 'FIFTEEN_MINUTE',
+                "fromdate": moment(startDate).format(format1),
+                "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+            }
+            AdminService.getHistoryData(dataDay).then(resd => {
+                let histdatad = resolveResponse(resd, 'noPop');
+                var DSMA = '';
+                if (histdatad && histdatad.data && histdatad.data.length) {
+                    var candleDatad = histdatad.data;
+    
+                    var  volumeSum = 0, findmaxVol = candleDatad[0][5]; 
+                    let currentCandleVol =  candleDatad[candleDatad.length-1][5]; 
+                    let firstCandleCloseingPrice = candleDatad[0][4], priceGoingHighCount=0;  
+                    let firstCandleCloseingPriceDownSide = candleDatad[0][4], priceGoingLowCount=0;  
+
+                    for (let index = candleDatad.length-6; index < candleDatad.length-1; index++) {
+                        const element = candleDatad[index];
+                        volumeSum += element[5];  
+                      //  console.log(row.symbol, ' last candle index ',index,   element[0] );
+                        if(findmaxVol < element[5]){
+                            findmaxVol = element[5]; 
+                        }
+
+                        if(firstCandleCloseingPrice < element[4]){
+                           console.log(row.symbol, firstCandleCloseingPrice , 'upside last candle index ',index,   element[4] );
+                            firstCandleCloseingPrice = element[4]; 
+                            priceGoingHighCount += 1; 
+                        }
+
+                        if(element[4] < firstCandleCloseingPriceDownSide){
+                            console.log(row.symbol, firstCandleCloseingPrice , ' downside last candle index ',index,   element[4] );
+                            firstCandleCloseingPriceDownSide = element[4]; 
+                            priceGoingLowCount += 1; 
+                         }
+
+                    }
+                    let avgVol = volumeSum/5;
+
+                    if(currentCandleVol/findmaxVol > 1.75 && priceGoingHighCount >= 4){
+                        window.document.title = "VB: " + row.symbol;
+                        row.orderType =  " Vol " + (currentCandleVol/findmaxVol).toFixed(2) + " Time 5High & price incresing"; 
+                        row.foundAt = new Date( candleDatad[candleDatad.length-1][0]).toLocaleString()
+                        console.log(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" time of average ", avgVol, currentCandleVol,  candleDatad[candleDatad.length-1][0],  findmaxVol);
+                        this.speckIt(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" Time 5High & price incresing");
+                        this.setState({ volumeBreakoutlast5CandleList: [...this.state.volumeBreakoutlast5CandleList, row] });
+                    }
+                    if(currentCandleVol/findmaxVol > 1.75 && priceGoingLowCount >= 4){
+                        window.document.title = "VB: " + row.symbol;
+                        row.orderType =  " Vol " + (currentCandleVol/findmaxVol).toFixed(2) + " Time 5High price decresing"; 
+                        row.foundAt = new Date( candleDatad[candleDatad.length-1][0]).toLocaleString()
+                        console.log(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" time of average ", avgVol, currentCandleVol,  candleDatad[candleDatad.length-1][0],  findmaxVol);
+                        this.speckIt(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" Time 5High price decresing ");
+                        this.setState({ volumeBreakoutlast5CandleList: [...this.state.volumeBreakoutlast5CandleList, row] });
+                    }
+                    // else if(currentCandleVol > avgVol){
+                    //     row.highlisht =  true; 
+                    //     window.document.title = "VB: " + row.symbol;
+                    //     console.log(row.symbol, ' avg ', avgVol, currentCandleVol,  candleDatad[candleDatad.length-1][0]);
+                    //     this.speckIt('Volume  in ' + row.name + " crossed average ");
+                    //     this.setState({ volumeBreakoutlast5CandleList: this.state.slowMotionStockList })
+                    // }
+                }
+    
+            });
+            await new Promise(r => setTimeout(r, 310));  
+        }
+   
+    }
+
     speckIt = (text) => {
         var msg = new SpeechSynthesisUtterance();
         msg.text = text.toString();
@@ -3271,6 +3357,13 @@ class Home extends React.Component {
 
                         <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
                        
+
+
+                        
+
+                        <Grid item xs={12} sm={12}>
+                                <SimpleExpansionFastMovement data={{ list: this.state.volumeBreakoutlast5CandleList, title: "Last 5 bar Volume breakout", LoadSymbolDetails: this.LoadSymbolDetails }} />
+                            </Grid> 
 
                             <Grid item xs={12} sm={12}>
                                 <SimpleExpansionFastMovement data={{ list: this.state.fastMovementList, title: "Fast Movement", LoadSymbolDetails: this.LoadSymbolDetails }} />

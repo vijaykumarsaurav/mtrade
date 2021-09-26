@@ -42,7 +42,8 @@ class MyView extends React.Component {
             products: [],
             stopnview: '',
             curnewdata: '',
-            underlyingValue: '',
+            showOptionUpside: 800, 
+            showOptionDownside: 800, 
             timestamp: '',
             totalCOI: 0,
             expiry: '',
@@ -58,7 +59,10 @@ class MyView extends React.Component {
             filtered: JSON.parse(localStorage.getItem('optionChainDataBN')) && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered.data,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             selectedWatchlist: 'Securities in F&O',
-            selectOptionStock: "NIFTY"
+            selectOptionStock: "NIFTY",
+            underlyingValue: JSON.parse(localStorage.getItem('optionChainDataBN')) && JSON.parse(localStorage.getItem('optionChainDataBN')).records && JSON.parse(localStorage.getItem('optionChainDataBN')).records.underlyingValue,
+
+
 
 
             //JSON.parse(localStorage.getItem('optionChainDataBN')).records.data
@@ -243,7 +247,19 @@ class MyView extends React.Component {
 
         var myStrike = [];
 
-        for (let index = 33000; index <= 36000; index += 100) {
+        let startDiff = this.state.underlyingValue - this.state.showOptionDownside
+        let rem = Math.round(startDiff) % 100; 
+        let startFrom = Math.round(startDiff) + 100 - rem; 
+
+        let endDiff = this.state.underlyingValue + this.state.showOptionUpside; 
+        let rem2 = Math.round(endDiff) % 100; 
+        let endTo = Math.round(endDiff) + 100 - rem2; 
+
+
+        console.log( this.state.underlyingValue , 'start from', startFrom, 'endto', endTo);
+
+
+        for (let index = startFrom; index <= endTo; index += 100) {
             myStrike.push(index)
         }
 
@@ -253,13 +269,13 @@ class MyView extends React.Component {
 
         var data = [], totalspeoi = 0, totalsceoi = 0;
         myStrike.forEach(element => {
-            // var resdata =  this.getDataforStrike(element); 
-            // totalspeoi = totalspeoi+resdata.sumOfPEoi; 
-            // totalsceoi = totalsceoi+resdata.sumOfCEoi; 
+            var resdata =  this.getDataforStrike(element); 
+            totalspeoi = totalspeoi+resdata.sumOfPEoi; 
+            totalsceoi = totalsceoi+resdata.sumOfCEoi; 
 
-            // data.push(resdata); 
+            data.push(resdata); 
 
-            // console.log(element, resdata);
+            console.log(element, resdata);
 
 
         });
@@ -441,7 +457,7 @@ class MyView extends React.Component {
                                 MenuProps={MenuProps}
                             >
                                 <MenuItem key={'NIFTY'} value={'NIFTY'} > {'NIFTY'}</MenuItem>
-                                <MenuItem key={'NIFTYBANK'} value={'NIFTYBANK'} > {'NIFTYBANK'}</MenuItem>
+                                <MenuItem key={'BANKNIFTY'} value={'BANKNIFTY'} > {'BANKNIFTY'}</MenuItem>
 
                                 {this.state.SecuritiesInFO && this.state.SecuritiesInFO.length ? this.state.SecuritiesInFO.map((row, index) => (
                                     <MenuItem key={row.name} value={row.name} >
@@ -675,7 +691,6 @@ class MyView extends React.Component {
                                     </TableRow>
                                 )) : ''}
 
-
                             </TableBody>
                         </Table>
 
@@ -755,7 +770,8 @@ class MyView extends React.Component {
                                     <TableRow hover key={index} style={{ background: opdata.isDuplicate ? "lightgray" : "" }}>
 
                                         {/* <TableCell style={{whiteSpace: "nowrap"}} align="center">{index+1} </TableCell>*/}
-                                        {opdata && opdata.CE && opdata.PE ? <>
+                                        {opdata && opdata.CE && opdata.PE && (opdata.strikePrice >= opdata.CE.underlyingValue - this.state.showOptionUpside && opdata.strikePrice <= opdata.CE.underlyingValue + this.state.showOptionDownside) ? <>
+                                           
                                             <TableCell {...totCEOI = totCEOI + opdata.CE.openInterest} style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.CE.openInterest}</TableCell>
                                             <TableCell {...totCEOIChange = totCEOIChange + opdata.CE.changeinOpenInterest} style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.CE.changeinOpenInterest}</TableCell>
                                             {/* <TableCell {...totCEVol = totCEVol + opdata.CE.totalTradedVolume} style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.totalTradedVolume} </TableCell> */}

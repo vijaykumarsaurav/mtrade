@@ -58,7 +58,9 @@ class MyView extends React.Component {
                 'NIFTY INFRA': 'cnxInfra',
                 'NIFTY MNC': 'cnxMNC',
                 'NIFTY PSE': 'cnxPSE',
-
+                "NIFTY HEALTHCARE": "niftyHealthcare"
+                
+                //'NIFTY CONSR DURBL':  "niftyConsrDurbl"
                 // 'NIFTY GROWSECT 15': 'ni15',H
                 // 'NIFTY COMMODITIES': 'cnxCommodities',
                 // 'NIFTY SERV SECTOR': 'cnxService',
@@ -931,12 +933,6 @@ class MyView extends React.Component {
                     
                     })
 
-
-                    
-
-                 
-
-
                 }
             })
         }
@@ -1002,7 +998,7 @@ class MyView extends React.Component {
         }
     }
     switchToListView = () => {
-        this.setState({ switchToListViewFlag: false });
+        this.setState({ switchToListViewFlag: !this.state.switchToListViewFlag });
     }
 
     render() {
@@ -1205,7 +1201,7 @@ class MyView extends React.Component {
                                 </TableRow>
                                 : ""
 
-                            )) : <Spinner />}
+                            )) : ''}
 
 
                         </TableBody>
