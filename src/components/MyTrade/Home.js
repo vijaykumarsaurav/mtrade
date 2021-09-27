@@ -198,7 +198,7 @@ class Home extends React.Component {
 
                  //   this.dailyBasisInfoCheck(element.token, element);
 
-                  // this.checkSlowMotionStock(element.token, element);
+                   this.checkSlowMotionStock(element.token, element);
 
                 }
             })
@@ -2235,8 +2235,12 @@ class Home extends React.Component {
                 }
                 console.log("Totalcount", stock.symbol,  bigCandleCount);
                 if(bigCandleCount <= 15){
+
+                    stock.bigCandleCount = bigCandleCount; 
                     
-                    this.setState({ slowMotionStockList: [...this.state.slowMotionStockList, stock] })
+                    this.setState({ slowMotionStockList: [...this.state.slowMotionStockList, stock] }, function(){
+                        localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList)); 
+                    }); 
                 }
             }
 
@@ -2348,18 +2352,18 @@ class Home extends React.Component {
 
                     if(currentCandleVol/findmaxVol > 1.75 && priceGoingHighCount >= 4){
                         window.document.title = "VB: " + row.symbol;
-                        row.orderType =  " Vol " + (currentCandleVol/findmaxVol).toFixed(2) + " Time 5High & price incresing"; 
+                        row.orderType =  " Vol " + (currentCandleVol/findmaxVol).toFixed(2) + " Time & price incresing"; 
                         row.foundAt = new Date( candleDatad[candleDatad.length-1][0]).toLocaleString()
                         console.log(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" time of average ", avgVol, currentCandleVol,  candleDatad[candleDatad.length-1][0],  findmaxVol);
-                        this.speckIt(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" Time 5High & price incresing");
+                        this.speckIt(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" Time and price incresing");
                         this.setState({ volumeBreakoutlast5CandleList: [...this.state.volumeBreakoutlast5CandleList, row] });
                     }
                     if(currentCandleVol/findmaxVol > 1.75 && priceGoingLowCount >= 4){
                         window.document.title = "VB: " + row.symbol;
-                        row.orderType =  " Vol " + (currentCandleVol/findmaxVol).toFixed(2) + " Time 5High price decresing"; 
+                        row.orderType =  " Vol " + (currentCandleVol/findmaxVol).toFixed(2) + " Time & price decresing"; 
                         row.foundAt = new Date( candleDatad[candleDatad.length-1][0]).toLocaleString()
                         console.log(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" time of average ", avgVol, currentCandleVol,  candleDatad[candleDatad.length-1][0],  findmaxVol);
-                        this.speckIt(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" Time 5High price decresing ");
+                        this.speckIt(row.name + " volume crossed "+ (currentCandleVol/findmaxVol).toFixed(2) +" Time and price decresing ");
                         this.setState({ volumeBreakoutlast5CandleList: [...this.state.volumeBreakoutlast5CandleList, row] });
                     }
                     // else if(currentCandleVol > avgVol){

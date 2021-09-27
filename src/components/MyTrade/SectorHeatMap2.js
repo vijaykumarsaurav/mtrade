@@ -58,8 +58,8 @@ class MyView extends React.Component {
                 'NIFTY INFRA': 'cnxInfra',
                 'NIFTY MNC': 'cnxMNC',
                 'NIFTY PSE': 'cnxPSE',
-                "NIFTY HEALTHCARE": "niftyHealthcare"
-                
+
+              //  "NIFTY HEALTHCARE": "niftyHealthcare"
                 //'NIFTY CONSR DURBL':  "niftyConsrDurbl"
                 // 'NIFTY GROWSECT 15': 'ni15',H
                 // 'NIFTY COMMODITIES': 'cnxCommodities',
@@ -81,6 +81,7 @@ class MyView extends React.Component {
             topGLCount: 0,
             refreshFlagCandle: true,
             switchToListViewFlag: true,
+            slowMotionStockList: localStorage.getItem('slowMotionStockList') && JSON.parse(localStorage.getItem('slowMotionStockList')) || [],
             sectorStockList: localStorage.getItem('sectorStockList') && JSON.parse(localStorage.getItem('sectorStockList')) || [],
             sectorList: localStorage.getItem('sectorList') && JSON.parse(localStorage.getItem('sectorList')) || [],
             watchList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
@@ -112,12 +113,6 @@ class MyView extends React.Component {
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-
-
-            setInterval(() => {
-                this.loadIndexesList();
-            }, 30000);
-
 
             wsClintSectorUpdate.onopen = (res) => {
                 // this.makeConnection();
@@ -1001,6 +996,19 @@ class MyView extends React.Component {
         this.setState({ switchToListViewFlag: !this.state.switchToListViewFlag });
     }
 
+    get5DaysMoveCount =(symbol)=> {
+        
+        var isThere = this.state.slowMotionStockList.filter(row => row.name === symbol);
+
+        
+        console.log("get5DaysMoveCount",symbol,  isThere); 
+        if (isThere.length) {
+           return "SM: " + isThere[0].bigCandleCount ;  
+        }else{
+            return '';
+        }
+    }
+
     render() {
 
         // this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
@@ -1188,8 +1196,10 @@ class MyView extends React.Component {
                                     {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
                                         <TableCell style={{ textAlign: "left", }} >
                                             <div style={{padding:"5px"}}> 
-                                            <Button size="small" style={{ background: this.getPercentageColor(sectorItem.iislPercChange)}}  onClick={() => this.showCandleChartPopUp(sectorItem.symbol)}><b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%)</Button>  
-
+                                              <Button size="small" onClick={() => this.showCandleChartPopUp(sectorItem.symbol)}>
+                                                  <span style={{ background: this.getPercentageColor(sectorItem.iislPercChange)}}>  <b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%) </span>
+                                                  <span title="last 5 days 5min big movement  maximum count">&nbsp;{this.get5DaysMoveCount(sectorItem.symbol)}  </span> 
+                                            </Button>  
 
                                             </div>
 
