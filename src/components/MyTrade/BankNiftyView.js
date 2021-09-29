@@ -178,7 +178,7 @@ class MyView extends React.Component {
             this.updatepcr()
         }, 60000 * 6);
 
-        this.findSupportResistence(this.state.optionChainDataBN ? this.state.optionChainDataBN : "");
+       // this.findSupportResistence(this.state.optionChainDataBN ? this.state.optionChainDataBN : "");
 
 
     }
@@ -189,7 +189,7 @@ class MyView extends React.Component {
 
     getDataforStrike = strikePrice => {
 
-        var alldata = JSON.parse(localStorage.getItem('optionChainDataBN')).records.data;// this.state.optionChainDataBN && this.state.optionChainDataBN.records.data; 
+        var alldata = JSON.parse(localStorage.getItem('optionChainDataBN')).records && JSON.parse(localStorage.getItem('optionChainDataBN')).records.data;// this.state.optionChainDataBN && this.state.optionChainDataBN.records.data; 
         var sumOfCEoi = 0, sumOfPEoi = 0;
         for (let index = 0; index < alldata.length; index++) {
             const element = alldata[index];
@@ -319,7 +319,7 @@ class MyView extends React.Component {
 
                 localStorage.setItem("optionChainDataBN", JSON.stringify(data));
 
-                this.findSupportResistence(data);
+               // this.findSupportResistence(data);
 
                 // console.log("livedata", data.filtered);
 

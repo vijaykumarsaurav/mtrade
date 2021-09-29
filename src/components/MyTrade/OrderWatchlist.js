@@ -327,10 +327,16 @@ class OrderBook extends React.Component{
                     
                     console.log("option ltp", LtpData);
 
-                   let quantity = optionData.lotsize * 2; 
+                   let quantity = optionData.lotsize * 1;   
+
     
-                   let perStopLoss = LtpData.ltp - (LtpData.ltp * 10/100); 
-                   perStopLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopLoss); 
+                   let perStopTrigerLoss = LtpData.ltp - (LtpData.ltp * 10/100); 
+                   perStopTrigerLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopTrigerLoss); 
+
+                   let stopLossPrice = perStopTrigerLoss - (perStopTrigerLoss * 1/100); 
+
+                   stopLossPrice =  CommonOrderMethod.getMinPriceAllowTick(stopLossPrice); 
+
     
                     let element = {
                         tradingsymbol : optionData.symbol, 
@@ -340,13 +346,12 @@ class OrderBook extends React.Component{
                         buyPrice : LtpData.ltp,  
                         producttype : "CARRYFORWARD", 
                         exchange : optionData.exch_seg,
-                        stopLossPrice: perStopLoss,
+                        stopLossTriggerPrice: perStopTrigerLoss,
+                        stopLossPrice: stopLossPrice,
                         quantity : quantity
-                    }
-            
-        
-                    console.log( "orderdata", element);
-                    CommonOrderMethod.placeOptionOrder(element);
+                    }        
+                    console.log( "option buy element", element);
+                   CommonOrderMethod.placeOptionOrder(element);
                 }
             })
         }else{

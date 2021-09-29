@@ -324,31 +324,33 @@ class CommonOrderMethod {
         console.log("place order option", data);
 
        
+        this.placeOptionSLMOrder(orderOption);
 
-        AdminService.placeOrder(data).then(res => {
-            let data = resolveResponse(res);
-            //  console.log(data);   
-            if (data.status && data.message === 'SUCCESS') {
-                if (orderOption.stopLossPrice) {
-                    setTimeout(() => {
-                        this.placeOptionSLMOrder(orderOption);
-                    }, 1000);
-                }
-                this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
+
+        // AdminService.placeOrder(data).then(res => {
+        //     let data = resolveResponse(res);
+        //     //  console.log(data);   
+        //     if (data.status && data.message === 'SUCCESS') {
+        //         if (orderOption.stopLossPrice) {
+        //             setTimeout(() => {
+        //                 this.placeOptionSLMOrder(orderOption);
+        //             }, 1000);
+        //         }
+        //         this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
              
-                var callData = {
-                    "token": orderOption.symboltoken,
-                    "status": true
-                }
-            }
+        //         var callData = {
+        //             "token": orderOption.symboltoken,
+        //             "status": true
+        //         }
+        //     }
 
-        })
+        // })
     }
 
     placeOptionSLMOrder = (slmOption) => {
 
         var data = {
-            "triggerprice": slmOption.stopLossPrice,
+            "triggerprice": slmOption.stopLossTriggerPrice,
             "tradingsymbol": slmOption.tradingsymbol,
             "symboltoken": slmOption.symboltoken,
             "quantity": slmOption.quantity,
@@ -356,7 +358,7 @@ class CommonOrderMethod {
             "exchange": slmOption.exchange,
             "producttype": slmOption.producttype, 
             "duration": "DAY",
-            "price": 0,
+            "price": slmOption.stopLossPrice,
             "squareoff": "0",
             "stoploss": "0",
             "ordertype": "STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT

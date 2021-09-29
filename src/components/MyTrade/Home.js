@@ -2289,7 +2289,7 @@ class Home extends React.Component {
                         if(element){
     
                             var per = (element[4] - element[1]) * 100 / element[1];
-                            if (per >= 0.8) {
+                            if (per >= 0.7) {
                                 bigCandleCount += 1;
                             } 
                             if (per >= 0) {
