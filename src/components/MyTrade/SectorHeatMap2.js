@@ -926,14 +926,14 @@ class MyView extends React.Component {
 
 
 
-                      //  this.showCandleChart(candleChartData, stock.symbol, LtpData.ltp , LtpData.change);  
+                        this.showCandleChart(candleChartData, stock.symbol, LtpData.ltp , LtpData.change);  
 
                        
-                        this.setState({InstrumentLTP: LtpData , selectedSymbol : stock.symbol,  chartStaticData: candleChartData, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
+                        // this.setState({InstrumentLTP: LtpData , selectedSymbol : stock.symbol,  chartStaticData: candleChartData, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
                           
                             
-                            document.getElementById('showLightCandleChart').click();
-                        });
+                        //     document.getElementById('showLightCandleChart').click();
+                        // });
             
                     
                     })
