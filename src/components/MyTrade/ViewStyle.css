@@ -31,3 +31,7 @@
   .TableHeadFormat { 
     font-weight: bold !important;
   }
+
+  .MuiButton-label{
+    text-transform: capitalize;
+  }

@@ -24,6 +24,14 @@ export const AdminMenuList = (
     </ListItem>
 
 
+
+    <ListItem button component='a' href={"/mtrade/#/delivery"} >  
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Delivery" />
+    </ListItem>
+
     
 
    

@@ -37,6 +37,7 @@ import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import LightChartCom from "./LightChartCom";
 import SimpleExpansionPanel from "./SimpleExpansionPanel";
 import SimpleExpansionFastMovement from "./SimpleExpansionFastMovement";
+import LiveBidsExpantion from "./LiveBidsExpantion";
 
 
 
@@ -63,7 +64,7 @@ class Home extends React.Component {
             symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
-            selectedWatchlist: 'Securities in F&O',
+            selectedWatchlist: 'NIFTY BANK', //'Securities in F&O',
             longExitPriceType: 4,
             shortExitPriceType: 4,
             candleChartData: [],
@@ -84,7 +85,7 @@ class Home extends React.Component {
             UnchangeShareCount: 0,
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || [],
             fastMovementList:  localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
-
+            liveBidsList :  [] //localStorage.getItem('liveBidsList') && JSON.parse(localStorage.getItem('liveBidsList')) || [],
 
         };
         this.myCallback = this.myCallback.bind(this);
@@ -396,6 +397,8 @@ class Home extends React.Component {
         }     
         
         this.oneHourBullBearCheck(); 
+
+       // this.checkLiveBids();
 
     }
 
@@ -2315,7 +2318,111 @@ class Home extends React.Component {
    
     }
 
+    checkLiveBids = async() => {
+
+        for (let index = 0; index < this.state.symbolList.length; index++) {
+            const row = this.state.symbolList[index];
+          
+            AdminService.checkLiveBids(row.name).then(resd => {
+                // let histdatad = resolveResponse(resd, 'noPop');
+                
+                console.log("bid",resd.data.data ); 
+
+                // adhocMargin: "0.48"
+                // applicableMargin: "19.00"
+                // averagePrice: "705.27"
+                // basePrice: "717.15"
+                // bcEndDate: "-"
+                // bcStartDate: "-"
+                // buyPrice1: "710.60"
+                // buyPrice2: "710.55"
+                // buyPrice3: "710.50"
+                // buyPrice4: "710.45"
+                // buyPrice5: "710.40"
+                // buyQuantity1: "6"
+                // buyQuantity2: "50"
+                // buyQuantity3: "33"
+                // buyQuantity4: "153"
+                // buyQuantity5: "100"
+                // change: "-6.55"
+                // closePrice: "0.00"
+                // cm_adj_high_dt: "28-SEP-21"
+                // cm_adj_low_dt: "28-SEP-20"
+                // cm_ffm: "4,96,600.56"
+                // companyName: "ICICI Bank Limited"
+                // css_status_desc: "Listed"
+                // dayHigh: "710.95"
+                // dayLow: "701.30"
+                // deliveryQuantity: "55,54,344"
+                // deliveryToTradedQuantity: "63.08"
+                // exDate: "29-JUL-21"
+                // extremeLossMargin: "3.50"
+                // faceValue: "2.00"
+                // high52: "735.40"
+                // indexVar: "-"
+                // isExDateFlag: false
+                // isinCode: "INE090A01021"
+                // lastPrice: "710.60"
+                // low52: "349.10"
+                // marketType: "N"
+                // ndEndDate: "-"
+                // ndStartDate: "-"
+                // open: "707.35"
+                // pChange: "-0.91"
+                // previousClose: "717.15"
+                // priceBand: "No Band"
+                // pricebandlower: "645.45"
+                // pricebandupper: "788.85"
+                // purpose: "DIVIDEND - RS 2 PER SHARE"
+                // quantityTraded: "88,05,883"
+                // recordDate: "30-JUL-21"
+                // secDate: "29-Sep-2021 14:00:00"
+                // securityVar: "15.02"
+                // sellPrice1: "710.65"
+                // sellPrice2: "710.70"
+                // sellPrice3: "710.75"
+                // sellPrice4: "710.80"
+                // sellPrice5: "710.85"
+                // sellQuantity1: "1,382"
+                // sellQuantity2: "719"
+                // sellQuantity3: "1,217"
+                // sellQuantity4: "4,159"
+                // sellQuantity5: "793"
+                // series: "EQ"
+                // surv_indicator: "-"
+                // symbol: "ICICIBANK"
+                // totalBuyQuantity: "10,31,358"
+                // totalSellQuantity: "8,75,359"
+                // totalTradedValue: "66,963.99"
+                // totalTradedVolume: "94,94,802"
+
+                if(resd.data && resd.data.data.length){
+
+                    let bidlivedata = resd.data.data[0]; 
+                    let biddata = {
+                        totalBuyQuantity: bidlivedata.totalBuyQuantity,
+                        totalSellQuantity: bidlivedata.totalSellQuantity,
+                        deliveryToTradedQuantity: bidlivedata.deliveryToTradedQuantity,
+                        symbol : bidlivedata.symbol, 
+                        orderType: bidlivedata.totalBuyQuantity + "|" + bidlivedata.totalSellQuantity, 
+                        nc : bidlivedata.pChange, 
+                        ltp : bidlivedata.lastPrice, 
+                    }
     
+                    this.setState({ liveBidsList: [...this.state.liveBidsList, biddata] }, function(){
+
+                        localStorage.setItem("liveBidsList", JSON.stringify(this.state.liveBidsList)); 
+                    });
+    
+        
+                }
+                
+            });
+            await new Promise(r => setTimeout(r, 100));  
+        }
+   
+    }
+
 
     oneHourBullBearCheck = async() => {
     
@@ -3429,6 +3536,9 @@ class Home extends React.Component {
                         <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
                        
 
+                            <Grid item xs={12} sm={12}>
+                                <LiveBidsExpantion data={{ list: this.state.liveBidsList, title: "Live Bids", LoadSymbolDetails: this.LoadSymbolDetails }} />
+                            </Grid> 
                         
                             <Grid item xs={12} sm={12}>
                                 <SimpleExpansionFastMovement data={{ list: this.state.oneHourBullBearCheckList, title: "Hourly Bullish/Bearish", LoadSymbolDetails: this.LoadSymbolDetails }} />

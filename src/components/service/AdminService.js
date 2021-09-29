@@ -140,6 +140,13 @@ class AdminService {
         return axios.get('http://localhost:8081/nse/get_quote_info?companyName='+ symbol, '');
      }
 
+     checkLiveBids(symbol){
+        return axios.get('http://localhost:8081/nse/get_quote_info?companyName='+ symbol, '');
+     }
+
+
+
+
 }
 
 
