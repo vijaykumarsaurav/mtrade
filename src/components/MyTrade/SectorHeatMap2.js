@@ -847,6 +847,8 @@ class MyView extends React.Component {
 
             let stock = isThere[0]; 
 
+           
+
             this.dailyBasisInfoCheck( stock.token);
 
             const format1 = "YYYY-MM-DD HH:mm";
@@ -854,7 +856,7 @@ class MyView extends React.Component {
 
             var beginningTime = moment('9:15am', 'h:mma');
             var time = moment.duration("22:00:00");  //22:00:00" for last day  2hours 
-         //   var beginningTime = moment(new Date()).subtract(time);
+           // var beginningTime = moment(new Date()).subtract(time);
 
             var data = {
                 "exchange": "NSE",
@@ -867,7 +869,7 @@ class MyView extends React.Component {
     
             AdminService.getHistoryData(data).then(res => {
                 let historyData = resolveResponse(res, 'noPop');
-                //    console.log(data); 
+                    console.log("candledata", historyData); 
                 if (historyData && historyData.data) {
     
                     var data = historyData.data;
@@ -909,7 +911,8 @@ class MyView extends React.Component {
     
                     console.log(stock.symbol, "Rsi", inputRSI, rsiValues);
                     console.log(stock.symbol, "vwap", vwapdata, vwap(vwapdata));
-    
+
+
                     var data = {
                         "exchange":stock.exch_seg,
                         "tradingsymbol": stock.symbol,
@@ -920,8 +923,15 @@ class MyView extends React.Component {
                         var LtpData = data && data.data;  
                         
                         LtpData.change =  (LtpData.ltp - LtpData.close) * 100 /  LtpData.close; 
+
+
+
+                      //  this.showCandleChart(candleChartData, stock.symbol, LtpData.ltp , LtpData.change);  
+
                        
                         this.setState({InstrumentLTP: LtpData , selectedSymbol : stock.symbol,  chartStaticData: candleChartData, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
+                          
+                            
                             document.getElementById('showLightCandleChart').click();
                         });
             
@@ -997,11 +1007,7 @@ class MyView extends React.Component {
     }
 
     get5DaysMoveCount =(symbol)=> {
-        
         var isThere = this.state.slowMotionStockList.filter(row => row.name === symbol);
-
-        
-        console.log("get5DaysMoveCount",symbol,  isThere); 
         if (isThere.length) {
            return "SM: " + isThere[0].bigCandleCount ;  
         }else{
@@ -1009,6 +1015,15 @@ class MyView extends React.Component {
         }
     }
 
+    getDeliveryInfo =(symbol)=> {
+         
+        AdminService.getDeliveryData(symbol).then(resd => {
+            if(resd && resd.data &&  resd.data.length)
+            return "D2T%: " +  resd.data[0].deliveryToTradedQuantity; 
+        });
+       
+    }
+    
     render() {
 
         // this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
@@ -1199,6 +1214,10 @@ class MyView extends React.Component {
                                               <Button size="small" onClick={() => this.showCandleChartPopUp(sectorItem.symbol)}>
                                                   <span style={{ background: this.getPercentageColor(sectorItem.iislPercChange)}}>  <b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%) </span>
                                                   <span title="last 5 days 5min big movement  maximum count">&nbsp;{this.get5DaysMoveCount(sectorItem.symbol)}  </span> 
+                                                  
+                                                  {/* <span title="Delivery Info">&nbsp;{this.getDeliveryInfo(sectorItem.symbol)}  </span>  */}
+
+                                                  
                                             </Button>  
 
                                             </div>

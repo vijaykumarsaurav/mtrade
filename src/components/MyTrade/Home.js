@@ -76,6 +76,7 @@ class Home extends React.Component {
             volumeCrossedList: [],
             slowMotionStockList: [],
             volumeBreakoutlast5CandleList: [], 
+            oneHourBullBearCheckList: [],
             timeFrame: "FIFTEEN_MINUTE",
             cursor: '',
             advanceShareCount: 0,
@@ -198,7 +199,7 @@ class Home extends React.Component {
 
                  //   this.dailyBasisInfoCheck(element.token, element);
 
-                   this.checkSlowMotionStock(element.token, element);
+                    this.checkSlowMotionStock(element.token, element);
 
                 }
             })
@@ -372,17 +373,29 @@ class Home extends React.Component {
                 this.checkSlowMotionCheckLive(); 
              }, 5*75000);
 
-            setInterval(() => {
+           
+             setInterval(() => {
                 this.searchValumeBreakoutStock(); 
             }, 15*75000);
+          
 
-             
-
-        }
-
-
-        this.searchValumeBreakoutStock();    
-      
+             var tostartInteral =   setInterval(() => {
+                var time = new Date();
+                console.log("setinterval ", new Date().toLocaleString()); 
+                if(time.getMinutes() % 60 === 0){
+                    setTimeout(() => {
+                        this.oneHourBullBearCheck(); 
+                    }, 90000);
+                    setInterval(() => {
+                        this.oneHourBullBearCheck(); 
+                     }, 60000 * 60 + 70000 );  
+                     clearInterval(tostartInteral); 
+                } 
+            }, 1000);
+            
+        }     
+        
+        this.oneHourBullBearCheck(); 
 
     }
 
@@ -2276,7 +2289,7 @@ class Home extends React.Component {
                         if(element){
     
                             var per = (element[4] - element[1]) * 100 / element[1];
-                            if (per >= 0.5) {
+                            if (per >= 0.8) {
                                 bigCandleCount += 1;
                             } 
                             if (per >= 0) {
@@ -2285,7 +2298,7 @@ class Home extends React.Component {
     
                         }
                     }
-                    if(bigCandleCount >= 1 &&  bullishCount >= 1){
+                    if(bigCandleCount >= 1){
                         row.highlisht =  true; 
                         window.document.title = "SM: " + row.symbol; 
                         console.log('hey listen, slow motion stock' + row.symbol + " broken");
@@ -2301,6 +2314,57 @@ class Home extends React.Component {
         }
    
     }
+
+    
+
+    oneHourBullBearCheck = async() => {
+    
+        for (let index = 0; index < this.state.symbolList.length; index++) {
+            const row = this.state.symbolList[index];
+            const format1 = "YYYY-MM-DD HH:mm";
+            var time = moment.duration("02:00:00");  //22:00:00" for last day  2hours 
+            var startDate = moment(new Date()).subtract(time);
+            var dataDay = {
+                "exchange": 'NSE',
+                "symboltoken": row.token,
+                "interval": 'ONE_HOUR',
+                "fromdate": moment(startDate).format(format1),
+                "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+            }
+            AdminService.getHistoryData(dataDay).then(resd => {
+                let histdatad = resolveResponse(resd, 'noPop');
+                var DSMA = '';
+                if (histdatad && histdatad.data && histdatad.data.length) {
+                    var candleDatad = histdatad.data;
+    
+                    let lastCandle = candleDatad[candleDatad.length-1];
+
+                    
+                    if((lastCandle[1] == lastCandle[3]) && (lastCandle[2] == lastCandle[4])){
+                        window.document.title = "Hourly Buy: " + row.symbol;
+                        console.log(row.name, "Hourly Buy",  candleDatad[candleDatad.length-1]); 
+                        row.orderType =  " Hourly Buy"; 
+                        row.foundAt = new Date( candleDatad[candleDatad.length-1][0]).toLocaleString()
+                        this.speckIt(row.name + " Hourly Bullish ");
+                        this.setState({ oneHourBullBearCheckList: [...this.state.oneHourBullBearCheckList, row] });
+                    }
+                    if((lastCandle[1] == lastCandle[2]) && (lastCandle[3] == lastCandle[4])){
+                        window.document.title = "Hourly Sell: " + row.symbol;
+                        console.log(row.name, "Hourly Sell",  candleDatad[candleDatad.length-1]); 
+                        row.orderType =  " Hourly Sell"; 
+                        row.foundAt = new Date( candleDatad[candleDatad.length-1][0]).toLocaleString()
+                        this.speckIt(row.name + " Hourly Sell ");
+                        this.setState({ oneHourBullBearCheckList: [...this.state.oneHourBullBearCheckList, row] });
+                    }
+               
+                }
+    
+            });
+            await new Promise(r => setTimeout(r, 310));  
+        }
+   
+    }
+
 
     searchValumeBreakoutStock = async() => {
     
@@ -2329,23 +2393,26 @@ class Home extends React.Component {
 
                     for (let index = candleDatad.length-6; index < candleDatad.length-1; index++) {
                         const element = candleDatad[index];
-                        volumeSum += element[5];  
-                      //  console.log(row.symbol, ' last candle index ',index,   element[0] );
-                        if(findmaxVol < element[5]){
-                            findmaxVol = element[5]; 
+                        if(element){
+                            volumeSum += element[5];  
+                            //  console.log(row.symbol, ' last candle index ',index,   element[0] );
+                              if(findmaxVol < element[5]){
+                                  findmaxVol = element[5]; 
+                              }
+      
+                              if(firstCandleCloseingPrice < element[4]){
+                                 console.log(row.symbol, firstCandleCloseingPrice , 'upside last candle index ',index,   element[4] );
+                                  firstCandleCloseingPrice = element[4]; 
+                                  priceGoingHighCount += 1; 
+                              }
+      
+                              if(element[4] < firstCandleCloseingPriceDownSide){
+                                  console.log(row.symbol, firstCandleCloseingPrice , ' downside last candle index ',index,   element[4] );
+                                  firstCandleCloseingPriceDownSide = element[4]; 
+                                  priceGoingLowCount += 1; 
+                               }
                         }
-
-                        if(firstCandleCloseingPrice < element[4]){
-                           console.log(row.symbol, firstCandleCloseingPrice , 'upside last candle index ',index,   element[4] );
-                            firstCandleCloseingPrice = element[4]; 
-                            priceGoingHighCount += 1; 
-                        }
-
-                        if(element[4] < firstCandleCloseingPriceDownSide){
-                            console.log(row.symbol, firstCandleCloseingPrice , ' downside last candle index ',index,   element[4] );
-                            firstCandleCloseingPriceDownSide = element[4]; 
-                            priceGoingLowCount += 1; 
-                         }
+                       
 
                     }
                     let avgVol = volumeSum/5;
@@ -3362,10 +3429,14 @@ class Home extends React.Component {
                         <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
                        
 
+                        
+                            <Grid item xs={12} sm={12}>
+                                <SimpleExpansionFastMovement data={{ list: this.state.oneHourBullBearCheckList, title: "Hourly Bullish/Bearish", LoadSymbolDetails: this.LoadSymbolDetails }} />
+                            </Grid> 
 
                         
 
-                        <Grid item xs={12} sm={12}>
+                            <Grid item xs={12} sm={12}>
                                 <SimpleExpansionFastMovement data={{ list: this.state.volumeBreakoutlast5CandleList, title: "Last 5 bar Volume breakout", LoadSymbolDetails: this.LoadSymbolDetails }} />
                             </Grid> 
 

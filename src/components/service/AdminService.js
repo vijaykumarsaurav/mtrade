@@ -135,6 +135,11 @@ class AdminService {
         
      }
 
+
+     getDeliveryData(symbol){
+        return axios.get('http://localhost:8081/nse/get_quote_info?companyName='+ symbol, '');
+     }
+
 }
 
 
