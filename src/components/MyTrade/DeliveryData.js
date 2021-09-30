@@ -216,6 +216,8 @@ class OrderBook extends React.Component{
                     this.setState({ liveBidsList: [...this.state.liveBidsList, bidlivedata] , lastUpdateTime : resd.data.lastUpdateTime}, function(){
                         
                         localStorage.setItem("liveBidsList", JSON.stringify(this.state.liveBidsList)); 
+                        window.document.title = "Del: " + this.state.liveBidsList[0].symbol;
+
 
                     });
     
@@ -324,7 +326,7 @@ class OrderBook extends React.Component{
 
 
                                     <TableCell  align="center" ><Button onClick={() => this.sortByColumn("totalTradedVolume")}> Total Traded Volume</Button>  </TableCell>
-                                    <TableCell  align="center" ><Button onClick={() => this.sortByColumn("totalTradedValue")}> Total Traded Value(cr)</Button>  </TableCell>
+                                    <TableCell  align="center" ><Button onClick={() => this.sortByColumn("totalTradedValue")}> Total Traded Value(L)</Button>  </TableCell>
 
                                     <TableCell  align="center">Day Open</TableCell>
                                     <TableCell  align="center">Day High</TableCell>

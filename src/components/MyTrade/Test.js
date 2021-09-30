@@ -29,7 +29,6 @@ import LightChartCom from "./LightChartCom";
 
 import Chart from "./Chart";
 
-import DataGridPro from "./DataGridPro";
 
 export default class Example extends React.Component {
   constructor(props) {
@@ -352,8 +351,6 @@ export default class Example extends React.Component {
 
           {/* <LightChartCom ChartData={{areaSeries: this.state.areaData, volumeData : this.state.volumeData}}/> */}
        
-        <DataGridPro />
-
 
       </Container>
     )

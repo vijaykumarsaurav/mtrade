@@ -303,7 +303,7 @@ class OrderBook extends React.Component{
 
     }
 
-    buyOption =(optiontype ,symbol, strikePrice, expiryDate)=>{
+    buyOption =(optiontype ,symbol, strikePrice, expiryDate, noOfLot)=>{
       console.log(optiontype ,symbol, strikePrice, expiryDate); 
       let exp = expiryDate.toUpperCase().split('-'); 
        exp = exp[0]+exp[1]+exp[2]%1000; 
@@ -327,7 +327,7 @@ class OrderBook extends React.Component{
                     
                     console.log("option ltp", LtpData);
 
-                   let quantity = optionData.lotsize * 1;   
+                   let quantity = optionData.lotsize * noOfLot;   
 
     
                    let perStopTrigerLoss = LtpData.ltp - (LtpData.ltp * 10/100); 
