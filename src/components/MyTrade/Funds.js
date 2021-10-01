@@ -8,6 +8,7 @@ import "./ViewStyle.css";
 import PostLoginNavBar from "../PostLoginNavbar";
 import AdminService from "../service/AdminService";
 import {resolveResponse} from "../../utils/ResponseHandler";
+import TradeConfig from './TradeConfig.json';
 
 class MyView extends React.Component{
 
@@ -80,7 +81,7 @@ class MyView extends React.Component{
             <Grid   direction="row" container className="flexGrow" spacing={2}  style={{paddingLeft:"5px",paddingRight:"5px", justifyContent:'center'}}>
               
             
-                <Grid id="tabledatachart"  item xs={8} sm={8}>
+                <Grid id="tabledatachart"  item xs={8} sm={4}>
                 <Paper style={{padding:"25px" }}>   
 
                 <Typography variant="h6">
@@ -146,6 +147,26 @@ class MyView extends React.Component{
 
                 </Grid>
 
+
+                <Grid id="tabledatachart"  item xs={4} sm={4}>
+                <Paper style={{padding:"25px" }}>   
+               
+                <Typography variant="h6">
+                    Total Capital  :   {TradeConfig.totalCapital }
+                    </Typography>
+                    
+                    
+                    <Typography variant="h6">
+                    Per Trade Exposure  :   {TradeConfig.perTradeExposurePer}% 
+                    </Typography>
+
+                    <Typography variant="h6">
+                    Per Trade Exposure  :   {(TradeConfig.totalCapital * TradeConfig.perTradeExposurePer/100).toFixed(2)}
+                    </Typography>
+
+                    </Paper>
+
+                </Grid>
                
               
                 </Grid>

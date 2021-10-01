@@ -153,8 +153,12 @@ class MyView extends React.Component {
 
     calculateCallMargin =(e)=> {
         this.state.filtered.forEach(element => {
-            if(element.CE && element.CE.lastPrice)  
-            element.CE.totalMargin = Parser(  this.state.lotSize * this.state.buyCallLot+ " * " + element.CE.lastPrice  + "<br /> <b> " + (element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize).toFixed(2) + "</b>");
+            if(element.CE && element.CE.lastPrice)  {
+                element.CE.totalMargin = Parser(  this.state.lotSize * this.state.buyCallLot+ " * " + element.CE.lastPrice  + "<br /> <b> " + (element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize).toFixed(2) + "</b>");
+                element.CE.maxLoss = Parser( " <b> Max Loss: <br />" + ((element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize) * 10/100).toFixed(2) + "</b>");
+    
+            }
+         
         });
         this.setState({filtered: this.state.filtered}); 
     }
@@ -169,8 +173,9 @@ class MyView extends React.Component {
 
         this.state.filtered.forEach(element => {
             if(element.PE && element.PE.lastPrice)  {
-                console.log("put ltp",  element.PE.lastPrice); 
                 element.PE.totalMargin = Parser(  this.state.lotSize * this.state.buyPutLot+ " * " + element.PE.lastPrice  + "<br /> <b> " + (element.PE.lastPrice * this.state.buyPutLot * this.state.lotSize).toFixed(2) + "</b>");
+                element.PE.maxLoss = Parser( " <b> Max Loss: <br />" + ((element.PE.lastPrice * this.state.buyPutLot * this.state.lotSize) * 10/100).toFixed(2) + "</b>");
+
             }
         });
 
@@ -785,6 +790,9 @@ class MyView extends React.Component {
                                     <TableCell align="center"><b>CHNG</b></TableCell>
                                     <TableCell align="center"><b>Lot</b></TableCell>
                                     <TableCell align="center"><b>Cost</b></TableCell>
+                                    <TableCell align="center"><b>Max Loss</b></TableCell>
+
+                                    
 
                                     <TableCell align="center"><b>Buy</b></TableCell>
 
@@ -809,6 +817,7 @@ class MyView extends React.Component {
                                     <TableCell align="center"><b>Ask Qty</b></TableCell>
                         */}
                                     <TableCell align="center"><b>Buy</b></TableCell>
+                                    <TableCell align="center"><b>Max Loss</b></TableCell>
                                     <TableCell align="center"><b>Cost</b></TableCell>
 
                                     <TableCell align="center"><b>Lot</b></TableCell>
@@ -855,6 +864,9 @@ class MyView extends React.Component {
                                                 <TextField label={"Lot: " + this.state.lotSize} type={"number"} style={{width:"50px", textAlign:"center"}} value={this.state.buyCallLot} onChange={this.onChangeCallLot} name="buyCallLot"  />
                                              </TableCell>
                                             <TableCell align="center"> {opdata.CE.totalMargin} </TableCell>
+                                            <TableCell align="center"> {opdata.CE.maxLoss} </TableCell>
+
+                                            
 
                                             <TableCell align="center">  <Button size={"small"} variant="contained" onClick={() => this.props.buyOption("CE", this.state.selectOptionStock, opdata.strikePrice, opdata.expiryDate, this.state.buyCallLot)}> Call Buy </Button> </TableCell>
 
@@ -870,6 +882,8 @@ class MyView extends React.Component {
                                             <TableCell style={{ borderRight: 'dashed', whiteSpace: "nowrap" }} align="center" ><span style={{ paddingLeft: '5px', paddingRight: '5px' }}> <a href="#" style={{ textDecoration: 'none' }} onClick={() => this.filterOptionChain('expiry', opdata.expiryDate)}> {opdata.expiryDate}</a></span> </TableCell>
 
                                             <TableCell align="center">  <Button size={"small"} variant="contained" onClick={() => this.props.buyOption("PE", this.state.selectOptionStock, opdata.strikePrice, opdata.expiryDate, this.state.buyPutLot)}>Put Buy </Button> </TableCell>
+                                            <TableCell align="center"> {opdata.PE.maxLoss} </TableCell>
+
                                             <TableCell align="center"> {opdata.PE.totalMargin} </TableCell>
 
                                             <TableCell align="center">                            
