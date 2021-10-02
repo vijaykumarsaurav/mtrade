@@ -27,7 +27,9 @@ import CommonMethods from "../../utils/CommonMethods";
 import LightChart from "./LightChart";
 import LightChartCom from "./LightChartCom";
 import Parser from 'html-react-parser';
+import EqualizerIcon from '@material-ui/icons/Equalizer';
 
+import ChartDialog from './ChartDialog';
 
 
 
@@ -126,7 +128,7 @@ class OrderBook extends React.Component {
     }
 
     checkSlowMotionStock = (token, stock, stockindex) => {
-
+        var beginningTime = moment('9:15am', 'h:mma');
         const format1 = "YYYY-MM-DD HH:mm";
         var time = moment.duration("240:00:00");  //22:00:00" for last day  2hours 
         var startDate = moment(new Date()).subtract(time);
@@ -173,6 +175,13 @@ class OrderBook extends React.Component {
                         stock.bigCandleCount = bigCandleCount;
                         stock.sectorName = this.state.selectedWatchlist;
 
+                        var candleChartData = [];
+                        candleDatad.forEach(element => {
+                            candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                        });
+                       // stock.candleChartData = candleChartData.slice(Math.max(candleChartData.length - 10, 1));  
+                        stock.candleChartData = candleChartData;  
+
                         this.setState({ slowMotionStockList: [...this.state.slowMotionStockList, stock] }, function () {
                             localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
                         });
@@ -193,8 +202,10 @@ class OrderBook extends React.Component {
 
             if (!row.isActivated) {
                 const format1 = "YYYY-MM-DD HH:mm";
-                var time = moment.duration("30:00:00");  //22:00:00" for last day  2hours 
+                var time = moment.duration("31:00:00");  //22:00:00" for last day  2hours 
                 var startDate = moment(new Date()).subtract(time);
+                var beginningTime = moment('9:15am', 'h:mma');
+
                 var dataDay = {
                     "exchange": 'NSE',
                     "symboltoken": row.token,
@@ -215,7 +226,6 @@ class OrderBook extends React.Component {
                             const element = candleDatad[index];
 
                             if (element) {
-
                                 var per = (element[4] - element[1]) * 100 / element[1];
                                 if (per >= 1) {
                                     bigCandleCount += 1;
@@ -230,16 +240,24 @@ class OrderBook extends React.Component {
                                 if (per >= 0) {
                                     bullishCount += 1;
                                 }
-
                             }
                         }
 
+                        var candleChartData = [];
+                        candleDatad.forEach(element => {
+                            candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+                        });
+
+                        //row.candleChartData = candleChartData.slice(Math.max(candleChartData.length - 10, 1)); 
+                        row.candleChartData = candleChartData; 
+                        
+                        
                         let update = Parser("Update: " + (index + 1) + "." + row.name + " large(1%): <b>" + bigCandleCount +"</b> &nbsp;mid(0.5%): <b>"+ midBullishCount+"</b> &nbsp;small(>0%): <b>"+ bullishCount+"</b>" ); 
                 
                         this.setState({ scanUpdate:  update})
                         console.log(row.symbol, bigCandleCount, midBullishCount, bullishCount);
 
-                        let updatetopage = Parser("large(1%): <b>" + bigCandleCount +"</b> &nbsp;mid(0.5%): <b>"+ midBullishCount+"</b> &nbsp;small(>0%): <b>"+ bullishCount+"</b> at " + new Date(candleDatad[candleDatad.length-1][0]).toLocaleTimeString()); 
+                        let updatetopage = "large(1%): <b>" + bigCandleCount +"</b> &nbsp;mid(0.5%): <b>"+ midBullishCount+"</b> &nbsp;small(>0%): <b>"+ bullishCount+"</b> at " + new Date(candleDatad[candleDatad.length-1][0]).toLocaleTimeString(); 
 
                         row.update = updatetopage; 
 
@@ -289,9 +307,10 @@ class OrderBook extends React.Component {
                 //console.log(LtpData);
                 if (LtpData && LtpData.ltp) {
                    row.ltp = LtpData.ltp;
+                   row.change = ((LtpData.ltp -  LtpData.close)*100/LtpData.close).toFixed(2);
 
                    if(row.activationPrice){
-                    row.AtoltpChng = (LtpData.ltp-row.activationPrice)*100/row.activationPrice; 
+                    row.AtoltpChng = ((LtpData.ltp-row.activationPrice)*100/row.activationPrice).toFixed(2); 
                    }
               
                    this.setState({ slowMotionStockList: this.state.slowMotionStockList }, function () {
@@ -304,6 +323,18 @@ class OrderBook extends React.Component {
             await new Promise(r => setTimeout(r, 125));
         }
     }
+
+
+    showCandleChart = (candleData, symbol) => {
+
+        if(candleData.length>0){
+            localStorage.setItem('candleChartData', JSON.stringify(candleData))
+            localStorage.setItem('cadleChartSymbol', symbol)
+            document.getElementById('showCandleChart').click();
+        }
+       
+    }
+
 
     deleteAllScan = () => {
 
@@ -361,6 +392,7 @@ class OrderBook extends React.Component {
                 {window.location.hash !== "#/position" ? <PostLoginNavBar /> : ""}
 
 
+                <ChartDialog />
 
                 <Grid direction="row" alignItems="center" container>
                     <Grid item xs={12} sm={12} >
@@ -441,17 +473,18 @@ class OrderBook extends React.Component {
                                         <TableRow hover key={i} style={{ background: row.isActivated ? "lightgray" : "" }}>
                                             <TableCell align="left">{i + 1}</TableCell>
 
-                                            <TableCell align="left">{row.name}</TableCell>
+                                            <TableCell align="left"> <Button size="small" variant="contained" style={{ color: !row.change ? '' : row.change > 0 ? 'green' : 'red' }} onClick={() => this.showCandleChart(row.candleChartData, row.name)}> {row.name} {row.ltp}  {row.change ? "(" + row.change+ "%)" : "" }  <EqualizerIcon /> </Button></TableCell>
+
                                             <TableCell align="center">{row.sectorName}</TableCell>
                                             <TableCell align="center">{row.bigCandleCount}</TableCell>
 
                                             <TableCell align="center">{row.isActivated ? "Yes" : "No"}</TableCell>
                                             <TableCell align="center">{row.activationTime}</TableCell>
                                             <TableCell align="center">{row.activationPrice}</TableCell>
-                                            <TableCell align="center">{row.update}</TableCell>
-                                            <TableCell align="center">{row.ltp}{row.AtoltpChng}</TableCell>
+                                            <TableCell align="center">{row.update ? Parser(row.update): ""}</TableCell>
+                                            <TableCell align="center">{row.ltp} {row.AtoltpChng ? "(" + row.AtoltpChng+ "%)" : "" }</TableCell>
 
-                                        </TableRow>
+                                        </TableRow> 
                                     )) : <Spinner />}
                                 </TableBody>
                             </Table>
