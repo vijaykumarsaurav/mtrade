@@ -234,10 +234,14 @@ class OrderBook extends React.Component {
                             }
                         }
 
-                        let update = Parser("Update: " + (index + 1) + "." + row.name + " large(1%): <b>" + bigCandleCount +"</b> mid(0.5%): <b>"+ midBullishCount+"</b> small(>0%): <b>"+ bullishCount+"</b>" ); 
+                        let update = Parser("Update: " + (index + 1) + "." + row.name + " large(1%): <b>" + bigCandleCount +"</b> &nbsp;mid(0.5%): <b>"+ midBullishCount+"</b> &nbsp;small(>0%): <b>"+ bullishCount+"</b>" ); 
+                
                         this.setState({ scanUpdate:  update})
                         console.log(row.symbol, bigCandleCount, midBullishCount, bullishCount);
 
+                        let updatetopage = Parser("large(1%): <b>" + bigCandleCount +"</b> &nbsp;mid(0.5%): <b>"+ midBullishCount+"</b> &nbsp;small(>0%): <b>"+ bullishCount+"</b> at " + new Date(candleDatad[candleDatad.length-1][0]).toLocaleTimeString()); 
+
+                        row.update = updatetopage; 
 
                         if (bigCandleCount >= 1 || (midBullishCount >= 1 && bullishCount >= 2)) {
 
@@ -255,6 +259,7 @@ class OrderBook extends React.Component {
                                 localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
                             })
                         }
+
                     }
 
                 });
@@ -387,6 +392,8 @@ class OrderBook extends React.Component {
                                         <TableCell align="center"><Button onClick={() => this.sortByColumn("isActivated")}>Is Activated</Button></TableCell>
                                         <TableCell align="center">Activate Time</TableCell>
                                         <TableCell align="center">Activation Price</TableCell>
+                                        <TableCell align="center">Last Update</TableCell>
+
 
 
                                     </TableRow>
@@ -406,6 +413,9 @@ class OrderBook extends React.Component {
                                             <TableCell align="center">{row.isActivated ? "Yes" : "No"}</TableCell>
                                             <TableCell align="center">{row.activationTime}</TableCell>
                                             <TableCell align="center">{row.activationPrice}</TableCell>
+                                            <TableCell align="center">{row.update}</TableCell>
+
+                                            
 
 
                                         </TableRow>
