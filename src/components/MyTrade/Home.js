@@ -200,7 +200,7 @@ class Home extends React.Component {
 
                  //   this.dailyBasisInfoCheck(element.token, element);
 
-                    this.checkSlowMotionStock(element.token, element);
+                   // this.checkSlowMotionStock(element.token, element);
 
                 }
             })
