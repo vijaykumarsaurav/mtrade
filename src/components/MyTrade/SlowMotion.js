@@ -26,6 +26,9 @@ import vwap from 'vwap';
 import CommonMethods from "../../utils/CommonMethods";
 import LightChart from "./LightChart";
 import LightChartCom from "./LightChartCom";
+import Parser from 'html-react-parser';
+
+
 
 
 class OrderBook extends React.Component {
@@ -52,7 +55,7 @@ class OrderBook extends React.Component {
             qtyToTake: '',
             BBBlastType: "BBBlastOnly",
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
-            sortedType: "pChange",
+            sortedType: "isActivated",
             slowMotionStockList: localStorage.getItem('slowMotionStockList') && JSON.parse(localStorage.getItem('slowMotionStockList')) || []
 
         }
@@ -89,7 +92,7 @@ class OrderBook extends React.Component {
 
 
     onChangeWatchlist = (e) => {
-        clearInterval(this.state.findlast5minMovementInterval);
+
         this.setState({ [e.target.name]: e.target.value }, function () {
             // this.findlast5minMovement(); //one time only
             //this.startSearching();
@@ -101,6 +104,13 @@ class OrderBook extends React.Component {
 
     checkSlowMotion = async () => {
         var watchList = this.state.staticData[this.state.selectedWatchlist];
+
+        if (this.state.selectedWatchlist == "selectall") {
+            watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'));
+        }
+
+
+
         this.setState({ scanUpdate: "" });
         for (let index = 0; index < watchList.length; index++) {
             const row = watchList[index];
@@ -158,12 +168,18 @@ class OrderBook extends React.Component {
 
                 if (bigCandleCount <= 15) {
 
-                    stock.bigCandleCount = bigCandleCount;
-                    stock.sectorName = this.state.selectedWatchlist;
+                    var isfound = this.state.slowMotionStockList.filter(item => item.token == token);
+                    if (!isfound.length) {
+                        stock.bigCandleCount = bigCandleCount;
+                        stock.sectorName = this.state.selectedWatchlist;
 
-                    this.setState({ slowMotionStockList: [...this.state.slowMotionStockList, stock] }, function () {
-                        localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
-                    });
+                        this.setState({ slowMotionStockList: [...this.state.slowMotionStockList, stock] }, function () {
+                            localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
+                        });
+                    }
+        
+
+                   
                 }
             }
 
@@ -217,7 +233,9 @@ class OrderBook extends React.Component {
 
                             }
                         }
-                        this.setState({ scanUpdate: "Update: " + (index + 1) + "." + row.name + " 1% large : " + bigCandleCount +" 0.5% mid: "+ midBullishCount+" small: "+ bullishCount })
+
+                        let update = Parser("Update: " + (index + 1) + "." + row.name + " large(1%): <b>" + bigCandleCount +"</b> mid(0.5%): <b>"+ midBullishCount+"</b> small(>0%): <b>"+ bullishCount+"</b>" ); 
+                        this.setState({ scanUpdate:  update})
                         console.log(row.symbol, bigCandleCount, midBullishCount, bullishCount);
 
 
@@ -250,7 +268,7 @@ class OrderBook extends React.Component {
 
     deleteAllScan = () => {
 
-        if(window.confirm("Are you sure to delete all scan?")){
+        if(window.confirm("Are you sure to delete all scan stocks?")){
             this.setState({ slowMotionStockList: []})
             localStorage.setItem("slowMotionStockList",[]);
         }
@@ -318,7 +336,6 @@ class OrderBook extends React.Component {
                                       Slow Motion ({this.state.slowMotionStockList.length})  <DeleteIcon  onClick={() => this.deleteAllScan()}/>  found at {new Date().toLocaleString()}
                                     </Typography>
                                     {this.state.sortedType ? <> <b> Sorted By: </b> {this.state.sortedType}  </> : ""}
-                                    {this.state.scanUpdate ? <>{this.state.scanUpdate}  </> : ""}
 
                                 </Grid>
 
@@ -341,7 +358,9 @@ class OrderBook extends React.Component {
 
                                 <Grid item xs={12} sm={4} >
                                     <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.checkSlowMotion()}>Scan</Button>
-                                </Grid>
+                            
+                                    {this.state.scanUpdate ? <>{this.state.scanUpdate}  </> : ""}
+                                    </Grid>
 
                                 <Grid item xs={12} sm={2} >
                                     <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.checkSlowMotionCheckLive()}>Refresh</Button>
