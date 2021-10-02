@@ -253,12 +253,14 @@ class OrderBook extends React.Component {
                             console.log('hey, slow motion stock' + row.symbol + " broken");
 
                             this.speckIt('hey, slow motion stock' + row.symbol + " broken");
-
                             this.setState({ slowMotionStockList: this.state.slowMotionStockList }, function () {
                                 this.sortByColumn("isActivated");
                                 localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
                             })
+                            
                         }
+
+                       
 
                     }
 
@@ -269,6 +271,38 @@ class OrderBook extends React.Component {
 
         }
 
+    }
+
+    activationToLtpChange = async() => {
+
+        for (let index = 0; index < this.state.slowMotionStockList.length; index++) {
+            const row = this.state.slowMotionStockList[index];
+
+            var data = {
+                "exchange": "NSE",
+                "tradingsymbol": row.symbol,
+                "symboltoken": row.token,
+            }
+            AdminService.getLTP(data).then(res => {
+                let data = resolveResponse(res, 'noPop');
+                var LtpData = data && data.data;
+                //console.log(LtpData);
+                if (LtpData && LtpData.ltp) {
+                   row.ltp = LtpData.ltp;
+
+                   if(row.activationPrice){
+                    row.AtoltpChng = (LtpData.ltp-row.activationPrice)*100/row.activationPrice; 
+                   }
+              
+                   this.setState({ slowMotionStockList: this.state.slowMotionStockList }, function () {
+                        localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
+                    })
+                }
+
+            })
+
+            await new Promise(r => setTimeout(r, 125));
+        }
     }
 
     deleteAllScan = () => {
@@ -393,6 +427,7 @@ class OrderBook extends React.Component {
                                         <TableCell align="center">Activate Time</TableCell>
                                         <TableCell align="center">Activation Price</TableCell>
                                         <TableCell align="center">Last Update</TableCell>
+                                        <TableCell align="center"><Button onClick={() => this.activationToLtpChange()}>A.toLtpChng</Button></TableCell>
 
 
 
@@ -414,9 +449,7 @@ class OrderBook extends React.Component {
                                             <TableCell align="center">{row.activationTime}</TableCell>
                                             <TableCell align="center">{row.activationPrice}</TableCell>
                                             <TableCell align="center">{row.update}</TableCell>
-
-                                            
-
+                                            <TableCell align="center">{row.ltp}{row.AtoltpChng}</TableCell>
 
                                         </TableRow>
                                     )) : <Spinner />}
