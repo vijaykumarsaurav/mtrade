@@ -216,14 +216,14 @@ class CommonOrderMethod {
                                 console.log(symbol + "  close avg middle ", bbmiddleValue, "lowerest avg", bblowerValue, "bbhigerValue", bbhigerValue);
                        
 
-                                //bb stop loss
-                                if(bbLastValue){
-                                    stoploss = bbLastValue.lower - (bbLastValue.upper - bbLastValue.lower) * 3 / 100;
-                                    stoploss = this.getMinPriceAllowTick(stoploss);
-                                    stoplossPer = (LtpData.ltp - stoploss) * 100 / LtpData.ltp;
-                                    console.log(symbol, orderType, "BB stoploss value", bbLastValue, " LTP ", LtpData.ltp);
-                                    console.log(symbol, stoploss, "stoploss%", stoplossPer);
-                                }
+                                // //bb stop loss
+                                // if(bbLastValue){
+                                //     stoploss = bbLastValue.lower - (bbLastValue.upper - bbLastValue.lower) * 3 / 100;
+                                //     stoploss = this.getMinPriceAllowTick(stoploss);
+                                //     stoplossPer = (LtpData.ltp - stoploss) * 100 / LtpData.ltp;
+                                //     console.log(symbol, orderType, "BB stoploss value", bbLastValue, " LTP ", LtpData.ltp);
+                                //     console.log(symbol, stoploss, "stoploss%", stoplossPer);
+                                // }
                                
                     
                             }

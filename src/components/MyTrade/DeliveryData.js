@@ -22,7 +22,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import vwap from 'vwap';
-import CommonOrderMethod from "../../utils/CommonMethods";
+import CommonMethods from "../../utils/CommonMethods";
 import LightChart from "./LightChart";
 import LightChartCom from "./LightChartCom";
 
@@ -81,9 +81,9 @@ class OrderBook extends React.Component{
 
     componentDidMount() {
         
-        // setInterval(() => {
-        //     this.checkLiveBids();
-        // }, 90000);
+        setInterval(() => {
+            this.checkLiveBids();
+        }, 10 * 60000);
 
         this.checkLiveBids(); 
 
@@ -213,6 +213,13 @@ class OrderBook extends React.Component{
                         return b.pChange - a.pChange;
                     });
 
+
+
+                    if(bidlivedata.totalBuyQuantity/bidlivedata.totalSellQuantity > 1.25){
+                        CommonMethods.speckIt(bidlivedata.symbol + " buying bid " + (bidlivedata.totalBuyQuantity/bidlivedata.totalSellQuantity ).toFixed(2) +" of seller");
+                        bidlivedata.highlight = true; 
+                    }
+
                     this.setState({ liveBidsList: [...this.state.liveBidsList, bidlivedata] , lastUpdateTime : resd.data.lastUpdateTime}, function(){
                         
                         localStorage.setItem("liveBidsList", JSON.stringify(this.state.liveBidsList)); 
@@ -225,7 +232,7 @@ class OrderBook extends React.Component{
                 }
                 
             });
-            await new Promise(r => setTimeout(r, 100));  
+            await new Promise(r => setTimeout(r, 200));  
         }
    
     }
@@ -349,7 +356,7 @@ class OrderBook extends React.Component{
                                     <TableCell  align="center">{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell>
                                     <TableCell  align="center">{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
                                     <TableCell  align="center">{row.deliveryToTradedQuantity}%</TableCell>
-                                    <TableCell  align="center">{row.totalBuyQuantity} {this.convertToFloat(row.totalBuyQuantity)}</TableCell>
+                                    <TableCell style={{background: row.highlight ? "lightgray" : ""}} align="center">{row.totalBuyQuantity} {this.convertToFloat(row.totalBuyQuantity)}</TableCell>
                                     <TableCell  align="center">{row.totalSellQuantity} {this.convertToFloat(row.totalSellQuantity)}</TableCell>
                                     <TableCell  align="center">{row.totalTradedVolume} {this.convertToFloat(row.totalTradedVolume)}</TableCell>
                                     <TableCell  align="center">{row.totalTradedValue}Cr</TableCell>

@@ -32,7 +32,14 @@ export const AdminMenuList = (
       <ListItemText primary="Delivery" />
     </ListItem>
 
-    
+
+    <ListItem button component='a' href={"/mtrade/#/slow-motion"} >  
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Slow Motion" />
+    </ListItem>
+
 
    
     <ListItem button component='a' target={'_blank'} href={"/mtrade/#/find-fast-movement"} >  

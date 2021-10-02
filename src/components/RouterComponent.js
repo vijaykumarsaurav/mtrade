@@ -31,6 +31,7 @@ import FindFastMovement2 from "./MyTrade/FindFastMovement2";
 
 import OrderWatchlist from "./MyTrade/OrderWatchlist";
 import DeliveryData from "./MyTrade/DeliveryData";
+import SlowMotion from "./MyTrade/SlowMotion";
 
 
 const AppRouter = () => {
@@ -65,9 +66,7 @@ const AppRouter = () => {
 
                     <Route path="/order-watchlist" component={OrderWatchlist}/>
                     <Route path="/delivery" component={DeliveryData}/>
-
-                    
-
+                    <Route path="/slow-motion" component={SlowMotion}/>
                     <Route path="/test" component={Test}/>
                     
            

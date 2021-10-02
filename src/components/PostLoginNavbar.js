@@ -202,10 +202,10 @@ export default function PostLoginNavBar(props) {
                             {/* <Typography variant="h6" noWrap>
                           M-Trade
                          </Typography> */}
-                            <Button href={"/mtrade/#/home"}>
+                            {/* <Button href={"/mtrade/#/home"}>
                                 <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
 
-                            </Button>
+                            </Button> */}
 
                         </Grid>
 
@@ -219,7 +219,7 @@ export default function PostLoginNavBar(props) {
                             >
 
                                 <Grid item  >
-                                    <Typography style={{  marginTop: '20px' }}  variant="h6" noWrap >
+                                    <Typography style={{  marginTop: '20px',fontSize:"12px" }}  variant="h6" noWrap >
                                        <span id="niftySpid" onClick={() => props.LoadSymbolDetails("NIFTY")}  > </span>  &nbsp;&nbsp;  <span id="bankniftySpid" onClick={() => props.LoadSymbolDetails("BANKNIFTY")} > </span>  
                                      </Typography> 
                                     
