@@ -349,10 +349,16 @@ export default class Example extends React.Component {
     return (
       <Container>
 
-          {/* <LightChartCom ChartData={{areaSeries: this.state.areaData, volumeData : this.state.volumeData}}/> */}
+
+
+          
+          <LightChartCom ChartData={{areaSeries: this.state.areaData, volumeData : this.state.volumeData}}/>
        
 
       </Container>
     )
   }
 }
+
+
+

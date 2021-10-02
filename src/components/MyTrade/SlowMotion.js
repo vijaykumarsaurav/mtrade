@@ -30,6 +30,7 @@ import Parser from 'html-react-parser';
 import EqualizerIcon from '@material-ui/icons/Equalizer';
 
 import ChartDialog from './ChartDialog';
+import LightChartModel from './LightChartModel';
 
 
 
@@ -53,7 +54,6 @@ class OrderBook extends React.Component {
             selectedWatchlist: "NIFTY BANK",
             totalStockToWatch: 0,
             timeFrame: "TEN_MINUTE",
-            chartStaticData: [],
             qtyToTake: '',
             BBBlastType: "BBBlastOnly",
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
@@ -126,6 +126,83 @@ class OrderBook extends React.Component {
         }
 
     }
+    getTimeFrameValue = (timeFrame) => {
+        //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
+
+        switch (timeFrame) {
+            case 'ONE_MINUTE':
+                return "720:00:00";
+                break;
+            case 'FIVE_MINUTE':
+                    return "2160:00:00";
+                break;
+            case 'TEN_MINUTE':
+                    return "2160:00:00";
+                break;
+            case 'FIFTEEN_MINUTE':
+                return "2160:00:00";
+                break;
+            case 'THIRTY_MINUTE':
+                return "4320:00:00";
+                break;
+            case 'ONE_HOUR':
+                return "4320:00:00";
+                break;
+            case 'ONE_DAY':
+                return "8760:00:00";
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    updateTimeFrameChart=(token, timeFrame)=>{
+
+        console.log( token,timeFrame );
+
+        let time = this.getTimeFrameValue(timeFrame);
+        const format1 = "YYYY-MM-DD HH:mm";
+
+        var startDate = moment(new Date()).subtract(time);
+        var dataDay = {
+            "exchange": 'NSE',
+            "symboltoken": token,
+            "interval": timeFrame,
+            "fromdate": moment(startDate).format(format1),
+            "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+        }
+        AdminService.getHistoryData(dataDay).then(resd => {
+            let histdatad = resolveResponse(resd, 'noPop');
+            var DSMA = '';
+            if (histdatad && histdatad.data && histdatad.data.length) {
+                var candleDatad = histdatad.data;
+                var closeingDatadaily = [], valumeSum = 0, volumeSeriesData=[];
+
+                for (let index = 0; index < candleDatad.length; index++) {
+                    const element = candleDatad[index];
+                    volumeSeriesData.push({ time: new Date(element[0]).getTime(), value: element[5], color: 'rgba(211, 211, 211, 1)' })
+                }
+
+                const lightChartData = candleDatad.map(d => {
+                    return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
+                });
+   
+
+                var lightChartinfo = localStorage.getItem('lightChartData') && JSON.parse(localStorage.getItem('lightChartData'));
+
+                lightChartinfo.lightChartData = lightChartData; 
+                lightChartinfo.volumeSeriesData = volumeSeriesData; 
+                localStorage.setItem('lightChartData', JSON.stringify(lightChartinfo)); 
+
+                this.setState({chartStaticData: lightChartinfo});
+            }
+
+     
+        });
+  }
+
+
 
     checkSlowMotionStock = (token, stock, stockindex) => {
         var beginningTime = moment('9:15am', 'h:mma');
@@ -144,7 +221,7 @@ class OrderBook extends React.Component {
             var DSMA = '';
             if (histdatad && histdatad.data && histdatad.data.length) {
                 var candleDatad = histdatad.data;
-                var closeingDatadaily = [], valumeSum = 0;
+                var closeingDatadaily = [], valumeSum = 0, volumeSeriesData=[];
 
                 var bigCandleCount = 0;
 
@@ -163,8 +240,12 @@ class OrderBook extends React.Component {
 
                         }
                     }
+                    volumeSeriesData.push({ time: new Date(element[0]).getTime(), value: element[5], color: 'rgba(211, 211, 211, 1)' })
+
                 }
-                console.log("Totalcount", stock.name, bigCandleCount);
+
+
+                console.log("Totalcount", stock.name, bigCandleCount, volumeSeriesData);
 
                 this.setState({ scanUpdate: "Scan: " + stockindex + ". " + stock.name + " maxCount: " + bigCandleCount })
 
@@ -175,12 +256,22 @@ class OrderBook extends React.Component {
                         stock.bigCandleCount = bigCandleCount;
                         stock.sectorName = this.state.selectedWatchlist;
 
-                        var candleChartData = [];
+                        var candleChartData = []; 
                         candleDatad.forEach(element => {
                             candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
                         });
+
+
+                        const lightChartData = candleDatad.map(d => {
+                            return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
+                        });
+        
+
+
                        // stock.candleChartData = candleChartData.slice(Math.max(candleChartData.length - 10, 1));  
                         stock.candleChartData = candleChartData;  
+                        stock.lightChartData =  lightChartData; 
+                        stock.volumeSeriesData =  volumeSeriesData;
 
                         this.setState({ slowMotionStockList: [...this.state.slowMotionStockList, stock] }, function () {
                             localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
@@ -335,6 +426,24 @@ class OrderBook extends React.Component {
        
     }
 
+    showLightChart = (row) => {
+
+
+        console.log("row",row)
+
+
+        if(row.lightChartData.length>0){
+            localStorage.setItem('lightChartData', JSON.stringify(row));
+            this.setState({chartStaticData: row}, function(){
+                document.getElementById('showLightChart').click();
+
+            });
+        }
+       
+    }
+
+    
+
 
     deleteAllScan = () => {
 
@@ -394,6 +503,9 @@ class OrderBook extends React.Component {
 
                 <ChartDialog />
 
+                {this.state.chartStaticData ? 
+                <LightChartModel chartData={{updateTimeFrameChart : this.updateTimeFrameChart, chartStaticData : this.state.chartStaticData}} /> 
+                : ""}
                 <Grid direction="row" alignItems="center" container>
                     <Grid item xs={12} sm={12} >
 
@@ -473,8 +585,11 @@ class OrderBook extends React.Component {
                                         <TableRow hover key={i} style={{ background: row.isActivated ? "lightgray" : "" }}>
                                             <TableCell align="left">{i + 1}</TableCell>
 
-                                            <TableCell align="left"> <Button size="small" variant="contained" style={{ color: !row.change ? '' : row.change > 0 ? 'green' : 'red' }} onClick={() => this.showCandleChart(row.candleChartData, row.name)}> {row.name} {row.ltp}  {row.change ? "(" + row.change+ "%)" : "" }  <EqualizerIcon /> </Button></TableCell>
+                                            {/* <TableCell align="left"> <Button size="small" variant="contained" style={{ color: !row.change ? '' : row.change > 0 ? 'green' : 'red' }} onClick={() => this.showCandleChart(row.candleChartData, row.name)}> {row.name} {row.ltp}  {row.change ? "(" + row.change+ "%)" : "" }  <EqualizerIcon /> </Button></TableCell> */}
+                                            <TableCell align="left"> <Button size="small" variant="contained" style={{ color: !row.change ? '' : row.change > 0 ? 'green' : 'red' }} onClick={() => this.showLightChart(row)}> {row.name} {row.ltp}  {row.change ? "(" + row.change+ "%)" : "" }  <EqualizerIcon /> </Button></TableCell>
 
+
+                                            
                                             <TableCell align="center">{row.sectorName}</TableCell>
                                             <TableCell align="center">{row.bigCandleCount}</TableCell>
 

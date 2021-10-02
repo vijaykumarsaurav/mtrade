@@ -16,6 +16,8 @@ import ReactApexChart from "react-apexcharts";
 import { data } from 'jquery';
 
 import LineChart from "./LineChart";
+import LightChartCom from "./LightChartCom";
+
 
 
 const styles = (theme) => ({
@@ -79,8 +81,7 @@ export default function CustomizedDialogs(props) {
     setOpen(false);
   };
 
-   
-  
+
   return (
     <div>
       <Button variant="outlined" id="showCandleChart" color="primary" style={{display:"none"}} onClick={handleClickOpen}>
@@ -172,8 +173,8 @@ export default function CustomizedDialogs(props) {
           {/* below line chart 
           {localStorage.getItem('candleChartData') && localStorage.getItem('vwapDataChart') ? <LineChart candleChartData={JSON.parse(localStorage.getItem('candleChartData'))} percentChange={localStorage.getItem('candleChangeShow')} vwapDataChart={JSON.parse(localStorage.getItem('vwapDataChart'))}/>: ""}
            */}
-         
-         
+        
+
         </DialogContent>
         <DialogActions>
 
