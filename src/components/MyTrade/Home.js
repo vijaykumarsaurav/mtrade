@@ -25,20 +25,18 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Spinner from "react-spinner-material";
 import { createChart } from 'lightweight-charts';
-import Input from "@material-ui/core/Input";
 
 import { w3cwebsocket } from 'websocket';
-import DeleteIcon from '@material-ui/icons/Delete';
 import ChartDialog from './ChartDialog';
 import EqualizerIcon from '@material-ui/icons/Equalizer';
 import pako from 'pako';
 import vwap from 'vwap';
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
-import LightChartCom from "./LightChartCom";
 import SimpleExpansionPanel from "./SimpleExpansionPanel";
 import SimpleExpansionFastMovement from "./SimpleExpansionFastMovement";
 import LiveBidsExpantion from "./LiveBidsExpantion";
-
+import WatchListTab from "./WatchListTab"; 
+import OrderWatchlist from './OrderWatchlist';
 
 
 class Home extends React.Component {
@@ -103,6 +101,7 @@ class Home extends React.Component {
         })
 
     }
+
     onInputChange = (e) => {
         this.setState({ [e.target.name]: e.target.value }, function () {
         //    console.log("time", this.state.timeFrame);
@@ -110,8 +109,6 @@ class Home extends React.Component {
                 this.showStaticChart(this.state.symboltoken);
             }
         });
-
-
     }
 
     onChangePattern = (e) => {
@@ -130,14 +127,14 @@ class Home extends React.Component {
         var staticData = this.state.staticData;
         this.setState({ symbolList: staticData[e.target.value] }, function () {
             //    this.updateSocketWatch();
-            this.checkOpenEqualToLow();
+          //  this.checkOpenEqualToLow();
             this.setState({ cursor: '' });
         });
 
         if (e.target.value == "selectall") {
             this.setState({ symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) }, function () {
                 //      this.updateSocketWatch();
-                this.checkOpenEqualToLow();
+             //  this.checkOpenEqualToLow();
                 this.setState({ cursor: '' });
             });
         }
@@ -349,7 +346,7 @@ class Home extends React.Component {
 
         this.setState({ chart: chart, candleSeries: candleSeries, smaLineSeries: smaLineSeries, volumeSeries: volumeSeries });
 
-        this.checkOpenEqualToLow();
+        //this.checkOpenEqualToLow();
 
         var beginningTime = moment('9:15am', 'h:mma');
         var endTime = moment('3:30pm', 'h:mma');
@@ -1959,7 +1956,7 @@ class Home extends React.Component {
 
         for (let index = 0; index < watchList.length; index++) {
 
-            if (watchList[index].symbol === name) {
+            if (watchList[index].symbol === name || watchList[index].name === name) {
                
                 token = watchList[index].token;
 
@@ -1971,6 +1968,9 @@ class Home extends React.Component {
                     });
                 });
                 break;
+            }else{
+               // Notify.showError(name + " not found!");
+                console.log(name + " not found!");
             }
         }
 
@@ -1978,39 +1978,65 @@ class Home extends React.Component {
     getTimeFrameValue = (timeFrame) => {
         //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
 
+        
+
         switch (timeFrame) {
+            // case 'ONE_MINUTE':
+            //     if (new Date().toLocaleTimeString() < "10:05:00")
+            //         return "19:00:00";
+            //     else
+            //         return "01:00:00";
+            //     break;
+            // case 'FIVE_MINUTE':
+            //     if (new Date().toLocaleTimeString() < "11:00:00")
+            //         return "23:00:00";
+            //     else
+            //         return "03:00:00";
+            //     break;
+            // case 'TEN_MINUTE':
+            //     if (new Date().toLocaleTimeString() < "12:35:00")
+            //         return "24:21:00";
+            //     else
+            //         return "07:00:00";
+            //     break;
+            // case 'FIFTEEN_MINUTE':
+            //     if (new Date().toLocaleTimeString() < "14:15:00")
+            //         return "28:01:00";
+            //     else
+            //         return "10:01:00";
+            //     break;
+            // case 'THIRTY_MINUTE':
+            //     return "100:01:00";
+            //     break;
+            // case 'ONE_HOUR':
+            //     return "200:01:00";
+            //     break;
+            // case 'ONE_DAY':
+            //     return "1000:01:00";
+            //     break;
+            // default:
+            //     break;
+
             case 'ONE_MINUTE':
-                if (new Date().toLocaleTimeString() < "10:05:00")
-                    return "19:00:00";
-                else
-                    return "01:00:00";
-                break;
+            return "720:00:00";
+            break;
             case 'FIVE_MINUTE':
-                if (new Date().toLocaleTimeString() < "11:00:00")
-                    return "23:00:00";
-                else
-                    return "03:00:00";
+                    return "1000:00:00";
                 break;
             case 'TEN_MINUTE':
-                if (new Date().toLocaleTimeString() < "12:35:00")
-                    return "24:21:00";
-                else
-                    return "07:00:00";
+                    return "1000:00:00";
                 break;
             case 'FIFTEEN_MINUTE':
-                if (new Date().toLocaleTimeString() < "14:15:00")
-                    return "28:01:00";
-                else
-                    return "10:01:00";
+                return "1000:00:00";
                 break;
             case 'THIRTY_MINUTE':
-                return "100:01:00";
+                return "1000:00:00";
                 break;
             case 'ONE_HOUR':
-                return "200:01:00";
+                return "1000:00:00";
                 break;
             case 'ONE_DAY':
-                return "1000:01:00";
+                return "1000:00:00";
                 break;
             default:
                 break;
@@ -2056,7 +2082,7 @@ class Home extends React.Component {
             console.log('reset done', token);
         });
 
-        this.dailyBasisInfoCheck(token);
+       
 
 
         console.log("time in function ", this.state.timeFrame);
@@ -2173,7 +2199,9 @@ class Home extends React.Component {
                         domElement.innerHTML = str;
                     });
 
-
+                    if(this.state.InstrumentLTP){
+                        this.dailyBasisInfoCheck(token);
+                    }
                 });
 
 
@@ -2203,6 +2231,7 @@ class Home extends React.Component {
 
                     this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount, totalPerchentageChange: totalSum, startingFrom: moment(startDate).format(format1) });
 
+                   
                 }
             }
         })
@@ -2853,8 +2882,12 @@ class Home extends React.Component {
                 <ChartDialog />
                 <Grid direction="row" container spacing={1} style={{ padding: "5px" }} >
 
-                    <Grid item xs={12} sm={2}  >
-                        <Paper>
+                    <Grid item xs={12} sm={2}>
+                      
+                    <WatchListTab style={{position: 'fixed'}}  data={{LoadSymbolDetails: this.LoadSymbolDetails, cursor : this.state.cursor, symbolList: this.state.symbolList, totalWatchlist:this.state.totalWatchlist, onChangeWatchlist: this.onChangeWatchlist, selectedWatchlist: this.state.selectedWatchlist, search:this.state.search, handleKeyDown: this.handleKeyDown, onChange: this.onChange, autoSearchList :this.state.autoSearchList,  onSelectItem : this.onSelectItem , symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/>
+
+
+                        {/* <Paper>
                             <Autocomplete
                                 freeSolo
                                 id="free-solo-2-demo"
@@ -2916,9 +2949,10 @@ class Home extends React.Component {
                                 )) : ''}
                             </div>
 
-                            {/* <Tab style={{position: 'fixed'}}  data={{symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/> */}
-                        </Paper>
-                        <Typography style={{ fontWeight: 'bold' }}><span style={{ color: "green" }}> Advance {this.state.advanceShareCount} </span> <span style={{ color: "red" }}> Decline {this.state.declineShareCount} </span> <span> Unchange {this.state.UnchangeShareCount} </span> </Typography>
+                        </Paper> */}
+
+
+                        {/* <Typography style={{ fontWeight: 'bold' }}><span style={{ color: "green" }}> Advance {this.state.advanceShareCount} </span> <span style={{ color: "red" }}> Decline {this.state.declineShareCount} </span> <span> Unchange {this.state.UnchangeShareCount} </span> </Typography> */}
 
                     </Grid>
 
@@ -3072,7 +3106,7 @@ class Home extends React.Component {
 
                                     </Grid>
                                     : ""}
-                                    <Grid item xs={12} sm={9}  >
+                                    <Grid item xs={12} sm={!this.state.InstrumentLTP ? 12 : 9}  >
                                         <div id="showChartTitle">
 
 
@@ -3084,6 +3118,11 @@ class Home extends React.Component {
 
 
                                 </Grid>
+
+                                <Grid item xs={12} sm={12} style={{ height: '100%', overflow: "auto" }}>
+                                   <OrderWatchlist />
+                                </Grid>
+
 
 
                                 <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "50vh" }} >

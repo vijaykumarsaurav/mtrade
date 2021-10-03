@@ -86,6 +86,9 @@ class MyView extends React.Component {
             sectorList: localStorage.getItem('sectorList') && JSON.parse(localStorage.getItem('sectorList')) || [],
             watchList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
+            gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
+            looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
+
         }
         this.refreshSectorCandle = this.refreshSectorCandle.bind(this);
     }
@@ -177,64 +180,9 @@ class MyView extends React.Component {
 
 
 
-            // var tostartInteral =  setInterval(() => {
-
-            //     console.log("1st interval every second", new Date().toLocaleTimeString());
-            //     var time = new Date(); 
-            //     if(time.getMinutes() % 5 === 0){
-            //         console.log("5th min completed at", new Date().toLocaleTimeString());
-            //         console.log("next scan at", new Date(new Date().getTime()+70000).toLocaleTimeString());
-
-            //         setTimeout(() => {
-            //             console.log("set timout at 70sec ", new Date());
-            //            this.refreshSectorCandle(); 
-            //         }, 70000);
-
-            //         setInterval(() => {
-            //            this.refreshSectorCandle(); 
-            //          }, 60000 * 5 + 70000 );  
-
-            //          clearInterval(tostartInteral); 
-            //     } 
-            // }, 1000);
-
-
-
         } else {
             // wsClintSectorUpdate.close();
         }
-
-
-        // setInterval(() => {
-        //     AdminService.checkOtherApi().then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("nifty100EqualWeight").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-
-        // setInterval(() => {
-        //     AdminService.checkSectorApiOther("nifty").then(res => {
-        //         //let data = resolveResponse(res, 'noPop');
-        //         console.log(res); 
-
-        //     }).catch(error => {
-
-        //     })
-        // }, 1000);
-
 
 
 
@@ -276,10 +224,12 @@ class MyView extends React.Component {
 
                     this.setState({ indexTimeStamp: softedData[0].timeVal });
 
+                    var gainerList = [], looserList=[]; 
 
                     for (let index = 0; index < softedData.length; index++) {
                         const element = softedData[index];
                         var slugName = this.state.sluglist[element.indexName];
+                        console.log("element",slugName, element.percChange);
 
                         if (slugName) {
                             console.log("secName", element.indexName, slugName);
@@ -288,24 +238,59 @@ class MyView extends React.Component {
                                 softedData[index].stockList = res.data && res.data.data;
                                 softedData[index].time = res.data && res.data.time;
                                 this.setState({ sectorList: softedData });
+
+                                if(element.percChange >= 0.75 || (softedData[index].indexName == "NIFTY 50" && element.percChange >= 0.25)){
+                                    
+                                    for (let indexStock = 0; indexStock < res.data.data.length-5; indexStock++) {
+                                        const stockElement = res.data.data[indexStock];
+                                        var stockInfo ={
+                                            name : stockElement.symbol, 
+                                            ltp : stockElement.ltP, 
+                                            nc : stockElement.iislPercChange,
+                                            sector: softedData[index].indexName,
+                                            foundAt : new Date().toLocaleString()   
+                                        }
+
+                                        var isfound = this.state.gainerList.filter(row => row.symbol == stockElement.symbol);
+                                         console.log(stockElement.symbol, isfound); 
+                                        if(!isfound.length){
+                                            gainerList.push(stockInfo); 
+                                        }
+
+                                    } 
+                                    localStorage.setItem('gainerList', JSON.stringify(gainerList)); 
+                                }
+                                if(element.percChange <= -0.75 || (softedData[index].indexName == "NIFTY 50" && element.percChange <= -0.25)){
+                                    
+                                    var sectorStock = res.data.data; 
+                                    sectorStock.reverse(); 
+                                    
+                                    for (let indexStock = 0; indexStock < res.data.data.length-5; indexStock++) {
+                                        const stockElement = res.data.data[indexStock];
+                                        var stockInfo ={
+                                            name : stockElement.symbol, 
+                                            ltp : stockElement.ltP, 
+                                            nc : stockElement.iislPercChange,
+                                            sector: softedData[index].indexName,
+                                            foundAt : new Date().toLocaleString()  
+                                        }
+
+                                        var isfound = this.state.looserList.filter(row => row.symbol == stockElement.symbol);
+                                         console.log(stockElement.symbol, isfound); 
+                                        if(!isfound.length){
+                                            looserList.push(stockInfo); 
+                                        }
+
+                                    } 
+                                    localStorage.setItem('looserList', JSON.stringify(looserList)); 
+                                }
+
                             }).catch(error => {
                                 // Notify.showError(element.indexName + "fail to get stockdata"); 
                                 console.log("list fetch error", error)
                             })
                         }
                     }
-
-
-
-
-                    // this.state.sectorList.forEach(element => {
-                    //     if(element.stockList && element.stockList.length){
-                    //         document.title = "Top1: " + element.indexName; 
-                    //         return;
-                    //     }
-                    // });
-
-
 
                 }
             })

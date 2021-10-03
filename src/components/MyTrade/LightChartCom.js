@@ -92,14 +92,14 @@ export default function LightChartCom(props) {
 					string += " L: <b>" + elem[1].low + "</b>";
 					string += " C: <b>" + elem[1].close + "</b>";
 					change = (elem[1].close - elem[1].open) * 100 / elem[1].open;
-					string += " Chng: <b>" + change.toFixed(2) + '%</b>';
+					string += " CH: <b>" + change.toFixed(2) + '%</b>';
 				} else {
 					string += "&nbsp;" + elem[1].toFixed(2) + " ";
 				}
 			}
 
 			if (param.time)
-				string += " Time: <b>" + new Date(param.time).toLocaleString() + "</b>";
+				string += " T: <b>" + new Date(param.time).toLocaleString() + "</b>";
 
 
 

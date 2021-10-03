@@ -82,6 +82,7 @@ class OrderBook extends React.Component {
                     }, 70000);
                     setInterval(() => {
                         this.checkSlowMotionCheckLive();
+                        this.activationToLtpChange();
                     }, 60000 * 5 + 70000);
                     clearInterval(tostartInteral);
                 }
@@ -293,7 +294,7 @@ class OrderBook extends React.Component {
 
             if (!row.isActivated) {
                 const format1 = "YYYY-MM-DD HH:mm";
-                var time = moment.duration("31:00:00");  //22:00:00" for last day  2hours 
+                var time = moment.duration("50:00:00");  //22:00:00" for last day  2hours 
                 var startDate = moment(new Date()).subtract(time);
                 var beginningTime = moment('9:15am', 'h:mma');
 
@@ -430,13 +431,11 @@ class OrderBook extends React.Component {
 
 
         console.log("row",row)
-
-
+        
         if(row.lightChartData.length>0){
             localStorage.setItem('lightChartData', JSON.stringify(row));
             this.setState({chartStaticData: row}, function(){
                 document.getElementById('showLightChart').click();
-
             });
         }
        

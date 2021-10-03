@@ -152,7 +152,7 @@ class MyView extends React.Component {
     }
 
     calculateCallMargin =(e)=> {
-        this.state.filtered.forEach(element => {
+        this.state.filtered && this.state.filtered.forEach(element => {
             if(element.CE && element.CE.lastPrice)  {
                 element.CE.totalMargin = Parser(  this.state.lotSize * this.state.buyCallLot+ " * " + element.CE.lastPrice  + "<br /> <b> " + (element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize).toFixed(2) + "</b>");
                 element.CE.maxLoss = Parser( " <b> Max Loss: <br />" + ((element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize) * 10/100).toFixed(2) + "</b>");
@@ -171,7 +171,7 @@ class MyView extends React.Component {
 
     calculatePutMargin =(e)=> {
 
-        this.state.filtered.forEach(element => {
+        this.state.filtered &&  this.state.filtered.forEach(element => {
             if(element.PE && element.PE.lastPrice)  {
                 element.PE.totalMargin = Parser(  this.state.lotSize * this.state.buyPutLot+ " * " + element.PE.lastPrice  + "<br /> <b> " + (element.PE.lastPrice * this.state.buyPutLot * this.state.lotSize).toFixed(2) + "</b>");
                 element.PE.maxLoss = Parser( " <b> Max Loss: <br />" + ((element.PE.lastPrice * this.state.buyPutLot * this.state.lotSize) * 10/100).toFixed(2) + "</b>");
