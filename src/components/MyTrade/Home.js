@@ -83,8 +83,9 @@ class Home extends React.Component {
             UnchangeShareCount: 0,
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || [],
             fastMovementList:  localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
-            liveBidsList :  [] //localStorage.getItem('liveBidsList') && JSON.parse(localStorage.getItem('liveBidsList')) || [],
-
+            liveBidsList :  [], //localStorage.getItem('liveBidsList') && JSON.parse(localStorage.getItem('liveBidsList')) || [],
+            gainerList : localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
+            looserList : localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],    
         };
         this.myCallback = this.myCallback.bind(this);
         this.updateSocketWatch = this.updateSocketWatch.bind(this);
@@ -391,7 +392,16 @@ class Home extends React.Component {
                 } 
             }, 1000);
             
-        }     
+        }   
+        
+        
+        setInterval(() => {
+
+            this.setState({gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) })
+            this.setState({looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) })
+
+
+        }, 1000);
         
         this.oneHourBullBearCheck(); 
 
@@ -2884,7 +2894,7 @@ class Home extends React.Component {
 
                     <Grid item xs={12} sm={2}>
                       
-                    <WatchListTab style={{position: 'fixed'}}  data={{LoadSymbolDetails: this.LoadSymbolDetails, cursor : this.state.cursor, symbolList: this.state.symbolList, totalWatchlist:this.state.totalWatchlist, onChangeWatchlist: this.onChangeWatchlist, selectedWatchlist: this.state.selectedWatchlist, search:this.state.search, handleKeyDown: this.handleKeyDown, onChange: this.onChange, autoSearchList :this.state.autoSearchList,  onSelectItem : this.onSelectItem , symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/>
+                    <WatchListTab style={{position: 'fixed'}}  data={{gainerList: this.state.gainerList, looserList: this.state.looserList, LoadSymbolDetails: this.LoadSymbolDetails, cursor : this.state.cursor, symbolList: this.state.symbolList, totalWatchlist:this.state.totalWatchlist, onChangeWatchlist: this.onChangeWatchlist, selectedWatchlist: this.state.selectedWatchlist, search:this.state.search, handleKeyDown: this.handleKeyDown, onChange: this.onChange, autoSearchList :this.state.autoSearchList,  onSelectItem : this.onSelectItem , symbolList : this.state.symbolList, LoadSymbolDetails: this.LoadSymbolDetails, deleteItemWatchlist: this.deleteItemWatchlist }}/>
 
 
                         {/* <Paper>

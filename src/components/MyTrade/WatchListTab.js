@@ -50,14 +50,13 @@ function a11yProps(index) {
 
 export default function BasicTabs(props) {
 
-  console.log("props.data;", props.data)
   const { cursor, onSelectItem, autoSearchList, LoadSymbolDetails, symbolList, onChange, onChangeWatchlist, search, handleKeyDown, selectedWatchlist, totalWatchlist } = props.data;
   const [value, setValue] = React.useState(0);
 
   var [values, setValues] = React.useState({
     searchedSymbolList: symbolList, 
-    gainerList : localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
-    looserList : localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],    
+    // gainerList : localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
+    // looserList : localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],    
   });
 
   const handleChange = (event, newValue) => {
@@ -86,7 +85,10 @@ export default function BasicTabs(props) {
     }
   }
 
-  //var gainerList = localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || []; 
+
+  var gainerList =  props.data.gainerList ? props.data.gainerList : []; 
+  var looserList =  props.data.looserList ? props.data.looserList : []; 
+  
 
   
   return (
@@ -94,8 +96,8 @@ export default function BasicTabs(props) {
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example" style={{overflowY: 'scroll'}}>
           <Tab label="My WL" {...a11yProps(0)} />
-          <Tab label={values.gainerList && values.gainerList.length + " Gainner"} {...a11yProps(1)} />
-          <Tab  label={values.looserList && values.looserList.length + " Looser"} {...a11yProps(2)} />
+          <Tab label={gainerList && gainerList.length + " Gainner"} {...a11yProps(1)} />
+          <Tab  label={looserList && looserList.length + " Looser"} {...a11yProps(2)} />
           <Tab label="Fevrate" {...a11yProps(3)} />
           
         </Tabs>
@@ -156,7 +158,7 @@ export default function BasicTabs(props) {
       <TabPanel value={value} index={1}>
       <div style={{ overflowY: 'scroll', height: "75vh" }} >
 
-        {values.gainerList && values.gainerList.length ? values.gainerList.map((row, i) => (
+        {gainerList && gainerList.length ? gainerList.map((row, i) => (
           <>
             <ListItem onKeyDown={handleKeyDown} button selected={cursor === i ? 'active' : null}
 
@@ -176,7 +178,7 @@ export default function BasicTabs(props) {
       <TabPanel value={value} index={2}> 
         <div style={{ overflowY: 'scroll', height: "75vh" }} >
 
-          {values.looserList && values.looserList.length ? values.looserList.map((row, i) => (
+          {looserList && looserList.length ? looserList.map((row, i) => (
             <>
               <ListItem onKeyDown={handleKeyDown} button selected={cursor === i ? 'active' : null}
 
