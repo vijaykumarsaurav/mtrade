@@ -9,6 +9,7 @@ import AdminService from "./service/AdminService";
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 //import RouterComponent from '../RouterComponent'; 
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import EqualizerIcon from '@material-ui/icons/Equalizer';
 
 export const AdminMenuList = (
 
@@ -48,6 +49,15 @@ export const AdminMenuList = (
       </ListItemIcon>
       <ListItemText primary="Fast Movement" />
     </ListItem>
+
+    <ListItem button component='a' target={'_blank'} href={"/mtrade/#/index-charts"} >  
+      <ListItemIcon>
+        <EqualizerIcon />
+      </ListItemIcon>
+      <ListItemText primary="Index Charts" />
+    </ListItem>
+    
+
 
     <ListItem button component='a' href={"/mtrade/#/position"} >  
       <ListItemIcon>

@@ -397,6 +397,7 @@ class Home extends React.Component {
         
         setInterval(() => {
 
+            
             this.setState({gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) })
             this.setState({looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) })
 
