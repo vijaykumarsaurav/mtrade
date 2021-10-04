@@ -169,13 +169,13 @@ class Home extends React.Component {
         switch (timeFrame) {
             case 'ONE_MINUTE':
                 if (new Date().toLocaleTimeString() < "10:05:00")
-                    return "18:21:00";
+                    return "100:21:00";
                 else
                     return "00:21:00";
                 break;
             case 'FIVE_MINUTE':
                 if (new Date().toLocaleTimeString() < "11:00:00")
-                    return "19:41:00";
+                    return "100:41:00";
                 else
                     return "01:41:00";
                 break;
@@ -251,7 +251,7 @@ class Home extends React.Component {
             var beginningTime = moment('9:15am', 'h:mma').format(format1);
 
             let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
-            var time = moment.duration("100:00:00");  //22:00:00" for last day  2hours  timeDuration
+            var time = moment.duration("1000:00:00");  //22:00:00" for last day  2hours  timeDuration
             var startDate = moment(new Date()).subtract(time);
 
             var data = {
@@ -331,19 +331,7 @@ class Home extends React.Component {
 
                     }
 
-                    let data = {
-                        symbol: watchList[index].symbol,
-                        token: watchList[index].token,
-                        RSIValue: lastRsiValue[lastRsiValue.length - 1],
-                        RSI: lastRsiValue.slice(Math.max(lastRsiValue.length - 8, 1)),
-                        valumeData: valumeData.slice(Math.max(valumeData.length - 8, 1)),
-                        VWAP: vwap(vwapdata),
-                        BB: bbvlastvalue,
-                        candleChartData: candleChartData,
-                        foundAt: candleData && candleData[candleData.length - 1][0],
-                        name: watchList[index].name,
-                    }
-
+                  
                     var dataltp = {
                         "exchange": "NSE",
                         "tradingsymbol": watchList[index].symbol,
@@ -355,12 +343,27 @@ class Home extends React.Component {
                         var LtpData = data && data.data;
                         //console.log(LtpData);
                         if (LtpData && LtpData.ltp) {
+                            let data = {
+                                symbol: watchList[index].symbol,
+                                token: watchList[index].token,
+                                RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                RSI: lastRsiValue.slice(Math.max(lastRsiValue.length - 8, 1)),
+                                valumeData: valumeData.slice(Math.max(valumeData.length - 8, 1)),
+                                VWAP: vwap(vwapdata),
+                                BB: bbvlastvalue,
+                                candleChartData: candleChartData,
+                                foundAt: candleData &&   new Date(candleData[candleData.length - 1][0]).toLocaleString(),
+                                name: watchList[index].name,
+                            }
+        
                             data.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
                             data.ltp = LtpData.ltp; 
+
+                            this.setState({ findlast5minMovement: [...this.state.findlast5minMovement, data] });
+
                         }
                     }); 
 
-                    this.setState({ findlast5minMovement: [...this.state.findlast5minMovement, data] });
 
 
                 } else {
@@ -472,20 +475,19 @@ class Home extends React.Component {
                             </Select>
                         </FormControl>
                     </Grid>
-
+{/* 
                     <Grid item xs={12} sm={1} >
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Select Time</InputLabel>
                             <Select value={this.state.BBBlastType} name="BBBlastType" onChange={this.onChangeWatchlist}>
-                                {/* <MenuItem value={'BBBlastOnly'}>{'BB Blast'}</MenuItem>
-                                <MenuItem value={'BBBlastDaily'}>{'BB Blast Daily'}</MenuItem> */}
+       
                                 <MenuItem value={'BBStrongBreakout'}>{'BB Strong Breakout'}</MenuItem>
 
 
 
                             </Select>
                         </FormControl>
-                    </Grid>
+                    </Grid> */}
 
                     <Grid item xs={12} sm={4} >
                         <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.find10MinBBBlast()}>Start</Button>
@@ -502,7 +504,8 @@ class Home extends React.Component {
 
                         <Grid item xs={12} sm={3}>
                             <Paper style={{ overflow: "auto", padding: '10px' }} >
-                                <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} {row.perChange ? "(" + row.perChange + "%" + ")" : ""}</Typography>
+
+                                <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.name} {row.ltp} {row.perChange ? "(" + row.perChange + "%" + ")" : ""} <span> &nbsp;&nbsp;  {row.foundAt}</span></Typography>
 
                                 {/* <LightChart candleData={row.candleChartData.length} />  */}
 
@@ -520,7 +523,7 @@ class Home extends React.Component {
                                         },
                                         title: {
                                             text: "",
-                                            align: 'left'
+                                            align: 'right'
                                         },
                                         xaxis: {
                                             type: 'datetime',
@@ -562,31 +565,25 @@ class Home extends React.Component {
                                         Daily SMA: {row.DSMALastValue} {row.ltp > row.DSMALastValue ? "BUY" : "SELL"}
                                     </Grid> : ""}
                                     <Grid item xs={12} sm={12} style={{ color: row.ltp > row.VWAP ? "green" : "red", fontWeight: "bold" }}>
-                                        VWAP:  {row.VWAP}
+                                        VWAP:  {row.VWAP} 
                                     </Grid>
 
                                     <Grid item xs={12} sm={12} >
                                         BB
-                                        &nbsp; <span style={{ color: row.ltp >= row.BB.upper ? "green" : "", fontWeight: "bold" }}>Upper: {row.BB.upper}</span>
+                                        &nbsp; <span style={{ color: row.ltp >= row.BB && row.BB.upper ? "green" : "", fontWeight: "bold" }}>Upper: {row.BB && row.BB.upper}</span>
                                         &nbsp; Middle: {row.BB.middle}
-                                        &nbsp; <span style={{ color: row.ltp <= row.BB.lower ? "red" : "", fontWeight: "bold" }}> Lower: {row.BB.lower}</span>
+                                        &nbsp; <span style={{ color: row.ltp <= row.BB && row.BB.lower ? "red" : "", fontWeight: "bold" }}> Lower: {row.BB && row.BB.lower}</span>
                                     </Grid>
 
                                     <Grid item xs={12} sm={12}>
-
                                         RSI: {row.RSI.map((item, j) => (
-                                            item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
+                                            item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} </span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} </span>
                                         ))}
-
-
                                     </Grid>
                                     <Grid item xs={12} sm={12}>
-
                                         Volume: {row.valumeData.map((item, j) => (
                                             <span> {(item/100000).toFixed(2)}L </span>
                                         ))}
-
-
                                     </Grid>
 
 
