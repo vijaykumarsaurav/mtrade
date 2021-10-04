@@ -1972,7 +1972,7 @@ class Home extends React.Component {
                 token = watchList[index].token;
 
                 console.log("name % token", name,token );
-                this.setState({ tradingsymbol: name, symboltoken:watchList[index].token },function(){
+                this.setState({ tradingsymbol: watchList[index].symbol, symboltoken:watchList[index].token },function(){
                     this.setState({ cursor: i }, function () {
                         this.getLTP();
                         this.showStaticChart(token);
