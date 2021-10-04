@@ -57,7 +57,7 @@ class Home extends React.Component {
 
     componentDidMount() {
 
-        window.document.title = "FM2";
+        window.document.title = "Index Charts";
 
         var watchList = this.state.staticData[this.state.selectedWatchlist];
         this.setState({ totalStockToWatch: watchList.length });
@@ -441,7 +441,7 @@ class Home extends React.Component {
 
                     <Grid item xs={12} sm={4} >
                         <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                            &nbsp; {this.state.selectedWatchlist} Stock ({this.state.findlast5minMovement && this.state.findlast5minMovement.length})
+                            &nbsp; {this.state.selectedWatchlist} Stocks ({this.state.findlast5minMovement && this.state.findlast5minMovement.length})
                             <span id="stockTesting" style={{ fontSize: "18px", color: 'gray' }}> {this.state.findlast5minMovementUpdate} </span>
                         </Typography>
 
