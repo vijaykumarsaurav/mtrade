@@ -320,8 +320,10 @@ class Home extends React.Component {
                     }
 
                     var bb = BollingerBands.calculate(input);
-                    //   console.log(watchList[index].symbol, "Bolinger band", input, bb);
 
+                    var vwapdata = VWAP.calculate(inputVWAP); 
+                    //   console.log(watchList[index].symbol, "Bolinger band", input, bb);
+                    console.log(watchList[index].symbol, "vwap daa", VWAP.calculate(inputVWAP));  
 
                     var bbvlastvalue = bb[bb.length - 1];
                     if (bbvlastvalue) {
@@ -349,7 +351,7 @@ class Home extends React.Component {
                                 RSIValue: lastRsiValue[lastRsiValue.length - 1],
                                 RSI: lastRsiValue.slice(Math.max(lastRsiValue.length - 8, 1)),
                                 valumeData: valumeData.slice(Math.max(valumeData.length - 8, 1)),
-                                VWAP: vwap(vwapdata),
+                                VWAP:vwapdata[vwapdata.length-1], //vwap(vwapdata),
                                 BB: bbvlastvalue,
                                 candleChartData: candleChartData,
                                 foundAt: candleData &&   new Date(candleData[candleData.length - 1][0]).toLocaleString(),
@@ -535,7 +537,7 @@ class Home extends React.Component {
                                         }
                                     }}
                                     series={[{
-                                        data: row.candleChartData.slice(Math.max(row.candleChartData.length - 10, 1))
+                                        data: row.candleChartData.slice(Math.max(row.candleChartData.length - 5, 1))
                                     },
                                         // {
                                         //     name: 'line',
@@ -571,7 +573,7 @@ class Home extends React.Component {
                                     <Grid item xs={12} sm={12} >
                                         BB
                                         &nbsp; <span style={{ color: row.ltp >= row.BB && row.BB.upper ? "green" : "", fontWeight: "bold" }}>Upper: {row.BB && row.BB.upper}</span>
-                                        &nbsp; Middle: {row.BB.middle}
+                                        &nbsp; <span style={{ color: row.ltp >= row.BB.middle ? "green" : "", fontWeight: row.ltp >= row.BB.middle ? "bold": "100" }}>Middle: {row.BB && row.BB.middle}</span>
                                         &nbsp; <span style={{ color: row.ltp <= row.BB && row.BB.lower ? "red" : "", fontWeight: "bold" }}> Lower: {row.BB && row.BB.lower}</span>
                                     </Grid>
 

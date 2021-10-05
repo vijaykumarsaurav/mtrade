@@ -79,6 +79,13 @@ class AdminService {
         return axios.post('http://localhost:8081/saveCandleHistory', data,  '');
      } 
 
+     saveDeliveryData(data) {
+      return axios.post('http://localhost:8081/store_delivery_data', data,  '');
+   } 
+   getDeliveryDataFromDb(symbol) {
+      return axios.get('http://localhost:8081/get_delivery_data?symbol='+symbol, '');
+   } 
+
      getPosition(data){
         return axios.get(apiConstant.getPosition, AuthService.getHeader());
      }

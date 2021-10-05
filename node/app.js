@@ -16,10 +16,40 @@ var BSEAPI = API.BSE;
 var NSEAPI = API.NSE;
 
 
+var con = mysql.createConnection({
+  host: "remotemysql.com",
+  user: "q0XJUKCMPl",
+  password: "WYqSiKWW0M",
+  database: "q0XJUKCMPl",
+  port: 3306
+});
+
+con.connect(function(err) {
+  if (err) throw err;
+  console.log("DB Connected 11!");
+});
+
+
+// Initialize pool
+var pool      =    mysql.createPool(
+{
+  host: "remotemysql.com",
+  user: "q0XJUKCMPl",
+  password: "WYqSiKWW0M",
+  database: "q0XJUKCMPl",
+  port: 3306,
+  debug    :  false
+}
+);    
+//module.exports = pool;
+
+// Attempt to catch disconnects 
+
 
 app.listen(8081, () => {
   console.log("Server running on port 8081");
 });
+
 
 // National Stock Exchange (NSE) APIS
 
@@ -442,6 +472,87 @@ app.post('/addIntoStaticData', function (req, res) {
 
 });
 
+
+
+app.post("/store_delivery_data", (req, res, next) => {
+ 
+
+  let quantityTraded = req.body.quantityTraded;
+  let deliveryQuantity = req.body.deliveryQuantity;
+  let deliveryToTradedQuantity = req.body.deliveryToTradedQuantity;
+  let symbol = req.body.symbol;
+  let todayChange = req.body.todayChange;
+  let ltp = req.body.ltp;
+  let datetime = req.body.datetime;
+  let averagePrice = req.body.averagePrice;
+
+
+  // var sql = "INSERT INTO `deliveryData` (`symbol`, `quantityTraded`, `deliveryQuantity`, `deliveryToTradedQuantity`, `datetime`, `ltp`, `todayChange`, `averagePrice`) VALUES ('"+symbol+"', '"+quantityTraded+"', '"+deliveryQuantity+"', '"+deliveryToTradedQuantity+"', '"+datetime+"', '"+ltp+"', '"+todayChange+"','"+averagePrice+"');";
+  // con.query(sql, function  (err, result) {
+  //   if (err) throw err;
+  //   console.log("result",result);
+
+  //   res.status(200).send({ status: 200, result: result });
+  // });
+
+
+  var sql = "INSERT INTO `deliveryData` (`symbol`, `quantityTraded`, `deliveryQuantity`, `deliveryToTradedQuantity`, `datetime`, `ltp`, `todayChange`, `averagePrice`) VALUES ?";
+  var backupDeleverydata = req.body.backupDeleverydata;
+  var values = [];
+  backupDeleverydata.forEach(element => {
+    values.push([element.symbol, element.quantityTraded, element.deliveryQuantity ,element.deliveryToTradedQuantity, element.datetime, element.ltp, element.todayChange, element.averagePrice]);
+  });
+
+  con.query(sql, [values], function (err, result) {
+    if (err) throw err;
+
+    console.log("result",result);
+    res.status(200).send({ status: 200, result: values.length });
+    console.log(values.length, " record inserted");
+  });
+
+
+
+});
+
+
+
+app.get("/get_delivery_data", (req, res, next) => {
+
+  console.log("synobl", req.query.symbol); 
+
+  var sql = "SELECT DISTINCT(datetime),symbol, quantityTraded, deliveryQuantity, deliveryToTradedQuantity, datetime, todayChange  FROM `deliveryData` WHERE symbol = '"+req.query.symbol+"' ORDER BY datetime DESC ";
+  // con.query(sql, function  (err, result) {
+  //   if (err) throw err;
+  //   console.log("result",result);
+  // });
+
+  pool.getConnection(function(err,connection){
+
+    console.log("err",err);
+    if (err) {
+      connection.release();
+      throw err;
+    }   
+    connection.query(sql,function(err,rows){
+        connection.release();
+        if(!err) {
+          console.log("rows",rows);
+          res.status(200).send({ status: 200, result: rows });
+
+        }           
+    });
+    connection.on('error', function(err) {      
+          throw err;
+          return;     
+    });
+  });
+
+return;
+
+});
+
+
 app.post('/saveCandleHistory', function (req, res) {
 
   var sql = "insert into candle (token,symbol, datetime, open, high,low,close, volume ) VALUES ?";
@@ -462,6 +573,9 @@ app.post('/saveCandleHistory', function (req, res) {
 
   return;
 });
+
+
+
 
 
 

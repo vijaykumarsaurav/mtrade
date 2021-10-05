@@ -96,20 +96,20 @@ class Home extends React.Component {
 
 
 
-            // var tostartInteral =   setInterval(() => {
-            //     var time = new Date(); 
-            //     if(time.getMinutes() % 15 === 0){
-            //         setTimeout(() => {
-            //             this.getCandleHistoryAndStore(); 
-            //         }, 70000);
-            //         setInterval(() => {
-            //                 if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
-            //                 this.getCandleHistoryAndStore(); 
-            //             }
-            //          }, 60000 * 15 + 70000 );  
-            //          clearInterval(tostartInteral); 
-            //     } 
-            // }, 1000);
+            var tostartInteral =   setInterval(() => {
+                var time = new Date(); 
+                if(time.getMinutes() % 15 === 0){
+                    setTimeout(() => {
+                        this.getCandleHistoryAndStore(); 
+                    }, 70000);
+                    setInterval(() => {
+                            if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
+                            this.getCandleHistoryAndStore(); 
+                        }
+                     }, 60000 * 15 + 70000 );  
+                     clearInterval(tostartInteral); 
+                } 
+            }, 1000);
 
 
 

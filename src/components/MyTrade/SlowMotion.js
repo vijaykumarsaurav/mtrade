@@ -194,7 +194,7 @@ class OrderBook extends React.Component {
 
                 lightChartinfo.lightChartData = lightChartData; 
                 lightChartinfo.volumeSeriesData = volumeSeriesData; 
-                localStorage.setItem('lightChartData', JSON.stringify(lightChartinfo)); 
+               // localStorage.setItem('lightChartData', JSON.stringify(lightChartinfo)); 
 
                 this.setState({chartStaticData: lightChartinfo});
             }
@@ -275,7 +275,7 @@ class OrderBook extends React.Component {
                         stock.volumeSeriesData =  volumeSeriesData;
 
                         this.setState({ slowMotionStockList: [...this.state.slowMotionStockList, stock] }, function () {
-                            localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
+                         //   localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
                         });
                     }
         
@@ -365,7 +365,7 @@ class OrderBook extends React.Component {
                             this.speckIt('hey, slow motion stock' + row.symbol + " broken");
                             this.setState({ slowMotionStockList: this.state.slowMotionStockList }, function () {
                                 this.sortByColumn("isActivated");
-                                localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
+                                //localStorage.setItem("slowMotionStockList", JSON.stringify(this.state.slowMotionStockList));
                             })
                             
                         }
@@ -416,16 +416,6 @@ class OrderBook extends React.Component {
         }
     }
 
-
-    showCandleChart = (candleData, symbol) => {
-
-        if(candleData.length>0){
-            localStorage.setItem('candleChartData', JSON.stringify(candleData))
-            localStorage.setItem('cadleChartSymbol', symbol)
-            document.getElementById('showCandleChart').click();
-        }
-       
-    }
 
     showLightChart = (row) => {
 
@@ -584,7 +574,6 @@ class OrderBook extends React.Component {
                                         <TableRow hover key={i} style={{ background: row.isActivated ? "lightgray" : "" }}>
                                             <TableCell align="left">{i + 1}</TableCell>
 
-                                            {/* <TableCell align="left"> <Button size="small" variant="contained" style={{ color: !row.change ? '' : row.change > 0 ? 'green' : 'red' }} onClick={() => this.showCandleChart(row.candleChartData, row.name)}> {row.name} {row.ltp}  {row.change ? "(" + row.change+ "%)" : "" }  <EqualizerIcon /> </Button></TableCell> */}
                                             <TableCell align="left"> <Button size="small" variant="contained" style={{ color: !row.change ? '' : row.change > 0 ? 'green' : 'red' }} onClick={() => this.showLightChart(row)}> {row.name} {row.ltp}  {row.change ? "(" + row.change+ "%)" : "" }  <EqualizerIcon /> </Button></TableCell>
 
 
