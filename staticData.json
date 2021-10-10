@@ -553,6 +553,17 @@
     ],
     "NIFTY BANK": [
         {
+            "token": "26009",
+            "symbol": "BANKNIFTY",
+            "name": "BANKNIFTY",
+            "expiry": "",
+            "strike": "-1.000000",
+            "lotsize": "-1",
+            "instrumenttype": "",
+            "exch_seg": "NSE",
+            "tick_size": "-1.000000"
+        },
+        {
             "token": "5258",
             "symbol": "INDUSINDBK-EQ",
             "name": "INDUSINDBK",
