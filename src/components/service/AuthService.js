@@ -7,7 +7,7 @@ class AuthService {
     getHeader() {
 
 
-        var tokens = JSON.parse(localStorage.getItem("userTokens")); 
+        var tokens = localStorage.getItem("userTokens") && JSON.parse(localStorage.getItem("userTokens")); 
         var jwtToken =   tokens &&  tokens.jwtToken;
 
         return { 'headers': {

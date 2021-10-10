@@ -62,20 +62,19 @@ class CommonOrderMethod {
     }
 
 
-    getStockTokenDetails = (SYMBOL) => {
-        // AdminService.autoCompleteSearch(e.target.value).then(searchRes => {   
-        //     let searchResdata =  searchRes.data; 
-        //     if(e.target.value){
-        //         var uppercaseName =  e.target.value.toUpperCase() + "-EQ"; 
-        //         var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.symbol === uppercaseName);      
-        //       //  console.log("found", found[0] && found[0].symbol); 
-        //         if(found.length){ 
-        //             setValues({ ...values, ['searchSymbol']: found[0].symbol, ['token'] : found[0].token });    
-        //         }
-        //     }
-
-        //  })
-    }
+    // getStockTokenDetails = (SYMBOL) => {
+    //     AdminService.autoCompleteSearch(SYMBOL).then(searchRes => {   
+    //         let searchResdata =  searchRes.data; 
+    //         if(SYMBOL){
+    //             var uppercaseName =  SYMBOL.toUpperCase() + "-EQ"; 
+    //             var found = searchResdata.filter(row => row.name  === SYMBOL && row.symbol === uppercaseName);      
+    //             console.log("found", found); 
+    //             if(found.length){ 
+    //                return found[0]; 
+    //             }
+    //         }
+    //      })
+    // }
 
     updateOrderList = () => {
         AdminService.retrieveOrderBook()
@@ -89,6 +88,13 @@ class CommonOrderMethod {
                     localStorage.setItem('oderbookData', JSON.stringify(orderlist));
                 }
             });
+    }
+    
+    getPercentageColor = (percent) => {
+        percent = percent * 100;
+        var r = percent < 50 ? 255 : Math.floor(255 - (percent * 2 - 100) * 255 / 100);
+        var g = percent > 50 ? 255 : Math.floor((percent * 2) * 255 / 100);
+        return 'rgb(' + r + ',' + g + ',0)';
     }
 
     historyWiseOrderPlace = (sectorItem, orderType, isAutomatic, callback) => {

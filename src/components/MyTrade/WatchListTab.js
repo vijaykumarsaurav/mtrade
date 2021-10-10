@@ -14,6 +14,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import "./ViewStyle.css";
+import Button from "@material-ui/core/Button";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -145,7 +146,7 @@ export default function BasicTabs(props) {
 
                 {cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
-                <ListItemText style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.symbol, i)} primary={row.name} /> {row.ltp} ({row.nc}%)
+                <Button style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.symbol, i)} >{row.name} {row.ltp} ({row.nc}%) </Button>
 
 
               </ListItem>
@@ -166,7 +167,7 @@ export default function BasicTabs(props) {
 
               {cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
-              <ListItemText title={"Found At: " + row.foundAt}  style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.name, i)} primary={row.name} />  {row.ltp} ({row.nc}%) {row.sector.split(' ')[1]}
+              <Button title={"Found At: " + row.foundAt}  style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.name, i)} primary={row.name}>  {row.ltp} ({row.nc}%) {row.sector.split(' ')[1]} </Button>
 
 
             </ListItem>
@@ -186,7 +187,7 @@ export default function BasicTabs(props) {
 
                 {cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
-                <ListItemText title={"Found At: " + row.foundAt} style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.name, i)} primary={row.name} />  {row.ltp} ({row.nc}%) {row.sector.split(' ')[1]}
+                 <Button title={"Found At: " + row.foundAt} style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.name, i)} primary={row.name} >  {row.ltp} ({row.nc}%) {row.sector.split(' ')[1]} </Button>
 
 
               </ListItem>

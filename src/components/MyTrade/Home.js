@@ -128,7 +128,7 @@ class Home extends React.Component {
         var staticData = this.state.staticData;
         this.setState({ symbolList: staticData[e.target.value] }, function () {
             //    this.updateSocketWatch();
-          //  this.checkOpenEqualToLow();
+            this.checkOpenEqualToLow();
             this.setState({ cursor: '' });
         });
 
@@ -228,16 +228,9 @@ class Home extends React.Component {
 
             if (LtpData && LtpData.ltp)
                 this.setState({ InstrumentPerChange: ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2) });
+              //  this.dailyBasisInfoCheck(this.state.symboltoken);
 
-
-
-            //  if(!localStorage.getItem('ifNotBought') && LtpData &&  LtpData.ltp > this.state.buyPrice){
-            //    this.placeOrder(this.state.buyPrice); 
-            //  }
-
-            //  if(LtpData.ltp > this.getAveragePrice(this.state.orderid)){
-            //    this.placeSLMOrder(LtpData.ltp); 
-            //  }
+          
         })
     }
     decodeWebsocketData = (array) => {
@@ -347,7 +340,7 @@ class Home extends React.Component {
 
         this.setState({ chart: chart, candleSeries: candleSeries, smaLineSeries: smaLineSeries, volumeSeries: volumeSeries });
 
-        //this.checkOpenEqualToLow();
+        this.checkOpenEqualToLow();
 
         var beginningTime = moment('9:15am', 'h:mma');
         var endTime = moment('3:30pm', 'h:mma');
@@ -408,6 +401,10 @@ class Home extends React.Component {
 
        // this.checkLiveBids();
 
+    }
+
+    shouldComponentUpdate(nextProps, nextState){
+        return  false //!equals(nextProps, this.props); // equals() is your implementation
     }
 
     stopBacktesting = () => {
@@ -1974,8 +1971,10 @@ class Home extends React.Component {
                 console.log("name % token", name,token );
                 this.setState({ tradingsymbol: watchList[index].symbol, symboltoken:watchList[index].token },function(){
                     this.setState({ cursor: i }, function () {
-                        this.getLTP();
                         this.showStaticChart(token);
+                       
+                        // this.getLTP();
+                        // this.dailyBasisInfoCheck(this.state.symboltoken);
                     });
                 });
                 break;
@@ -2210,9 +2209,7 @@ class Home extends React.Component {
                         domElement.innerHTML = str;
                     });
 
-                    if(this.state.InstrumentLTP){
-                        this.dailyBasisInfoCheck(token);
-                    }
+                   
                 });
 
 
@@ -2469,7 +2466,7 @@ class Home extends React.Component {
         for (let index = 0; index < this.state.symbolList.length; index++) {
             const row = this.state.symbolList[index];
             const format1 = "YYYY-MM-DD HH:mm";
-            var time = moment.duration("02:00:00");  //22:00:00" for last day  2hours 
+            var time = moment.duration("04:00:00");  //22:00:00" for last day  2hours 
             var startDate = moment(new Date()).subtract(time);
             var dataDay = {
                 "exchange": 'NSE',
@@ -2483,8 +2480,13 @@ class Home extends React.Component {
                 var DSMA = '';
                 if (histdatad && histdatad.data && histdatad.data.length) {
                     var candleDatad = histdatad.data;
-    
-                    let lastCandle = candleDatad[candleDatad.length-1];
+                    let lastCandle = ''; 
+                    if(candleDatad.length>1){
+                         lastCandle = candleDatad[candleDatad.length-2];
+                    }else{
+                         lastCandle = candleDatad[candleDatad.length-1];
+                    }
+                   
 
                     
                     if((lastCandle[1] == lastCandle[3]) && (lastCandle[2] == lastCandle[4])){

@@ -254,6 +254,12 @@ export default function PostLoginNavBar(props) {
                             >
 
                                 <Grid item>
+                                    <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/index-charts"}>
+                                        Charts <OpenInNewIcon />
+                                    </Button>
+                                </Grid>
+
+                                <Grid item>
                                     <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/order-watchlist"}>
                                         Option <OpenInNewIcon />
                                     </Button>

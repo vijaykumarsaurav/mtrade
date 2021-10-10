@@ -27,7 +27,10 @@ import TradeConfig from './TradeConfig.json';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import vwap from 'vwap';
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
-
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 
 
 
@@ -59,7 +62,7 @@ class MyView extends React.Component {
                 'NIFTY MNC': 'cnxMNC',
                 'NIFTY PSE': 'cnxPSE',
 
-              //  "NIFTY HEALTHCARE": "niftyHealthcare"
+                //  "NIFTY HEALTHCARE": "niftyHealthcare"
                 //'NIFTY CONSR DURBL':  "niftyConsrDurbl"
                 // 'NIFTY GROWSECT 15': 'ni15',H
                 // 'NIFTY COMMODITIES': 'cnxCommodities',
@@ -88,6 +91,7 @@ class MyView extends React.Component {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
             looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
+            timeFrame: "FIFTEEN_MINUTE"
 
         }
         this.refreshSectorCandle = this.refreshSectorCandle.bind(this);
@@ -203,7 +207,59 @@ class MyView extends React.Component {
     }
 
 
-   
+    updateTokenSymbol = (gainerList) => {
+
+        var gainerList = localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [];
+
+        for (let index = 0; index < gainerList.length; index++) {
+            const element = gainerList[index];
+
+
+
+            if(!element.token && !element.symbol){
+                AdminService.autoCompleteSearch(element.name).then(searchRes => {
+                    let searchResdata = searchRes.data;
+                    if (searchResdata.length) {
+                        var uppercaseNameEQ = element.name.toUpperCase() + "-EQ";
+                        var uppercaseNameBE = element.name.toUpperCase() + "-BE";
+                        var found = searchResdata.filter(row => row.name === element.name && (row.symbol === uppercaseNameEQ || row.symbol === uppercaseNameBE));
+                        if (found.length) {
+                            element.symbol = found[0].symbol;
+                            element.token = found[0].token;
+                            element.exch_seg = found[0].exch_seg; 
+                            localStorage.setItem('gainerList', JSON.stringify(gainerList));
+                        }
+                    }
+                });
+            }
+
+            
+        }
+
+        var looserList = localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [];
+
+        for (let index = 0; index < looserList.length; index++) {
+            const element = looserList[index];
+            if(!element.token && !element.symbol){
+                AdminService.autoCompleteSearch(element.name).then(searchRes => {
+                    let searchResdata = searchRes.data;
+                    if (searchResdata.length) {
+                        var uppercaseNameEQ = element.name.toUpperCase() + "-EQ";
+                        var uppercaseNameBE = element.name.toUpperCase() + "-BE";
+                        var found = searchResdata.filter(row => row.name === element.name && (row.symbol === uppercaseNameEQ || row.symbol === uppercaseNameBE));
+                        if (found.length) {
+                            element.symbol = found[0].symbol;
+                            element.token = found[0].token;
+                            element.exch_seg = found[0].exch_seg; 
+                            localStorage.setItem('looserList', JSON.stringify(looserList));
+                        }
+                    }
+                });
+            }
+          
+        }
+
+    }
 
 
 
@@ -224,12 +280,12 @@ class MyView extends React.Component {
 
                     this.setState({ indexTimeStamp: softedData[0].timeVal });
 
-                    var gainerList = [], looserList=[]; 
+                    var gainerList = [], looserList = [];
 
                     for (let index = 0; index < softedData.length; index++) {
                         const element = softedData[index];
                         var slugName = this.state.sluglist[element.indexName];
-                        console.log("element",slugName, element.percChange);
+                        console.log("element", slugName, element.percChange);
 
                         if (slugName) {
                             console.log("secName", element.indexName, slugName);
@@ -239,50 +295,54 @@ class MyView extends React.Component {
                                 softedData[index].time = res.data && res.data.time;
                                 this.setState({ sectorList: softedData });
 
-                                if(element.percChange >= 0.75 || (softedData[index].indexName == "NIFTY 50" && element.percChange >= 0.25)){
-                                    
-                                    for (let indexStock = 0; indexStock < res.data.data.length-5; indexStock++) {
+                                if (element.percChange >= 0.75 || (softedData[index].indexName == "NIFTY 50" && element.percChange >= 0.25)) {
+
+                                    for (let indexStock = 0; indexStock < res.data.data.length - 5; indexStock++) {
                                         const stockElement = res.data.data[indexStock];
-                                        var stockInfo ={
-                                            name : stockElement.symbol, 
-                                            ltp : stockElement.ltP, 
-                                            nc : stockElement.iislPercChange,
+                                        var stockInfo = {
+                                            name: stockElement.symbol,
+                                            ltp: stockElement.ltP,
+                                            nc: stockElement.iislPercChange,
                                             sector: softedData[index].indexName,
-                                            foundAt : new Date().toLocaleString()   
+                                            foundAt: new Date().toLocaleString()
                                         }
 
-                                        var isfound = this.state.gainerList.filter(row => row.symbol == stockElement.symbol);
-                                         console.log(stockElement.symbol, isfound); 
-                                        if(!isfound.length){
-                                            gainerList.push(stockInfo); 
+                                        let glist = localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [];
+                                        var isfound = glist.filter(row => row.name == stockElement.symbol);
+
+                                        console.log(stockElement.symbol, isfound);
+                                        if (!isfound.length) {
+                                            gainerList.push(stockInfo);
+                                            localStorage.setItem('gainerList', JSON.stringify(gainerList));
                                         }
 
-                                    } 
-                                    localStorage.setItem('gainerList', JSON.stringify(gainerList)); 
+                                    }
                                 }
-                                if(element.percChange <= -0.75 || (softedData[index].indexName == "NIFTY 50" && element.percChange <= -0.25)){
-                                    
-                                    var sectorStock = res.data.data; 
-                                    sectorStock.reverse(); 
-                                    
-                                    for (let indexStock = 0; indexStock < res.data.data.length-5; indexStock++) {
+                                if (element.percChange <= -0.75 || (softedData[index].indexName == "NIFTY 50" && element.percChange <= -0.25)) {
+
+                                    var sectorStock = res.data.data;
+                                    sectorStock.reverse();
+
+                                    for (let indexStock = 0; indexStock < res.data.data.length - 5; indexStock++) {
                                         const stockElement = res.data.data[indexStock];
-                                        var stockInfo ={
-                                            name : stockElement.symbol, 
-                                            ltp : stockElement.ltP, 
-                                            nc : stockElement.iislPercChange,
+                                        var stockInfo = {
+                                            name: stockElement.symbol,
+                                            ltp: stockElement.ltP,
+                                            nc: stockElement.iislPercChange,
                                             sector: softedData[index].indexName,
-                                            foundAt : new Date().toLocaleString()  
+                                            foundAt: new Date().toLocaleString()
                                         }
 
-                                        var isfound = this.state.looserList.filter(row => row.symbol == stockElement.symbol);
-                                         console.log(stockElement.symbol, isfound); 
-                                        if(!isfound.length){
-                                            looserList.push(stockInfo); 
-                                        }
+                                        let llist = localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [];
 
-                                    } 
-                                    localStorage.setItem('looserList', JSON.stringify(looserList)); 
+                                        var isfound = llist.filter(row => row.name == stockElement.symbol);
+
+                                        console.log("looseer", stockElement.symbol, isfound);
+                                        if (!isfound.length) {
+                                            looserList.push(stockInfo);
+                                            localStorage.setItem('looserList', JSON.stringify(looserList));
+                                        }
+                                    }
                                 }
 
                             }).catch(error => {
@@ -290,13 +350,25 @@ class MyView extends React.Component {
                                 console.log("list fetch error", error)
                             })
                         }
+
+
                     }
+
 
                 }
             })
             .catch((reject) => {
                 //      Notify.showError("All Indices API Failed" + <br /> + reject);
                 //      this.speckIt("All Indices API Failed");
+
+            }).finally((ok) => {
+
+
+                setTimeout(() => {
+                    this.updateTokenSymbol("ok");
+                }, 5000);
+
+
 
             })
 
@@ -754,7 +826,7 @@ class MyView extends React.Component {
                 break;
         }
     }
-    
+
     dailyBasisInfoCheck = (token, element) => {
         //this.setState({DailyBulishStatus: ''}); 
 
@@ -780,11 +852,11 @@ class MyView extends React.Component {
 
                 for (let index = candleDatad.length - 20; index < candleDatad.length; index++) {
                     const element = candleDatad[index];
-                    if(element){
+                    if (element) {
                         closeingDatadaily.push(element[4]);
                         valumeSum += element[5];
                     }
-                  
+
                 }
 
 
@@ -800,7 +872,7 @@ class MyView extends React.Component {
 
                 if (candleDatad[candleDatad.length - 1][5] > valumeSum / 20) {
                     console.log("crosssed voliue", element);
-                 //   this.setState({ volumeCrossedList: [...this.state.volumeCrossedList, element] })
+                    //   this.setState({ volumeCrossedList: [...this.state.volumeCrossedList, element] })
                 }
 
             }
@@ -824,46 +896,46 @@ class MyView extends React.Component {
 
         // document.getElementById('showCandleChart').click();
 
-  
 
-        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || []; 
+
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [];
         var isThere = watchList.filter(row => row.name === symbol);
-        if(isThere && isThere.length){
+        if (isThere && isThere.length) {
 
-            let stock = isThere[0]; 
+            let stock = isThere[0];
 
-           
 
-            this.dailyBasisInfoCheck( stock.token);
+
+            this.dailyBasisInfoCheck(stock.token);
 
             const format1 = "YYYY-MM-DD HH:mm";
 
 
             var beginningTime = moment('9:15am', 'h:mma');
             var time = moment.duration("22:00:00");  //22:00:00" for last day  2hours 
-           // var beginningTime = moment(new Date()).subtract(time);
+            // var beginningTime = moment(new Date()).subtract(time);
 
             var data = {
                 "exchange": "NSE",
-                "symboltoken":  stock.token,
-                "interval": 'FIVE_MINUTE',
+                "symboltoken": stock.token,
+                "interval": this.state.timeFrame,  //'FIVE_MINUTE',
                 "fromdate": moment(beginningTime).format(format1),
                 "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
             }
-    
-    
+
+
             AdminService.getHistoryData(data).then(res => {
                 let historyData = resolveResponse(res, 'noPop');
-                    console.log("candledata", historyData); 
+                console.log("candledata", historyData);
                 if (historyData && historyData.data) {
-    
+
                     var data = historyData.data;
-    
+
                     const cdata = data.map(d => {
                         return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
                     });
 
-                    
+
 
                     var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [], volumeSeriesData = [];
                     data.forEach((element, loopindex) => {
@@ -876,57 +948,57 @@ class MyView extends React.Component {
                         valumeData.push(element[5]);
                         bbdata.push((element[2] + element[3] + element[4]) / 3);
                         volumeSeriesData.push({ time: new Date(element[0]).getTime(), value: element[5], color: 'rgba(211, 211, 211, 1)' })
-    
+
                     });
-    
+
                     var input = {
                         period: 20,
                         values: bbdata,
                         stdDev: 2
                     }
-    
+
                     var bb = BollingerBands.calculate(input);
                     console.log(stock.symbol, "Bolinger band", input, bb);
-    
+
                     var bb = BollingerBands.calculate(input);
                     console.log(stock.symbol, "Bolinger band", input, bb);
-    
+
                     var inputRSI = { values: closeingData, period: 14 };
                     var rsiValues = RSI.calculate(inputRSI);
-    
+
                     console.log(stock.symbol, "Rsi", inputRSI, rsiValues);
                     console.log(stock.symbol, "vwap", vwapdata, vwap(vwapdata));
 
 
                     var data = {
-                        "exchange":stock.exch_seg,
+                        "exchange": stock.exch_seg,
                         "tradingsymbol": stock.symbol,
                         "symboltoken": stock.token,
                     }
                     AdminService.getLTP(data).then(res => {
                         let data = resolveResponse(res, 'noPop');
-                        var LtpData = data && data.data;  
-                        
-                        LtpData.change =  (LtpData.ltp - LtpData.close) * 100 /  LtpData.close; 
+                        var LtpData = data && data.data;
+
+                        LtpData.change = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
 
 
 
-                        this.showCandleChart(candleChartData, stock.symbol, LtpData.ltp , LtpData.change);  
+                        this.showCandleChart(candleChartData, stock.symbol, LtpData.ltp, LtpData.change);
 
-                       
+
                         // this.setState({InstrumentLTP: LtpData , selectedSymbol : stock.symbol,  chartStaticData: candleChartData, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
-                            
+
                         //     document.getElementById('showLightCandleChart').click();
                         // });
-            
-                    
+
+
                     })
 
                 }
             })
         }
 
-       
+
 
 
     }
@@ -990,24 +1062,24 @@ class MyView extends React.Component {
         this.setState({ switchToListViewFlag: !this.state.switchToListViewFlag });
     }
 
-    get5DaysMoveCount =(symbol)=> {
+    get5DaysMoveCount = (symbol) => {
         var isThere = this.state.slowMotionStockList.filter(row => row.name === symbol);
         if (isThere.length) {
-           return "SM: " + isThere[0].bigCandleCount ;  
-        }else{
+            return "SM: " + isThere[0].bigCandleCount;
+        } else {
             return '';
         }
     }
 
-    getDeliveryInfo =(symbol)=> {
-         
+    getDeliveryInfo = (symbol) => {
+
         AdminService.getDeliveryData(symbol).then(resd => {
-            if(resd && resd.data &&  resd.data.length)
-            return "D2T%: " +  resd.data[0].deliveryToTradedQuantity; 
+            if (resd && resd.data && resd.data.length)
+                return "D2T%: " + resd.data[0].deliveryToTradedQuantity;
         });
-       
+
     }
-    
+
     render() {
 
         // this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
@@ -1048,14 +1120,14 @@ class MyView extends React.Component {
 
                 <ChartDialog />
 
-                <LightChartDialog LightChartData = {{InstrumentLTP : this.state.InstrumentLTP, DailyBulishStatus: this.state.DailyBulishStatus, todayCurrentVolume : this.state.todayCurrentVolume,  selectedSymbol : this.state.selectedSymbol,  chartStaticData: this.state.chartStaticData, bblastValue: this.state.bblastValue, vwapvalue: this.state.vwapvalue, rsiValues: this.state.rsiValues, valumeData: this.state.valumeData }} />
+                <LightChartDialog LightChartData={{ InstrumentLTP: this.state.InstrumentLTP, DailyBulishStatus: this.state.DailyBulishStatus, todayCurrentVolume: this.state.todayCurrentVolume, selectedSymbol: this.state.selectedSymbol, chartStaticData: this.state.chartStaticData, bblastValue: this.state.bblastValue, vwapvalue: this.state.vwapvalue, rsiValues: this.state.rsiValues, valumeData: this.state.valumeData }} />
 
                 <Grid direction="row" container className="flexGrow" spacing={1} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
-                    <Grid item xs={12} sm={12} >
+                    <Grid item xs={12} sm={6} >
                         <Typography component="h3" variant="h6" color="primary" >
                             Sectors HitMap ({Object.keys(this.state.sluglist).length}) at {this.state.indexTimeStamp}
                             &nbsp;
-                            <Button variant="contained" onClick={() => this.loadIndexesList()}>Refresh</Button> 
+                            <Button variant="contained" onClick={() => this.loadIndexesList()}>Refresh</Button>
 
                             &nbsp;
 
@@ -1071,6 +1143,20 @@ class MyView extends React.Component {
 
                         {/* {localStorage.getItem('autoTradeTopList')} */}
 
+                    </Grid>
+                    <Grid item xs={12} sm={2} >
+                        <FormControl style={{ minWidth: '100%' }} >
+                            <InputLabel htmlFor="gender">Select Time</InputLabel>
+                            <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onChange} >
+                                <MenuItem value={'ONE_MINUTE'}>{'1 Min'}</MenuItem>
+                                <MenuItem value={'FIVE_MINUTE'}>{'5 Min'}</MenuItem>
+                                <MenuItem value={'TEN_MINUTE'}>{'10 Min'}</MenuItem>
+                                <MenuItem value={'FIFTEEN_MINUTE'}>{'15 Min'}</MenuItem>
+                                <MenuItem value={'THIRTY_MINUTE'}>{'30 Min'}</MenuItem>
+                                <MenuItem value={'ONE_HOUR'}>{'1 Hour'}</MenuItem>
+                                <MenuItem value={'ONE_DAY'}>{'1 Day'}</MenuItem>
+                            </Select>
+                        </FormControl>
                     </Grid>
 
 
@@ -1179,7 +1265,7 @@ class MyView extends React.Component {
 
 
                     <Table id="tabledata" aria-label="a dense table" stickyHeader size="small" >
-                        <TableBody hover style={{whiteSpace: "nowrap" }} >
+                        <TableBody hover style={{ whiteSpace: "nowrap" }} >
 
 
                             {this.state.switchToListViewFlag && this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
@@ -1187,22 +1273,22 @@ class MyView extends React.Component {
                                 indexdata.stockList ? <TableRow hover={true} key={index}>
                                     <TableCell>
                                         <Typography variant="body1" >
-                                          {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)
+                                            {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)
                                             {/* &nbsp; {indexdata.time} */}
                                         </Typography>
                                     </TableCell>
-                                   
+
                                     {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
                                         <TableCell style={{ textAlign: "left", }} >
-                                            <div style={{padding:"5px"}}> 
-                                              <Button size="small" onClick={() => this.showCandleChartPopUp(sectorItem.symbol)}>
-                                                  <span style={{ background: this.getPercentageColor(sectorItem.iislPercChange)}}>  <b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%) </span>
-                                                  <span title="last 5 days 5min big movement  maximum count">&nbsp;{this.get5DaysMoveCount(sectorItem.symbol)}  </span> 
-                                                  
-                                                  {/* <span title="Delivery Info">&nbsp;{this.getDeliveryInfo(sectorItem.symbol)}  </span>  */}
+                                            <div style={{ padding: "5px" }}>
+                                                <Button size="small" onClick={() => this.showCandleChartPopUp(sectorItem.symbol)}>
+                                                    <span style={{ background: this.getPercentageColor(sectorItem.iislPercChange) }}>  <b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%) </span>
+                                                    <span title="last 5 days 5min big movement  maximum count">&nbsp;{this.get5DaysMoveCount(sectorItem.symbol)}  </span>
 
-                                                  
-                                            </Button>  
+                                                    {/* <span title="Delivery Info">&nbsp;{this.getDeliveryInfo(sectorItem.symbol)}  </span>  */}
+
+
+                                                </Button>
 
                                             </div>
 
@@ -1212,7 +1298,7 @@ class MyView extends React.Component {
                                     }
 
                                 </TableRow>
-                                : ""
+                                    : ""
 
                             )) : ''}
 

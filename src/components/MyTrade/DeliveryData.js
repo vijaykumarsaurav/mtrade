@@ -83,21 +83,26 @@ class OrderBook extends React.Component {
 
     componentDidMount() {
 
-        var beginningTime = moment('9:15am', 'h:mma');
-        var endTime = moment('3:30pm', 'h:mma');
-        const friday = 5; // for friday
-        var currentTime = moment(new Date(), "h:mma");
-        const today = moment().isoWeekday();
-        //market hours
-        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            setInterval(() => {
-                this.checkLiveBids();
-            }, 10 * 60000);
+        // var beginningTime = moment('9:15am', 'h:mma');
+        // var endTime = moment('3:30pm', 'h:mma');
+        // const friday = 5; // for friday
+        // var currentTime = moment(new Date(), "h:mma");
+        // const today = moment().isoWeekday();
+        // //market hours
+        // if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+        //     setInterval(() => {
+        //         this.checkLiveBids();
+        //     }, 10 * 60000);
 
-        }
+        // }
 
 
-       // this.checkLiveBids();
+        setInterval(() => {
+            this.checkLiveBids();
+        }, 10 * 60000);
+
+
+        this.checkLiveBids();
 
     }
 
@@ -221,17 +226,19 @@ class OrderBook extends React.Component {
 
                     this.setState({ backupDeleverydata: [...this.state.backupDeleverydata, biddata] });
 
-                    bidlivedata.quantityTraded = bidlivedata.quantityTraded != '-' ? parseFloat(bidlivedata.quantityTraded.split(",").join('')) : "-";
-                    bidlivedata.deliveryQuantity = bidlivedata.deliveryQuantity != '-' ? parseFloat(bidlivedata.deliveryQuantity.split(",").join('')) : "-";
+                    bidlivedata.quantityTraded = bidlivedata.quantityTraded != '-' ? parseFloat(bidlivedata.quantityTraded.split(",").join('')) : "0";
+                    bidlivedata.deliveryQuantity = bidlivedata.deliveryQuantity != '-' ? parseFloat(bidlivedata.deliveryQuantity.split(",").join('')) : "0";
 
 
-                    bidlivedata.totalBuyQuantity = bidlivedata.totalBuyQuantity != '-' ? parseFloat(bidlivedata.totalBuyQuantity.split(",").join('')) : "-";
+                    bidlivedata.totalBuyQuantity = bidlivedata.totalBuyQuantity != '-' ? parseFloat(bidlivedata.totalBuyQuantity.split(",").join('')) : "0";
 
-                    bidlivedata.totalSellQuantity = bidlivedata.totalSellQuantity != '-' ? parseFloat(bidlivedata.totalSellQuantity.split(",").join('')) : "-";
-                    bidlivedata.totalTradedVolume = bidlivedata.totalTradedVolume != '-' ? parseFloat(bidlivedata.totalTradedVolume.split(",").join('')) : "-";
-                    bidlivedata.totalTradedValue = bidlivedata.totalTradedValue != '-' ? parseFloat(bidlivedata.totalTradedValue.split(",").join('')) : "-";
+                    bidlivedata.totalSellQuantity = bidlivedata.totalSellQuantity != '-' ? parseFloat(bidlivedata.totalSellQuantity.split(",").join('')) : "0";
+                    bidlivedata.totalTradedVolume = bidlivedata.totalTradedVolume != '-' ? parseFloat(bidlivedata.totalTradedVolume.split(",").join('')) : "0";
+                    bidlivedata.totalTradedValue = bidlivedata.totalTradedValue != '-' ? parseFloat(bidlivedata.totalTradedValue.split(",").join('')) : "0";
 
+                 
                     bidlivedata.buytosellTime = bidlivedata.totalBuyQuantity / bidlivedata.totalSellQuantity;
+                    bidlivedata.selltobuyTime = bidlivedata.totalSellQuantity / bidlivedata.totalBuyQuantity;
 
                     this.state.liveBidsList.sort(function (a, b) {
                         return b.pChange - a.pChange;
@@ -240,8 +247,13 @@ class OrderBook extends React.Component {
 
 
                     if (bidlivedata.totalBuyQuantity / bidlivedata.totalSellQuantity > 1.25) {
-                        CommonMethods.speckIt(bidlivedata.symbol + " buying bid " + (bidlivedata.totalBuyQuantity / bidlivedata.totalSellQuantity).toFixed(2) + " of seller");
-                        bidlivedata.highlight = true;
+                       // CommonMethods.speckIt(bidlivedata.symbol + " " + (bidlivedata.totalBuyQuantity / bidlivedata.totalSellQuantity).toFixed(2) + " time buying");
+                        bidlivedata.highlightbuy = true;
+                    }
+
+                    if (bidlivedata.totalSellQuantity / bidlivedata.totalBuyQuantity > 1.25) {
+                      //  CommonMethods.speckIt(bidlivedata.symbol + "  " + (bidlivedata.totalSellQuantity / bidlivedata.totalBuyQuantity).toFixed(2) + " time selling");
+                        bidlivedata.highlightsell = true;
                     }
 
                     this.setState({ liveBidsList: [...this.state.liveBidsList, bidlivedata], lastUpdateTime: resd.data.lastUpdateTime }, function () {
@@ -378,7 +390,10 @@ class OrderBook extends React.Component {
                                     <TableRow variant="head" >
 
                                         <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol</Button> </TableCell>
-                                        <TableCell align="center" ><Button onClick={() => this.sortByColumn("buytosellTime")}>buytosellTime</Button>  </TableCell>
+                                        <TableCell align="center" ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell</Button>  </TableCell>
+                                        <TableCell align="center" ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy</Button>  </TableCell>
+
+                                        
 
                                         <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalBuyQuantity")}> Total Buy Quantity</Button>  </TableCell>
                                         <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalSellQuantity")}> Total Sell Quantity</Button>  </TableCell>
@@ -414,8 +429,10 @@ class OrderBook extends React.Component {
                                         <TableRow hover key={i} style={{ background: this.getPercentageColor(row.pChange) }}>
 
                                             <TableCell align="left">{row.symbol} {row.lastPrice} ({row.pChange}%)</TableCell>
-                                            <TableCell style={{ background: row.highlight ? "lightgray" : "" }} align="center">{row.buytosellTime.toFixed(2)} time</TableCell>
+                                            <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} align="center">{row.buytosellTime.toFixed(2)} time buy</TableCell>
 
+                                            <TableCell style={{ background: row.highlightsell ? "lightgray" : "" }} align="center">{row.selltobuyTime.toFixed(2)} time sell</TableCell>
+                                            
                                             <TableCell align="center">{row.totalBuyQuantity} {this.convertToFloat(row.totalBuyQuantity)}</TableCell>
                                             <TableCell align="center">{row.totalSellQuantity} {this.convertToFloat(row.totalSellQuantity)}</TableCell>
                                    
@@ -434,13 +451,13 @@ class OrderBook extends React.Component {
                                     <TableCell  align="center">{row.dayLow}</TableCell>
                                     <TableCell  align="center">{row.previousClose}</TableCell> */}
 
-                                            <TableCell align="center"> 
+                                            <TableCell style={{ background:  "#eceff1" }} align="center"> 
 
                                                 {row.delHistory && row.delHistory.map(item => (                                                   
                                                      <span> {new Date(item.datetime).toLocaleDateString()}  &nbsp;
-                                                        <span title={"quantityTraded" + item.quantityTraded}> {(item.quantityTraded/100000).toFixed(2)}L  </span>  &nbsp;
+                                                        <span title={"quantityTraded " + item.quantityTraded}> {(item.quantityTraded/100000).toFixed(2)}L  </span>  &nbsp;
                                                         <span title={"deliveryToTradedQuantity"}> {item.deliveryToTradedQuantity}%  </span>  &nbsp;
-                                                        <span title={"deliveryQuantity" + item.deliveryQuantity}> {(item.deliveryQuantity/100000).toFixed(2)}L  </span>  &nbsp;
+                                                        <span title={"deliveryQuantity " + item.deliveryQuantity}> {(item.deliveryQuantity/100000).toFixed(2)}L  </span>  &nbsp;
                                                         <span  style={{color: item.todayChange > 0 ? "green" : "red" }}> ({item.todayChange}%)   </span>
                                                         &nbsp;  <br /></span>
                                                     ))}

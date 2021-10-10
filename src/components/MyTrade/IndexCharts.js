@@ -32,8 +32,10 @@ import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import vwap from 'vwap';
 import CommonOrderMethod from "../../utils/CommonMethods";
 import LightChart from "./LightChart";
-import LightChartCom from "./LightChartCom";
+import LightChartMultiple from "./LightChartMultiple";
 import TextField from "@material-ui/core/TextField";
+import { createChart } from 'lightweight-charts';
+
 
 class Home extends React.Component {
     constructor(props) {
@@ -41,29 +43,29 @@ class Home extends React.Component {
         this.state = {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
-            selectedWatchlist: "NIFTY BANK",
+            selectedWatchlist: "looserList", //"NIFTY BANK", gainerList
             totalStockToWatch: 0,
+            chartSize: 300, 
             timeFrame: "FIFTEEN_MINUTE",
             chartStaticData: [],
             BBBlastType: "BBStrongBreakout",
             qtyToTake: '',
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
-            findlast5minMovement: []
+            findlast5minMovement: [],
+            gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
+
 
         };
-        this.startSearching = this.startSearching.bind(this);
     }
 
 
-    componentDidMount() {
+    componentDidMount = async () => {
 
         window.document.title = "Index Charts";
 
         var watchList = this.state.staticData[this.state.selectedWatchlist];
-        this.setState({ totalStockToWatch: watchList.length });
-
+        this.setState({ totalStockToWatch: watchList && watchList.length });
         // this.findlast5minMovement(); //one time only
-        //   this.startSearching();
 
 
         var beginningTime = moment('9:15am', 'h:mma');
@@ -96,6 +98,7 @@ class Home extends React.Component {
         }, 1000);
 
 
+        this.find10MinBBBlast();
 
     }
 
@@ -116,14 +119,9 @@ class Home extends React.Component {
         document.getElementById('showCandleChart').click();
     }
 
-    speckIt = (text) => {
-        var msg = new SpeechSynthesisUtterance();
-        msg.text = text.toString();
-        window.speechSynthesis.speak(msg);
-    }
     componentWillUnmount() {
-        clearInterval(this.state.findlast5minMovementInterval);
-        clearInterval(this.state.stop10bbSearch);
+        //  clearInterval(this.state.findlast5minMovementInterval);
+        //        clearInterval(this.state.stop10bbSearch);
         // clearInterval(this.state.scaninterval);
         //  clearInterval(this.state.bankNiftyInterval); 
     }
@@ -132,34 +130,36 @@ class Home extends React.Component {
         clearInterval(this.state.findlast5minMovementInterval);
         this.setState({ [e.target.name]: e.target.value }, function () {
             // this.findlast5minMovement(); //one time only
-            //this.startSearching();
             this.find10MinBBBlast();
 
         });
+    }
+    shouldComponentUpdate(flag, nextProps, nextState) {
+        return flag //!equals(nextProps, this.props); // equals() is your implementation
     }
     onChangeQty = (e) => {
         this.setState({ [e.target.name]: e.target.value });
     }
 
-    startSearching = () => {
+    // startSearching = () => {
 
-        console.log("Starting the search");
+    //     console.log("Starting the search");
 
-        var beginningTime = moment('9:15am', 'h:mma');
-        var endTime = moment('3:30pm', 'h:mma');
-        const friday = 5; // for friday
-        var currentTime = moment(new Date(), "h:mma");
-        const today = moment().isoWeekday();
-        //market hours
+    //     var beginningTime = moment('9:15am', 'h:mma');
+    //     var endTime = moment('3:30pm', 'h:mma');
+    //     const friday = 5; // for friday
+    //     var currentTime = moment(new Date(), "h:mma");
+    //     const today = moment().isoWeekday();
+    //     //market hours
 
-        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            var intervaltime = 60000;
-            if (this.state.totalStockToWatch > 180) {
-                intervaltime = this.state.totalStockToWatch * 333;
-            }
-            this.setState({ findlast5minMovementInterval: setInterval(() => { this.findlast5minMovement(); }, intervaltime) });
-        }
-    }
+    //     if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+    //         var intervaltime = 60000;
+    //         if (this.state.totalStockToWatch > 180) {
+    //             intervaltime = this.state.totalStockToWatch * 333;
+    //         }
+    //       //  this.setState({ findlast5minMovementInterval: setInterval(() => { this.findlast5minMovement(); }, intervaltime) });
+    //     }
+    // }
 
     getTimeFrameValue = (timeFrame) => {
 
@@ -205,6 +205,168 @@ class Home extends React.Component {
         }
     }
 
+    calculateSMA =(data, count) => {
+        var avg = function (data) {
+            var sum = 0;
+            for (var i = 0; i < data.length; i++) {
+                sum += data[i].close;
+            }
+            return sum / data.length;
+        };
+        var result = [];
+        for (var i = count - 1, len = data.length; i < len; i++) {
+            var val = avg(data.slice(i - count + 1, i));
+            result.push({ time: data[i].time, value: val });
+        }
+        return result;
+    }
+
+    getRSIBBString=(row)=>{
+        var str = ''; 
+        if(row.BB && row.ltp >= row.BB.upper){
+            str +=  '<span style="color:green">BBupr:' + row.BB.upper;
+        }else{
+            str += '<span style="color:red">BBupr:' + row.BB.upper;
+        }
+
+        if(row.BB && row.ltp <= row.BB.lower){
+            str +=  ' <span style="color:green">BBlwr:' + row.BB.lower;
+        }else{
+            str += ' <span style="color:red">BBlwr:' + row.BB.lower;
+        }
+
+        if(row.RSIValue >= 60){
+            str +=  ' <span style="color:green">RSI:' + row.RSIValue;
+        }else if(row.RSIValue >= 40 && row.RSIValue <= 59){
+            str +=  ' <span style="color:black">RSI:' + row.RSIValue;
+        }else{
+            str += ' <span style="color:red">RSI:' + row.RSIValue;
+        }
+
+        return str; 
+    }
+
+    createMultpleChart = (row) => {
+
+        var div = document.createElement("div");
+        div.style.display = 'block';
+        div.style.padding = 10 + 'px';
+        div.style.marginLeft = 10 + 'px';
+        div.style.marginTop = 10 + 'px';
+        div.style.border =  "2px solid "+CommonOrderMethod.getPercentageColor(row.perChange);      
+
+        var legend = document.createElement('div');
+        //legend.className = 'sma-legend';
+        div.appendChild(legend);
+        legend.style.display = 'block';
+        legend.style.left = 3 + 'px';
+        legend.style.top = 3 + 'px';
+
+        if(row.perChange > 0){
+            legend.style.color = 'green';
+        }else{
+            legend.style.color = 'red';
+        }
+
+        legend.innerHTML = row.name + " " + row.ltp + " ("+ row.perChange +'%) <br />';
+
+
+        var legendTitle = document.createElement('div');
+        //legend.className = 'sma-legend';
+        div.appendChild(legendTitle);
+//        legendTitle.style.display = 'block';
+        legendTitle.style.fontSize = '10px';
+
+
+        //  const domElement = document.getElementById('tvchart');
+        //   document.getElementById('tvchart').innerHTML = '';
+
+
+        const chart = createChart(div, { width: this.state.chartSize, height: this.state.chartSize, timeVisible: true, secondsVisible: true, });
+
+        
+        var candleSeries = chart.addCandlestickSeries({
+            upColor: 'green',
+            downColor: 'red',
+            borderDownColor: 'red',
+            borderUpColor: 'green',
+            wickDownColor: 'red',
+            wickUpColor: 'green',
+        });
+
+        candleSeries.setData(row.lightChartData);
+
+        var smaData = this.calculateSMA(row.lightChartData, 20);
+		var smaLine = chart.addLineSeries({
+			color: 'rgba(4, 111, 232, 1)',
+			lineWidth: 2,
+		});
+		smaLine.setData(smaData);
+        
+        var volumeSeries = chart.addHistogramSeries({
+            color: '#26a69a',
+            priceFormat: {
+                type: 'volume',
+            },
+            priceScaleId: '',
+            scaleMargins: {
+                top: 0.8,
+                bottom: 0,
+            },
+        });
+        volumeSeries.setData(row.volumeSeriesData);
+        var legend = document.createElement('div');
+        //legend.className = 'sma-legend';
+        div.append(legend);
+        legend.style.display = 'block';
+
+        legend.innerHTML =  this.getRSIBBString(row); 
+        document.getElementById("allchart").append(div);
+
+
+        chart.subscribeCrosshairMove((param) => {
+
+			var getit = param.seriesPrices[Symbol.iterator]();
+
+			var string = "";
+			var change = "";
+
+			for (var elem of getit) {
+
+				console.log(elem);
+
+				if (typeof elem[1] == 'object') {
+					string += " O: <b>" + elem[1].open + "</b>";
+					string += " H: <b>" + elem[1].high + "</b>";
+					string += " L: <b>" + elem[1].low + "</b>";
+					string += " C: <b>" + elem[1].close + "</b>";
+					change = (elem[1].close - elem[1].open) * 100 / elem[1].open;
+					string += " CH: <b>" + change.toFixed(2) + '%</b><br />';
+				} else {
+					string += " " + elem[1].toFixed(2) + " ";
+				}
+			}
+
+			if (param.time)
+				string += " Time:<b> " + new Date(param.time).toLocaleString()+ "</b>" ;
+
+
+
+			const domElement = document.getElementById('showChartTitle');
+
+
+			var str = "<span style=color:green>" + string + "</span> ";
+			if (change < 0)
+				str = "<span style=color:red>" + string + "</span> ";
+
+             legendTitle.innerHTML = str;
+		});
+        
+
+
+
+    }
+
     updateToLocalStorage = (row) => {
 
         let foundAt = new Date(row.foundAt).toLocaleString();
@@ -231,152 +393,163 @@ class Home extends React.Component {
     }
 
     find10MinBBBlast = async () => {
+       
+        document.getElementById("allchart").innerHTML = '';
 
         this.setState({ findlast5minMovementUpdate: '', findlast5minMovement: [] });
         var watchList = this.state.staticData[this.state.selectedWatchlist];
+        if (this.state.selectedWatchlist == "gainerList") {
+            watchList = localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList'));
+        }
+        if (this.state.selectedWatchlist == "looserList") {
+            watchList = localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList'));
+        }
         if (this.state.selectedWatchlist == "selectall") {
             watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'));
         }
+        this.setState({ totalStockToWatch: watchList && watchList.length });
 
-        this.setState({ totalStockToWatch: watchList.length })
+
+        if (watchList && watchList.length) {
+            for (let index = 0; index < watchList.length; index++) {
+
+                this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() });
+
+                const format1 = "YYYY-MM-DD HH:mm";
+                var beginningTime = moment('9:15am', 'h:mma').format(format1);
+
+                let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
+                var time = moment.duration("1000:00:00");  //22:00:00" for last day  2hours  timeDuration
+                var startDate = moment(new Date()).subtract(time);
+
+                var data = {
+                    "exchange": watchList[index].exch_seg,
+                    "symboltoken": watchList[index].token,
+                    "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                    "fromdate": moment(startDate).format(format1),
+                    "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
+                }
+
+                AdminService.getHistoryData(data).then(res => {
+                    let histdata = resolveResponse(res, 'noPop');
+                    // console.log("candle history", histdata);
+
+                    if (histdata && histdata.data && histdata.data.length) {
+
+                        var candleData = histdata.data;
+                        var candleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [], volumeSeriesData = [];
+                        candleData.forEach((element, loopindex) => {
+
+                            candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
+
+                            vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
+                            closeingData.push(element[4]);
+                            highData.push(element[2]);
+                            lowData.push(element[3]);
+                            openData.push(element[3]);
+                            valumeData.push(element[5]);
+                            bbdata.push((element[2] + element[3] + element[4]) / 3);
+                            volumeSeriesData.push({ time: new Date(element[0]).getTime(), value: element[5], color: 'rgba(211, 211, 211, 1)' })
 
 
-        var foundData = [];
-
-        for (let index = 0; index < watchList.length; index++) {
-
-            this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() });
-
-            const format1 = "YYYY-MM-DD HH:mm";
-            var beginningTime = moment('9:15am', 'h:mma').format(format1);
-
-            let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
-            var time = moment.duration("1000:00:00");  //22:00:00" for last day  2hours  timeDuration
-            var startDate = moment(new Date()).subtract(time);
-
-            var data = {
-                "exchange": watchList[index].exch_seg,
-                "symboltoken": watchList[index].token,
-                "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                "fromdate": moment(startDate).format(format1),
-                "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
-            }
-
-            AdminService.getHistoryData(data).then(res => {
-                let histdata = resolveResponse(res, 'noPop');
-                // console.log("candle history", histdata);
-
-                if (histdata && histdata.data && histdata.data.length) {
-
-                    var candleData = histdata.data;
-                    var candleChartData = [], lightcandleChartData = [], vwapdata = [], closeingData = [], highData = [], lowData = [], openData = [], valumeData = [], bbdata = [];
-                    candleData.forEach((element, loopindex) => {
-                        candleChartData.push([element[0], element[1], element[2], element[3], element[4]]);
-
-                        var time = { year: new Date(element[0]).getFullYear(), month: new Date(element[0]).getMonth(), day: new Date(element[0]).getDate() }
-
-                        //    { time: '2018-10-24', open: 178.58, high: 182.37, low: 176.31, close: 176.97 },
-                        lightcandleChartData.push({
-                            x: new Date(element[0]).getTime(),
-                            y: (element[2] + element[3] + element[4]) / 3
                         });
 
-                        vwapdata.push([element[5], (element[2] + element[3] + element[4]) / 3]);
-                        closeingData.push(element[4]);
-                        highData.push(element[2]);
-                        lowData.push(element[3]);
-                        openData.push(element[3]);
-                        valumeData.push(element[5]);
-                        bbdata.push((element[2] + element[3] + element[4]) / 3);
+                        // { time: '2018-10-19', value: 19103293.00, color: 'rgba(0, 150, 136, 0.8)' },
 
-                    });
-
-                    // { time: '2018-10-19', value: 19103293.00, color: 'rgba(0, 150, 136, 0.8)' },
-
-                    var sma = SMA.calculate({ period: 20, values: closeingData });
-                    //   console.log(watchList[index].symbol, "SMA", sma);
+                        var sma = SMA.calculate({ period: 20, values: closeingData });
+                        //   console.log(watchList[index].symbol, "SMA", sma);
 
 
-                    var inputRSI = { values: closeingData, period: 14 };
-                    var lastRsiValue = RSI.calculate(inputRSI);
+                        var inputRSI = { values: closeingData, period: 14 };
+                        var lastRsiValue = RSI.calculate(inputRSI);
 
-                    // console.log(watchList[index].symbol, "Rsi", inputRSI, lastRsiValue);
-                    // console.log(watchList[index].symbol, "vwap", vwapdata, vwap(vwapdata));
+                        // console.log(watchList[index].symbol, "Rsi", inputRSI, lastRsiValue);
+                        // console.log(watchList[index].symbol, "vwap", vwapdata, vwap(vwapdata));
 
 
-                    var inputVWAP = {
-                        open: openData,
-                        high: highData,
-                        low: lowData,
-                        close: closeingData,
-                        volume: valumeData
-                    };
+                        var inputVWAP = {
+                            open: openData,
+                            high: highData,
+                            low: lowData,
+                            close: closeingData,
+                            volume: valumeData
+                        };
 
-                    var input = {
-                        period: 20,
-                        values: bbdata,
-                        stdDev: 2
-
-                    }
-
-                    var bb = BollingerBands.calculate(input);
-
-                    var vwapdata = VWAP.calculate(inputVWAP); 
-                    //   console.log(watchList[index].symbol, "Bolinger band", input, bb);
-                    console.log(watchList[index].symbol, "vwap daa", VWAP.calculate(inputVWAP));  
-
-                    var bbvlastvalue = bb[bb.length - 1];
-                    if (bbvlastvalue) {
-                        bbvlastvalue.upper = bbvlastvalue.upper.toFixed(2);
-                        bbvlastvalue.middle = bbvlastvalue.middle.toFixed(2);
-                        bbvlastvalue.lower = bbvlastvalue.lower.toFixed(2);
-
-                    }
-
-                  
-                    var dataltp = {
-                        "exchange": "NSE",
-                        "tradingsymbol": watchList[index].symbol,
-                        "symboltoken": watchList[index].token,
-                    }
-
-                    AdminService.getLTP(dataltp).then(res => {
-                        let data = resolveResponse(res, 'noPop');
-                        var LtpData = data && data.data;
-                        //console.log(LtpData);
-                        if (LtpData && LtpData.ltp) {
-                            let data = {
-                                symbol: watchList[index].symbol,
-                                token: watchList[index].token,
-                                RSIValue: lastRsiValue[lastRsiValue.length - 1],
-                                RSI: lastRsiValue.slice(Math.max(lastRsiValue.length - 8, 1)),
-                                valumeData: valumeData.slice(Math.max(valumeData.length - 8, 1)),
-                                VWAP:vwapdata[vwapdata.length-1], //vwap(vwapdata),
-                                BB: bbvlastvalue,
-                                candleChartData: candleChartData,
-                                foundAt: candleData &&   new Date(candleData[candleData.length - 1][0]).toLocaleString(),
-                                name: watchList[index].name,
-                            }
-        
-                            data.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
-                            data.ltp = LtpData.ltp; 
-
-                            this.setState({ findlast5minMovement: [...this.state.findlast5minMovement, data] });
+                        var input = {
+                            period: 20,
+                            values: bbdata,
+                            stdDev: 2
 
                         }
-                    }); 
+
+                        var bb = BollingerBands.calculate(input);
+
+                        var vwapdata = VWAP.calculate(inputVWAP);
+                        //   console.log(watchList[index].symbol, "Bolinger band", input, bb);
+                        console.log(watchList[index].symbol, "vwap daa", VWAP.calculate(inputVWAP));
+
+                        var bbvlastvalue = bb[bb.length - 1];
+                        if (bbvlastvalue) {
+                            bbvlastvalue.upper = bbvlastvalue.upper.toFixed(2);
+                            bbvlastvalue.middle = bbvlastvalue.middle.toFixed(2);
+                            bbvlastvalue.lower = bbvlastvalue.lower.toFixed(2);
+
+                        }
+
+                        const lightChartData = candleData.map(d => {
+                            return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
+                        });
+
+
+                        var dataltp = {
+                            "exchange": "NSE",
+                            "tradingsymbol": watchList[index].symbol,
+                            "symboltoken": watchList[index].token,
+                        }
+
+                        AdminService.getLTP(dataltp).then(res => {
+                            let data = resolveResponse(res, 'noPop');
+                            var LtpData = data && data.data;
+                            //console.log(LtpData);
+                            if (LtpData && LtpData.ltp) {
+                                let data = {
+                                    symbol: watchList[index].symbol,
+                                    token: watchList[index].token,
+                                    RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                    RSI: lastRsiValue.slice(Math.max(lastRsiValue.length - 8, 1)),
+                                    valumeData: valumeData.slice(Math.max(valumeData.length - 8, 1)),
+                                    VWAP: vwapdata[vwapdata.length - 1], //vwap(vwapdata),
+                                    BB: bbvlastvalue,
+                                    candleChartData: candleChartData,
+                                    foundAt: candleData && new Date(candleData[candleData.length - 1][0]).toLocaleString(),
+                                    name: watchList[index].name,
+                                    lightChartData: lightChartData,
+                                    volumeSeriesData: volumeSeriesData
+                                }
+
+                                data.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
+                                data.ltp = LtpData.ltp;
+
+                                this.setState({ findlast5minMovement: [...this.state.findlast5minMovement, data] });
+                                // this.shouldComponentUpdate(true);
+
+                                this.createMultpleChart(data);
+                            }
+                        });
 
 
 
-                } else {
-                    //localStorage.setItem('NseStock_' + symbol, "");
-                    console.log(watchList[index].symbol, "  emply candle found");
-                }
-            })
+                    } else {
+                        //localStorage.setItem('NseStock_' + symbol, "");
+                        console.log(watchList[index].symbol, "  emply candle found");
+                    }
+                })
 
-            await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 600));
+            }
+        } else {
+            Notify.showError("No Stock Found")
         }
-
 
 
     }
@@ -386,16 +559,12 @@ class Home extends React.Component {
         // setValues({ ...values, ['buyFlag']: order.status });
         // setValues({ ...values, ['sellFlag']:  order.status  });
         //  this.setState({ [spineerId]: order.status}); 
-
-
         console.log("order executed", order);
-
     }
 
 
 
     handleClick = (row, type, spinnerIndex) => {
-
 
         console.log(row);
         if (row.token && row.symbol) {
@@ -454,6 +623,9 @@ class Home extends React.Component {
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
                             <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
+                                <MenuItem value={"gainerList"}>{"Gainer List"}</MenuItem>
+                                <MenuItem value={"looserList"}>{"Looser List"}</MenuItem>
+
                                 <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
                                 {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
                                     <MenuItem value={element}>{element}</MenuItem>
@@ -477,7 +649,21 @@ class Home extends React.Component {
                             </Select>
                         </FormControl>
                     </Grid>
-{/* 
+                    <Grid item xs={12} sm={1} >
+                        <FormControl style={styles.selectStyle} >
+                            <InputLabel htmlFor="gender">Chart Size</InputLabel>
+                            <Select value={this.state.chartSize} name="chartSize" onChange={this.onChangeWatchlist}>
+                                <MenuItem value={250}>{'250px'}</MenuItem>
+                                <MenuItem value={300}>{'300px'}</MenuItem>
+                                <MenuItem value={350}>{'350px'}</MenuItem>
+                                <MenuItem value={450}>{'450px'}</MenuItem>
+                                <MenuItem value={550}>{'550px'}</MenuItem>
+                                <MenuItem value={650}>{'650px'}</MenuItem>
+
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    {/* 
                     <Grid item xs={12} sm={1} >
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Select Time</InputLabel>
@@ -498,66 +684,50 @@ class Home extends React.Component {
 
                 </Grid>
 
-                
-                <Grid container spacing={2} >
+
+                <Grid container spacing={2} style={{padding:'10px'}} id="allchart" >
 
 
-                    {this.state.findlast5minMovement ? this.state.findlast5minMovement.map((row, i) => (
+                    {/* {this.state.findlast5minMovement ? this.state.findlast5minMovement.map((row, i) => (
 
                         <Grid item xs={12} sm={3}>
                             <Paper style={{ overflow: "auto", padding: '10px' }} >
 
                                 <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.name} {row.ltp} {row.perChange ? "(" + row.perChange + "%" + ")" : ""} <span> &nbsp;&nbsp;  {row.foundAt}</span></Typography>
 
-                                {/* <LightChart candleData={row.candleChartData.length} />  */}
-
-
-                                {/* {row.lightcandleChartData.length > 0 ?  <div id="showchart"> 
-                                    <LightChartCom ChartData={{lightcandleChartData: row.lightcandleChartData.slice(Math.max(row.candleChartData.length - 10, 1)), volumeData : this.state.volumeData}}/>
-                                </div>
-                                : ""} */}
-
+                            
                                 {row.candleChartData.length > 0 ? <ReactApexChart
                                     options={{
                                         chart: {
                                             type: 'candlestick',
-                                            height: 250
-                                        },
-                                        title: {
-                                            text: "",
-                                            align: 'right'
-                                        },
-                                        xaxis: {
+                                            height: 350
+                                          },
+                                          title: {
+                                            text: 'CandleStick Chart',
+                                            align: 'left'
+                                          },
+                                          xaxis: {
                                             type: 'datetime',
-                                        },
-                                        yaxis: {
+                                          },
+                                          yaxis: {
                                             tooltip: {
-                                                enabled: true
+                                              enabled: true
                                             }
-                                        }
+                                          }
+                                       
                                     }}
+                                   
                                     series={[{
-                                        data: row.candleChartData.slice(Math.max(row.candleChartData.length - 5, 1))
+                                        data: row.candleChartData.slice(Math.max(row.candleChartData.length - 100, 1))
                                     },
-                                        // {
-                                        //     name: 'line',
-                                        //     type: 'line',
-                                        //     data: [
-                                        //         row.lightcandleChartData
-                                        //     ]
-                                        //   }
-
                                     ]}
 
                                     type="candlestick"
                                     width={350}
                                     height={250}
 
-
-
                                 /> : ""}
 
-                                {/* <div> {Parser(row.percentChangeList)}</div> */}
 
                                 <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
 
@@ -567,14 +737,16 @@ class Home extends React.Component {
                                         Daily SMA: {row.DSMALastValue} {row.ltp > row.DSMALastValue ? "BUY" : "SELL"}
                                     </Grid> : ""}
                                     <Grid item xs={12} sm={12} style={{ color: row.ltp > row.VWAP ? "green" : "red", fontWeight: "bold" }}>
-                                        VWAP:  {row.VWAP} 
+                                        VWAP:  {row.VWAP}
                                     </Grid>
 
                                     <Grid item xs={12} sm={12} >
-                                        BB
-                                        &nbsp; <span style={{ color: row.ltp >= row.BB && row.BB.upper ? "green" : "", fontWeight: "bold" }}>Upper: {row.BB && row.BB.upper}</span>
-                                        &nbsp; <span style={{ color: row.ltp >= row.BB.middle ? "green" : "", fontWeight: row.ltp >= row.BB.middle ? "bold": "100" }}>Middle: {row.BB && row.BB.middle}</span>
-                                        &nbsp; <span style={{ color: row.ltp <= row.BB && row.BB.lower ? "red" : "", fontWeight: "bold" }}> Lower: {row.BB && row.BB.lower}</span>
+                                        BB {row.BB ? <>
+                                            &nbsp; <span style={{ color: row.ltp >= row.BB && row.BB.upper ? "green" : "", fontWeight: "bold" }}>Upper: {row.BB && row.BB.upper}</span>
+                                            &nbsp; <span style={{ color: row.ltp >= row.BB.middle ? "green" : "red", fontWeight: "bold" }}>Middle: {row.BB && row.BB.middle}</span>
+                                            &nbsp; <span style={{ color: row.ltp <= row.BB && row.BB.lower ? "red" : "", fontWeight: "bold" }}> Lower: {row.BB && row.BB.lower}</span>
+
+                                        </> : ""}
                                     </Grid>
 
                                     <Grid item xs={12} sm={12}>
@@ -584,13 +756,13 @@ class Home extends React.Component {
                                     </Grid>
                                     <Grid item xs={12} sm={12}>
                                         Volume: {row.valumeData.map((item, j) => (
-                                            <span> {(item/100000).toFixed(2)}L </span>
+                                            <span> {(item / 100000).toFixed(2)}L </span>
                                         ))}
                                     </Grid>
 
 
 
-                                  
+
                                 </Grid>
 
                                 <Grid direction="row" style={{ padding: '5px' }} container className="flexGrow" justify="space-between" >
@@ -599,11 +771,10 @@ class Home extends React.Component {
                                     </Grid>
 
                                     <Grid item>
-                                        <TextField  style={{ marginTop: '-15px' }} label="Qty" type="number" name="qtyToTake" value={this.state.qtyToTake} onChange={this.onChangeQty} />
+                                        <TextField style={{ marginTop: '-15px' }} label="Qty" type="number" name="qtyToTake" value={this.state.qtyToTake} onChange={this.onChangeQty} />
                                     </Grid>
 
                                     <Grid item >
-                                        {/* onClick={() => this.historyWiseOrderPlace(row, 'SELL', "", 'sellButtonClicked' + row.symbol + i)} */}
                                         {!this.state['sellButtonClicked' + row.symbol + i] ? <Button size="small" variant="contained" color="Secondary" onClick={() => this.handleClick(row, 'SELL', 'sellButtonClicked' + row.symbol + i)}>SELL</Button> : <Spinner />}
                                     </Grid>
                                 </Grid>
@@ -613,7 +784,7 @@ class Home extends React.Component {
 
                         </Grid>
 
-                    )) : ''}
+                    )) : ''} */}
                 </Grid>
 
             </React.Fragment>

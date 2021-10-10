@@ -37,7 +37,7 @@ import TextField from "@material-ui/core/TextField";
 
 class Home extends React.Component {
     constructor(props) {
-        super(props);
+    super(props);
         this.state = {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
@@ -45,7 +45,7 @@ class Home extends React.Component {
             totalStockToWatch: 0,
             timeFrame: "FIFTEEN_MINUTE",
             chartStaticData: [],
-            BBBlastType: "BBStrongBreakout",
+            BBBlastType: "selectAll",
             qtyToTake: '',
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
 
@@ -368,7 +368,6 @@ class Home extends React.Component {
 
                             lastRsiValue = lastRsiValue.slice((lastRsiValue.length - 6), lastRsiValue.length);
 
-
                             // var volumeUpside = valumeData[2], volUpCount =0;                          
                             // valumeData.forEach((element, i) => {
                             //     if (i > 2 && volumeUpside < element) {
@@ -381,7 +380,70 @@ class Home extends React.Component {
 
                             let isFound = false;
 
-                            if (this.state.BBBlastType == 'BBStrongBreakout') {
+                            if (this.state.BBBlastType == 'selectAll'  || this.state.BBBlastType == 'macdCrossOver') {
+
+                                if (macdLastValue && macdLastValue.MACD >= macdLastValue.signal) {
+                                    var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                    let data = {
+                                        symbol: watchList[index].symbol,
+                                        token: watchList[index].token,
+                                        ltp: LtpData.ltp,
+                                        perChange: perChange,
+                                        RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                        RSI: lastRsiValue,
+                                        VWAP: vwap(vwapdata),
+                                        BB: bbvlastvalue,
+                                        candleChartData: candleChartData,
+                                        lightcandleChartData: lightcandleChartData,
+                                        foundAt: candleData && candleData[candleData.length - 1][0],
+                                        orderType: "BUY",
+                                        name: watchList[index].name,
+                                        macdData : macd.slice(Math.max(macd.length - 6, 1)), 
+                                        patternName: "MACD Cossed Up"
+                                    }
+
+                                    if (this.updateToLocalStorage(data)) {
+                                        foundData.push(data)
+                                        this.setState({ findlast5minMovement: foundData });
+                                        this.speckIt(watchList[index].symbol + ' macd  buy');
+                                        window.document.title = "macd: Buy " + watchList[index].symbol;
+                                        this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " BUY Eligible" });
+                                    }
+
+                                } else if (macdLastValue && macdLastValue.MACD <= macdLastValue.signal) {
+                                    var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
+                                    let data = {
+                                        symbol: watchList[index].symbol,
+                                        token: watchList[index].token,
+                                        ltp: LtpData.ltp,
+                                        perChange: perChange,
+                                        RSIValue: lastRsiValue[lastRsiValue.length - 1],
+                                        RSI: lastRsiValue,
+                                        VWAP: vwap(vwapdata),
+                                        BB: bbvlastvalue,
+                                        candleChartData: candleChartData,
+                                        lightcandleChartData: lightcandleChartData,
+                                        foundAt: candleData && candleData[candleData.length - 1][0],
+                                        orderType: "SELL",
+                                        name: watchList[index].name,
+                                        macdData : macd.slice(Math.max(macd.length - 6, 1)),
+                                        patternName: "MACD Cossed Down"
+
+                                    }
+                                    if (this.updateToLocalStorage(data)) {
+                                        foundData.push(data)
+                                        this.setState({ findlast5minMovement: foundData });
+                                        this.speckIt(watchList[index].symbol + ' macd sell');
+                                        window.document.title = "macd: Sell " + watchList[index].symbol;
+                                        this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " SELL Eligible" });
+                                    }
+
+                                } else {
+                                    this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " Not Eligible" });
+                                }
+                            }
+
+                            if (this.state.BBBlastType == 'selectAll'  || this.state.BBBlastType == 'BBStrongBreakout') {
                                 if (bbvlastvalue && LtpData.ltp >= bbvlastvalue.upper && candleData[candleData.length - 1][2] == candleData[candleData.length - 1][4]) {
                                     var perChange = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                                     let data = {
@@ -398,6 +460,8 @@ class Home extends React.Component {
                                         foundAt: candleData && candleData[candleData.length - 1][0],
                                         orderType: "BUY",
                                         name: watchList[index].name,
+                                        patternName: "BB Strong Buy"
+
                                     }
 
                                     if (this.updateToLocalStorage(data)) {
@@ -424,6 +488,8 @@ class Home extends React.Component {
                                         foundAt: candleData && candleData[candleData.length - 1][0],
                                         orderType: "SELL",
                                         name: watchList[index].name,
+                                        patternName: "BB Strong Sell"
+
                                     }
                                     if (this.updateToLocalStorage(data)) {
                                         foundData.push(data)
@@ -437,9 +503,6 @@ class Home extends React.Component {
                                     this.setState({ findlast5minMovementUpdate: index + 1 + ". " + watchList[index].symbol + " At " + new Date().toLocaleTimeString() + " Not Eligible" });
                                 }
                             }
-
-
-
 
                         }
 
@@ -674,7 +737,10 @@ class Home extends React.Component {
                             <Select value={this.state.BBBlastType} name="BBBlastType" onChange={this.onChangeWatchlist}>
                                 {/* <MenuItem value={'BBBlastOnly'}>{'BB Blast'}</MenuItem>
                                 <MenuItem value={'BBBlastDaily'}>{'BB Blast Daily'}</MenuItem> */}
+                                <MenuItem value={'selectAll'}>{'Select All'}</MenuItem>
+
                                 <MenuItem value={'BBStrongBreakout'}>{'BB Strong Breakout'}</MenuItem>
+                                <MenuItem value={'macdCrossOver'}>{'Macd Cross Over'}</MenuItem>
 
 
 
@@ -713,7 +779,7 @@ class Home extends React.Component {
 
                         <Grid item xs={12} sm={3}>
                             <Paper style={{ overflow: "auto", padding: '10px' }} >
-                                <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}%) </b></Typography>
+                                <Typography style={{ color: row.perChange > 0 ? "green" : "red" }}> {row.symbol} {row.ltp} <b>({row.perChange.toFixed(2)}%) </b> &nbsp;&nbsp; {row.patternName}</Typography>
 
                                 {/* <LightChart candleData={row.candleChartData.length} />  */}
 
@@ -776,18 +842,28 @@ class Home extends React.Component {
                                         VWAP:  {row.VWAP}
                                     </Grid>
                                     <Grid item xs={12} sm={12}>
-
                                         RSI: {row.RSI.map((item, j) => (
                                             item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
                                         ))}
-
-
                                     </Grid>
                                     <Grid item xs={12} sm={12} >
                                         BB
                                         &nbsp; <span style={{ color: row.ltp >= row.BB.upper ? "green" : "", fontWeight: "bold" }}>Upper: {row.BB.upper}</span>
                                         &nbsp; Middle: {row.BB.middle}
                                         &nbsp; <span style={{ color: row.ltp <= row.BB.lower ? "red" : "", fontWeight: "bold" }}> Lower: {row.BB.lower}</span>
+                                    </Grid>
+                                    <Grid item xs={12} sm={12}>
+                                        MACD: {row.macdData.map((item, j) => (
+                                            <span> {item.MACD && item.MACD.toFixed(2)} &nbsp;</span>
+                                        ))}
+                                        <br />
+                                        MACD Signal: {row.macdData.map((item, j) => (
+                                            <span> {item.signal && item.signal.toFixed(2)} &nbsp;</span>
+                                        ))}
+                                        <br />
+                                        MACD histogram: {row.macdData.map((item, j) => (
+                                            <span> {item.histogram && item.histogram.toFixed(2)} &nbsp;</span>
+                                        ))}
                                     </Grid>
 
                                 </Grid>

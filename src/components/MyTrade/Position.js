@@ -325,9 +325,9 @@ class Home extends React.Component {
                         console.log(symbol, "last10Candle", candleHist);
                         //      console.log(symbol, 'perfect twisser top done close=open || open=close', );
 
-                        var msg = new SpeechSynthesisUtterance();
-                        msg.text = 'twisser top in ' + symbol.toLowerCase();
-                        window.speechSynthesis.speak(msg);
+                        // var msg = new SpeechSynthesisUtterance();
+                        // msg.text = 'twisser top in ' + symbol.toLowerCase();
+                        // window.speechSynthesis.speak(msg);
                     }
                 }
             }
@@ -409,9 +409,9 @@ class Home extends React.Component {
                         console.log(symbol, "last10Candle", candleHist);
                         //   console.log(symbol, 'perfect twisser bottom done close=open || open=close', new Date( candleHist[0][0]).toString());
 
-                        var msg = new SpeechSynthesisUtterance();
-                        msg.text = 'twisser bottom in ' + symbol.toLowerCase();
-                        window.speechSynthesis.speak(msg);
+                        // var msg = new SpeechSynthesisUtterance();
+                        // msg.text = 'twisser bottom in ' + symbol.toLowerCase();
+                        // window.speechSynthesis.speak(msg);
                     }
                 }
             }
@@ -1723,7 +1723,7 @@ class Home extends React.Component {
 
         row.buyavgprice = parseFloat(row.buyavgprice);
         percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 5) {
+        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 3) {
 
             var minTriggerPrice = row.buyavgprice + (row.buyavgprice * 1 / 100);
             let slPriceData =  this.getSLAndTriggerPrice(minTriggerPrice); 
@@ -1736,7 +1736,7 @@ class Home extends React.Component {
             var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
             var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
             trailPerChange = perchngfromTriggerPrice; 
-            if (perchngfromTriggerPrice >= 5) {
+            if (perchngfromTriggerPrice >= 3) {
                 minTriggerPrice = lastTriggerprice + (lastTriggerprice * 1 / 100);
                 let slPriceData =  this.getSLAndTriggerPrice(minTriggerPrice); 
 
