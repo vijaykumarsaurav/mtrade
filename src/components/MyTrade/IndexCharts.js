@@ -53,6 +53,7 @@ class Home extends React.Component {
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
             findlast5minMovement: [],
             gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
+            looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
 
 
         };
@@ -76,7 +77,7 @@ class Home extends React.Component {
 
         var tostartInteral = setInterval(() => {
             var time = new Date();
-            console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());
+            //console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());
             if (time.getMinutes() % 10 === 0) {
                 console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());
 
@@ -269,7 +270,7 @@ class Home extends React.Component {
         //   document.getElementById('tvchart').innerHTML = '';
 
 
-        const chart = createChart(div, { width: this.state.chartSize, height: this.state.chartSize, timeVisible: true, secondsVisible: true, });
+        const chart = createChart(div, { width: this.state.chartSize, height: this.state.chartSize, timeVisible: true, secondsVisible: true });
 
         
         var candleSeries = chart.addCandlestickSeries({
@@ -308,7 +309,7 @@ class Home extends React.Component {
         legend.style.display = 'block';
 
         legend.innerHTML =  this.getRSIBBString(row); 
-        document.getElementById("allchart").append(div);
+        document.getElementById("allchart") && document.getElementById("allchart").append(div);
 
 
         chart.subscribeCrosshairMove((param) => {
@@ -320,7 +321,7 @@ class Home extends React.Component {
 
 			for (var elem of getit) {
 
-				console.log(elem);
+				//console.log(elem);
 
 				if (typeof elem[1] == 'object') {
 					string += " O: <b>" + elem[1].open + "</b>";
@@ -337,22 +338,40 @@ class Home extends React.Component {
 			if (param.time)
 				string += " Time:<b> " + new Date(param.time).toLocaleString()+ "</b>" ;
 
-
-
-			const domElement = document.getElementById('showChartTitle');
-
-
 			var str = "<span style=color:green>" + string + "</span> ";
 			if (change < 0)
 				str = "<span style=color:red>" + string + "</span> ";
 
              legendTitle.innerHTML = str;
 		});
-        
+    
+        this.sortTheChart(); 
+    }
 
+    
 
+    sortTheChart =()=> {
+       
+        let allchart = document.getElementById("allchart");
+        let createNewArray = []; 
+        function getItem(name){
+                document.querySelector('#allchart').childNodes.forEach(function(e){
+                    if(e.innerText && e.innerText.split(' ')[0] == name){ 
+                        console.log("item",name, e.innerText.split(' ')[0], e)
+                        allchart.appendChild(e); 
+                        createNewArray.push(e);   
+                     //   return e; 
+                    }
+                }) 
+        }
+
+        for (let index = 0; index < this.state.findlast5minMovement.length; index++) {
+            const element = this.state.findlast5minMovement[index];
+            let item = getItem(element.name); 
+        }
 
     }
+
 
     updateToLocalStorage = (row) => {
 
@@ -473,7 +492,7 @@ class Home extends React.Component {
 
                         var vwapdata = VWAP.calculate(inputVWAP);
                         //   console.log(watchList[index].symbol, "Bolinger band", input, bb);
-                        console.log(watchList[index].symbol, "vwap daa", VWAP.calculate(inputVWAP));
+                      //  console.log(watchList[index].symbol, "vwap daa", VWAP.calculate(inputVWAP));
 
                         var bbvlastvalue = bb[bb.length - 1];
                         if (bbvlastvalue) {
@@ -517,10 +536,18 @@ class Home extends React.Component {
                                 data.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
                                 data.ltp = LtpData.ltp;
 
-                                this.setState({ findlast5minMovement: [...this.state.findlast5minMovement, data] });
-                                // this.shouldComponentUpdate(true);
 
-                                this.createMultpleChart(data);
+
+                                this.setState({ findlast5minMovement: [...this.state.findlast5minMovement, data] }, function(){
+                                  
+                                    this.state.findlast5minMovement && this.state.findlast5minMovement.sort(function (a, b) {
+                                        return b.perChange - a.perChange;
+                                    });
+                                    this.createMultpleChart(data);
+                                    
+                                });
+                                                                
+                              
                             }
                         });
 
@@ -624,8 +651,8 @@ class Home extends React.Component {
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
                             <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
-                                <MenuItem value={"gainerList"}>{"Gainer List"}</MenuItem>
-                                <MenuItem value={"looserList"}>{"Looser List"}</MenuItem>
+                                <MenuItem value={"gainerList"}>{"Gainer List (" +  this.state.gainerList.length +")"}</MenuItem>
+                                <MenuItem value={"looserList"}>{"Looser List (" +  this.state.looserList.length +")"}</MenuItem>
 
                                 <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
                                 {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
