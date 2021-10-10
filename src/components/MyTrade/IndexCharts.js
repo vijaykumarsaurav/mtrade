@@ -165,40 +165,27 @@ class Home extends React.Component {
 
         //18 HOURS FOR BACK 1 DATE BACK MARKET OFF
 
-
         switch (timeFrame) {
             case 'ONE_MINUTE':
-                if (new Date().toLocaleTimeString() < "10:05:00")
-                    return "100:21:00";
-                else
-                    return "00:21:00";
+                return "200:00:00";
                 break;
             case 'FIVE_MINUTE':
-                if (new Date().toLocaleTimeString() < "11:00:00")
-                    return "100:41:00";
-                else
-                    return "01:41:00";
+                    return "1000:00:00";
                 break;
             case 'TEN_MINUTE':
-                if (new Date().toLocaleTimeString() < "12:35:00")
-                    return "21:21:00";
-                else
-                    return "03:21:00";
+                    return "1500:00:00";
                 break;
             case 'FIFTEEN_MINUTE':
-                if (new Date().toLocaleTimeString() < "14:15:00")
-                    return "23:01:00";
-                else
-                    return "05:01:00";
+                return "2160:00:00";
                 break;
             case 'THIRTY_MINUTE':
-                return "84:01:00";
+                return "4320:00:00";
                 break;
             case 'ONE_HOUR':
-                return "168:01:00";
+                return "8320:00:00";
                 break;
             case 'ONE_DAY':
-                return "744:01:00";
+                return "15000:00:00";
                 break;
             default:
                 break;
@@ -420,7 +407,7 @@ class Home extends React.Component {
 
                 let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
                 var time = moment.duration("1000:00:00");  //22:00:00" for last day  2hours  timeDuration
-                var startDate = moment(new Date()).subtract(time);
+                var startDate = moment(new Date()).subtract(timeDuration);
 
                 var data = {
                     "exchange": watchList[index].exch_seg,
@@ -617,6 +604,20 @@ class Home extends React.Component {
                         </Typography>
 
                     </Grid>
+                    <Grid item xs={12} sm={1} >
+                        <FormControl style={styles.selectStyle} >
+                            <InputLabel htmlFor="gender">Chart Size</InputLabel>
+                            <Select value={this.state.chartSize} name="chartSize" onChange={this.onChangeWatchlist}>
+                                <MenuItem value={250}>{'250px'}</MenuItem>
+                                <MenuItem value={300}>{'300px'}</MenuItem>
+                                <MenuItem value={350}>{'350px'}</MenuItem>
+                                <MenuItem value={450}>{'450px'}</MenuItem>
+                                <MenuItem value={550}>{'550px'}</MenuItem>
+                                <MenuItem value={650}>{'650px'}</MenuItem>
+
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
 
                     <Grid item xs={12} sm={2} >
@@ -649,20 +650,7 @@ class Home extends React.Component {
                             </Select>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} sm={1} >
-                        <FormControl style={styles.selectStyle} >
-                            <InputLabel htmlFor="gender">Chart Size</InputLabel>
-                            <Select value={this.state.chartSize} name="chartSize" onChange={this.onChangeWatchlist}>
-                                <MenuItem value={250}>{'250px'}</MenuItem>
-                                <MenuItem value={300}>{'300px'}</MenuItem>
-                                <MenuItem value={350}>{'350px'}</MenuItem>
-                                <MenuItem value={450}>{'450px'}</MenuItem>
-                                <MenuItem value={550}>{'550px'}</MenuItem>
-                                <MenuItem value={650}>{'650px'}</MenuItem>
-
-                            </Select>
-                        </FormControl>
-                    </Grid>
+                    
                     {/* 
                     <Grid item xs={12} sm={1} >
                         <FormControl style={styles.selectStyle} >
