@@ -174,7 +174,7 @@ class OrderBook extends React.Component {
         let data = { backupBiddata: this.state.backupBidata, dbUpdateTime: moment(new Date()).format("YYYY-MM-DD HH:mm:ss") }; 
         AdminService.saveBidData(data).then(storeRes => {
             let storeResData = resolveResponse(storeRes, "noPop");
-            this.updatebidHistory(storeResData); 
+            this.updatebidHistory(storeResData.result); 
         });
     }
 
