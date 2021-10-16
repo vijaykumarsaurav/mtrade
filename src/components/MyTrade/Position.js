@@ -1762,8 +1762,8 @@ class Home extends React.Component {
         if (row.netqty > 0) {
             row.buyavgprice = parseFloat(row.buyavgprice);
             percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 0.3) {
-                var minPrice = row.buyavgprice + (row.buyavgprice * 0.1 / 100);
+            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 0.5) {
+                var minPrice = row.buyavgprice + (row.buyavgprice * 0.3 / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
                 if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
                     this.modifyOrderMethod(row, minPrice);

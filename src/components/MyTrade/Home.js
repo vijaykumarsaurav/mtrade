@@ -340,7 +340,7 @@ class Home extends React.Component {
 
         this.setState({ chart: chart, candleSeries: candleSeries, smaLineSeries: smaLineSeries, volumeSeries: volumeSeries });
 
-        this.checkOpenEqualToLow();
+       // this.checkOpenEqualToLow();
 
         var beginningTime = moment('9:15am', 'h:mma');
         var endTime = moment('3:30pm', 'h:mma');
@@ -403,9 +403,9 @@ class Home extends React.Component {
 
     }
 
-    shouldComponentUpdate(nextProps, nextState){
-        return  false //!equals(nextProps, this.props); // equals() is your implementation
-    }
+    // shouldComponentUpdate(nextProps, nextState){
+    //     return  false //!equals(nextProps, this.props); // equals() is your implementation
+    // }
 
     stopBacktesting = () => {
         this.setState({ stopScaningFlag: true });
@@ -1956,23 +1956,16 @@ class Home extends React.Component {
     }
 
     LoadSymbolDetails = (name, i) => {
-
         console.log("name", name);
         var token = '';
-
-         var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || []; 
-
+        var watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || []; 
         for (let index = 0; index < watchList.length; index++) {
-
             if (watchList[index].symbol === name || watchList[index].name === name) {
-               
                 token = watchList[index].token;
-
                 console.log("name % token", name,token );
                 this.setState({ tradingsymbol: watchList[index].symbol, symboltoken:watchList[index].token },function(){
                     this.setState({ cursor: i }, function () {
                         this.showStaticChart(token);
-                       
                         // this.getLTP();
                         // this.dailyBasisInfoCheck(this.state.symboltoken);
                     });
@@ -1983,7 +1976,6 @@ class Home extends React.Component {
                 console.log(name + " not found!");
             }
         }
-
     }
     getTimeFrameValue = (timeFrame) => {
         //18 HOURS FOR BACK 1 DATE BACK MARKET OFF

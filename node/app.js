@@ -10,28 +10,29 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
 var fs = require('fs');
+var moment = require('moment');
 
 var API = require('./index');
 var BSEAPI = API.BSE;
 var NSEAPI = API.NSE;
 
 
-var con = mysql.createConnection({
-  host: "remotemysql.com",
-  user: "q0XJUKCMPl",
-  password: "WYqSiKWW0M",
-  database: "q0XJUKCMPl",
-  port: 3306
-});
+// var con = mysql.createConnection({
+//   host: "remotemysql.com",
+//   user: "q0XJUKCMPl",
+//   password: "WYqSiKWW0M",
+//   database: "q0XJUKCMPl",
+//   port: 3306
+// });
 
-con.connect(function(err) {
-  if (err) throw err;
-  console.log("DB Connected 11!");
-});
+// con.connect(function(err) {
+//   if (err) throw err;
+//   console.log("DB Connected 11!");
+// });
 
 
 // Initialize pool
-var pool      =    mysql.createPool(
+var pool = mysql.createPool(
 {
   host: "remotemysql.com",
   user: "q0XJUKCMPl",
@@ -44,6 +45,32 @@ var pool      =    mysql.createPool(
 //module.exports = pool;
 
 // Attempt to catch disconnects 
+
+
+var poolLocal = mysql.createPool(
+  {
+    host: "localhost",
+    user: "root",
+    password: "password",
+    database: "mtrade",
+    port: 3306,
+    debug    :  false
+  }
+  );  
+
+var con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "password",
+  database: "mtrade",
+  port: 3306
+});
+
+con.connect(function(err) {
+  if (err) throw err;
+  console.log("DB Connected 11!");
+});
+
 
 
 app.listen(8081, () => {
@@ -475,25 +502,6 @@ app.post('/addIntoStaticData', function (req, res) {
 
 
 app.post("/store_delivery_data", (req, res, next) => {
- 
-
-  let quantityTraded = req.body.quantityTraded;
-  let deliveryQuantity = req.body.deliveryQuantity;
-  let deliveryToTradedQuantity = req.body.deliveryToTradedQuantity;
-  let symbol = req.body.symbol;
-  let todayChange = req.body.todayChange;
-  let ltp = req.body.ltp;
-  let datetime = req.body.datetime;
-  let averagePrice = req.body.averagePrice;
-
-
-  // var sql = "INSERT INTO `deliveryData` (`symbol`, `quantityTraded`, `deliveryQuantity`, `deliveryToTradedQuantity`, `datetime`, `ltp`, `todayChange`, `averagePrice`) VALUES ('"+symbol+"', '"+quantityTraded+"', '"+deliveryQuantity+"', '"+deliveryToTradedQuantity+"', '"+datetime+"', '"+ltp+"', '"+todayChange+"','"+averagePrice+"');";
-  // con.query(sql, function  (err, result) {
-  //   if (err) throw err;
-  //   console.log("result",result);
-
-  //   res.status(200).send({ status: 200, result: result });
-  // });
 
 
   var sql = "INSERT INTO `deliveryData` (`symbol`, `quantityTraded`, `deliveryQuantity`, `deliveryToTradedQuantity`, `datetime`, `ltp`, `todayChange`, `averagePrice`) VALUES ?";
@@ -503,18 +511,141 @@ app.post("/store_delivery_data", (req, res, next) => {
     values.push([element.symbol, element.quantityTraded, element.deliveryQuantity ,element.deliveryToTradedQuantity, element.datetime, element.ltp, element.todayChange, element.averagePrice]);
   });
 
-  con.query(sql, [values], function (err, result) {
-    if (err) throw err;
+  // con.query(sql, [values], function (err, result) {
+  //   if (err) throw err;
 
-    console.log("result",result);
-    res.status(200).send({ status: 200, result: values.length });
+  //   console.log("result",result);
+  //   res.status(200).send({ status: 200, result: values.length });
+  //   console.log(values.length, " record inserted");
+  // });
+
+  pool.getConnection(function(err,connection){
+
+    console.log("err",err);
+    if (err) {
+      connection.release();
+      throw err;
+    }   
+    connection.query(sql,[values], function(err,rows){
+        connection.release();
+        if(!err) {
+          console.log("rows",rows);
+          res.status(200).send({ status: 200, result: rows });
+
+        }           
+    });
+    connection.on('error', function(err) {      
+          throw err;
+          return;     
+    });
+  });
+
+});
+
+
+
+app.post("/store_bid_data", (req, res, next) => {
+
+  var sql = "INSERT INTO `bidData` (`symbol`, `totalBuyBid`, `totalSellBid`, `updatedTime`, `ltp`, `priceChangePer`, `dbUpdateTime`, `quantityTraded`, `deliveryQuantity`, `deliveryToTradedQuantity`) VALUES ?";
+  var backupBiddata = req.body.backupBiddata;
+  var dbUpdateTime = req.body.dbUpdateTime;
+  
+  var values = [], allSymbol = []; 
+  backupBiddata.forEach(element => {
+    values.push([element.symbol, element.totalBuyBid, element.totalSellBid ,element.updatedTime, element.ltp, element.priceChangePer, dbUpdateTime, element.quantityTraded,element.deliveryQuantity, element.deliveryToTradedQuantity ]);
+    allSymbol.push( "'" + element.symbol+"'"); 
+  });
+   console.log("biddata", values);
+    con.query(sql, [values], function (err, result) {
+    if (err) throw err;
+    console.log(values.length, " record inserted");
+
+      let selectSql = "SELECT symbol, totalBuyBid, totalSellBid, updatedTime  FROM biddata where symbol in ("+ allSymbol.join(',')+")  order by dbUpdateTime desc  LIMIT "+allSymbol.length*5+";"
+    // console.log( selectSql) ;
+
+        con.query(selectSql, function (err, selectResult) {
+          if (err) throw err;
+            
+          console.log("selectResult",selectResult);
+          res.status(200).send({ status: 200, result: selectResult });
+          
+        });
+
+        
+
+    // console.log("result",result);
+    // res.status(200).send({ status: 200, result: values.length });
     console.log(values.length, " record inserted");
   });
 
 
 
+
+
+  // console.log("biddata", values);
+
+  // poolLocal.getConnection(function(err,connection){
+
+  //   console.log("dbError",err);
+  //   if (err) {
+  //    // connection.release();
+  //     throw err;
+  //   }   
+  //   connection.query(sql,[values], function(err,rows){
+  //       connection.release();
+  //       if(!err) {
+  //         console.log("rows",rows);
+  //         res.status(200).send({ status: 200, result: rows });
+
+  //       }           
+  //   });
+  //   connection.on('error', function(err) {      
+  //         throw err;
+  //         return;     
+  //   });
+  // });
+
 });
 
+
+app.get("/get_backup_date_list", (req, res, next) => {
+  var sql = "select DISTINCT dbUpdateTime FROM biddata";
+  con.query(sql, function  (err, result) {
+    if (err) throw err;
+    console.log("result",result);
+    res.status(200).send({ status: 200, result: result });
+  });
+return;
+
+});
+
+app.get("/get_bid_data", (req, res, next) => {
+
+  let backDate = req.query.backDate; 
+  let allSymbol = req.query.allSymbol; 
+  let count = req.query.count; 
+  
+  var sql = "select *  FROM biddata where dbUpdateTime='" + backDate + "'";
+  con.query(sql, function  (err, result) {
+    if (err) throw err;
+    console.log("result",result);
+
+    let selectSql = "SELECT symbol, totalBuyBid, totalSellBid, updatedTime  FROM biddata where symbol in ("+ allSymbol+")  order by dbUpdateTime desc  LIMIT "+count*5+";"
+     console.log( selectSql) ;
+
+        con.query(selectSql, function (err, selectResult) {
+          if (err) throw err;
+            
+          console.log("selectResult",selectResult);
+       //   res.status(200).send({ status: 200, result: { bidResult : selectResult, bidHistoty :  selectResult}  });
+            res.status(200).send({ status: 200, result: result, bidHistoty :  selectResult });
+        });
+
+    //res.status(200).send({ status: 200, result: result });
+  });
+return;
+
+});
 
 
 app.get("/get_delivery_data", (req, res, next) => {
@@ -710,8 +841,6 @@ app.get('/saveWatchList/:query', function (req, res) {
       }); // write it back 
     }
   });
-
-
 
   return;
 

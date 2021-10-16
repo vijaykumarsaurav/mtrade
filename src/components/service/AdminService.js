@@ -79,28 +79,40 @@ class AdminService {
         return axios.post('http://localhost:8081/saveCandleHistory', data,  '');
      } 
 
-     saveDeliveryData(data) {
+   saveDeliveryData(data) {
       return axios.post('http://localhost:8081/store_delivery_data', data,  '');
    } 
+
+   saveBidData(data) {
+      return axios.post('http://localhost:8081/store_bid_data', data,  '');
+   } 
+
    getDeliveryDataFromDb(symbol) {
       return axios.get('http://localhost:8081/get_delivery_data?symbol='+symbol, '');
    } 
+   getBidDataFromDb(backDate,allSymbol,count) {
+      return axios.get('http://localhost:8081/get_bid_data?backDate='+backDate +"&allSymbol="+allSymbol+"&count="+count, '');
+   } 
 
-     getPosition(data){
-        return axios.get(apiConstant.getPosition, AuthService.getHeader());
-     }
+   getBackUpdateList() {
+      return axios.get('http://localhost:8081/get_backup_date_list', '');
+   } 
 
-     getAutoScanStock(){
-        return axios.get(apiConstant.getScannedStocks, '');
-     }
+   getPosition(data){
+      return axios.get(apiConstant.getPosition, AuthService.getHeader());
+   }
 
-     getNSETopStock(){
-        return axios.get(apiConstant.getNseTopStocks, '');
-     }
+   getAutoScanStock(){
+      return axios.get(apiConstant.getScannedStocks, '');
+   }
 
-     getSelectedStockFromDb(){
-        return axios.get(apiConstant.getSelectedStock, '');
-     }
+   getNSETopStock(){
+      return axios.get(apiConstant.getNseTopStocks, '');
+   }
+
+   getSelectedStockFromDb(){
+      return axios.get(apiConstant.getSelectedStock, '');
+   }
 
     //  getBNcpdata(){
     //     return axios.get(apiConstant.'', AuthService.getHeader());

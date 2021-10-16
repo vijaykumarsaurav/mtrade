@@ -211,25 +211,31 @@ class Home extends React.Component {
 
     getRSIBBString=(row)=>{
         var str = ''; 
-        if(row.BB && row.ltp >= row.BB.upper){
-            str +=  '<span style="color:green">BBupr:' + row.BB.upper;
-        }else{
-            str += '<span style="color:red">BBupr:' + row.BB.upper;
+        if(row.BB){
+            if(row.ltp >= row.BB.upper){
+                str +=  '<span style="color:green">BBupr:' + row.BB.upper+'</span>';
+            }else{
+                str += '<span style="color:red">BBupr:' + row.BB.upper+'</span>';
+            }
+    
+            if(row.ltp <= row.BB.lower){
+                str +=  ' <span style="color:green">BBlwr:' + row.BB.lower+'</span>';
+            }else{
+                str += ' <span style="color:red">BBlwr:' + row.BB.lower+'</span>';
+            }
         }
+       
 
-        if(row.BB && row.ltp <= row.BB.lower){
-            str +=  ' <span style="color:green">BBlwr:' + row.BB.lower;
-        }else{
-            str += ' <span style="color:red">BBlwr:' + row.BB.lower;
-        }
-
-        if(row.RSIValue >= 60){
-            str +=  ' <span style="color:green">RSI:' + row.RSIValue;
-        }else if(row.RSIValue >= 40 && row.RSIValue <= 59){
-            str +=  ' <span style="color:black">RSI:' + row.RSIValue;
-        }else{
-            str += ' <span style="color:red">RSI:' + row.RSIValue;
-        }
+        str += "<br/>RSI:"; 
+        row.RSI.forEach(element => {
+            if(element >= 60){
+                str +=  ' <span style="color:green">' + element+'</span>';
+            }else if(element >= 40 && element <= 59){
+                str +=  ' <span style="color:black">' + element+'</span>';
+            }else{
+                str += ' <span style="color:red">' + element+'</span>';
+            }
+        });
 
         return str; 
     }
@@ -322,7 +328,6 @@ class Home extends React.Component {
 			for (var elem of getit) {
 
 				//console.log(elem);
-
 				if (typeof elem[1] == 'object') {
 					string += " O: <b>" + elem[1].open + "</b>";
 					string += " H: <b>" + elem[1].high + "</b>";

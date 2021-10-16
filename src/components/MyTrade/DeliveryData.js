@@ -51,10 +51,12 @@ class OrderBook extends React.Component {
             chartStaticData: [],
             qtyToTake: '',
             BBBlastType: "BBBlastOnly",
-            fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
             liveBidsList: [],  //localStorage.getItem('liveBidsList') && JSON.parse(localStorage.getItem('liveBidsList')) || [],
             sortedType: "pChange",
             backupDeleverydata: [],
+            backupBidata: [],
+            backupDateList: [],
+            backDate : ''
 
         }
     }
@@ -83,26 +85,27 @@ class OrderBook extends React.Component {
 
     componentDidMount() {
 
-        // var beginningTime = moment('9:15am', 'h:mma');
-        // var endTime = moment('3:30pm', 'h:mma');
-        // const friday = 5; // for friday
-        // var currentTime = moment(new Date(), "h:mma");
-        // const today = moment().isoWeekday();
-        // //market hours
-        // if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-        //     setInterval(() => {
-        //         this.checkLiveBids();
-        //     }, 10 * 60000);
+        var beginningTime = moment('9:15am', 'h:mma');
+        var endTime = moment('3:30pm', 'h:mma');
+        const friday = 5; // for friday
+        var currentTime = moment(new Date(), "h:mma");
+        const today = moment().isoWeekday();
+        //market hours
+        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+            setInterval(() => {
+                this.checkLiveBids();
+            }, 10 * 60000);
+        }
 
-        // }
-
-
-        setInterval(() => {
-            this.checkLiveBids();
-        }, 10 * 60000);
+        // setInterval(() => {
+        //     this.checkLiveBids();
+        // }, 10 * 60000);
 
 
-        this.checkLiveBids();
+        //  this.checkLiveBids();
+
+
+        this.getBackUpDate();
 
     }
 
@@ -118,6 +121,13 @@ class OrderBook extends React.Component {
         });
     }
 
+    onChangeBackDate = (e) => {
+        this.setState({ [e.target.name]: e.target.value }, function () {
+            this.getByDateBidHistory();
+
+        });
+    }
+
     backupData = () => {
         console.log(this.state.backupDeleverydata);
         AdminService.saveDeliveryData({ backupDeleverydata: this.state.backupDeleverydata }).then(storeRes => {
@@ -125,11 +135,55 @@ class OrderBook extends React.Component {
         });
     }
 
+    updatebidHistory =(storeResData)=> {
+
+        console.log("storeResData", storeResData);
+
+
+        this.state.liveBidsList.forEach(element => {
+                
+            let symbolHist = storeResData.length &&  storeResData.filter(item => item.symbol == element.symbol); 
+
+            
+            let buyHist = [], sellHist=[], lastbuybid=0, lastsellbid=0;  
+            symbolHist.forEach((element , index)=> {
+              
+               if(lastbuybid){
+                   buyHist.push(((element.totalBuyBid - lastbuybid)*100/lastbuybid).toFixed(2)); 
+               }
+
+               if(lastsellbid){
+                   sellHist.push(((element.totalSellBid - lastsellbid)*100/lastsellbid).toFixed(2)); 
+               }
+               lastbuybid = element.totalBuyBid; 
+               lastsellbid = element.totalSellBid; 
+              
+            });
+
+            element.buybidHistory = buyHist; 
+            element.sellbidHistory = sellHist; 
+             
+           });
+
+           this.setState({liveBidsList : this.state.liveBidsList}); 
+    }
+
+    storeBidData = () => {
+        console.log(this.state.backupBidata);
+
+        let data = { backupBiddata: this.state.backupBidata, dbUpdateTime: moment(new Date()).format("YYYY-MM-DD HH:mm:ss") }; 
+        AdminService.saveBidData(data).then(storeRes => {
+            let storeResData = resolveResponse(storeRes, "noPop");
+            this.updatebidHistory(storeResData); 
+        });
+    }
+
 
     checkLiveBids = async () => {
 
         var watchList = this.state.staticData[this.state.selectedWatchlist];
-        this.setState({ liveBidsList: [], backupDeleverydata: [] });
+        this.setState({ liveBidsList: [], backupDeleverydata: [], backupBidata: [] });
+
 
         var delData = [];
         for (let index = 0; index < watchList.length; index++) {
@@ -222,13 +276,34 @@ class OrderBook extends React.Component {
                     }
                     // delData.push(biddata);
 
+                    let bidLivedata = {
+                        symbol: bidlivedata.symbol,
+                        priceChangePer: bidlivedata.pChange,
+                        ltp: parseFloat(bidlivedata.lastPrice.split(",").join('')),
+                        updatedTime: moment(bidlivedata.secDate).format("YYYY-MM-DD HH:mm:ss"),
+                        totalBuyBid: parseFloat(bidlivedata.totalBuyQuantity.split(",").join('')) ? parseFloat(bidlivedata.totalBuyQuantity.split(",").join(''))  : 0,
+                        totalSellBid: parseFloat(bidlivedata.totalSellQuantity.split(",").join('')) ? parseFloat(bidlivedata.totalSellQuantity.split(",").join('')) : 0, 
+                   
+                        quantityTraded : bidlivedata.quantityTraded != '-' ? parseFloat(bidlivedata.quantityTraded.split(",").join('')) : 0, 
+                        deliveryToTradedQuantity: parseFloat(bidlivedata.deliveryToTradedQuantity.split(",").join('')),  
+                        deliveryQuantity: parseFloat(bidlivedata.deliveryQuantity.split(",").join(''))
+                    }
 
+
+                    this.setState({ backupBidata: [...this.state.backupBidata, bidLivedata] });
+
+                    if (index === watchList.length - 1) {
+                        setTimeout(() => {
+                            console.log("last loaggged")
+                            this.storeBidData();
+                        }, 1000);
+                    }
 
                     this.setState({ backupDeleverydata: [...this.state.backupDeleverydata, biddata] });
 
+
                     bidlivedata.quantityTraded = bidlivedata.quantityTraded != '-' ? parseFloat(bidlivedata.quantityTraded.split(",").join('')) : "0";
                     bidlivedata.deliveryQuantity = bidlivedata.deliveryQuantity != '-' ? parseFloat(bidlivedata.deliveryQuantity.split(",").join('')) : "0";
-
 
                     bidlivedata.totalBuyQuantity = bidlivedata.totalBuyQuantity != '-' ? parseFloat(bidlivedata.totalBuyQuantity.split(",").join('')) : "0";
 
@@ -236,7 +311,7 @@ class OrderBook extends React.Component {
                     bidlivedata.totalTradedVolume = bidlivedata.totalTradedVolume != '-' ? parseFloat(bidlivedata.totalTradedVolume.split(",").join('')) : "0";
                     bidlivedata.totalTradedValue = bidlivedata.totalTradedValue != '-' ? parseFloat(bidlivedata.totalTradedValue.split(",").join('')) : "0";
 
-                 
+
                     bidlivedata.buytosellTime = bidlivedata.totalBuyQuantity / bidlivedata.totalSellQuantity;
                     bidlivedata.selltobuyTime = bidlivedata.totalSellQuantity / bidlivedata.totalBuyQuantity;
 
@@ -245,23 +320,19 @@ class OrderBook extends React.Component {
                     });
 
 
-
                     if (bidlivedata.totalBuyQuantity / bidlivedata.totalSellQuantity > 1.25) {
-                       // CommonMethods.speckIt(bidlivedata.symbol + " " + (bidlivedata.totalBuyQuantity / bidlivedata.totalSellQuantity).toFixed(2) + " time buying");
+                        // CommonMethods.speckIt(bidlivedata.symbol + " " + (bidlivedata.totalBuyQuantity / bidlivedata.totalSellQuantity).toFixed(2) + " time buying");
                         bidlivedata.highlightbuy = true;
                     }
 
                     if (bidlivedata.totalSellQuantity / bidlivedata.totalBuyQuantity > 1.25) {
-                      //  CommonMethods.speckIt(bidlivedata.symbol + "  " + (bidlivedata.totalSellQuantity / bidlivedata.totalBuyQuantity).toFixed(2) + " time selling");
+                        //  CommonMethods.speckIt(bidlivedata.symbol + "  " + (bidlivedata.totalSellQuantity / bidlivedata.totalBuyQuantity).toFixed(2) + " time selling");
                         bidlivedata.highlightsell = true;
                     }
 
                     this.setState({ liveBidsList: [...this.state.liveBidsList, bidlivedata], lastUpdateTime: resd.data.lastUpdateTime }, function () {
-
                         localStorage.setItem("liveBidsList", JSON.stringify(this.state.liveBidsList));
                         window.document.title = "Del: " + this.state.liveBidsList[0].symbol;
-
-
                     });
 
 
@@ -276,26 +347,101 @@ class OrderBook extends React.Component {
 
     }
 
-    getDeliveryHistory = ()=> {
+    getDeliveryHistory = () => {
 
 
         for (let index = 0; index < this.state.liveBidsList.length; index++) {
-            const element = this.state.liveBidsList[index];        
+            const element = this.state.liveBidsList[index];
             AdminService.getDeliveryDataFromDb(element.symbol)
+                .then((res) => {
+                    let data = resolveResponse(res, "noPop");
+                    console.log("hist data", data.result);
+                    if (data && data.result) {
+                        var result = data.result;
+                        element.delHistory = result;
+                        console.log(element.symbol, result);
+
+                        this.setState({ liveBidsList: this.state.liveBidsList });
+                    }
+                });
+        }
+    }
+
+    getByDateBidHistory = () => {
+        this.setState({ liveBidsList: []});
+
+        var watchList = this.state.staticData[this.state.selectedWatchlist];
+        let allSymbol = []; 
+        watchList.forEach(element => {
+            allSymbol.push( "'" + element.name+"'"); 
+        });
+
+        AdminService.getBidDataFromDb(this.state.backDate,  allSymbol.join(','), allSymbol.length )
             .then((res) => {
                 let data = resolveResponse(res, "noPop");
-                console.log("hist data",data.result);
+                console.log("hist bidHistoty",data.result);
+                
                 if (data && data.result) {
                     var result = data.result;
-                    element.delHistory =  result;                    
-                    console.log(element.symbol, result); 
+                
+                    for (let index = 0; index < result.length; index++) {
+                        const bidlivedata = result[index];
+                        
+                        let data = {
+                            quantityTraded : bidlivedata.quantityTraded,
+                            deliveryQuantity : bidlivedata.deliveryQuantity, 
+                            totalBuyQuantity :  bidlivedata.totalBuyBid , 
+                            totalSellQuantity : bidlivedata.totalSellBid, 
+                            ltp : bidlivedata.ltp, 
+                            symbol : bidlivedata.symbol,
+                            updatedTime :bidlivedata.updatedTime 
 
-                    this.setState({ liveBidsList: this.state.liveBidsList });
+                        }
+    
+                        data.buytosellTime = bidlivedata.totalBuyBid / bidlivedata.totalSellBid;
+                        data.selltobuyTime = bidlivedata.totalSellBid / bidlivedata.totalBuyBid;
+    
+                        if (bidlivedata.totalBuyBid / bidlivedata.totalSellBid > 1.25) {
+                            data.highlightbuy = true;
+                        }
+    
+                        if (bidlivedata.totalSellBid / bidlivedata.totalBuyBid > 1.25) {
+                            data.highlightsell = true;
+                        }
+    
+                    
+                        this.setState({ liveBidsList: [...this.state.liveBidsList, data], lastUpdateTime: this.state.backDate }, function () {
+                           
+                            this.state.liveBidsList.sort(function (a, b) {
+                                return b.pChange - a.pChange;
+                            });
+
+                        });
+                    }
+                    this.updatebidHistory(data.bidHistoty); 
                 }
             });
-        }
+    }
 
+    getBackUpDate = () => {
+        AdminService.getBackUpdateList()
+            .then((res) => {
+                let data = resolveResponse(res, "noPop");
+                console.log(data);
+                if (data && data.result) {
 
+                    let result = [];
+                    data.result.forEach(element => {
+                        if (element.dbUpdateTime) {
+                            result.push(moment(element.dbUpdateTime).format("YYYY-MM-DD HH:mm:ss"));
+                        }
+                    });
+
+                    this.setState({ backupDateList: result }, function () {
+                        console.log("dates", this.state.backupDateList)
+                    });
+                }
+            });
     }
 
 
@@ -308,7 +454,6 @@ class OrderBook extends React.Component {
         if (!isNaN(str)) {
             return "(" + (str / 100000).toFixed(2) + "L)";
         }
-
 
     }
 
@@ -381,6 +526,21 @@ class OrderBook extends React.Component {
                                 </Grid>
 
 
+                                <Grid item xs={12} sm={1} >
+                                    <FormControl style={styles.selectStyle} >
+                                        <InputLabel htmlFor="gender">Select Back Date</InputLabel>
+                                        <Select value={this.state.backDate} name="backDate" onChange={this.onChangeBackDate}>
+                                            <MenuItem value={""}>{"Select Date"}</MenuItem>
+                                            {this.state.backupDateList && this.state.backupDateList.map(element => (
+                                                <MenuItem value={element}>{element}</MenuItem>
+                                            ))
+                                            }
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+
+
+
                             </Grid>
 
 
@@ -393,12 +553,12 @@ class OrderBook extends React.Component {
                                         <TableCell align="center" ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell</Button>  </TableCell>
                                         <TableCell align="center" ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy</Button>  </TableCell>
 
-                                        
+
 
                                         <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalBuyQuantity")}> Total Buy Quantity</Button>  </TableCell>
                                         <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalSellQuantity")}> Total Sell Quantity</Button>  </TableCell>
 
-                                     
+
 
                                         <TableCell align="center">Average Price</TableCell>
                                         <TableCell align="center"><Button onClick={() => this.sortByColumn("quantityTraded")}> Quantity Traded</Button>  </TableCell>
@@ -411,12 +571,12 @@ class OrderBook extends React.Component {
                                         <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalTradedValue")}> Total Traded Value(L)</Button>  </TableCell> */}
 
                                         {/* <TableCell  align="center">Day Open</TableCell>
-                                    <TableCell  align="center">Day High</TableCell>
-                                    <TableCell  align="center">Day Low</TableCell>
-                                    <TableCell  align="center">Previous Close</TableCell> */}
+                                        <TableCell  align="center">Day High</TableCell>
+                                        <TableCell  align="center">Day Low</TableCell>
+                                        <TableCell  align="center">Previous Close</TableCell> */}
 
 
-                                    <TableCell align="center" ><Button variant="contained"  onClick={() => this.getDeliveryHistory()}>Delivery History</Button>  </TableCell>
+                                        <TableCell align="center" ><Button onClick={() => this.getDeliveryHistory()}>Delivery History</Button>  </TableCell>
 
 
 
@@ -429,13 +589,29 @@ class OrderBook extends React.Component {
                                         <TableRow hover key={i} style={{ background: this.getPercentageColor(row.pChange) }}>
 
                                             <TableCell align="left">{row.symbol} {row.lastPrice} ({row.pChange}%)</TableCell>
-                                            <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} align="center">{row.buytosellTime.toFixed(2)} time buy</TableCell>
+                                            <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} align="center">
+                                              
+                                                {row.buytosellTime.toFixed(2)} time buy</TableCell>
 
-                                            <TableCell style={{ background: row.highlightsell ? "lightgray" : "" }} align="center">{row.selltobuyTime.toFixed(2)} time sell</TableCell>
-                                            
-                                            <TableCell align="center">{row.totalBuyQuantity} {this.convertToFloat(row.totalBuyQuantity)}</TableCell>
-                                            <TableCell align="center">{row.totalSellQuantity} {this.convertToFloat(row.totalSellQuantity)}</TableCell>
-                                   
+                                            <TableCell style={{ background: row.highlightsell ? "lightgray" : "" }} align="center">
+                                             
+                                                {row.selltobuyTime.toFixed(2)} time sell</TableCell>
+
+                                     
+
+                                            <TableCell align="center" style={{background: "#eceff1" }}>
+                                                    {row.buybidHistory &&  row.buybidHistory.map(item => (
+                                                        <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
+                                                    ))}
+                                                <br />
+                                                {row.totalBuyQuantity} {this.convertToFloat(row.totalBuyQuantity)}</TableCell>
+                                            <TableCell align="center" style={{background: "#eceff1" }}>
+                                                    {row.sellbidHistory &&  row.sellbidHistory.map(item => (
+                                                        <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
+                                                    ))}
+                                                <br />
+                                                {row.totalSellQuantity} {this.convertToFloat(row.totalSellQuantity)}</TableCell>
+
                                             <TableCell align="left">{row.averagePrice}</TableCell>
 
 
@@ -451,17 +627,17 @@ class OrderBook extends React.Component {
                                     <TableCell  align="center">{row.dayLow}</TableCell>
                                     <TableCell  align="center">{row.previousClose}</TableCell> */}
 
-                                            <TableCell style={{ background:  "#eceff1" }} align="center"> 
+                                            <TableCell style={{ background: "#eceff1" }} align="center">
 
-                                                {row.delHistory && row.delHistory.map(item => (                                                   
-                                                     <span> {new Date(item.datetime).toLocaleDateString()}  &nbsp;
-                                                        <span title={"quantityTraded " + item.quantityTraded}> {(item.quantityTraded/100000).toFixed(2)}L  </span>  &nbsp;
+                                                {row.delHistory && row.delHistory.map(item => (
+                                                    <span> {new Date(item.datetime).toLocaleDateString()}  &nbsp;
+                                                        <span title={"quantityTraded " + item.quantityTraded}> {(item.quantityTraded / 100000).toFixed(2)}L  </span>  &nbsp;
                                                         <span title={"deliveryToTradedQuantity"}> {item.deliveryToTradedQuantity}%  </span>  &nbsp;
-                                                        <span title={"deliveryQuantity " + item.deliveryQuantity}> {(item.deliveryQuantity/100000).toFixed(2)}L  </span>  &nbsp;
-                                                        <span  style={{color: item.todayChange > 0 ? "green" : "red" }}> ({item.todayChange}%)   </span>
+                                                        <span title={"deliveryQuantity " + item.deliveryQuantity}> {(item.deliveryQuantity / 100000).toFixed(2)}L  </span>  &nbsp;
+                                                        <span style={{ color: item.todayChange > 0 ? "green" : "red" }}> ({item.todayChange}%)   </span>
                                                         &nbsp;  <br /></span>
-                                                    ))}
-                                            
+                                                ))}
+
                                             </TableCell>
 
 

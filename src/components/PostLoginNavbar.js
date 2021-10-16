@@ -260,8 +260,8 @@ export default function PostLoginNavBar(props) {
                                 </Grid>
 
                                 <Grid item>
-                                    <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/order-watchlist"}>
-                                        Option <OpenInNewIcon />
+                                    <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/delivery"}>
+                                    Delivery <OpenInNewIcon />
                                     </Button>
                                 </Grid>
 

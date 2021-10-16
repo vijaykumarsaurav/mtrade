@@ -146,7 +146,13 @@ export default function BasicTabs(props) {
 
                 {cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
-                <Button style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.symbol, i)} >{row.name} {row.ltp} ({row.nc}%) </Button>
+                <Button style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.symbol, i)} >
+                 
+                  <div style={{textAlign:"left"}}>  {row.name} </div> 
+                  &nbsp; &nbsp; &nbsp;
+                  <div style={{textAlign:"right"}}>  {row.ltp} ({row.nc}%)  </div>
+                  </Button>
+                 
 
 
               </ListItem>
@@ -167,7 +173,7 @@ export default function BasicTabs(props) {
 
               {cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
-              <Button title={"Found At: " + row.foundAt}  style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.name, i)} primary={row.name}>  {row.ltp} ({row.nc}%) {row.sector.split(' ')[1]} </Button>
+              <Button title={"Found At: " + row.foundAt}  style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.name, i)}> {row.name} {row.ltp} ({row.nc}%) {row.sector.split(' ')[1]} </Button>
 
 
             </ListItem>
@@ -187,7 +193,7 @@ export default function BasicTabs(props) {
 
                 {cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
-                 <Button title={"Found At: " + row.foundAt} style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.name, i)} primary={row.name} >  {row.ltp} ({row.nc}%) {row.sector.split(' ')[1]} </Button>
+                 <Button title={"Found At: " + row.foundAt} style={{ color: !row.nc || row.nc == 0 ? "" : row.nc > 0 ? '#20d020' : "#e66e6e" }} onClick={() => LoadSymbolDetails(row.name, i)}> {row.name} {row.ltp} ({row.nc}%) {row.sector.split(' ')[1]} </Button>
 
 
               </ListItem>
