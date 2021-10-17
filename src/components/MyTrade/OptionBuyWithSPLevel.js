@@ -22,7 +22,6 @@ import Notify from "../../utils/Notify";
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 import BankNiftyView from './BankNiftyView'
-import OptionBuyWithSPLevel from './OptionBuyWithSPLevel'
 
 class OrderBook extends React.Component{
 
@@ -35,8 +34,10 @@ class OrderBook extends React.Component{
             sellAtPending: "", 
             pattenNamePending: "",
             searchSymbolPending : "",
-            autoSearchList: ["NIFTY"], 
-            lastTradedData : {}
+            autoSearchList:[{"token":"26009","symbol":"BANKNIFTY","name":"BANKNIFTY","expiry":"","strike":"-1.000000","lotsize":"-1","instrumenttype":"","exch_seg":"NSE","tick_size":"-1.000000"},{"token":"26000","symbol":"NIFTY","name":"NIFTY","expiry":"","strike":"-1.000000","lotsize":"-1","instrumenttype":"","exch_seg":"NSE","tick_size":"-1.000000"}], 
+            lastTradedData : {},
+            buyOptionFlag : false 
+        
         }
     }
 
@@ -105,15 +106,17 @@ class OrderBook extends React.Component{
        var orderPenidngList =  localStorage.getItem('orderPenidngList') && JSON.parse( localStorage.getItem('orderPenidngList')); 
        for (let index = 0; index < this.state.orderPenidngList.length; index++) {
            const element = orderPenidngList[index];
-           if(row.token == element.token){
-            var delitem = orderPenidngList.splice(index, 1); 
+           if(row.symbol == element.symbol){
+            delitem = orderPenidngList.splice(index, 1); 
             localStorage.setItem('orderPenidngList', JSON.stringify(orderPenidngList)); 
             this.setState({orderPenidngList : orderPenidngList}); 
             break; 
            }
        }
 
-       if(delitem[0].token == row.token){
+       
+       console.log("del", delitem)
+       if(delitem && delitem[0].symbol == row.symbol){
         return true;
        }else {
         return false;
@@ -124,6 +127,44 @@ class OrderBook extends React.Component{
     callBackUpdate =(row) => {
        console.log("call back called");
      // this.deleteInOrderPenidngList(row); 
+    }
+
+    placeOptionSPLevelOver=(indexData, spotPrice)=>{
+
+        let today = moment().isoWeekday();
+        today = 3; 
+        let strikePrice = 0; 
+        let allList = localStorage.getItem('optionChainDataBN') && JSON.parse(localStorage.getItem('optionChainDataBN')); 
+        let nextExp = allList["records"]["expiryDates"][0]; 
+
+        if(indexData.buyAt){
+            if(today == 5 || today == 1){
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 400
+            }
+            else  if(today == 2){
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 300
+            }
+            else  if(today == 3){
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 200
+            }else {
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
+            }
+            this.props.buyOption("CE", indexData.symbol, strikePrice, nextExp, 1);  
+        }else if(indexData.sellAt){
+            if(today == 5 || today == 1){
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 400
+            }
+            else  if(today == 2){
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 300
+            }
+            else  if(today == 3){
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 200
+            }else {
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
+            }
+            this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1);  
+        }
+
     }
 
     updateLTP = async()=> {
@@ -144,13 +185,17 @@ class OrderBook extends React.Component{
 
                     if(element.buyAt && LtpData.ltp >= parseFloat(element.buyAt)){
                         var isDelete = this.deleteInOrderPenidngList(element); 
-                        if(isDelete){
-                            CommonOrderMethod.historyWiseOrderPlace(element, 'BUY', "isAutomatic", this.callBackUpdate);
+                        if(isDelete){ // && !this.state.buyOptionFlag
+                            this.setState({buyOptionFlag: true}, function(){
+                                this.placeOptionSPLevelOver(element, LtpData.ltp); 
+                            })
                         }
                     }else if(element.sellAt && LtpData.ltp <= parseFloat(element.sellAt)){
                         var isDelete = this.deleteInOrderPenidngList(element); 
-                        if(isDelete){
-                            CommonOrderMethod.historyWiseOrderPlace(element, 'SELL', "isAutomatic", this.callBackUpdate);
+                        if(isDelete){ // && !this.state.buyOptionFlag
+                            this.setState({buyOptionFlag: true}, function(){
+                                this.placeOptionSPLevelOver(element, LtpData.ltp); 
+                            })
                         }
                     }
 
@@ -205,6 +250,10 @@ class OrderBook extends React.Component{
             this.setState({ findlast5minMovementInterval: setInterval(() => { this.updateLTP(); }, intervaltime ) });
         }
         
+        this.setState({ findlast5minMovementInterval: setInterval(() => { this.updateLTP(); }, 1000 ) });
+
+
+        localStorage.setItem('autoSearchTemp',JSON.stringify(this.state.autoSearchList))
     }
 
   
@@ -259,8 +308,6 @@ class OrderBook extends React.Component{
         this.setState({lastTradedData : {}, buyAtPending: "", sellAtPending: "", pattenNamePending: "",searchSymbolPending : ""}); 
 
         
-
-
         AdminService.autoCompleteSearch(data).then(res => {
             let data = res.data;
             console.log(data);
@@ -286,8 +333,8 @@ class OrderBook extends React.Component{
 
     onSelectItem = (event, values) => {
         var autoSearchTemp = JSON.parse(localStorage.getItem('autoSearchTemp'));
-        //  console.log("values", values); 
-        //   console.log("autoSearchTemp", autoSearchTemp); 
+          console.log("values", values); 
+           console.log("autoSearchTemp", autoSearchTemp); 
         if (autoSearchTemp.length > 0) {
             var fdata = '';
             for (let index = 0; index < autoSearchTemp.length; index++) {
@@ -304,69 +351,66 @@ class OrderBook extends React.Component{
 
     }
 
-    buyOption =(optiontype ,symbol, strikePrice, expiryDate, noOfLot)=>{
-      console.log(optiontype ,symbol, strikePrice, expiryDate); 
-      let exp = expiryDate.toUpperCase().split('-'); 
-       exp = exp[0]+exp[1]+exp[2]%1000; 
+    // buyOption =(optiontype ,symbol, strikePrice, expiryDate, noOfLot)=>{
+    //   console.log(optiontype ,symbol, strikePrice, expiryDate); 
+    //   let exp = expiryDate.toUpperCase().split('-'); 
+    //    exp = exp[0]+exp[1]+exp[2]%1000; 
 
-      let optionName = symbol + exp + strikePrice + optiontype; 
-      console.log(optionName); 
+    //   let optionName = symbol + exp + strikePrice + optiontype; 
+    //   console.log(optionName); 
 
-      AdminService.autoCompleteSearch(optionName).then(res => {
-        let data = res.data; 
-        let optionData = data && data[0]; 
-        console.log("optionData", optionData);
+    //   AdminService.autoCompleteSearch(optionName).then(res => {
+    //     let data = res.data; 
+    //     let optionData = data && data[0]; 
+    //     console.log("optionData", optionData);
 
 
-        if(optionData && optionData.symbol && optionData.symbol ==  optionName){
-            var  ltpparam = { "exchange":optionData.exch_seg, "tradingsymbol": optionData.symbol , "symboltoken": optionData.token}; 
+    //     if(optionData && optionData.symbol && optionData.symbol ==  optionName){
+    //         var  ltpparam = { "exchange":optionData.exch_seg, "tradingsymbol": optionData.symbol , "symboltoken": optionData.token}; 
 
-            AdminService.getLTP(ltpparam).then(res => {
-                let data = resolveResponse(res, 'noPop');
-                var LtpData = data && data.data;
-                if(LtpData && LtpData.ltp) {
+    //         AdminService.getLTP(ltpparam).then(res => {
+    //             let data = resolveResponse(res, 'noPop');
+    //             var LtpData = data && data.data;
+    //             if(LtpData && LtpData.ltp) {
                     
-                    console.log("option ltp", LtpData);
+    //                 console.log("option ltp", LtpData);
 
-                   let quantity = optionData.lotsize * noOfLot;   
-    
-                   let perStopTrigerLoss = LtpData.ltp - (LtpData.ltp * 10/100); 
-                   perStopTrigerLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopTrigerLoss); 
-
-                   let stopLossPrice = perStopTrigerLoss - (perStopTrigerLoss * 1/100); 
-
-                   stopLossPrice =  CommonOrderMethod.getMinPriceAllowTick(stopLossPrice); 
+    //                let quantity = optionData.lotsize * noOfLot;   
 
     
-                    let element = {
-                        tradingsymbol : optionData.symbol, 
-                        symboltoken : optionData.token, 
-                        transactiontype: "BUY", 
-                        ordertype: "LIMIT", 
-                        buyPrice : LtpData.ltp,  
-                        producttype : "CARRYFORWARD", 
-                        exchange : optionData.exch_seg,
-                        stopLossTriggerPrice: perStopTrigerLoss,
-                        stopLossPrice: stopLossPrice,
-                        quantity : quantity
-                    }        
-                    console.log( "option buy element", element);
-                   CommonOrderMethod.placeOptionOrder(element);
-                }
-            })
-        }else{
-            Notify.showError(optionName + " not found");
-        }
+    //                let perStopTrigerLoss = LtpData.ltp - (LtpData.ltp * 10/100); 
+    //                perStopTrigerLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopTrigerLoss); 
+
+    //                let stopLossPrice = perStopTrigerLoss - (perStopTrigerLoss * 1/100); 
+
+    //                stopLossPrice =  CommonOrderMethod.getMinPriceAllowTick(stopLossPrice); 
+
+    
+    //                 let element = {
+    //                     tradingsymbol : optionData.symbol, 
+    //                     symboltoken : optionData.token, 
+    //                     transactiontype: "BUY", 
+    //                     ordertype: "LIMIT", 
+    //                     buyPrice : LtpData.ltp,  
+    //                     producttype : "CARRYFORWARD", 
+    //                     exchange : optionData.exch_seg,
+    //                     stopLossTriggerPrice: perStopTrigerLoss,
+    //                     stopLossPrice: stopLossPrice,
+    //                     quantity : quantity
+    //                 }        
+    //                 console.log( "option buy element", element);
+    //                CommonOrderMethod.placeOptionOrder(element);
+    //             }
+    //         })
+    //     }else{
+    //         Notify.showError(optionName + " not found");
+    //     }
        
 
-        //localStorage.setItem('autoSearchTemp', JSON.stringify(data));
-    //    this.setState({ autoSearchList: data });
-
-    
-      
-      })
-
-    }
+    //     //localStorage.setItem('autoSearchTemp', JSON.stringify(data));
+    // //    this.setState({ autoSearchList: data });
+    // })
+    // }
 
 
     render(){
@@ -374,21 +418,17 @@ class OrderBook extends React.Component{
       return(
         <React.Fragment>
 
-
-            {window.location.hash == "#/order-watchlist" ? <PostLoginNavBar/> : ""}
-
-             <OptionBuyWithSPLevel  buyOption={this.buyOption} />
-
-             <Paper style={{ overflow: "auto", padding: '5px',  background:"#d4ffe0"}} >
+             <Paper style={{ overflow: "auto", padding: '5px',  background:"#f500570a"}} >
 
                 <Grid justify="space-between"
                     container>
                     <Grid item> 
                         <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                        Orders Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
+                        Option Buy At Level Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
                         {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
                         {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
                         </Typography> 
+
 
                     </Grid>
 
@@ -412,6 +452,7 @@ class OrderBook extends React.Component{
                                         ) : []}
                                         renderInput={(params) => (
                                             <TextField
+                                         
                                                 onChange={this.onChange2}
                                                 {...params}
                                                 label={"Search Symbol"}
@@ -506,23 +547,6 @@ class OrderBook extends React.Component{
                 </Paper>
 
                 <br />
-
-                <Paper style={{ overflow: "auto", padding: '5px'}} > 
-                    <Grid item> 
-                        <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                          Option Chain (Equity Derivatives)
-                        </Typography> 
-
-
-                    </Grid>
-
-
-                        <BankNiftyView buyOption={this.buyOption} />
-                </Paper>
-
-               
-
-
          
 
             </React.Fragment> 

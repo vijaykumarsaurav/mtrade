@@ -61,7 +61,7 @@ class MyView extends React.Component {
             filtered: JSON.parse(localStorage.getItem('optionChainDataBN')) && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered.data,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             selectedWatchlist: 'Securities in F&O',
-            selectOptionStock: "NIFTY",
+            selectOptionStock: "BANKNIFTY",
             underlyingValue: JSON.parse(localStorage.getItem('optionChainDataBN')) && JSON.parse(localStorage.getItem('optionChainDataBN')).records && JSON.parse(localStorage.getItem('optionChainDataBN')).records.underlyingValue,
 
             buyCallLot:1, 
@@ -585,9 +585,11 @@ class MyView extends React.Component {
                     <Grid item xs={6} sm={4}>
 
                         <Typography component="h3" variant="h6" color="primary" >
-                            {this.state.selectOptionStock} {this.state.underlyingValue} {this.state.timestamp}
+                            {this.state.selectOptionStock} {this.state.underlyingValue} {this.state.timestamp} 
                             {/* <b> FilteredBY : {this.state.FilteredBY} </b>  */}
                         </Typography>
+
+                        
                     </Grid>
 
 
