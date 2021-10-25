@@ -35,7 +35,7 @@ class OrderBook extends React.Component{
             sellAtPending: "", 
             pattenNamePending: "",
             searchSymbolPending : "",
-            autoSearchList: ["NIFTY"], 
+            autoSearchList: [], 
             lastTradedData : {}
         }
     }

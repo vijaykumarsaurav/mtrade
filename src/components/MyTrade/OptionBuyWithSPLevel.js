@@ -29,7 +29,7 @@ class OrderBook extends React.Component{
         super(props);
 
         this.state = {
-            orderPenidngList: localStorage.getItem('orderPenidngList') && JSON.parse(localStorage.getItem('orderPenidngList')) || [], 
+            orderPenidngOptionList: localStorage.getItem('orderPenidngOptionList') && JSON.parse(localStorage.getItem('orderPenidngOptionList')) || [], 
             buyAtPending: "", 
             sellAtPending: "", 
             pattenNamePending: "",
@@ -88,10 +88,10 @@ class OrderBook extends React.Component{
                 exch_seg:  this.state.exch_seg,
             }
 
-            this.setState({orderPenidngList : [...this.state.orderPenidngList, data]}, function(){
+            this.setState({orderPenidngOptionList : [...this.state.orderPenidngOptionList, data]}, function(){
                 this.setState({searchSymbolPending: '' ,searchTokenPending:'',buyAtPending: "", sellAtPending: "",pattenNamePending:""  })
-                localStorage.setItem('orderPenidngList', JSON.stringify(this.state.orderPenidngList));
-                localStorage.setItem('orderTagToPosition', JSON.stringify(this.state.orderPenidngList));
+                localStorage.setItem('orderPenidngOptionList', JSON.stringify(this.state.orderPenidngOptionList));
+                localStorage.setItem('orderTagToPosition', JSON.stringify(this.state.orderPenidngOptionList));
             })
             
         }
@@ -103,13 +103,13 @@ class OrderBook extends React.Component{
 
         console.log("callback", row); 
         var isDeleted = false, delitem =''; 
-       var orderPenidngList =  localStorage.getItem('orderPenidngList') && JSON.parse( localStorage.getItem('orderPenidngList')); 
-       for (let index = 0; index < this.state.orderPenidngList.length; index++) {
-           const element = orderPenidngList[index];
+       var orderPenidngOptionList =  localStorage.getItem('orderPenidngOptionList') && JSON.parse( localStorage.getItem('orderPenidngOptionList')); 
+       for (let index = 0; index < this.state.orderPenidngOptionList.length; index++) {
+           const element = orderPenidngOptionList[index];
            if(row.symbol == element.symbol){
-            delitem = orderPenidngList.splice(index, 1); 
-            localStorage.setItem('orderPenidngList', JSON.stringify(orderPenidngList)); 
-            this.setState({orderPenidngList : orderPenidngList}); 
+            delitem = orderPenidngOptionList.splice(index, 1); 
+            localStorage.setItem('orderPenidngOptionList', JSON.stringify(orderPenidngOptionList)); 
+            this.setState({orderPenidngOptionList : orderPenidngOptionList}); 
             break; 
            }
        }
@@ -169,8 +169,8 @@ class OrderBook extends React.Component{
 
     updateLTP = async()=> {
 
-        for (let index = 0; index < this.state.orderPenidngList.length; index++) {
-            const element = this.state.orderPenidngList[index];
+        for (let index = 0; index < this.state.orderPenidngOptionList.length; index++) {
+            const element = this.state.orderPenidngOptionList[index];
             var data = { "exchange":element.exch_seg, "tradingsymbol":element.symbol , "symboltoken": element.token}; 
             AdminService.getLTP(data).then(res => {
                 let data = resolveResponse(res, 'noPop');
@@ -179,8 +179,8 @@ class OrderBook extends React.Component{
                 if(LtpData && LtpData.ltp) {
                     element.ltp = LtpData.ltp; 
                     element.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2); 
-                    localStorage.setItem('orderPenidngList', JSON.stringify(this.state.orderPenidngList)); 
-                    this.setState({orderPenidngList : this.state.orderPenidngList}); 
+                    localStorage.setItem('orderPenidngOptionList', JSON.stringify(this.state.orderPenidngOptionList)); 
+                    this.setState({orderPenidngOptionList : this.state.orderPenidngOptionList}); 
                     console.log("ltp update",element.symbol,element)
 
                     if(element.buyAt && LtpData.ltp >= parseFloat(element.buyAt)){
@@ -243,14 +243,14 @@ class OrderBook extends React.Component{
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            var intervaltime = 5000; 
-            if(this.state.orderPenidngList.length > 10){
-                intervaltime = this.state.orderPenidngList.length * 110; 
+            var intervaltime = 2001; 
+            if(this.state.orderPenidngOptionList.length > 10){
+                intervaltime = this.state.orderPenidngOptionList.length * 110; 
             }
             this.setState({ findlast5minMovementInterval: setInterval(() => { this.updateLTP(); }, intervaltime ) });
         }
         
-        this.setState({ findlast5minMovementInterval: setInterval(() => { this.updateLTP(); }, 1000 ) });
+       // this.setState({ findlast5minMovementInterval: setInterval(() => { this.updateLTP(); }, 2000 ) });
 
 
         localStorage.setItem('autoSearchTemp',JSON.stringify(this.state.autoSearchList))
@@ -424,7 +424,7 @@ class OrderBook extends React.Component{
                     container>
                     <Grid item> 
                         <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                        Option Buy At Level Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
+                        Option Buy At Level Watchlist ({this.state.orderPenidngOptionList && this.state.orderPenidngOptionList.length}) 
                         {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
                         {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
                         </Typography> 
@@ -508,7 +508,7 @@ class OrderBook extends React.Component{
                         </TableHead>
                         <TableBody id="tableAdd" style={{ width: "", whiteSpace: "nowrap" }}>
 
-                            {this.state.orderPenidngList ? this.state.orderPenidngList.map(row => (
+                            {this.state.orderPenidngOptionList ? this.state.orderPenidngOptionList.map(row => (
                                  <TableRow hover >
 
                                    

@@ -31,6 +31,8 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import EqualizerIcon from '@material-ui/icons/Equalizer';
+import FullModel from './FullModel';
 
 
 
@@ -106,9 +108,9 @@ class MyView extends React.Component {
         this.loadIndexesList();
 
 
-        var tokens = JSON.parse(localStorage.getItem("userTokens"));
+        var tokens = localStorage.getItem("userTokens") && JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
-        var userProfile = JSON.parse(localStorage.getItem("userProfile"));
+        var userProfile = localStorage.getItem("userProfile") && JSON.parse(localStorage.getItem("userProfile"));
         var clientcode = userProfile && userProfile.clientcode;
         this.setState({ feedToken: feedToken, clientcode: clientcode });
 
@@ -1079,7 +1081,20 @@ class MyView extends React.Component {
         });
 
     }
-
+    showDeliveryData=(indexName)=>{
+     //  window.open('#/delivery?indexName='+indexName,'_blank');
+       
+      // this.setState({clickedIndexName : indexName})
+       localStorage.setItem('clickedIndexName', indexName); 
+       localStorage.setItem('clickedIndexType', "Depth"); 
+       document.getElementById('fullModelId').click();
+    }
+    showAllChart =(indexName)=> {
+        localStorage.setItem('clickedIndexName', indexName); 
+        localStorage.setItem('clickedIndexType', "Charts"); 
+        document.getElementById('fullModelId').click();
+        //window.open('#/index-charts?indexName='+indexName,'_blank');
+    }
     render() {
 
         // this.state.sectorList && this.state.sectorList.forEach((outerEelement, index) => {
@@ -1119,7 +1134,7 @@ class MyView extends React.Component {
                 <PostLoginNavBar />
 
                 <ChartDialog />
-
+                <FullModel indexName={this.state.clickedIndexName} />
                 <LightChartDialog LightChartData={{ InstrumentLTP: this.state.InstrumentLTP, DailyBulishStatus: this.state.DailyBulishStatus, todayCurrentVolume: this.state.todayCurrentVolume, selectedSymbol: this.state.selectedSymbol, chartStaticData: this.state.chartStaticData, bblastValue: this.state.bblastValue, vwapvalue: this.state.vwapvalue, rsiValues: this.state.rsiValues, valumeData: this.state.valumeData }} />
 
                 <Grid direction="row" container className="flexGrow" spacing={1} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
@@ -1271,17 +1286,19 @@ class MyView extends React.Component {
                             {this.state.switchToListViewFlag && this.state.sectorList ? this.state.sectorList.map((indexdata, index) => (
 
                                 indexdata.stockList ? <TableRow hover={true} key={index}>
-                                    <TableCell>
-                                        <Typography variant="body1" >
-                                            {indexdata.index || indexdata.indexName + " " + indexdata.last}({indexdata.percentChange || indexdata.percChange}%)
-                                            {/* &nbsp; {indexdata.time} */}
-                                        </Typography>
+                                    <TableCell style={{ background: '#0068ff45' }} >
+                                           <Button style={{ background: this.getPercentageColor(indexdata.percChange) }} variant="contained"   onClick={() => this.showAllChart(indexdata.indexName )}>
+                                            {indexdata.indexName + " " + indexdata.last}({indexdata.percChange}%)<EqualizerIcon />
+                                          </Button>
+                                          &nbsp;
+                                          <Button variant="contained"   onClick={() => this.showDeliveryData(indexdata.indexName )}>
+                                            Depth
+                                          </Button>
                                     </TableCell>
 
                                     {indexdata.stockList && indexdata.stockList.map((sectorItem, i) => (
-                                        <TableCell style={{ textAlign: "left", }} >
-                                            <div style={{ padding: "5px" }}>
-                                                <Button size="small" onClick={() => this.showCandleChartPopUp(sectorItem.symbol)}>
+                                        <TableCell style={{ textAlign: "left", }}  >
+                                              <Button  onClick={() => this.showCandleChartPopUp(sectorItem.symbol)}>
                                                     <span style={{ background: this.getPercentageColor(sectorItem.iislPercChange) }}>  <b>{i + 1}.</b> {sectorItem.symbol} {sectorItem.ltP} ({sectorItem.iislPercChange}%) </span>
                                                     <span title="last 5 days 5min big movement  maximum count">&nbsp;{this.get5DaysMoveCount(sectorItem.symbol)}  </span>
 
@@ -1289,8 +1306,6 @@ class MyView extends React.Component {
 
 
                                                 </Button>
-
-                                            </div>
 
 
                                         </TableCell>

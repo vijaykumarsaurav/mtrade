@@ -546,13 +546,18 @@ app.post("/store_delivery_data", (req, res, next) => {
 
 app.post("/store_bid_data", (req, res, next) => {
 
-  var sql = "INSERT INTO `bidData` (`symbol`, `totalBuyBid`, `totalSellBid`, `updatedTime`, `ltp`, `priceChangePer`, `dbUpdateTime`, `quantityTraded`, `deliveryQuantity`, `deliveryToTradedQuantity`) VALUES ?";
+  var sql = "INSERT INTO `bidData` (`symbol`, `totalBuyBid`, `totalSellBid`, `updatedTime`, `ltp`, `priceChangePer`, `dbUpdateTime`, `quantityTraded`, `deliveryQuantity`, `deliveryToTradedQuantity`, `averagePrice`, `buyPrice1`, `buyPrice2`, `buyPrice3`, `buyPrice4`, `buyPrice5`, `buyQuantity1`, `buyQuantity2`, `buyQuantity3`, `buyQuantity4`, `buyQuantity5`, `sellPrice1`, `sellPrice2`, `sellPrice3`, `sellPrice4`, `sellPrice5`, `sellQuantity1`, `sellQuantity2`, `sellQuantity3`, `sellQuantity4`, `sellQuantity5`) VALUES ?";
+  
   var backupBiddata = req.body.backupBiddata;
   var dbUpdateTime = req.body.dbUpdateTime;
   
   var values = [], allSymbol = []; 
   backupBiddata.forEach(element => {
-    values.push([element.symbol, element.totalBuyBid, element.totalSellBid ,element.updatedTime, element.ltp, element.priceChangePer, dbUpdateTime, element.quantityTraded,element.deliveryQuantity, element.deliveryToTradedQuantity ]);
+    values.push([element.symbol, element.totalBuyBid, element.totalSellBid ,element.updatedTime, element.ltp, element.priceChangePer, dbUpdateTime, element.quantityTraded,element.deliveryQuantity, element.deliveryToTradedQuantity,   element.averagePrice, element.buyPrice1, element.buyPrice2, element.buyPrice3, element.buyPrice4, element.buyPrice5, element.buyQuantity1, element.buyQuantity2, element.buyQuantity3, element.buyQuantity4, element.buyQuantity5, element.sellPrice1, element.sellPrice2, element.sellPrice3, element.sellPrice4, element.sellPrice5, element.sellQuantity1, element.sellQuantity2, element.sellQuantity3, element.sellQuantity4, element.sellQuantity5
+    
+    ]);
+ 
+ 
     allSymbol.push( "'" + element.symbol+"'"); 
   });
    console.log("biddata", values);
@@ -628,17 +633,18 @@ app.get("/get_bid_data", (req, res, next) => {
   var sql = "select *  FROM biddata where dbUpdateTime='" + backDate + "'";
   con.query(sql, function  (err, result) {
     if (err) throw err;
-    console.log("result",result);
+    console.log("result",result.length);
 
     let selectSql = "SELECT symbol, totalBuyBid, totalSellBid, updatedTime  FROM biddata where symbol in ("+ allSymbol+")  order by dbUpdateTime desc  LIMIT "+count*5+";"
-     console.log( selectSql) ;
+     //console.log( selectSql) ;
 
         con.query(selectSql, function (err, selectResult) {
           if (err) throw err;
             
-          console.log("selectResult",selectResult);
+          console.log("bidHistoty",selectResult.length);
        //   res.status(200).send({ status: 200, result: { bidResult : selectResult, bidHistoty :  selectResult}  });
             res.status(200).send({ status: 200, result: result, bidHistoty :  selectResult });
+            return;
         });
 
     //res.status(200).send({ status: 200, result: result });

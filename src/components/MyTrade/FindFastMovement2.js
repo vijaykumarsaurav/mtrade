@@ -368,7 +368,6 @@ class Home extends React.Component {
 
                             lastRsiValue = lastRsiValue.slice((lastRsiValue.length - 6), lastRsiValue.length);
 
-
                             // var volumeUpside = valumeData[2], volUpCount =0;                          
                             // valumeData.forEach((element, i) => {
                             //     if (i > 2 && volumeUpside < element) {

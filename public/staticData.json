@@ -830,7 +830,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY PRIVATE BANK": [
+    "NIFTY PVT BANK": [
         {
             "token": "5258",
             "symbol": "INDUSINDBK-EQ",
@@ -1546,7 +1546,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY FINANCIAL SERVICES": [
+    "NIFTY FIN SERVICE": [
         {
             "token": "16675",
             "symbol": "BAJAJFINSV-EQ",
@@ -13980,7 +13980,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY INDIA CONSUMPTION": [
+    "NIFTY CONSUMPTION": [
         {
             "token": "3432",
             "symbol": "TATACONSUM-EQ",
@@ -14446,7 +14446,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY INFRASTRUCTURE": [
+    "NIFTY INFRA": [
         {
             "token": "11483",
             "symbol": "LT-EQ",

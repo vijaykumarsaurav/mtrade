@@ -43,7 +43,7 @@ class Home extends React.Component {
         this.state = {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
-            selectedWatchlist: "looserList", //"NIFTY BANK", gainerList
+            selectedWatchlist:  localStorage.getItem('clickedIndexName') ? localStorage.getItem('clickedIndexName') :  'NIFTY BANK',  //decodeURIComponent(window.location.href.split('?')[1].split('=')[1]),
             totalStockToWatch: 0,
             chartSize: 300, 
             timeFrame: "FIFTEEN_MINUTE",
@@ -622,7 +622,9 @@ class Home extends React.Component {
 
         return (
             <React.Fragment>
-                <PostLoginNavBar />
+
+                 {window.location.hash === "#/index-charts" ? <PostLoginNavBar /> : ""}
+
                 <br />
                 <ChartDialog /> <ChartMultiple />
 

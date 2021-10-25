@@ -45,7 +45,7 @@ class OrderBook extends React.Component {
             firstTimeFlag: true,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
-            selectedWatchlist: "NIFTY BANK",
+            selectedWatchlist: localStorage.getItem('clickedIndexName') ? localStorage.getItem('clickedIndexName') :  'NIFTY BANK', //decodeURIComponent(window.location.href.split('?')[1].split('=')[1]),
             totalStockToWatch: 0,
             timeFrame: "TEN_MINUTE",
             chartStaticData: [],
@@ -83,6 +83,11 @@ class OrderBook extends React.Component {
             });
     }
 
+    // getDerivedStateFromProps(){
+    //     //console.log(' this.props.indexName', this.props.indexName)
+    //    // this.setState({selectedWatchlist : this.props.indexName }); 
+    // }
+
     componentDidMount() {
 
         var beginningTime = moment('9:15am', 'h:mma');
@@ -92,21 +97,23 @@ class OrderBook extends React.Component {
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+            console.log("setInterval");
             setInterval(() => {
                 this.checkLiveBids();
-            }, 10 * 60000);
+            }, 5 * 60000);
         }
 
         // setInterval(() => {
         //     this.checkLiveBids();
-        // }, 10 * 60000);
+        // }, 5 * 60000);
 
 
-        //  this.checkLiveBids();
+      this.checkLiveBids();
 
 
         this.getBackUpDate();
 
+        console.log("ddd", this.state.selectedWatchlist);
     }
 
 
@@ -184,6 +191,7 @@ class OrderBook extends React.Component {
         var watchList = this.state.staticData[this.state.selectedWatchlist];
         this.setState({ liveBidsList: [], backupDeleverydata: [], backupBidata: [] });
 
+        console.log("watchList", this.state.staticData)
 
         var delData = [];
         for (let index = 0; index < watchList.length; index++) {
@@ -192,75 +200,7 @@ class OrderBook extends React.Component {
             AdminService.checkLiveBids(row.name).then(resd => {
                 // let histdatad = resolveResponse(resd, 'noPop');
 
-                console.log("bid", resd.data.data);
-
-                // adhocMargin: "0.48"
-                // applicableMargin: "19.00"
-                // averagePrice: "705.27"
-                // basePrice: "717.15"
-                // bcEndDate: "-"
-                // bcStartDate: "-"
-                // buyPrice1: "710.60"
-                // buyPrice2: "710.55"
-                // buyPrice3: "710.50"
-                // buyPrice4: "710.45"
-                // buyPrice5: "710.40"
-                // buyQuantity1: "6"
-                // buyQuantity2: "50"
-                // buyQuantity3: "33"
-                // buyQuantity4: "153"
-                // buyQuantity5: "100"
-                // change: "-6.55"
-                // closePrice: "0.00"
-                // cm_adj_high_dt: "28-SEP-21"
-                // cm_adj_low_dt: "28-SEP-20"
-                // cm_ffm: "4,96,600.56"
-                // companyName: "ICICI Bank Limited"
-                // css_status_desc: "Listed"
-                // dayHigh: "710.95"
-                // dayLow: "701.30"
-                // deliveryQuantity: "55,54,344"
-                // deliveryToTradedQuantity: "63.08"
-                // exDate: "29-JUL-21"
-                // extremeLossMargin: "3.50"
-                // faceValue: "2.00"
-                // high52: "735.40"
-                // indexVar: "-"
-                // isExDateFlag: false
-                // isinCode: "INE090A01021"
-                // lastPrice: "710.60"
-                // low52: "349.10"
-                // marketType: "N"
-                // ndEndDate: "-"
-                // ndStartDate: "-"
-                // open: "707.35"
-                // pChange: "-0.91"
-                // previousClose: "717.15"
-                // priceBand: "No Band"
-                // pricebandlower: "645.45"
-                // pricebandupper: "788.85"
-                // purpose: "DIVIDEND - RS 2 PER SHARE"
-                // quantityTraded: "88,05,883"
-                // recordDate: "30-JUL-21"
-                // secDate: "29-Sep-2021 14:00:00"
-                // securityVar: "15.02"
-                // sellPrice1: "710.65"
-                // sellPrice2: "710.70"
-                // sellPrice3: "710.75"
-                // sellPrice4: "710.80"
-                // sellPrice5: "710.85"
-                // sellQuantity1: "1,382"
-                // sellQuantity2: "719"
-                // sellQuantity3: "1,217"
-                // sellQuantity4: "4,159"
-                // sellQuantity5: "793"
-                // series: "EQ"
-                // surv_indicator: "-"
-                // symbol: "ICICIBANK"
-                // totalBuyQuantity: "10,31,358"
-                // totalSellQuantity: "8,75,359"
-                // totalTradedValue: "66,963.99"
-                // totalTradedVolume: "94,94,802"
+               // console.log("bid", resd.data.data)
 
                 if (resd.data && resd.data.data.length) {
                     let bidlivedata = resd.data.data[0];
@@ -286,7 +226,33 @@ class OrderBook extends React.Component {
                    
                         quantityTraded : bidlivedata.quantityTraded != '-' ? parseFloat(bidlivedata.quantityTraded.split(",").join('')) : 0, 
                         deliveryToTradedQuantity: parseFloat(bidlivedata.deliveryToTradedQuantity.split(",").join('')),  
-                        deliveryQuantity: parseFloat(bidlivedata.deliveryQuantity.split(",").join(''))
+                        deliveryQuantity: parseFloat(bidlivedata.deliveryQuantity.split(",").join('')), 
+                 
+                        averagePrice: parseFloat(bidlivedata.averagePrice.split(",").join('')),
+                        buyPrice1: parseFloat(bidlivedata.buyPrice1.split(",").join('')),
+                        buyPrice2:  parseFloat(bidlivedata.buyPrice2.split(",").join('')),
+                        buyPrice3:  parseFloat(bidlivedata.buyPrice3.split(",").join('')),
+                        buyPrice4:  parseFloat(bidlivedata.buyPrice4.split(",").join('')),
+                        buyPrice5:  parseFloat(bidlivedata.buyPrice5.split(",").join('')),
+                        buyQuantity1:  parseFloat(bidlivedata.buyQuantity1.split(",").join('')),
+                        buyQuantity2:  parseFloat(bidlivedata.buyQuantity2.split(",").join('')),
+                        buyQuantity3:  parseFloat(bidlivedata.buyQuantity3.split(",").join('')),
+                        buyQuantity4:  parseFloat(bidlivedata.buyQuantity4.split(",").join('')),
+                        buyQuantity5:  parseFloat(bidlivedata.buyQuantity5.split(",").join('')),
+
+                        sellPrice1:  parseFloat(bidlivedata.sellPrice1.split(",").join('')),
+                        sellPrice2:  parseFloat(bidlivedata.sellPrice2.split(",").join('')),
+                        sellPrice3:  parseFloat(bidlivedata.sellPrice3.split(",").join('')),
+                        sellPrice4:  parseFloat(bidlivedata.sellPrice4.split(",").join('')),
+                        sellPrice5:  parseFloat(bidlivedata.sellPrice5.split(",").join('')),
+                        sellQuantity1:  parseFloat(bidlivedata.sellQuantity1.split(",").join('')),
+                        sellQuantity2:  parseFloat(bidlivedata.sellQuantity2.split(",").join('')),
+                        sellQuantity3:  parseFloat(bidlivedata.sellQuantity3.split(",").join('')),
+                        sellQuantity4:  parseFloat(bidlivedata.sellQuantity4.split(",").join('')),
+                        sellQuantity5:  parseFloat(bidlivedata.sellQuantity5.split(",").join('')),
+                        
+                       
+
                     }
 
 
@@ -392,11 +358,13 @@ class OrderBook extends React.Component {
                             deliveryQuantity : bidlivedata.deliveryQuantity, 
                             totalBuyQuantity :  bidlivedata.totalBuyBid , 
                             totalSellQuantity : bidlivedata.totalSellBid, 
-                            ltp : bidlivedata.ltp, 
+                            lastPrice : bidlivedata.ltp, 
+                            pChange: bidlivedata.priceChangePer,
                             symbol : bidlivedata.symbol,
                             updatedTime :bidlivedata.updatedTime 
 
                         }
+
     
                         data.buytosellTime = bidlivedata.totalBuyBid / bidlivedata.totalSellBid;
                         data.selltobuyTime = bidlivedata.totalSellBid / bidlivedata.totalBuyBid;
@@ -438,7 +406,7 @@ class OrderBook extends React.Component {
                     });
 
                     this.setState({ backupDateList: result }, function () {
-                        console.log("dates", this.state.backupDateList)
+                       // console.log("dates", this.state.backupDateList)
                     });
                 }
             });
@@ -478,9 +446,7 @@ class OrderBook extends React.Component {
         return (
             <React.Fragment>
 
-
-                {window.location.hash !== "#/position" ? <PostLoginNavBar /> : ""}
-
+                {window.location.hash === "#/delivery" ? <PostLoginNavBar /> : ""}
 
 
                 <Grid direction="row" alignItems="center" container>

@@ -1673,8 +1673,8 @@ class Home extends React.Component {
 
             if (data.status && data.message === 'SUCCESS') {
                 //  this.setState({ ['lastTriggerprice_' + row.tradingsymbol]:  parseFloat(minPrice)})
-                msg.text = row.symbolname + ' modified ' + data.message;
-                window.speechSynthesis.speak(msg);
+                msg.text = row.symbolname + ' modified '; //+ data.message;
+             //   window.speechSynthesis.speak(msg);
                 localStorage.setItem('firstTimeModify' + row.tradingsymbol, 'No');
                 localStorage.setItem('lastTriggerprice_' + row.tradingsymbol, parseFloat(minTriggerPrice));
                 document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
@@ -1723,9 +1723,9 @@ class Home extends React.Component {
 
         row.buyavgprice = parseFloat(row.buyavgprice);
         percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 3) {
+        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 7) {
 
-            var minTriggerPrice = row.buyavgprice + (row.buyavgprice * 1 / 100);
+            var minTriggerPrice = row.buyavgprice + (row.buyavgprice * 3 / 100);
             let slPriceData =  this.getSLAndTriggerPrice(minTriggerPrice); 
 
             if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice){
@@ -1736,8 +1736,8 @@ class Home extends React.Component {
             var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
             var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
             trailPerChange = perchngfromTriggerPrice; 
-            if (perchngfromTriggerPrice >= 3) {
-                minTriggerPrice = lastTriggerprice + (lastTriggerprice * 1 / 100);
+            if (perchngfromTriggerPrice >= 5) {
+                minTriggerPrice = lastTriggerprice + (lastTriggerprice * 2 / 100);
                 let slPriceData =  this.getSLAndTriggerPrice(minTriggerPrice); 
 
                 if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice){
@@ -1786,11 +1786,11 @@ class Home extends React.Component {
 
             row.sellavgprice = parseFloat(row.sellavgprice);
             percentChange = ((row.ltp - row.sellavgprice) * 100 / row.sellavgprice);
-            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange <= -0.3) {
-                var minPrice = row.sellavgprice - (row.sellavgprice * 0.1 / 100);
+            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange <= -0.5) {
+                var minPrice = row.sellavgprice - (row.sellavgprice * 0.3 / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
                 if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
-                    this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.1 / 100));
+                    this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.3 / 100));
                 }
             } else {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
@@ -1805,6 +1805,8 @@ class Home extends React.Component {
                     }
                 }
             }
+
+
         }
 
         if(!trailPerChange){
