@@ -71,6 +71,7 @@ class Home extends React.Component {
             searchFailed: 0,
             openEqualHighList: [],
             openEqualLowList: [],
+            closeingEqualHighList:[], 
             chartStaticData: [],
             volumeCrossedList: [],
             slowMotionStockList: [],
@@ -144,7 +145,7 @@ class Home extends React.Component {
 
         this.setState({
             openEqualHighList: [], openEqualLowList: [], openEqualLowList: [], advanceShareCount: 0,
-            declineShareCount: 0, UnchangeShareCount: 0, volumeCrossedList: []
+            declineShareCount: 0, UnchangeShareCount: 0, volumeCrossedList: [],closeingEqualHighList:[]
         });
 
 
@@ -173,6 +174,13 @@ class Home extends React.Component {
                         var isfound = this.state.openEqualLowList.filter(row => row.symboltoken == element.token);
                         if(!isfound.length)
                         this.setState({ openEqualLowList: [...this.state.openEqualLowList, LtpData] });
+                    }
+                    console.log(element.symbol ,"ltp=newhigh", LtpData.ltp, (LtpData.high - LtpData.high*0.5/100));
+
+                    if (LtpData &&  LtpData.ltp >= (LtpData.high - LtpData.high*0.5/100)) {
+                        var isfound = this.state.closeingEqualHighList.filter(row => row.symboltoken == element.token);
+                        if(!isfound.length)
+                        this.setState({ closeingEqualHighList: [...this.state.closeingEqualHighList, LtpData] });
                     }
 
                     if (LtpData && LtpData.open == LtpData.high) {
@@ -397,7 +405,7 @@ class Home extends React.Component {
 
         }, 1000);
         
-        this.oneHourBullBearCheck(); 
+      //  this.oneHourBullBearCheck(); 
 
        // this.checkLiveBids();
 
@@ -3579,10 +3587,13 @@ class Home extends React.Component {
 
                         <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
                        
-
-                            <Grid item xs={12} sm={12}>
-                                <LiveBidsExpantion data={{ list: this.state.liveBidsList, title: "Live Bids", LoadSymbolDetails: this.LoadSymbolDetails }} />
+                             <Grid item xs={12} sm={12}>
+                                <SimpleExpansionPanel data={{ list: this.state.closeingEqualHighList, title: "Strong Closing", LoadSymbolDetails: this.LoadSymbolDetails }} />
                             </Grid> 
+
+                            {/* <Grid item xs={12} sm={12}>
+                                <LiveBidsExpantion data={{ list: this.state.liveBidsList, title: "Live Bids", LoadSymbolDetails: this.LoadSymbolDetails }} />
+                            </Grid>  */}
                         
                             <Grid item xs={12} sm={12}>
                                 <SimpleExpansionFastMovement data={{ list: this.state.oneHourBullBearCheckList, title: "Hourly Bullish/Bearish", LoadSymbolDetails: this.LoadSymbolDetails }} />

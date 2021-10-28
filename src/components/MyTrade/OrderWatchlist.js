@@ -329,8 +329,17 @@ class OrderBook extends React.Component{
                     console.log("option ltp", LtpData);
 
                    let quantity = optionData.lotsize * noOfLot;   
+
+                    let today = moment().isoWeekday();
+                    let slpercentage = 10; 
+                    if(today == 2)
+                    slpercentage = 15
+                    else if(today == 3)
+                    slpercentage = 20
+                    else if(today == 4)
+                    slpercentage = 30
     
-                   let perStopTrigerLoss = LtpData.ltp - (LtpData.ltp * 10/100); 
+                   let perStopTrigerLoss = LtpData.ltp - (LtpData.ltp * slpercentage/100); 
                    perStopTrigerLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopTrigerLoss); 
 
                    let stopLossPrice = perStopTrigerLoss - (perStopTrigerLoss * 1/100); 

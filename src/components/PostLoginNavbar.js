@@ -27,6 +27,7 @@ import TextField from "@material-ui/core/TextField";
 import CommonOrderMethod from "../utils/CommonMethods";
 import Spinner from "react-spinner-material";
 import Notify from '../utils/Notify';
+import Hidden from '@material-ui/core/Hidden';
 
 
 const drawerWidth = 240;
@@ -148,8 +149,8 @@ export default function PostLoginNavBar(props) {
                 setValues({ ...values, ['buyFlag']: false });
                 var symbolInfo = {
                     token: values.token,
-                    symbol: values.searchSymbol, 
-                    qtyToTake : values.qtyToTake
+                    symbol: values.searchSymbol,
+                    qtyToTake: values.qtyToTake
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", callbackAfterOrderDone);
             }
@@ -159,7 +160,7 @@ export default function PostLoginNavBar(props) {
                 var symbolInfo = {
                     token: values.token,
                     symbol: values.searchSymbol,
-                    qtyToTake : values.qtyToTake
+                    qtyToTake: values.qtyToTake
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", callbackAfterOrderDone);
             }
@@ -209,7 +210,7 @@ export default function PostLoginNavBar(props) {
 
                         </Grid>
 
-
+                        <Hidden xsDown>
                         <Grid item  >
 
                             <Grid
@@ -219,17 +220,17 @@ export default function PostLoginNavBar(props) {
                             >
 
                                 <Grid item  >
-                                    <Typography style={{  marginTop: '20px',fontSize:"12px" }}  variant="h6" noWrap >
-                                       <span id="niftySpid" onClick={() => props.LoadSymbolDetails("NIFTY")}  > </span>  &nbsp;&nbsp;  <span id="bankniftySpid" onClick={() => props.LoadSymbolDetails("BANKNIFTY")} > </span>  
-                                     </Typography> 
-                                    
+                                    <Typography style={{ marginTop: '20px', fontSize: "12px" }} variant="h6" noWrap >
+                                        <span id="niftySpid"  > </span>  &nbsp;&nbsp;  <span id="bankniftySpid" onClick={() => props.LoadSymbolDetails("BANKNIFTY")} > </span>
+                                    </Typography>
+
                                 </Grid>
 
                                 <Grid item>
                                     <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput} />
                                 </Grid>
                                 <Grid item>
-                                    <TextField label="Qty" style={{width:"50px"}} type="number" name="qtyToTake" value={values.qtyToTake} onChange={handleInputQty} />
+                                    <TextField label="Qty" style={{ width: "50px" }} type="number" name="qtyToTake" value={values.qtyToTake} onChange={handleInputQty} />
                                 </Grid>
                                 <Grid item>
                                     {values.buyFlag ? <Button variant="contained" color="primary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("BUY")}>Buy</Button> : <Spinner />}
@@ -244,118 +245,62 @@ export default function PostLoginNavBar(props) {
                         </Grid>
 
 
-                        <Grid item >
+                       
+                            <Grid item >
 
-                            <Grid
-                                container
-                                spacing={1}
-                                direction="row"
-                               
-                            >
+                                <Grid
+                                    container
+                                    spacing={1}
+                                    direction="row"
 
-                                <Grid item>
-                                    <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/index-charts"}>
-                                        Charts <OpenInNewIcon />
-                                    </Button>
+                                >
+
+                                    <Grid item>
+                                        <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/index-charts"}>
+                                            Charts <OpenInNewIcon />
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/delivery"}>
+                                            Delivery <OpenInNewIcon />
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/sector-heat-map2"}>
+                                            Hit Map <OpenInNewIcon />
+                                        </Button>
+                                    </Grid>
+                                    <Grid item>
+                                        <Button variant="outlined" color="primary" target={'_blank'} href={"/mtrade/#/find-fast-movement"}>
+                                            Fast Move <OpenInNewIcon />
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Button variant="contained" autoFocus href={"/mtrade/#/position"} color="primary">
+                                            Position
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Button variant="contained" autoFocus href={"/mtrade/#/home"} color="primary">
+                                            Home
+                                        </Button>
+                                    </Grid>
+
+
+
+
                                 </Grid>
 
-                                <Grid item>
-                                    <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/delivery"}>
-                                    Delivery <OpenInNewIcon />
-                                    </Button>
-                                </Grid>
-
-                                <Grid item>
-                                    <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/sector-heat-map2"}>
-                                        Hit Map <OpenInNewIcon />
-                                    </Button>
-                                </Grid>
-                                <Grid item>
-                                    <Button variant="outlined" color="primary" target={'_blank'} href={"/mtrade/#/find-fast-movement"}>
-                                        Fast Move <OpenInNewIcon />
-                                    </Button>
-                                </Grid>
-
-
-                                {/* <Grid item>
-                                    <FoundPatternDialog />
-                                </Grid> */}
-
-
-
-
-
-                                {/* <Grid item>
-                                    <Button variant="outlined" color="primary"  autoFocus href={"#/addtowatchlist"}  >
-                                       WList({localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')).length})
-                                    </Button>
-                              </Grid>
- */}
-
-                               
-
-                                <Grid item>
-                                    <Button variant="contained" autoFocus href={"/mtrade/#/position"} color="primary">
-                                        Position 
-                                    </Button>
-                                </Grid>
-
-                                <Grid item>
-                                    <Button variant="contained" autoFocus href={"/mtrade/#/home"} color="primary">
-                                        Home
-                                    </Button>
-                                </Grid>
-
-
-
-                                {/* <Grid item>
-                                    <Button variant="contained"  autoFocus href={"#/order-status-live"}  color="secondary">
-                                        Order Status Live
-                                    </Button>
-                              </Grid> */}
-
-
-
-                                {/* <Grid item>
-                                    <Button variant="contained"  autoFocus href={"/mtrade/#/order"}  color="primary">
-                                        Order
-                                    </Button>
-                              </Grid>
-
-                              <Grid item>
-                                    <Button variant="contained"  autoFocus href={"/mtrade/#/trade"}  color="primary">
-                                        Trade
-                                    </Button>
-                              </Grid>
-
-                            
-
-                              <Grid item>
-                                    <Button variant="contained"  autoFocus href={"/mtrade/#/funds"}  color="primary">
-                                        Funds
-                                    </Button>
-                              </Grid> */}
-
-                                {/* <Grid item>
-                                <Typography  noWrap>
-
-                                <Button color="primary">
-                                  <AccountCircle />   {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : null}
-                                </Button>
-
-                                </Typography> 
-
-                        
-
-
-                            </Grid> */}
 
 
                             </Grid>
 
+                        </Hidden>
 
-
-                        </Grid>
 
                     </Grid>
 

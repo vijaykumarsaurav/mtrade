@@ -126,8 +126,7 @@ export default function CustomizedDialogs(props) {
         </DialogTitle>
         <DialogContent dividers id="chart">
 
-         
-
+        
         <LightChartCom chartData={{candleSeries:lightChartData.lightChartData, volumeSeries: lightChartData.volumeSeriesData}}/>
        
 

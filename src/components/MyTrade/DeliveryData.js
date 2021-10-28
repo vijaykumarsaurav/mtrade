@@ -481,8 +481,6 @@ class OrderBook extends React.Component {
                                 </Grid>
 
 
-
-
                                 <Grid item xs={12} sm={3} >
                                     <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.checkLiveBids()}>Refresh</Button>
                                 </Grid>

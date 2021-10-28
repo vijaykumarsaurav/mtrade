@@ -405,7 +405,9 @@ class Home extends React.Component {
 
     find10MinBBBlast = async () => {
        
-        document.getElementById("allchart").innerHTML = '';
+        if(document.getElementById("allchart")){
+            document.getElementById("allchart").innerHTML = ''
+        } 
 
         this.setState({ findlast5minMovementUpdate: '', findlast5minMovement: [] });
         var watchList = this.state.staticData[this.state.selectedWatchlist];

@@ -17,6 +17,20 @@ export const AdminMenuList = (
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
    
 
+    <ListItem button component='a' href={"/mtrade/#/home"} >  
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Home" />
+    </ListItem>
+    
+    <ListItem button component='a' href={"/mtrade/#/position"} >  
+      <ListItemIcon>
+        <EmojiEmotionsIcon />
+      </ListItemIcon>
+      <ListItemText primary="Positions" />
+    </ListItem>
+
     <ListItem button component='a' href={"/mtrade/#/sector-heat-map2"} >  
       <ListItemIcon>
         <ShowChartIcon />
@@ -59,12 +73,7 @@ export const AdminMenuList = (
     
 
 
-    <ListItem button component='a' href={"/mtrade/#/position"} >  
-      <ListItemIcon>
-        <EmojiEmotionsIcon />
-      </ListItemIcon>
-      <ListItemText primary="Positions" />
-    </ListItem>
+  
 
     <ListItem button component='a' href={"/mtrade/#/order-watchlist"} >  
       <ListItemIcon>
@@ -100,6 +109,14 @@ export const AdminMenuList = (
       <ListItemText primary="Heat Map" />
     </ListItem>
   
+
+    <ListItem button component='a' href={"/mtrade/#/market-depth"} >  
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Depth Live" />
+    </ListItem>
+    
     {/* <ListItem button component='a' href={"/mtrade/#/bn-view"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />

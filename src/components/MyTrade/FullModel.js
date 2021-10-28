@@ -91,10 +91,12 @@ export default function CustomizedDialogs(props) {
         Chart 
       </Button>
       <Dialog fullScreen onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
-        <DialogTitle id="customized-dialog-title" onClose={handleClose}>
-      
-        {localStorage.getItem('clickedIndexName') } {localStorage.getItem('clickedIndexType')}
-     
+        <DialogTitle id="customized-dialog-title" onClose={handleClose} onClick={handleClose}>
+        <Button fullWidth={true} autoFocus onClick={handleClose} color="primary">
+            {localStorage.getItem('clickedIndexName') } {localStorage.getItem('clickedIndexType')}
+         </Button>
+        
+         
         </DialogTitle>
         <DialogContent dividers id="chart">
 

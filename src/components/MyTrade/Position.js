@@ -45,6 +45,10 @@ class Home extends React.Component {
             stockTesting: "",
             perHighLowTotal: 0,
             netPnLAmountOnHighlowTotal: 0,
+            firstTimeMove : 0.5, 
+            firstTimeSLMove: 0.3, 
+            nextTimeMove : 0.5, 
+            nextTimeSLMove: 0.3, 
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
 
 
@@ -1344,6 +1348,9 @@ class Home extends React.Component {
         })
     }
 
+    onTrailChange=(e)=>{
+        this.setState({ [e.target.name]: e.target.value });
+    }
 
     getNiftyLTP = () => {
         var data = {
@@ -1674,7 +1681,7 @@ class Home extends React.Component {
             if (data.status && data.message === 'SUCCESS') {
                 //  this.setState({ ['lastTriggerprice_' + row.tradingsymbol]:  parseFloat(minPrice)})
                 msg.text = row.symbolname + ' modified '; //+ data.message;
-             //   window.speechSynthesis.speak(msg);
+                window.speechSynthesis.speak(msg);
                 localStorage.setItem('firstTimeModify' + row.tradingsymbol, 'No');
                 localStorage.setItem('lastTriggerprice_' + row.tradingsymbol, parseFloat(minTriggerPrice));
                 document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
@@ -1754,16 +1761,14 @@ class Home extends React.Component {
  
     }
 
-    
     getPercentage = (row) => {
 
         var percentChange = 0, trailPerChange = 0; 
-
         if (row.netqty > 0) {
             row.buyavgprice = parseFloat(row.buyavgprice);
             percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 0.5) {
-                var minPrice = row.buyavgprice + (row.buyavgprice * 0.3 / 100);
+            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= this.state.firstTimeMove) {
+                var minPrice = row.buyavgprice + (row.buyavgprice * this.state.firstTimeSLMove / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
                 if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
                     this.modifyOrderMethod(row, minPrice);
@@ -1772,8 +1777,8 @@ class Home extends React.Component {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
                 trailPerChange = perchngfromTriggerPrice; 
-                if (perchngfromTriggerPrice >= 0.4) {
-                    minPrice = lastTriggerprice + (lastTriggerprice * 0.10/ 100);
+                if (perchngfromTriggerPrice >= this.state.nextTimeMove) {
+                    minPrice = lastTriggerprice + (lastTriggerprice * this.state.nextTimeSLMove / 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
                     if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
                         this.modifyOrderMethod(row, minPrice);
@@ -1786,8 +1791,8 @@ class Home extends React.Component {
 
             row.sellavgprice = parseFloat(row.sellavgprice);
             percentChange = ((row.ltp - row.sellavgprice) * 100 / row.sellavgprice);
-            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange <= -0.5) {
-                var minPrice = row.sellavgprice - (row.sellavgprice * 0.3 / 100);
+            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange <= -Math.abs(this.state.firstTimeMove)) {
+                var minPrice = row.sellavgprice - (row.sellavgprice * this.state.firstTimeSLMove / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
                 if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
                     this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.3 / 100));
@@ -1797,8 +1802,8 @@ class Home extends React.Component {
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
                 trailPerChange = perchngfromTriggerPrice; 
                 console.log("perchngfromTriggerPrice", perchngfromTriggerPrice);
-                if (perchngfromTriggerPrice <= -0.4) {
-                    minPrice = lastTriggerprice - (lastTriggerprice * 0.1 / 100);
+                if (perchngfromTriggerPrice <= -Math.abs(this.state.nextTimeMove)  ) {
+                    minPrice = lastTriggerprice - (lastTriggerprice * this.state.nextTimeSLMove / 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
                     if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
                         this.modifyOrderMethod(row, minPrice);
@@ -1820,6 +1825,7 @@ class Home extends React.Component {
 
 
     render() {
+  
 
         //var foundPatternList = localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')).reverse(); 
 
@@ -1831,13 +1837,19 @@ class Home extends React.Component {
                 <Grid style={{ padding: '5px' }} justify="space-between" direction="row" container>
                     <Grid item >
                        <Typography component="h3" variant="h6" color="primary" gutterBottom>
-                            Positions ({this.state.positionList && this.state.positionList.length}) 
+                            Positions ({this.state.positionList && this.state.positionList.length})  {new Date().toLocaleString()}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sm={3} >
-                        <Typography component="h3">
-                            <b>Date:: {new Date().toLocaleString()} </b>
-                        </Typography>
+                    <Grid item xs={12} sm={3} > 
+
+                   
+                       Stock Trail%: First Move<input name="firstTimeMove"  type={'number'}  step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
+                        SL Move<input name="firstTimeSLMove" step="0.1"  type={'number'}  onChange={this.onTrailChange}  value={this.state.firstTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
+
+                        &nbsp;Next <input name="nextTimeMove" step="0.1"  type={'number'}  onChange={this.onTrailChange} value={this.state.nextTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
+                        SL Move<input name="nextTimeSLMove"  step="0.1" type={'number'}  onChange={this.onTrailChange}  value={this.state.nextTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
+                    
+
                     </Grid>
 
                     

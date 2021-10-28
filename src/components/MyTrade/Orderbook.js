@@ -96,7 +96,7 @@ class OrderBook extends React.Component{
             "duration": row.duration,
             "price":  this.state.price,
             "triggerprice": trailingstoploss || this.state.triggerprice,
-            "quantity":row.lotsize,
+            "quantity":row.quantity,
             "tradingsymbol": row.tradingsymbol,
             "symboltoken": row.symboltoken,
             "exchange": row.exchange
