@@ -553,17 +553,6 @@
     ],
     "NIFTY BANK": [
         {
-            "token": "26009",
-            "symbol": "BANKNIFTY",
-            "name": "BANKNIFTY",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "-1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "-1.000000"
-        },
-        {
             "token": "5258",
             "symbol": "INDUSINDBK-EQ",
             "name": "INDUSINDBK",
@@ -830,7 +819,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY PRIVATE BANK": [
+    "NIFTY PVT BANK": [
         {
             "token": "5258",
             "symbol": "INDUSINDBK-EQ",
@@ -1546,7 +1535,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY FINANCIAL SERVICES": [
+    "NIFTY FIN SERVICE": [
         {
             "token": "16675",
             "symbol": "BAJAJFINSV-EQ",
@@ -13980,7 +13969,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY INDIA CONSUMPTION": [
+    "NIFTY CONSUMPTION": [
         {
             "token": "3432",
             "symbol": "TATACONSUM-EQ",
@@ -14446,7 +14435,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY INFRASTRUCTURE": [
+    "NIFTY INFRA": [
         {
             "token": "11483",
             "symbol": "LT-EQ",
@@ -18171,7 +18160,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY OIL & GAS": [
+    "NIFTY OIL AND GAS": [
         {
             "token": "6074",
             "symbol": "ATGL-BE",
@@ -18338,7 +18327,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY HEALTHCARE INDEX": [
+    "NIFTY HEALTHCARE": [
         {
             "token": "14592",
             "symbol": "FORTIS-EQ",
@@ -18782,7 +18771,7 @@
             "tick_size": "5.000000"
         }
     ],
-    "NIFTY CONSUMER DURABLES": [
+    "NIFTY CONSR DURBL": [
         {
             "token": "3718",
             "symbol": "VOLTAS-EQ",
