@@ -139,12 +139,12 @@ export const AdminMenuList = (
       <ListItemText primary="Sector Top" />
     </ListItem> */}
 
-    {/* <ListItem button component='a' href={"/mtrade/#/test"} >  
+    <ListItem button component='a' href={"/mtrade/#/backtest"} >  
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="Exprement - Research" />
-    </ListItem> */}
+      <ListItemText primary="Backtest - Research" />
+    </ListItem>
   
 
 

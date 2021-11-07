@@ -81,24 +81,6 @@ class LiveBid extends React.Component {
         };
         this.updateSocketWatch = this.updateSocketWatch.bind(this);
 
-
-    
-        // 18: "NIFTY SMALLCAP 50"
-        // 19: "NIFTY MIDCAP 150"
-        // 20: "NIFTY NEXT 50"
-        // 21: "NIFTY COMMODITIES"
-        // 22: "NIFTY CONSUMPTION"
-        // 23: "NIFTY CPSE"
-        // 24: "NIFTY INFRA"
-        // 25: "NIFTY MNC"
-        // 26: "NIFTY GROWTH SECTORS 15"
-        // 27: "NIFTY PSE"
-        // 28: "NIFTY SERVICES SECTOR"
-        // 29: "NIFTY100 LIQUID 15"
-        // 30: "NIFTY MIDCAP LIQUID 15"
-        // 31: "Securities in F&O"
-     
-        // 36: "NIFTY CONSUMER DURABLES"
     }
     makeConnection = (wsClint) => {
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
@@ -112,7 +94,7 @@ class LiveBid extends React.Component {
                 newarray.push(String.fromCharCode(array[i]));
             }
         } catch (e) { }
-        console.log(newarray.join(''))
+      //  console.log(newarray.join(''))
         return newarray.join('');
     }
 
@@ -143,23 +125,44 @@ class LiveBid extends React.Component {
             var decoded = window.atob(message.data);
             var data = this.decodeWebsocketData(pako.inflate(decoded));
             var liveData = JSON.parse(data);
+        
             var symbolListArray = this.state.symbolList;
             this.state.symbolList && this.state.symbolList.forEach((element, index) => {
                 var foundLive = liveData.filter(row => row.tk == element.token);
                 if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
+                    console.log(foundLive[0]); 
+
                     symbolListArray[index].ltp = foundLive[0].ltp;
                     symbolListArray[index].pChange = foundLive[0].nc;
                     symbolListArray[index].totalBuyQuantity = foundLive[0].tbq;
                     symbolListArray[index].totalSellQuantity = foundLive[0].tsq;
                     symbolListArray[index].totalTradedVolume = foundLive[0].v;
                     symbolListArray[index].averagePrice = foundLive[0].ap;
-                    symbolListArray[index].upperCircuitLimit = foundLive[0].ucl;
-                    symbolListArray[index].lowerCircuitLimit = foundLive[0].lcl;
 
-                    symbolListArray[index].buytosellTime = foundLive[0].tbq / foundLive[0].tsq;
-                    symbolListArray[index].buytosellTime =  foundLive[0].tsq / foundLive[0].tbq; 
+                    symbolListArray[index].bestbuyquantity = foundLive[0].bq;
+                    symbolListArray[index].bestbuyprice = foundLive[0].bp;
+                    symbolListArray[index].bestsellquantity = foundLive[0].bs;
+                    symbolListArray[index].bestsellprice = foundLive[0].sp;
+                   
+                    // symbolListArray[index].upperCircuitLimit = foundLive[0].ucl;
+                    // symbolListArray[index].lowerCircuitLimit = foundLive[0].lcl;
+
+                    symbolListArray[index].buytosellTime = (foundLive[0].tbq / foundLive[0].tsq).toFixed(2);
+                    symbolListArray[index].selltobuyTime =  (foundLive[0].tsq / foundLive[0].tbq).toFixed(2); 
                     
-                    console.log("ws onmessage: ", foundLive);
+                    if (foundLive[0].tbq / foundLive[0].tsq > 2) {
+                        symbolListArray[index].highlightbuy = true;
+                    }else{
+                        symbolListArray[index].highlightbuy = false;
+                    }
+
+                    if (foundLive[0].tsq / foundLive[0].tbq > 2) {
+                        symbolListArray[index].highlightsell = true;
+                    }else{
+                        symbolListArray[index].highlightsell = false;
+                    }
+
+                    //console.log("ws onmessage: ", foundLive);
                 }
             });
             symbolListArray && symbolListArray.sort(function (a, b) {
@@ -175,7 +178,7 @@ class LiveBid extends React.Component {
         setInterval(() => {
             //  this.makeConnection();
             var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-            // console.log("Request :- " + _req);
+             console.log("Request :- " + _req);
             wsClint.send(_req);
         }, 59000);
     }
@@ -191,8 +194,8 @@ class LiveBid extends React.Component {
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
         var clientcode = userProfile && userProfile.clientcode;
         this.setState({ feedToken: feedToken, clientcode: clientcode }, function(){
-            const wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
-            this.updateSocketDetails(wsClint);  
+            this.wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+            this.updateSocketDetails(this.wsClint);  
         });
         this.getUpdateIndexData()
     }
@@ -212,19 +215,17 @@ class LiveBid extends React.Component {
                 for (let index = 0; index < softedData.length; index++) {
                     const element = softedData[index];
                     var slugName = this.state.sluglist[element.indexName];
-                    console.log("element", slugName, element.percChange);
                     if (slugName) {
                         this.setState({ softedIndexList: [...this.state.softedIndexList ,element] });
                     }
                 }
-            
-                // for (let index = 0; index < softedData.length; index++) {
-                //     const element = softedData[index];   
-                // }
+              
+                this.makeConnection(this.wsClint)
+              //  this.updateSocketWatch(this.wsClint);
             }
         })
         .catch((reject) => {
-                  Notify.showError("All Indices API Failed");
+         // Notify.showError("All Indices API Failed");
         }).finally((ok) => {
         })
     }
@@ -245,7 +246,7 @@ class LiveBid extends React.Component {
     onChangeWatchlist = (e) => {
         this.setState({ [e.target.name]: e.target.value }, function () {
             var watchList = this.state.staticData[this.state.selectedWatchlist];
-            this.setState({ symbolList: watchList});
+            this.setState({ symbolList: watchList},()=> this.updateSocketWatch(this.wsClint));
         });
     }
     sortByColumn = (type) => {
@@ -272,21 +273,27 @@ class LiveBid extends React.Component {
     //         if (LtpData && LtpData.ltp)
     //             this.setState({ InstrumentPerChange: ((LtpData.ltp - LtpData.close) * 100 / LtpData.close) });
     //     })
-    // }    
+    // } 
+    
+    convertToDecimal=(num)=>{
+        if (!isNaN(num)) {
+            
+            return num.toFixed(2);
+        }else{
+            return num; 
+        }
+    }
 
 
     convertToFloat = (str) => {
         if (!isNaN(str)) {
-            return "(" + (str / 100000) + "L)";
+            return "(" + ((str / 100000).toFixed(2)) + "L)";
         }
-
     }
-
 
     render() {
 
-        console.log(this.state.symbolList);
-  
+    
         return (
             <React.Fragment>
                 <PostLoginNavBar LoadSymbolDetails ={this.LoadSymbolDetails} />
@@ -329,7 +336,7 @@ class LiveBid extends React.Component {
 
 
                                 <Grid item xs={12} sm={3} >
-                                    <Button variant="contained" style={{ marginRight: '20px' }} onClick={this.getUpdateIndexData}>Refresh</Button>
+                                    <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button>
                                 </Grid>
 
                                 {/* <Grid item xs={12} sm={1} >
@@ -360,33 +367,38 @@ class LiveBid extends React.Component {
                                 <TableHead style={{ whiteSpace: "nowrap" }} variant="head">
                                     <TableRow variant="head" >
 
-                                        <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol</Button> </TableCell>
-                                        <TableCell align="center">VWAP Price</TableCell>
-                                        <TableCell align="center">US Limit</TableCell>
-                                        <TableCell align="center">LS Limit</TableCell>
+                                        {/* <TableCell >US Limit</TableCell>
+                                        <TableCell >LS Limit</TableCell> */}
 
-                                        <TableCell align="center" ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell(x)</Button>  </TableCell>
-                                        <TableCell align="center" ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy(x)</Button>  </TableCell>
+                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell(x)</Button>  </TableCell>
+                                        <TableCell  ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy(x)</Button>  </TableCell> */}
 
-                                        <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalBuyQuantity")}> Total Buy Quantity</Button>  </TableCell>
-                                        <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalSellQuantity")}> Total Sell Quantity</Button>  </TableCell>
+                                        <TableCell  ><Button onClick={() => this.sortByColumn("totalBuyQuantity")}> Total Buy Quantity</Button>  </TableCell>
+                                        <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol </Button> </TableCell>
+                                        <TableCell >VWAP Price</TableCell>
 
-                                        {/* <TableCell align="center"><Button onClick={() => this.sortByColumn("quantityTraded")}> Quantity Traded</Button>  </TableCell> */}
-                                        {/* <TableCell align="center" ><Button onClick={() => this.sortByColumn("deliveryQuantity")}> Delivery Quantity</Button>  </TableCell>
-                                        <TableCell align="center" ><Button title={"Delivery To Traded Quantity"} onClick={() => this.sortByColumn("deliveryToTradedQuantity")}> Del To Traded Qty%</Button>  </TableCell> */}
+                                        <TableCell ><Button onClick={() => this.sortByColumn("totalSellQuantity")}> Total Sell Quantity</Button>  </TableCell>
 
-                                        <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalTradedVolume")}> Total Traded Volume</Button>  </TableCell>
-                                        {/* <TableCell align="center" ><Button onClick={() => this.sortByColumn("totalTradedValue")}> Total Traded Value(L)</Button>  </TableCell> */}
+                                        {/* <TableCell ><Button onClick={() => this.sortByColumn("quantityTraded")}> Quantity Traded</Button>  </TableCell> */}
+                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("deliveryQuantity")}> Delivery Quantity</Button>  </TableCell>
+                                        <TableCell  ><Button title={"Delivery To Traded Quantity"} onClick={() => this.sortByColumn("deliveryToTradedQuantity")}> Del To Traded Qty%</Button>  </TableCell> */}
 
-                                        {/* <TableCell  align="center">Day Open</TableCell>
-                                        <TableCell  align="center">Day High</TableCell>
-                                        <TableCell  align="center">Day Low</TableCell>
-                                        <TableCell  align="center">Previous Close</TableCell> */}
+                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("totalTradedVolume")}> Total Traded Volume</Button>  </TableCell> */}
+                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("totalTradedValue")}> Total Traded Value(L)</Button>  </TableCell> */}
 
-
-                                        {/* <TableCell align="center" ><Button onClick={() => this.getDeliveryHistory()}>Delivery History</Button>  </TableCell> */}
+                                        {/* <TableCell  >Day Open</TableCell>
+                                        <TableCell  >Day High</TableCell>
+                                        <TableCell  >Day Low</TableCell>
+                                        <TableCell  >Previous Close</TableCell> */}
 
 
+                                        {/* <TableCell  ><Button onClick={() => this.getDeliveryHistory()}>Delivery History</Button>  </TableCell> */}
+
+
+                                        <TableCell >Best Buy Qty</TableCell>
+                                        <TableCell >Best Buy Price</TableCell>
+                                        <TableCell >Best Sell Qty</TableCell>
+                                        <TableCell >Best Sell Price</TableCell>
 
                                     </TableRow>
                                 </TableHead>
@@ -394,46 +406,54 @@ class LiveBid extends React.Component {
 
 
                                     {this.state.symbolList ? this.state.symbolList.map((row, i) => (
-                                        <TableRow hover key={i} style={{ background: this.getPercentageColor(row.pChange) }}>
+                                        <TableRow hover key={i} >
 
-                                            <TableCell align="left">{row.name} {row.ltp} {row.pChange ? `(${row.pChange})%` : ""}</TableCell>
-                                            <TableCell align="left">{row.averagePrice}</TableCell>
-                                            <TableCell align="left">{row.upperCircuitLimit}</TableCell>
-                                            <TableCell align="left">{row.lowerCircuitLimit}</TableCell>
+                                            {/* <TableCell >{row.upperCircuitLimit}</TableCell>
+                                            <TableCell >{row.lowerCircuitLimit}</TableCell> */}
 
-                                            <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} align="center">
+                                            {/* <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} >
                                                 {row.buytosellTime ? row.buytosellTime +" time buy" : ""}
                                             </TableCell>
-                                            <TableCell style={{ background: row.highlightsell ? "lightgray" : "" }} align="center">
+                                            <TableCell style={{ background: row.highlightsell ? "lightgray" : "" }} >
                                                 {row.selltobuyTime ? row.selltobuyTime+" time sell" : ""} 
-                                            </TableCell>
-                                            <TableCell align="center" >
+                                            </TableCell> */}
+
+                                            <TableCell  style={{ background: row.highlightbuy ? "#FFFF00" : "" }}  >
                                                     {/* {row.buybidHistory &&  row.buybidHistory.map(item => (
                                                         <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
                                                     ))} */}
-                                                <br />
-                                                {row.totalBuyQuantity} {this.convertToFloat(row.totalBuyQuantity)}
+                                                {row.buytosellTime ? `Buy ${row.buytosellTime} times` : ""}
+
+                                                &nbsp; {row.totalBuyQuantity} {this.convertToFloat(row.totalBuyQuantity)}
+                                              
                                             </TableCell>
-                                            <TableCell align="center" >
+                                            <TableCell align="left"  style={{ background: this.getPercentageColor(row.pChange) }} > {row.name} {row.ltp} {row.pChange ? `(${row.pChange}%)` : ""} </TableCell>
+                                            <TableCell style={{height:'25px', background: row.ltp ? row.ltp >= row.averagePrice ? "green" : "red" : "white"}}>{row.averagePrice}</TableCell>
+
+
+                                            <TableCell style={{ background: row.highlightsell ? "#FFFF00" : "" }}>
                                                     {/* {row.sellbidHistory &&  row.sellbidHistory.map(item => (
                                                         <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
                                                     ))} */}
-                                                <br />
-                                            {row.totalSellQuantity} {this.convertToFloat(row.totalSellQuantity)}</TableCell>
+                                            {row.selltobuyTime ? `Sell ${row.selltobuyTime} times` : ""} 
 
-                                            {/* <TableCell align="center">{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
-                                            {/* <TableCell align="center">{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
-                                            <TableCell align="center">{row.deliveryToTradedQuantity}%</TableCell> */}
+                                            &nbsp; {row.totalSellQuantity} {this.convertToFloat(row.totalSellQuantity)}
+                                  
+                                            </TableCell>
 
-                                            <TableCell align="center">{row.totalTradedVolume} {this.convertToFloat(row.totalTradedVolume)}</TableCell>
-                                            {/* <TableCell align="center">{row.totalTradedValue}L</TableCell> */}
+                                            {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
+                                            {/* <TableCell >{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
+                                            <TableCell >{row.deliveryToTradedQuantity}%</TableCell> */}
 
-                                            {/* <TableCell  align="center">{row.open}</TableCell>
-                                                <TableCell  align="center">{row.dayHigh}</TableCell>
-                                                <TableCell  align="center">{row.dayLow}</TableCell>
-                                                <TableCell  align="center">{row.previousClose}</TableCell> */}
+                                            {/* <TableCell >{row.totalTradedVolume} {this.convertToFloat(row.totalTradedVolume)}</TableCell> */}
+                                            {/* <TableCell >{row.totalTradedValue}L</TableCell> */}
 
-                                            {/* <TableCell style={{ background: "#eceff1" }} align="center">
+                                            {/* <TableCell  >{row.open}</TableCell>
+                                                <TableCell  >{row.dayHigh}</TableCell>
+                                                <TableCell  >{row.dayLow}</TableCell>
+                                                <TableCell  >{row.previousClose}</TableCell> */}
+
+                                            {/* <TableCell style={{ background: "#eceff1" }} >
 
                                                 {row.delHistory && row.delHistory.map(item => (
                                                     <span> {new Date(item.datetime).toLocaleDateString()}  &nbsp;
@@ -446,6 +466,12 @@ class LiveBid extends React.Component {
 
                                             </TableCell> */}
 
+                                            <TableCell >{row.bestbuyquantity}</TableCell>
+                                            <TableCell >{row.bestbuyprice}</TableCell>
+                                            <TableCell >{row.bestsellquantity}</TableCell>
+                                            <TableCell >{row.bestsellprice}</TableCell>
+
+                                               
 
                                         </TableRow>
                                     )) : <Spinner />}

@@ -450,7 +450,7 @@ class OrderBook extends React.Component {
 
 
                 <Grid direction="row" alignItems="center" container>
-                    <Grid item xs={12} sm={12} >
+                     <Grid item xs={12} sm={12} >
 
                         <Paper style={{ padding: "10px" }} >
 
@@ -611,7 +611,6 @@ class OrderBook extends React.Component {
                             </Table>
                         </Paper>
                     </Grid>
-
                 </Grid>
 
             </React.Fragment>

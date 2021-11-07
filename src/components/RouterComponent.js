@@ -35,6 +35,8 @@ import DeliveryData from "./MyTrade/DeliveryData";
 import SlowMotion from "./MyTrade/SlowMotion";
 import IndexCharts from "./MyTrade/IndexCharts";
 import MarketDepth from "./MyTrade/MarketDepth";
+import Backtest from "./MyTrade/Backtest";
+
 
 
 const AppRouter = () => {
@@ -74,6 +76,7 @@ const AppRouter = () => {
 
                     <Route path="/index-charts" component={IndexCharts}/>
                     <Route path="/market-depth" component={MarketDepth}/>
+                    <Route path="/backtest" component={Backtest}/>
 
                     
                     <Route path="/test" component={Test}/>

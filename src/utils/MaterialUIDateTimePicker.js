@@ -72,8 +72,8 @@ function MaterialUIPickers(props) {
  return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
       <Grid containers>
-     
-        <KeyboardDateTimePicker
+        {/* KeyboardDateTimePicker */}
+        <KeyboardDatePicker
          // disableFuture="true"
           margin="normal"
           style={{width:"140px"}}
@@ -88,7 +88,8 @@ function MaterialUIPickers(props) {
             'aria-label': 'change date',
           }}
         />
-         <KeyboardDateTimePicker
+          &nbsp;&nbsp;
+         <KeyboardDatePicker
            style={{width:"140px"}}
         // disableFuture="true"
          margin="normal"

@@ -1303,8 +1303,7 @@ class MyView extends React.Component {
                                                     <span title="last 5 days 5min big movement  maximum count">&nbsp;{this.get5DaysMoveCount(sectorItem.symbol)}  </span>
 
                                                     {/* <span title="Delivery Info">&nbsp;{this.getDeliveryInfo(sectorItem.symbol)}  </span>  */}
-
-
+                                                    
                                                 </Button>
 
 
