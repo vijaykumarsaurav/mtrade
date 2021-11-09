@@ -2397,7 +2397,7 @@ class Home extends React.Component {
 
 
                         <Paper style={{ padding: "10px" }}>
-                            <Typography style={{ textAlign: "center", background: "lightgray" }}>Backtest</Typography>
+                            <Typography style={{ textAlign: "center", background: "lightgray" }}>Backtest1</Typography>
 
                            
 
@@ -2476,7 +2476,7 @@ class Home extends React.Component {
 
 
 
-                                        <TableCell align="left" >Total Trades: {this.state.backTestResult && this.state.backTestResult.length} &nbsp;&nbsp; Win: {localStorage.getItem('totalWin')} Loss: {localStorage.getItem('totalLoss')}</TableCell>
+                                        <TableCell align="left" >T.Trades: {this.state.backTestResult && this.state.backTestResult.length} &nbsp; W: {localStorage.getItem('totalWin')} L: {localStorage.getItem('totalLoss')}</TableCell>
 
 
                                         <TableCell align="center"  colSpan={2}>Long: {localStorage.getItem('totalLongTrade')} Short:  {this.state.backTestResult && this.state.backTestResult.length - localStorage.getItem('totalLongTrade')}</TableCell>

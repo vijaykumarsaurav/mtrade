@@ -38,6 +38,7 @@ class LiveBid extends React.Component {
             selectedWatchlist: 'NIFTY BANK', //'Securities in F&O',
             symbolList :  [],
             softedIndexList:[],
+            sortedType: "pChange", 
             sluglist: {
                 'NIFTY 50': 'nifty',
                 'NIFTY AUTO': 'cnxAuto',
@@ -165,8 +166,11 @@ class LiveBid extends React.Component {
                     //console.log("ws onmessage: ", foundLive);
                 }
             });
+
+            console.log("sortby",this.state.sortedType)
+            let shortBy = this.state.sortedType; 
             symbolListArray && symbolListArray.sort(function (a, b) {
-                return b.pChange - a.pChange;
+                return b[shortBy] - a[shortBy] ;
             });
             this.setState({ symbolList: symbolListArray });
         }
@@ -373,11 +377,11 @@ class LiveBid extends React.Component {
                                         {/* <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell(x)</Button>  </TableCell>
                                         <TableCell  ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy(x)</Button>  </TableCell> */}
 
-                                        <TableCell  ><Button onClick={() => this.sortByColumn("totalBuyQuantity")}> Total Buy Quantity</Button>  </TableCell>
+                                        <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}> Total Buy Quantity</Button>  </TableCell>
                                         <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol </Button> </TableCell>
                                         <TableCell >VWAP Price</TableCell>
 
-                                        <TableCell ><Button onClick={() => this.sortByColumn("totalSellQuantity")}> Total Sell Quantity</Button>  </TableCell>
+                                        <TableCell ><Button onClick={() => this.sortByColumn("selltobuyTime")}> Total Sell Quantity</Button>  </TableCell>
 
                                         {/* <TableCell ><Button onClick={() => this.sortByColumn("quantityTraded")}> Quantity Traded</Button>  </TableCell> */}
                                         {/* <TableCell  ><Button onClick={() => this.sortByColumn("deliveryQuantity")}> Delivery Quantity</Button>  </TableCell>
