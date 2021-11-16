@@ -131,7 +131,7 @@ class LiveBid extends React.Component {
             this.state.symbolList && this.state.symbolList.forEach((element, index) => {
                 var foundLive = liveData.filter(row => row.tk == element.token);
                 if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
-                    console.log(foundLive[0]); 
+               //     console.log(foundLive[0]); 
 
                     symbolListArray[index].ltp = foundLive[0].ltp;
                     symbolListArray[index].pChange = foundLive[0].nc;
@@ -297,7 +297,10 @@ class LiveBid extends React.Component {
 
     render() {
 
-    
+        // if(this.state.softedIndexList.length == 0)  {
+        //     this.setState({softedIndexList  : this.state.totalWatchlist})
+        // }
+
         return (
             <React.Fragment>
                 <PostLoginNavBar LoadSymbolDetails ={this.LoadSymbolDetails} />
@@ -326,7 +329,6 @@ class LiveBid extends React.Component {
                                         <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
                                             {/* <MenuItem value={"selectall"}>{"Select All"}</MenuItem> */}
 
-                                            
                                             {this.state.softedIndexList && this.state.softedIndexList.map(element => (
                                                 <MenuItem style={{color: element.percChange>0 ? "green": "red"}} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
                                             ))

@@ -401,11 +401,6 @@ class Home extends React.Component {
     //     return  false //!equals(nextProps, this.props); // equals() is your implementation
     // }
 
-    stopBacktesting = () => {
-        this.setState({ stopScaningFlag: true });
-    }
-
-
 
     placeOrder = (transactiontype) => {
 

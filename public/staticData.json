@@ -2126,17 +2126,6 @@
             "tick_size": "5.000000"
         },
         {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
             "token": "13611",
             "symbol": "IRCTC-EQ",
             "name": "IRCTC",
@@ -3077,17 +3066,6 @@
             "token": "100",
             "symbol": "AMARAJABAT-EQ",
             "name": "AMARAJABAT",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
             "expiry": "",
             "strike": "-1.000000",
             "lotsize": "1",
@@ -6975,17 +6953,6 @@
             "token": "17903",
             "symbol": "ABBOTINDIA-EQ",
             "name": "ABBOTINDIA",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
             "expiry": "",
             "strike": "-1.000000",
             "lotsize": "1",
@@ -13041,17 +13008,6 @@
             "tick_size": "5.000000"
         },
         {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
             "token": "14154",
             "symbol": "MINDAIND-EQ",
             "name": "MINDAIND",
@@ -14238,17 +14194,6 @@
             "token": "157",
             "symbol": "APOLLOHOSP-EQ",
             "name": "APOLLOHOSP",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
             "expiry": "",
             "strike": "-1.000000",
             "lotsize": "1",
@@ -15754,17 +15699,6 @@
             "tick_size": "5.000000"
         },
         {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
             "token": "5258",
             "symbol": "INDUSINDBK-EQ",
             "name": "INDUSINDBK",
@@ -16058,17 +15992,6 @@
             "token": "1997",
             "symbol": "LICHSGFIN-EQ",
             "name": "LICHSGFIN",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
             "expiry": "",
             "strike": "-1.000000",
             "lotsize": "1",
@@ -17542,17 +17465,6 @@
             "tick_size": "5.000000"
         },
         {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
             "token": "25",
             "symbol": "ADANIENT-EQ",
             "name": "ADANIENT",
@@ -18954,17 +18866,6 @@
             "token": "13147",
             "symbol": "PVR-EQ",
             "name": "PVR",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
-            "token": "16734",
-            "symbol": "ZEEL-P2",
-            "name": "ZEEL",
             "expiry": "",
             "strike": "-1.000000",
             "lotsize": "1",
