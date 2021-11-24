@@ -157,7 +157,8 @@ class LiveBid extends React.Component {
             this.state.symbolList && this.state.symbolList.forEach((element, index) => {
                 var foundLive = liveData.filter(row => row.tk == element.token);
                 if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
-               //     console.log(foundLive[0]); 
+
+                    console.log(foundLive[0]); 
 
                     symbolListArray[index].ltp = foundLive[0].ltp;
                     symbolListArray[index].pChange = foundLive[0].nc;
@@ -165,6 +166,9 @@ class LiveBid extends React.Component {
                     symbolListArray[index].totalSellQuantity = foundLive[0].tsq;
                     symbolListArray[index].totalTradedVolume = foundLive[0].v;
                     symbolListArray[index].averagePrice = foundLive[0].ap;
+                    symbolListArray[index].lowPrice = foundLive[0].lo;
+                    symbolListArray[index].highPrice = foundLive[0].h;
+                    symbolListArray[index].openPrice = foundLive[0].op;
 
                     symbolListArray[index].bestbuyquantity = foundLive[0].bq;
                     symbolListArray[index].bestbuyprice = foundLive[0].bp;
@@ -196,7 +200,7 @@ class LiveBid extends React.Component {
                 }
             });
 
-            console.log("sortby",this.state.sortedType)
+           
             let shortBy = this.state.sortedType; 
             symbolListArray && symbolListArray.sort(function (a, b) {
                 return b[shortBy] - a[shortBy] ;
@@ -557,6 +561,7 @@ class LiveBid extends React.Component {
         // if(this.state.softedIndexList.length == 0)  {
         //     this.setState({softedIndexList  : this.state.totalWatchlist})
         // }
+        //console.log("symbolList",this.state.symbolList)
 
         return (
             <React.Fragment>
@@ -651,10 +656,13 @@ class LiveBid extends React.Component {
                                         <TableCell  ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy(x)</Button>  </TableCell> */}
 
                                         <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}> Total Buy Quantity</Button>  </TableCell>
-                                        <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol </Button> </TableCell>
-                                        <TableCell >VWAP Price</TableCell>
+                                        <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol</Button> </TableCell>
+                                        {/* <TableCell >VWAP Price</TableCell> */}
 
                                         <TableCell ><Button onClick={() => this.sortByColumn("selltobuyTime")}> Total Sell Quantity</Button>  </TableCell>
+                                        {/* <TableCell >Other Details </TableCell>
+                                        <TableCell >High Price</TableCell>
+                                        <TableCell >Low Price</TableCell> */}
 
                                         {/* <TableCell ><Button onClick={() => this.sortByColumn("quantityTraded")}> Quantity Traded</Button>  </TableCell> */}
                                         {/* <TableCell  ><Button onClick={() => this.sortByColumn("deliveryQuantity")}> Delivery Quantity</Button>  </TableCell>
@@ -715,7 +723,7 @@ class LiveBid extends React.Component {
 
                                             </TableCell>
                                             <TableCell align="left" style={{ background: this.getPercentageColor(row.pChange)  }} >    {row.name} {row.ltp} {row.pChange ? `(${row.pChange}%)` : ""} </TableCell>
-                                            <TableCell style={{height:'25px', background: row.ltp ? row.ltp >= row.averagePrice ? "green" : "red" : "white"}}>{row.averagePrice}</TableCell>
+                                            <TableCell title="Average Price" style={{height:'25px', background: row.ltp ? row.ltp >= row.averagePrice ? "green" : "red" : "white"}}>AP:{row.averagePrice}</TableCell>
 
 
                                             <TableCell style={{ background: row.highlightsell ? "#FFFF00" : "" }}>
@@ -727,7 +735,9 @@ class LiveBid extends React.Component {
                                             &nbsp; {row.totalSellQuantity} {this.convertToFloat(row.totalSellQuantity)}
                                   
                                             </TableCell>
-
+                                            <TableCell  title="Open Price">O:{row.openPrice}</TableCell>
+                                            <TableCell  title="High Price">H:{row.highPrice}</TableCell>
+                                            <TableCell title="Low Price" >L:{row.lowPrice}</TableCell>
 
                                             {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
                                             {/* <TableCell >{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
