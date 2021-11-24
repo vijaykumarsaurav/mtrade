@@ -25,6 +25,9 @@ import { resolveResponse } from "../../utils/ResponseHandler";
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import vwap from 'vwap';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import Switch from '@material-ui/core/Switch';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
 
 // import vwap from 'vwap';
 // import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
@@ -47,6 +50,7 @@ class LiveBid extends React.Component {
             timeFrame: "FIFTEEN_MINUTE",
             softedIndexList:[],
             cursor: '',
+            isSpeek: localStorage.getItem('isSpeek') === 'true' ? true : false, 
             sortedType: "pChange", 
             sluglist: {
                 'NIFTY 50': 'nifty',
@@ -289,9 +293,11 @@ class LiveBid extends React.Component {
     }
 
     speckIt = (text) => {
-        var msg = new SpeechSynthesisUtterance();
-        msg.text = text.toString();
-        window.speechSynthesis.speak(msg);
+        if(this.state.isSpeek){
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = text.toString();
+            window.speechSynthesis.speak(msg);
+        }
     }
 
     getPercentageColor = (percent) => {
@@ -369,6 +375,14 @@ class LiveBid extends React.Component {
         }, 100);
 
     }
+    handleChange = (event) => {
+
+        localStorage.setItem('isSpeek', event.target.checked);
+        this.setState({isSpeek :  event.target.checked},()=>{
+            console.log("isSpeek", this.state.isSpeek, event.target.checked);
+        })
+      
+      };
     calculateSMA = (data, count) => {
 
         //  console.log("smarowdata", data, count);
@@ -559,11 +573,15 @@ class LiveBid extends React.Component {
 
                                 <Grid item xs={12} sm={4} >
                                     <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                                      WS Bid Live  {this.state.selectedWatchlist} ({this.state.symbolList.length}) updated at {this.state.lastUpdateTime}
+                                      WS Bid Live  {this.state.selectedWatchlist} ({this.state.symbolList.length})  
+                                      
+                                      
                                     </Typography>
 
                                     <span>Sorted By:  {this.state.sortedType} </span> <br />
                                     <span>Update: {this.state.lastUpdateAction} </span> 
+
+                                   
                                     
                                     {/* <input onKeyDown={this.handleKeyDown} /> */}
                                 </Grid>
@@ -589,6 +607,13 @@ class LiveBid extends React.Component {
 
                                 <Grid item xs={12} sm={3} >
                                     <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button>
+                                    
+                                       <FormGroup>
+                                        <FormControlLabel
+                                        control={<Switch checked={this.state.isSpeek} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
+                                        label={this.state.isSpeek ? 'Speak Yes'  : 'Speak No'}
+                                        />
+                                    </FormGroup>
                                 </Grid>
 
                                 {/* <Grid item xs={12} sm={1} >
