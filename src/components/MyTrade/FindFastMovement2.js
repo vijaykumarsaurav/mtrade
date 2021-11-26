@@ -671,8 +671,8 @@ class Home extends React.Component {
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Select Time</InputLabel>
                             <Select value={this.state.BBBlastType} name="BBBlastType" onChange={this.onChangeWatchlist}>
-                                {/* <MenuItem value={'BBBlastOnly'}>{'BB Blast'}</MenuItem>
-                                <MenuItem value={'BBBlastDaily'}>{'BB Blast Daily'}</MenuItem> */}
+                                <MenuItem value={'BBBlastOnly'}>{'BB Blast'}</MenuItem>
+                                <MenuItem value={'BBBlastDaily'}>{'BB Blast Daily'}</MenuItem>
                                 <MenuItem value={'BBStrongBreakout'}>{'BB Strong Breakout'}</MenuItem>
 
 

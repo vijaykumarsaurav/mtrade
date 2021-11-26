@@ -600,7 +600,11 @@ class LiveBid extends React.Component {
 
                                             {this.state.softedIndexList && this.state.softedIndexList.map(element => (
                                                 <MenuItem style={{color: element.percChange>0 ? "green": "red"}} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
-                                            ))
+                                            )) 
+                                            }
+                                            {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                                                <MenuItem value={element}>{element}</MenuItem>
+                                            )) 
                                             }
                                             <MenuItem value={"Securities in F&O"}>{"Securities in F&O"}</MenuItem>
                                      
