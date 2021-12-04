@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/mtrade/static/css/main.524aa22b.chunk.css",
-    "main.js": "/mtrade/static/js/main.cc27b58b.chunk.js",
-    "main.js.map": "/mtrade/static/js/main.cc27b58b.chunk.js.map",
+    "main.js": "/mtrade/static/js/main.e02fe5a0.chunk.js",
+    "main.js.map": "/mtrade/static/js/main.e02fe5a0.chunk.js.map",
     "runtime~main.js": "/mtrade/static/js/runtime~main.72b3d60e.js",
     "runtime~main.js.map": "/mtrade/static/js/runtime~main.72b3d60e.js.map",
     "static/css/2.39017165.chunk.css": "/mtrade/static/css/2.39017165.chunk.css",
     "static/js/2.a79fa95e.chunk.js": "/mtrade/static/js/2.a79fa95e.chunk.js",
     "static/js/2.a79fa95e.chunk.js.map": "/mtrade/static/js/2.a79fa95e.chunk.js.map",
     "index.html": "/mtrade/index.html",
-    "precache-manifest.b65fc09f9b85c03c150fc576adf16231.js": "/mtrade/precache-manifest.b65fc09f9b85c03c150fc576adf16231.js",
+    "precache-manifest.6378f6d9eecf3104f583a03e52f897ae.js": "/mtrade/precache-manifest.6378f6d9eecf3104f583a03e52f897ae.js",
     "service-worker.js": "/mtrade/service-worker.js",
     "static/css/2.39017165.chunk.css.map": "/mtrade/static/css/2.39017165.chunk.css.map",
     "static/css/main.524aa22b.chunk.css.map": "/mtrade/static/css/main.524aa22b.chunk.css.map",
