@@ -244,6 +244,10 @@ export default function PostLoginNavBar(props) {
 
                         </Grid>
 
+                        </Hidden>
+
+                        <Hidden xsDown>
+
 
                        
                             <Grid item >

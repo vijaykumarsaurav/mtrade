@@ -28,7 +28,7 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
-import "./ViewStyle.css"; 
+import "./ViewStyle.css";
 // import vwap from 'vwap';
 // import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 // import SimpleExpansionPanel from "./SimpleExpansionPanel";
@@ -45,14 +45,15 @@ class LiveBid extends React.Component {
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             selectedWatchlist: 'NIFTY BANK', //'Securities in F&O',
-            symbolList :  [],
-            actionList : localStorage.getItem('actionList') && JSON.parse(localStorage.getItem('actionList')) || [],
+            symbolList: [],
+            actionList: localStorage.getItem('actionList') && JSON.parse(localStorage.getItem('actionList')) || [],
             timeFrame: "FIFTEEN_MINUTE",
-            softedIndexList:[],
+            softedIndexList: [],
             cursor: '',
-            lightChartSymbol:"Select Symbol for Chart", 
-            isSpeek: localStorage.getItem('isSpeek') === 'true' ? true : false, 
-            sortedType: "pChange", 
+            candleHistoryFlag: false,
+            lightChartSymbol: "Select Symbol for Chart",
+            isSpeek: localStorage.getItem('isSpeek') === 'true' ? true : false,
+            sortedType: "pChange",
             sluglist: {
                 'NIFTY 50': 'nifty',
                 'NIFTY AUTO': 'cnxAuto',
@@ -86,12 +87,12 @@ class LiveBid extends React.Component {
                 // 'NIFTY50 EQL WGT': 'nifty50EqualWeight',
                 // 'NIFTY100 EQL WGT': 'nifty100EqualWeight',
                 // 'NIFTY ALPHA 50': 'niftyAlpha50',
-                 'NIFTY NEXT 50': 'juniorNifty',
-                 'NIFTY MIDCAP 50': 'niftyMidcap50',
-                 'NIFTY HEALTHCARE': "notfound",
-                 'NIFTY OIL AND GAS':"notfound",
-                 'NIFTY 100':"notfound", 
-                 'NIFTY CONSR DURBL':'notfond'
+                'NIFTY NEXT 50': 'juniorNifty',
+                'NIFTY MIDCAP 50': 'niftyMidcap50',
+                'NIFTY HEALTHCARE': "notfound",
+                'NIFTY OIL AND GAS': "notfound",
+                'NIFTY 100': "notfound",
+                'NIFTY CONSR DURBL': 'notfond'
             },
         };
         this.updateSocketWatch = this.updateSocketWatch.bind(this);
@@ -109,11 +110,11 @@ class LiveBid extends React.Component {
                 newarray.push(String.fromCharCode(array[i]));
             }
         } catch (e) { }
-      //  console.log(newarray.join(''))
+        //  console.log(newarray.join(''))
         return newarray.join('');
     }
 
-   
+
 
     updateSocketWatch = (wsClint) => {
         var channel = this.state.symbolList.map(element => {
@@ -127,23 +128,23 @@ class LiveBid extends React.Component {
             "user": this.state.clientcode,
             "acctid": this.state.clientcode
         }
-    
+
         wsClint.send(JSON.stringify(updateSocket));
     }
 
-    takeAction =(symbol,   action )=>{
-        let isfound =  this.state.actionList.length && this.state.actionList.filter(item => item.symbol === symbol); 
-        if(!isfound.length){
-            let data = {symbol:symbol, action:action, updateTime: new Date().toLocaleTimeString() }; 
-            this.setState({actionList: [...this.state.actionList , data]}, function(){
-                localStorage.setItem('actionList', JSON.stringify(this.state.actionList) ); 
-                this.speckIt(symbol +" " + action); 
+    takeAction = (symbol, action) => {
+        let isfound = this.state.actionList.length && this.state.actionList.filter(item => item.symbol === symbol);
+        if (!isfound.length) {
+            let data = { symbol: symbol, action: action, updateTime: new Date().toLocaleTimeString() };
+            this.setState({ actionList: [...this.state.actionList, data] }, function () {
+                localStorage.setItem('actionList', JSON.stringify(this.state.actionList));
+                this.speckIt(symbol + " " + action);
 
-                console.log(data.symbol +" " + data.action + " "+data.updateTime); 
-                this.setState({lastUpdateAction: data.symbol +" " + data.action + " "+data.updateTime }); 
+                console.log(data.symbol + " " + data.action + " " + data.updateTime);
+                this.setState({ lastUpdateAction: data.symbol + " " + data.action + " " + data.updateTime });
 
-                window.document.title = data.symbol +" " + data.action + " "+data.updateTime;
-            }); 
+                window.document.title = data.symbol + " " + data.action + " " + data.updateTime;
+            });
         }
     }
     updateSocketDetails = (wsClint) => {
@@ -155,7 +156,7 @@ class LiveBid extends React.Component {
             var decoded = window.atob(message.data);
             var data = this.decodeWebsocketData(pako.inflate(decoded));
             var liveData = JSON.parse(data);
-        
+
             var symbolListArray = this.state.symbolList;
             this.state.symbolList && this.state.symbolList.forEach((element, index) => {
                 var foundLive = liveData.filter(row => row.tk == element.token);
@@ -175,17 +176,17 @@ class LiveBid extends React.Component {
                     symbolListArray[index].bestbuyprice = foundLive[0].bp;
                     symbolListArray[index].bestsellquantity = foundLive[0].bs;
                     symbolListArray[index].bestsellprice = foundLive[0].sp;
-                   
+
                     // symbolListArray[index].upperCircuitLimit = foundLive[0].ucl;
                     // symbolListArray[index].lowerCircuitLimit = foundLive[0].lcl;
 
                     symbolListArray[index].buytosellTime = (foundLive[0].tbq / foundLive[0].tsq).toFixed(2);
-                    symbolListArray[index].selltobuyTime =  (foundLive[0].tsq / foundLive[0].tbq).toFixed(2); 
-                    
+                    symbolListArray[index].selltobuyTime = (foundLive[0].tsq / foundLive[0].tbq).toFixed(2);
+
                     if (foundLive[0].tbq / foundLive[0].tsq > 2) {
                         symbolListArray[index].highlightbuy = true;
-                        this.takeAction(element.symbol, ' buying') 
-                    }else{
+                        this.takeAction(element.symbol, ' buying')
+                    } else {
                         symbolListArray[index].highlightbuy = false;
                     }
 
@@ -193,21 +194,21 @@ class LiveBid extends React.Component {
                         symbolListArray[index].highlightsell = true;
                         this.takeAction(element.symbol, ' selling')
 
-                    }else{
+                    } else {
                         symbolListArray[index].highlightsell = false;
                     }
 
-                    if(this.state.token == element.token){
-                        this.setState( {livePrice : foundLive[0].ltp, livePChange : foundLive[0].nc} )
-                    } 
+                    if (this.state.token == element.token) {
+                        this.setState({ livePrice: foundLive[0].ltp, livePChange: foundLive[0].nc })
+                    }
                     //console.log("ws onmessage: ", foundLive);
                 }
             });
 
-           
-            let shortBy = this.state.sortedType; 
+
+            let shortBy = this.state.sortedType;
             symbolListArray && symbolListArray.sort(function (a, b) {
-                return b[shortBy] - a[shortBy] ;
+                return b[shortBy] - a[shortBy];
             });
             this.setState({ symbolList: symbolListArray });
         }
@@ -219,7 +220,7 @@ class LiveBid extends React.Component {
         setInterval(() => {
             //  this.makeConnection();
             var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-             console.log("Request :- " + _req);
+            console.log("Request :- " + _req);
             wsClint.send(_req);
         }, 59000);
     }
@@ -234,9 +235,9 @@ class LiveBid extends React.Component {
         var feedToken = tokens && tokens.feedToken;
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
         var clientcode = userProfile && userProfile.clientcode;
-        this.setState({ feedToken: feedToken, clientcode: clientcode }, function(){
+        this.setState({ feedToken: feedToken, clientcode: clientcode }, function () {
             this.wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
-            this.updateSocketDetails(this.wsClint);  
+            this.updateSocketDetails(this.wsClint);
         });
 
         const domElement = document.getElementById('tvchart');
@@ -270,47 +271,47 @@ class LiveBid extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             setInterval(() => {
-                if(this.state.token){
+                if (this.state.token) {
                     this.showStaticChart();
                 }
             }, 1000);
         }
-     
-       
+
+
     }
 
-    getUpdateIndexData=()=>{
-        this.setState({softedIndexList : []})
+    getUpdateIndexData = () => {
+        this.setState({ softedIndexList: [] })
         AdminService.allIndicesDirectJSON()
-        .then((res) => {
+            .then((res) => {
 
-            if (res.data) {
+                if (res.data) {
 
-                var softedData = res.data && res.data.data;
-                softedData.sort(function (a, b) {
-                    return b.percChange - a.percChange;
-                });
+                    var softedData = res.data && res.data.data;
+                    softedData.sort(function (a, b) {
+                        return b.percChange - a.percChange;
+                    });
 
-                for (let index = 0; index < softedData.length; index++) {
-                    const element = softedData[index];
-                    var slugName = this.state.sluglist[element.indexName];
-                    if (slugName) {
-                        this.setState({ softedIndexList: [...this.state.softedIndexList ,element] });
+                    for (let index = 0; index < softedData.length; index++) {
+                        const element = softedData[index];
+                        var slugName = this.state.sluglist[element.indexName];
+                        if (slugName) {
+                            this.setState({ softedIndexList: [...this.state.softedIndexList, element] });
+                        }
                     }
+
+                    this.makeConnection(this.wsClint)
+                    //  this.updateSocketWatch(this.wsClint);
                 }
-              
-                this.makeConnection(this.wsClint)
-              //  this.updateSocketWatch(this.wsClint);
-            }
-        })
-        .catch((reject) => {
-         // Notify.showError("All Indices API Failed");
-        }).finally((ok) => {
-        })
+            })
+            .catch((reject) => {
+                // Notify.showError("All Indices API Failed");
+            }).finally((ok) => {
+            })
     }
 
     speckIt = (text) => {
-        if(this.state.isSpeek){
+        if (this.state.isSpeek) {
             var msg = new SpeechSynthesisUtterance();
             msg.text = text.toString();
             window.speechSynthesis.speak(msg);
@@ -327,7 +328,7 @@ class LiveBid extends React.Component {
     onChangeWatchlist = (e) => {
         this.setState({ [e.target.name]: e.target.value }, function () {
             var watchList = this.state.staticData[this.state.selectedWatchlist];
-            this.setState({ symbolList: watchList},()=> this.updateSocketWatch(this.wsClint));
+            this.setState({ symbolList: watchList }, () => this.updateSocketWatch(this.wsClint));
         });
     }
     sortByColumn = (type) => {
@@ -355,13 +356,13 @@ class LiveBid extends React.Component {
     //             this.setState({ InstrumentPerChange: ((LtpData.ltp - LtpData.close) * 100 / LtpData.close) });
     //     })
     // } 
-    
-    convertToDecimal=(num)=>{
+
+    convertToDecimal = (num) => {
         if (!isNaN(num)) {
-            
+
             return num.toFixed(2);
-        }else{
-            return num; 
+        } else {
+            return num;
         }
     }
 
@@ -385,7 +386,7 @@ class LiveBid extends React.Component {
             this.setState(prevState => ({ cursor: prevState.cursor - 1 }));
         } else if (e.keyCode === 40 && this.state.cursor < this.state.symbolList.length - 1) {
             this.setState(prevState => ({ cursor: prevState.cursor + 1 }))
-        }  
+        }
 
         setTimeout(() => {
             this.showStaticChart();
@@ -395,11 +396,11 @@ class LiveBid extends React.Component {
     handleChange = (event) => {
 
         localStorage.setItem('isSpeek', event.target.checked);
-        this.setState({isSpeek :  event.target.checked},()=>{
+        this.setState({ isSpeek: event.target.checked }, () => {
             console.log("isSpeek", this.state.isSpeek, event.target.checked);
         })
-      
-      };
+
+    };
     calculateSMA = (data, count) => {
 
         //  console.log("smarowdata", data, count);
@@ -422,22 +423,26 @@ class LiveBid extends React.Component {
 
         //console.log('token, symbol', token, symbol)
 
-        if(token)
-        this.setState({ chartStaticData: '' , lightChartSymbol :symbol, token : token }, function () {
-            console.log('reset done', token);
-        });
-        
-        const format1 = "YYYY-MM-DD HH:mm";
-        let beginningTime = moment('9:15am', 'h:mma');    
+        if (token)
+            this.setState({ chartStaticData: '', lightChartSymbol: symbol, token: token }, function () {
+                console.log('reset done', token);
+            });
 
-        if(this.state.timeFrame == 'ONE_MINUTE'){
-              var time = moment.duration("00:60:00");
-              beginningTime = moment(new Date()).subtract(time);
+        const format1 = "YYYY-MM-DD HH:mm";
+        let beginningTime = moment('9:15am', 'h:mma');
+
+        if (this.state.timeFrame == 'ONE_MINUTE') {
+            var time = moment.duration("00:60:00");
+            beginningTime = moment(new Date()).subtract(time);
         }
 
-        var time = moment.duration("48:60:00");
-        beginningTime = moment(new Date()).subtract(time);
-
+        if(this.state.candleHistoryFlag){
+            var time = moment.duration("1000:00:00");
+            if (this.state.timeFrame == 'ONE_MINUTE') 
+            time = moment.duration("100:00:00");
+            beginningTime = moment(new Date()).subtract(time);    
+        }
+       
         var data = {
             "exchange": "NSE",
             "symboltoken": token || this.state.token,
@@ -445,7 +450,7 @@ class LiveBid extends React.Component {
             "fromdate": moment(beginningTime).format(format1),
             "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
         }
-   
+
 
         AdminService.getHistoryData(data).then(res => {
             let historyData = resolveResponse(res, 'noPop');
@@ -479,15 +484,15 @@ class LiveBid extends React.Component {
                 }
 
                 var bb = BollingerBands.calculate(input);
-             //   console.log(token, "Bolinger band", input, bb);
+                //   console.log(token, "Bolinger band", input, bb);
 
                 var bb = BollingerBands.calculate(input);
-              //  console.log(token, "Bolinger band", input, bb);
+                //  console.log(token, "Bolinger band", input, bb);
 
                 var inputRSI = { values: closeingData, period: 14 };
                 var rsiValues = RSI.calculate(inputRSI);
 
-                 console.log(token, "Rsi", inputRSI, rsiValues);
+                console.log(token, "Rsi", inputRSI, rsiValues);
                 // console.log(token, "vwap", vwapdata, vwap(vwapdata));
 
 
@@ -581,45 +586,45 @@ class LiveBid extends React.Component {
 
         return (
             <React.Fragment>
-                <PostLoginNavBar LoadSymbolDetails ={this.LoadSymbolDetails} />
+                <PostLoginNavBar LoadSymbolDetails={this.LoadSymbolDetails} />
                 {/* <ChartDialog /> */}
-                <Grid direction="row"  container>
-                 
+                <Grid direction="row" container>
+
                     <Grid item xs={12} sm={12}>
 
                         <Paper style={{ padding: "10px" }}>
 
                             <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
 
-                                
+
                                 <Grid item xs={12} sm={12}  >
 
-                                    <Grid  spacing={1} direction="row" alignItems="center" container>
-                                        <Grid item xs={10} sm={10} > 
-                                         <Typography> {this.state.lightChartSymbol} {this.state.livePrice} {this.state.livePChange ? `(${this.state.livePChange})` : ""}  </Typography>
+                                    <Grid spacing={1} direction="row" alignItems="center" container>
+                                        <Grid item xs={10} sm={10} >
+                                            <Typography> {this.state.lightChartSymbol} {this.state.livePrice} {this.state.livePChange ? `(${this.state.livePChange})` : ""}  </Typography>
 
-                                         </Grid>
-                                        
+                                        </Grid>
 
-                                        <Grid item xs={2} sm={2} > 
-                                         <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
-                                        <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
-                                            <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
-                                            <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
-                                            <MenuItem value={'TEN_MINUTE'}>{'10M'}</MenuItem>
-                                            <MenuItem value={'FIFTEEN_MINUTE'}>{'15M'}</MenuItem>
-                                            <MenuItem value={'THIRTY_MINUTE'}>{'30M'}</MenuItem>
-                                            <MenuItem value={'ONE_HOUR'}>{'1H'}</MenuItem>
-                                            <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
-                                        </Select>
-                                        </FormControl>
-                                    
 
-                                         </Grid>
+                                        <Grid item xs={2} sm={2} >
+                                            <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
+                                                <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
+                                                    <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
+                                                    <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
+                                                    <MenuItem value={'TEN_MINUTE'}>{'10M'}</MenuItem>
+                                                    <MenuItem value={'FIFTEEN_MINUTE'}>{'15M'}</MenuItem>
+                                                    <MenuItem value={'THIRTY_MINUTE'}>{'30M'}</MenuItem>
+                                                    <MenuItem value={'ONE_HOUR'}>{'1H'}</MenuItem>
+                                                    <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
+                                                </Select>
+                                            </FormControl>
+
+
+                                        </Grid>
                                     </Grid>
-                                    
 
-                                        
+
+
 
                                     <div id="showChartTitle"></div>
                                     <div id="tvchart"></div>
@@ -669,40 +674,51 @@ class LiveBid extends React.Component {
                         </Paper>
                     </Grid>
 
-                    
-                </Grid>  
-                
-                <Grid direction="row"  container>
-                     <Grid item xs={12} sm={12} >
+
+                </Grid>
+
+                <Grid direction="row" container>
+                    <Grid item xs={12} sm={12} >
 
                         <Paper style={{ padding: "10px" }} >
 
                             <Grid justify="space-between"
                                 container spacing={1}>
 
-                          
 
 
-                                <Grid item xs={12} sm={2} >
+
+                                <Grid item xs={8} sm={2} >
                                     <FormControl style={styles.selectStyle} >
                                         <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
                                         <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
                                             {/* <MenuItem value={"selectall"}>{"Select All"}</MenuItem> */}
 
                                             {this.state.softedIndexList && this.state.softedIndexList.map(element => (
-                                                <MenuItem style={{color: element.percChange>0 ? "green": "red"}} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
-                                            )) 
+                                                <MenuItem style={{ color: element.percChange > 0 ? "green" : "red" }} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
+                                            ))
                                             }
                                             {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
                                                 <MenuItem value={element}>{element}</MenuItem>
-                                            )) 
+                                            ))
                                             }π
                                             <MenuItem value={"Securities in F&O"}>{"Securities in F&O"}</MenuItem>
-                                     
+
 
                                         </Select>
                                     </FormControl>
                                 </Grid>
+                                <Grid item xs={4} sm={4} >
+                                    <FormControl style={styles.selectStyle} >
+                                    <InputLabel htmlFor="candleHistoryFlag">Candle History</InputLabel>
+                                        <Select value={this.state.candleHistoryFlag} name="candleHistoryFlag" onChange={this.onChangeWatchlist}>
+                                            
+                                            <MenuItem value={true}>{"Yes"}</MenuItem> 
+                                            <MenuItem value={false}>{"No"}</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+
 
 
                                 {/* <Grid item xs={12} sm={3} >
@@ -774,7 +790,7 @@ class LiveBid extends React.Component {
 
                                         {/* <TableCell  ><Button onClick={() => this.getDeliveryHistory()}>Delivery History</Button>  </TableCell> */}
 
-{/* 
+                                        {/* 
                                         <TableCell >Best Buy Qty</TableCell>
                                         <TableCell >Best Buy Price</TableCell>
                                         <TableCell >Best Sell Qty</TableCell>
@@ -784,71 +800,71 @@ class LiveBid extends React.Component {
                                     </TableRow>
                                 </TableHead>
 
-                                </Table>
-                                <div style={{overflow:"auto", maxHeight:"350px"}}> 
+                            </Table>
+                            <div style={{ overflow: "auto", maxHeight: "350px" }}>
                                 <Table size="small" style={{ width: "100%" }} aria-label="sticky table" >
-                                <TableBody>
-                                
-
-                               
+                                    <TableBody>
 
 
-                                    {this.state.symbolList ? this.state.symbolList.map((row, i) => (
-                                        <TableRow selected={this.state.cursor === i ? 'active' : null} 
-                                            // onKeyDown={(e) => this.handleKeyDown(e)}
-                                         style={{cursor:"pointer"}} hover key={i} onClick={() => this.showStaticChart(row.token, row.name)}>
 
-                                            {/* <TableCell >{row.upperCircuitLimit}</TableCell>
+
+
+                                        {this.state.symbolList ? this.state.symbolList.map((row, i) => (
+                                            <TableRow selected={this.state.cursor === i ? 'active' : null}
+                                                // onKeyDown={(e) => this.handleKeyDown(e)}
+                                                style={{ cursor: "pointer" }} hover key={i} onClick={() => this.showStaticChart(row.token, row.name)}>
+
+                                                {/* <TableCell >{row.upperCircuitLimit}</TableCell>
                                             <TableCell >{row.lowerCircuitLimit}</TableCell> */}
 
-                                            {/* <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} >
+                                                {/* <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} >
                                                 {row.buytosellTime ? row.buytosellTime +" time buy" : ""}
                                             </TableCell>
                                             <TableCell style={{ background: row.highlightsell ? "lightgray" : "" }} >
                                                 {row.selltobuyTime ? row.selltobuyTime+" time sell" : ""} 
                                             </TableCell> */}
 
-                                            <TableCell title="total buying bids qty"  style={{ background: row.highlightbuy ? "#FFFF00" : "" }}  >
+                                                <TableCell title="total buying bids qty" style={{ background: row.highlightbuy ? "#FFFF00" : "" }}  >
                                                     {/* {row.buybidHistory &&  row.buybidHistory.map(item => (
                                                         <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
                                                     ))} */}
-                                                {row.buytosellTime ? `B: ${row.buytosellTime}` : ""}
+                                                    {row.buytosellTime ? `B: ${row.buytosellTime}` : ""}
 
-                                                {/* &nbsp; {row.totalBuyQuantity}  */}
-                                                {this.convertToFloat(row.totalBuyQuantity)}
+                                                    {/* &nbsp; {row.totalBuyQuantity}  */}
+                                                    {this.convertToFloat(row.totalBuyQuantity)}
 
-                                            </TableCell>
-                                            <TableCell align="left" style={{ background: this.getPercentageColor(row.pChange)  }} >    {row.name} {row.ltp} {row.pChange ? `(${row.pChange}%)` : ""} </TableCell>
-                                            <TableCell title="Average Price" style={{height:'25px', background: row.ltp ? row.ltp >= row.averagePrice ? "green" : "red" : "white"}}>AP:{row.averagePrice}</TableCell>
+                                                </TableCell>
+                                                <TableCell align="left" style={{ background: this.getPercentageColor(row.pChange) }} >    {row.name} {row.ltp} {row.pChange ? `(${row.pChange}%)` : ""} </TableCell>
+                                                <TableCell title="Average Price" style={{ height: '25px', background: row.ltp ? row.ltp >= row.averagePrice ? "green" : "red" : "white" }}>AP:{row.averagePrice}</TableCell>
 
 
-                                            <TableCell title="total selling bid qty" style={{ background: row.highlightsell ? "#FFFF00" : "" }}>
+                                                <TableCell title="total selling bid qty" style={{ background: row.highlightsell ? "#FFFF00" : "" }}>
                                                     {/* {row.sellbidHistory &&  row.sellbidHistory.map(item => (
                                                         <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
                                                     ))} */}
-                                            {row.selltobuyTime ? `S: ${row.selltobuyTime}` : ""} 
+                                                    {row.selltobuyTime ? `S: ${row.selltobuyTime}` : ""}
 
-                                            {/* &nbsp; {row.totalSellQuantity}  */}
-                                            {this.convertToFloat(row.totalSellQuantity)}
-                                  
-                                            </TableCell>
-                                            <TableCell  title="Open Price">O:{row.openPrice}</TableCell>
-                                            <TableCell  title="High Price">H:{row.highPrice}</TableCell>
-                                            <TableCell title="Low Price" >L:{row.lowPrice}</TableCell>
+                                                    {/* &nbsp; {row.totalSellQuantity}  */}
+                                                    {this.convertToFloat(row.totalSellQuantity)}
 
-                                            {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
-                                            {/* <TableCell >{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
+                                                </TableCell>
+                                                <TableCell title="Open Price">O:{row.openPrice}</TableCell>
+                                                <TableCell title="High Price">H:{row.highPrice}</TableCell>
+                                                <TableCell title="Low Price" >L:{row.lowPrice}</TableCell>
+
+                                                {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
+                                                {/* <TableCell >{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
                                             <TableCell >{row.deliveryToTradedQuantity}%</TableCell> */}
 
-                                            {/* <TableCell >{row.totalTradedVolume} {this.convertToFloat(row.totalTradedVolume)}</TableCell> */}
-                                            {/* <TableCell >{row.totalTradedValue}L</TableCell> */}
+                                                {/* <TableCell >{row.totalTradedVolume} {this.convertToFloat(row.totalTradedVolume)}</TableCell> */}
+                                                {/* <TableCell >{row.totalTradedValue}L</TableCell> */}
 
-                                            {/* <TableCell  >{row.open}</TableCell>
+                                                {/* <TableCell  >{row.open}</TableCell>
                                                 <TableCell  >{row.dayHigh}</TableCell>
                                                 <TableCell  >{row.dayLow}</TableCell>
                                                 <TableCell  >{row.previousClose}</TableCell> */}
 
-                                            {/* <TableCell style={{ background: "#eceff1" }} >
+                                                {/* <TableCell style={{ background: "#eceff1" }} >
 
                                                 {row.delHistory && row.delHistory.map(item => (
                                                     <span> {new Date(item.datetime).toLocaleDateString()}  &nbsp;
@@ -861,89 +877,91 @@ class LiveBid extends React.Component {
 
                                             </TableCell> */}
 
-                                            {/* <TableCell >{row.bestbuyquantity}</TableCell>
+                                                {/* <TableCell >{row.bestbuyquantity}</TableCell>
                                             <TableCell >{row.bestbuyprice}</TableCell>
                                             <TableCell >{row.bestsellquantity}</TableCell>
                                             <TableCell >{row.bestsellprice}</TableCell> */}
 
-                                               
 
-                                        </TableRow>
-                                    )) : <Spinner />}
-                                 
+
+                                            </TableRow>
+                                        )) : <Spinner />}
+
                                     </TableBody>
 
-                             
-                            </Table>
+
+                                </Table>
                             </div>
 
                             <hr />
-                            <Grid item xs={12} sm={4} >
-                                    {/* <Typography color="primary" gutterBottom>
+                            <Grid item xs={12} sm={12} >
+                                {/* <Typography color="primary" gutterBottom>
                                       {this.state.selectedWatchlist} ({this.state.symbolList.length})  
                                       
                                       
                                     </Typography> */}
 
-                                    <span>Sorted By:  {this.state.sortedType} </span> <br />
-                                    <span>Update: {this.state.lastUpdateAction} </span> 
+                                <span>Sorted By:  {this.state.sortedType} </span> <br />
+                                <span>Update: {this.state.lastUpdateAction} </span>
 
-                                   
-                                    
-                                    {/* <input onKeyDown={this.handleKeyDown} /> */}
-                                </Grid>
 
-                                  <Grid item xs={12} sm={3} >
-                                    {/* <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button> */}
-                                    
-                                       <FormGroup>
-                                        <FormControlLabel
+
+                                {/* <input onKeyDown={this.handleKeyDown} /> */}
+                            </Grid>
+
+                            <Grid item xs={6} sm={6} >
+                                {/* <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button> */}
+
+                                <FormGroup>
+                                    <FormControlLabel
                                         control={<Switch checked={this.state.isSpeek} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
-                                        label={this.state.isSpeek ? 'Speak Yes'  : 'Speak No'}
-                                        />
-                                    </FormGroup>
-                                </Grid>
-
+                                        label={this.state.isSpeek ? 'Speak Yes' : 'Speak No'}
+                                    />
+                                </FormGroup>
+                            </Grid>
+                           
 
 
                         </Paper>
 
                         <Paper style={{ padding: "10px" }} >
 
-                        <b>  Intraday Details </b> <br />
-               
-                        <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
-                            item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
-                        ))}
+                            <b> Indicator Details </b> <br />
+
+                            <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
+                                item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
+                            ))}
 
 
-                        <br />
-                        <b>Vol:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
-                            <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item / 100000).toFixed(2)}L &nbsp;</span>
-                        ))}
+                            <br />
+                            <b>Vol:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
+                                <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item / 100000).toFixed(2)}L &nbsp;</span>
+                            ))}
 
-                        <br />
-                        {this.state.bblastValue ? <span item xs={12} sm={12} >
+                            <br />
+                            {this.state.bblastValue ? <span item xs={12} sm={12} >
 
-                            <span title="Green color mean price running above upper bb band" style={{ color: this.state.livePrice >= this.state.bblastValue.upper ? "green" : "", fontWeight: "bold" }}>BB Upper: {this.state.bblastValue.upper.toFixed(2)}</span><br />
-                            BB Middle(20 SMA): {this.state.bblastValue.middle.toFixed(2)}<br />
-                            <span title="Green red mean price running below lower bb band" style={{ color: this.state.livePrice <= this.state.bblastValue.lower ? "red" : "", fontWeight: "bold" }}>BB Lower: {this.state.bblastValue.lower.toFixed(2)}</span><br />
-                        </span> : ""}
+                                <span title="Green color mean price running above upper bb band" style={{ color: this.state.livePrice >= this.state.bblastValue.upper ? "green" : "", fontWeight: "bold" }}>BB Upper: {this.state.bblastValue.upper.toFixed(2)}</span><br />
+                                BB Middle(20 SMA): {this.state.bblastValue.middle.toFixed(2)}<br />
+                                <span title="Green red mean price running below lower bb band" style={{ color: this.state.livePrice <= this.state.bblastValue.lower ? "red" : "", fontWeight: "bold" }}>BB Lower: {this.state.bblastValue.lower.toFixed(2)}</span><br />
+                            </span> : ""}
 
-                        <span item xs={12} sm={12} style={{ color: this.state.livePrice > this.state.vwapvalue ? "green" : "red", fontWeight: "bold" }}>
-                            VWAP:  {this.state.vwapvalue && this.state.vwapvalue.toFixed(2)}
-                        </span>
-                     
+                            <span item xs={12} sm={12} style={{ color: this.state.livePrice > this.state.vwapvalue ? "green" : "red", fontWeight: "bold" }}>
+                                VWAP:  {this.state.vwapvalue && this.state.vwapvalue.toFixed(2)}
+                            </span>
 
-                        <br />  <br />
+
+                            <br />  <br />
 
 
                         </Paper>
-                                
-                    </Grid>
-                  
 
-                    
+                    </Grid>
+
+                   
+                
+
+
                 </Grid>
             </React.Fragment>
         )
