@@ -487,7 +487,7 @@ class LiveBid extends React.Component {
                 var inputRSI = { values: closeingData, period: 14 };
                 var rsiValues = RSI.calculate(inputRSI);
 
-                // console.log(token, "Rsi", inputRSI, rsiValues);
+                 console.log(token, "Rsi", inputRSI, rsiValues);
                 // console.log(token, "vwap", vwapdata, vwap(vwapdata));
 
 
@@ -785,7 +785,7 @@ class LiveBid extends React.Component {
                                 </TableHead>
 
                                 </Table>
-                                <div style={{overflow:"auto", maxHeight:"720px"}}> 
+                                <div style={{overflow:"auto", maxHeight:"350px"}}> 
                                 <Table size="small" style={{ width: "100%" }} aria-label="sticky table" >
                                 <TableBody>
                                 
@@ -903,9 +903,42 @@ class LiveBid extends React.Component {
                                         />
                                     </FormGroup>
                                 </Grid>
+
+
+
                         </Paper>
 
+                        <Paper style={{ padding: "10px" }} >
 
+                        <b>  Intraday Details </b> <br />
+               
+                        <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
+                            item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
+                        ))}
+
+
+                        <br />
+                        <b>Vol:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
+                            <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item / 100000).toFixed(2)}L &nbsp;</span>
+                        ))}
+
+                        <br />
+                        {this.state.bblastValue ? <span item xs={12} sm={12} >
+
+                            <span title="Green color mean price running above upper bb band" style={{ color: this.state.livePrice >= this.state.bblastValue.upper ? "green" : "", fontWeight: "bold" }}>BB Upper: {this.state.bblastValue.upper.toFixed(2)}</span><br />
+                            BB Middle(20 SMA): {this.state.bblastValue.middle.toFixed(2)}<br />
+                            <span title="Green red mean price running below lower bb band" style={{ color: this.state.livePrice <= this.state.bblastValue.lower ? "red" : "", fontWeight: "bold" }}>BB Lower: {this.state.bblastValue.lower.toFixed(2)}</span><br />
+                        </span> : ""}
+
+                        <span item xs={12} sm={12} style={{ color: this.state.livePrice > this.state.vwapvalue ? "green" : "red", fontWeight: "bold" }}>
+                            VWAP:  {this.state.vwapvalue && this.state.vwapvalue.toFixed(2)}
+                        </span>
+                     
+
+                        <br />  <br />
+
+
+                        </Paper>
                                 
                     </Grid>
                   
