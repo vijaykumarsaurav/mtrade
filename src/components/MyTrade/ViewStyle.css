@@ -13,6 +13,10 @@
   .makeStyles-content-10, .makeStyles-content-410{
   padding: 0 !important;
   }
+
+  .MuiTableRow-hover{
+   background: #e0e0e0; 
+  }
   
   .MuiTableCell-sizeSmall{
     padding: 0 !important;

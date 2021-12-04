@@ -28,7 +28,7 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
-
+import "./ViewStyle.css"; 
 // import vwap from 'vwap';
 // import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 // import SimpleExpansionPanel from "./SimpleExpansionPanel";
@@ -50,6 +50,7 @@ class LiveBid extends React.Component {
             timeFrame: "FIFTEEN_MINUTE",
             softedIndexList:[],
             cursor: '',
+            lightChartSymbol:"Select Symbol for Chart", 
             isSpeek: localStorage.getItem('isSpeek') === 'true' ? true : false, 
             sortedType: "pChange", 
             sluglist: {
@@ -140,6 +141,8 @@ class LiveBid extends React.Component {
 
                 console.log(data.symbol +" " + data.action + " "+data.updateTime); 
                 this.setState({lastUpdateAction: data.symbol +" " + data.action + " "+data.updateTime }); 
+
+                window.document.title = data.symbol +" " + data.action + " "+data.updateTime;
             }); 
         }
     }
@@ -157,8 +160,6 @@ class LiveBid extends React.Component {
             this.state.symbolList && this.state.symbolList.forEach((element, index) => {
                 var foundLive = liveData.filter(row => row.tk == element.token);
                 if (foundLive.length > 0 && foundLive[0].ltp && foundLive[0].nc) {
-
-                    console.log(foundLive[0]); 
 
                     symbolListArray[index].ltp = foundLive[0].ltp;
                     symbolListArray[index].pChange = foundLive[0].nc;
@@ -196,6 +197,9 @@ class LiveBid extends React.Component {
                         symbolListArray[index].highlightsell = false;
                     }
 
+                    if(this.state.token == element.token){
+                        this.setState( {livePrice : foundLive[0].ltp, livePChange : foundLive[0].nc} )
+                    } 
                     //console.log("ws onmessage: ", foundLive);
                 }
             });
@@ -237,7 +241,7 @@ class LiveBid extends React.Component {
 
         const domElement = document.getElementById('tvchart');
         document.getElementById('tvchart').innerHTML = '';
-        const chart = createChart(domElement, { width: 650, height: 400, timeVisible: true, secondsVisible: true, });
+        const chart = createChart(domElement, { width: 350, height: 250, timeVisible: true, secondsVisible: true, });
         const candleSeries = chart.addCandlestickSeries();
         var smaLineSeries = chart.addLineSeries({
             color: 'rgba(4, 111, 232, 1)',
@@ -258,11 +262,20 @@ class LiveBid extends React.Component {
 
         this.getUpdateIndexData()
 
-        setInterval(() => {
-            if(this.state.token){
-                this.showStaticChart();
-            }
-        }, 1000);
+        var beginningTime = moment('9:15am', 'h:mma');
+        var endTime = moment('3:30pm', 'h:mma');
+        const friday = 5; // for friday
+        var currentTime = moment(new Date(), "h:mma");
+        const today = moment().isoWeekday();
+        //market hours
+        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+            setInterval(() => {
+                if(this.state.token){
+                    this.showStaticChart();
+                }
+            }, 1000);
+        }
+     
        
     }
 
@@ -422,6 +435,9 @@ class LiveBid extends React.Component {
               beginningTime = moment(new Date()).subtract(time);
         }
 
+        var time = moment.duration("48:60:00");
+        beginningTime = moment(new Date()).subtract(time);
+
         var data = {
             "exchange": "NSE",
             "symboltoken": token || this.state.token,
@@ -496,10 +512,10 @@ class LiveBid extends React.Component {
                         for (var elem of getit) {
 
                             if (typeof elem[1] == 'object') {
-                                string += " Open: <b>" + elem[1].open + "</b>";
-                                string += " High: <b>" + elem[1].high + "</b>";
-                                string += " Low: <b>" + elem[1].low + "</b>";
-                                string += " Close: <b>" + elem[1].close + "</b>";
+                                string += " O: <b>" + elem[1].open + "</b>";
+                                string += " H: <b>" + elem[1].high + "</b>";
+                                string += " L: <b>" + elem[1].low + "</b>";
+                                string += " C: <b>" + elem[1].close + "</b>";
                                 change = (elem[1].close - elem[1].open) * 100 / elem[1].open;
                                 string += " Chng: <b>" + change.toFixed(2) + '%</b>';
                             } else {
@@ -508,7 +524,7 @@ class LiveBid extends React.Component {
                         }
 
                         if (param.time)
-                            string += " Time: <b>" + new Date(param.time).toLocaleString() + "</b>";
+                            string += " T: <b>" + new Date(param.time).toLocaleString() + "</b>";
                         else
                             string += " <b>Time: </b>";
 
@@ -567,30 +583,104 @@ class LiveBid extends React.Component {
             <React.Fragment>
                 <PostLoginNavBar LoadSymbolDetails ={this.LoadSymbolDetails} />
                 {/* <ChartDialog /> */}
-                
+                <Grid direction="row"  container>
+                 
+                    <Grid item xs={12} sm={12}>
+
+                        <Paper style={{ padding: "10px" }}>
+
+                            <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
+
+                                
+                                <Grid item xs={12} sm={12}  >
+
+                                    <Grid  spacing={1} direction="row" alignItems="center" container>
+                                        <Grid item xs={10} sm={10} > 
+                                         <Typography> {this.state.lightChartSymbol} {this.state.livePrice} {this.state.livePChange ? `(${this.state.livePChange})` : ""}  </Typography>
+
+                                         </Grid>
+                                        
+
+                                        <Grid item xs={2} sm={2} > 
+                                         <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
+                                        <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
+                                            <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
+                                            <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
+                                            <MenuItem value={'TEN_MINUTE'}>{'10M'}</MenuItem>
+                                            <MenuItem value={'FIFTEEN_MINUTE'}>{'15M'}</MenuItem>
+                                            <MenuItem value={'THIRTY_MINUTE'}>{'30M'}</MenuItem>
+                                            <MenuItem value={'ONE_HOUR'}>{'1H'}</MenuItem>
+                                            <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
+                                        </Select>
+                                        </FormControl>
+                                    
+
+                                         </Grid>
+                                    </Grid>
+                                    
+
+                                        
+
+                                    <div id="showChartTitle"></div>
+                                    <div id="tvchart"></div>
+                                </Grid>
+
+                                {/* <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "40vh" }} >
+                                <Typography> <b> {this.state.lightChartSymbol} </b> </Typography>
+
+
+                                    <Table size="small" aria-label="sticky table" >
+                                        <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
+                                            <TableRow variant="head" style={{ fontWeight: 'bold' }} >
+
+                                                <TableCell className="TableHeadFormat" align="center">Symbol<b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> </TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Chng% </TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Open</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">High</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Low</TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Close </TableCell>
+                                                <TableCell className="TableHeadFormat" align="center">Volume</TableCell>
+
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
+                                            {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
+                                                <TableRow key={i} style={{ background: (row[4] - row[1]) * 100 / row[1] >= 0.3 ? "#20d020" : (row[4] - row[1]) * 100 / row[1] <= -0.3 ? "#e66e6e" : "none" }} >
+
+                                                    <TableCell align="center">{this.state.tradingsymbol}</TableCell>
+                                                    <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
+                                                    <TableCell align="center"> <b>{(row[4] - row[1]) * 100 / row[1] && ((row[4] - row[1]) * 100 / row[1]).toFixed(2)}%</b></TableCell>
+                                                    <TableCell align="center">{row[1]}</TableCell>
+                                                    <TableCell align="center">{row[2]}</TableCell>
+                                                    <TableCell align="center">{row[3]}</TableCell>
+                                                    <TableCell align="center">{row[4]}</TableCell>
+                                                    <TableCell align="center">{row[5]}</TableCell>
+
+                                                </TableRow>
+                                            )) : ''}
+
+                                        </TableBody>
+                                    </Table>
+                                </Grid> */}
+
+
+                            </Grid>
+                        </Paper>
+                    </Grid>
+
+                    
+                </Grid>  
                 
                 <Grid direction="row"  container>
-                     <Grid item xs={6} sm={6} >
+                     <Grid item xs={12} sm={12} >
 
                         <Paper style={{ padding: "10px" }} >
 
                             <Grid justify="space-between"
                                 container spacing={1}>
 
-                                <Grid item xs={12} sm={4} >
-                                    {/* <Typography color="primary" gutterBottom>
-                                      {this.state.selectedWatchlist} ({this.state.symbolList.length})  
-                                      
-                                      
-                                    </Typography> */}
-
-                                    <span>Sorted By:  {this.state.sortedType} </span> <br />
-                                    <span>Update: {this.state.lastUpdateAction} </span> 
-
-                                   
-                                    
-                                    {/* <input onKeyDown={this.handleKeyDown} /> */}
-                                </Grid>
+                          
 
 
                                 <Grid item xs={12} sm={2} >
@@ -706,7 +796,7 @@ class LiveBid extends React.Component {
                                     {this.state.symbolList ? this.state.symbolList.map((row, i) => (
                                         <TableRow selected={this.state.cursor === i ? 'active' : null} 
                                             // onKeyDown={(e) => this.handleKeyDown(e)}
-                                         style={{cursor:"pointer"}} hover key={i} onClick={() => this.showStaticChart(row.token, row.symbol)}>
+                                         style={{cursor:"pointer"}} hover key={i} onClick={() => this.showStaticChart(row.token, row.name)}>
 
                                             {/* <TableCell >{row.upperCircuitLimit}</TableCell>
                                             <TableCell >{row.lowerCircuitLimit}</TableCell> */}
@@ -786,92 +876,39 @@ class LiveBid extends React.Component {
                              
                             </Table>
                             </div>
+
+                            <hr />
+                            <Grid item xs={12} sm={4} >
+                                    {/* <Typography color="primary" gutterBottom>
+                                      {this.state.selectedWatchlist} ({this.state.symbolList.length})  
+                                      
+                                      
+                                    </Typography> */}
+
+                                    <span>Sorted By:  {this.state.sortedType} </span> <br />
+                                    <span>Update: {this.state.lastUpdateAction} </span> 
+
+                                   
+                                    
+                                    {/* <input onKeyDown={this.handleKeyDown} /> */}
+                                </Grid>
+
+                                  <Grid item xs={12} sm={3} >
+                                    {/* <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button> */}
+                                    
+                                       <FormGroup>
+                                        <FormControlLabel
+                                        control={<Switch checked={this.state.isSpeek} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
+                                        label={this.state.isSpeek ? 'Speak Yes'  : 'Speak No'}
+                                        />
+                                    </FormGroup>
+                                </Grid>
                         </Paper>
-                    </Grid>
-                    <Grid item xs={6} sm={6}>
 
-                        <Paper style={{ padding: "10px" }}>
-
-                            <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
 
                                 
-                                <Grid item xs={12} sm={12}  >
-
-                                    <Grid  spacing={1} direction="row" alignItems="center" container>
-                                        <Grid item xs={12} sm={10} > 
-                                         <Typography><b> {this.state.lightChartSymbol} </b></Typography>
-
-                                         </Grid>
-                                        
-
-                                        <Grid item xs={12} sm={2} > 
-                                         <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
-                                        <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
-                                            <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
-                                            <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
-                                            <MenuItem value={'TEN_MINUTE'}>{'10M'}</MenuItem>
-                                            <MenuItem value={'FIFTEEN_MINUTE'}>{'15M'}</MenuItem>
-                                            <MenuItem value={'THIRTY_MINUTE'}>{'30M'}</MenuItem>
-                                            <MenuItem value={'ONE_HOUR'}>{'1H'}</MenuItem>
-                                            <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
-                                        </Select>
-                                        </FormControl>
-                                    
-
-                                         </Grid>
-                                       
-                                    </Grid>
-                                    
-
-                                        
-
-                                    <div id="showChartTitle"></div>
-                                    <div id="tvchart"></div>
-                                </Grid>
-
-                                <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "40vh" }} >
-                                <Typography> <b> {this.state.lightChartSymbol} </b> </Typography>
-
-
-                                    <Table size="small" aria-label="sticky table" >
-                                        <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                            <TableRow variant="head" style={{ fontWeight: 'bold' }} >
-
-                                                <TableCell className="TableHeadFormat" align="center">Symbol<b style={{ color: '#20d020' }}> UP({this.state.upsideMoveCount})</b> | <b style={{ color: 'red' }}> Down({this.state.downMoveCount})</b> </TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Timestamp</TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Chng% </TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Open</TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">High</TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Low</TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Close </TableCell>
-                                                <TableCell className="TableHeadFormat" align="center">Volume</TableCell>
-
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-                                            {this.state.InstrumentHistroy && this.state.InstrumentHistroy ? this.state.InstrumentHistroy.map((row, i) => (
-                                                <TableRow key={i} style={{ background: (row[4] - row[1]) * 100 / row[1] >= 0.3 ? "#20d020" : (row[4] - row[1]) * 100 / row[1] <= -0.3 ? "#e66e6e" : "none" }} >
-
-                                                    <TableCell align="center">{this.state.tradingsymbol}</TableCell>
-                                                    <TableCell align="center">{new Date(row[0]).toLocaleString()}</TableCell>
-                                                    <TableCell align="center"> <b>{(row[4] - row[1]) * 100 / row[1] && ((row[4] - row[1]) * 100 / row[1]).toFixed(2)}%</b></TableCell>
-                                                    <TableCell align="center">{row[1]}</TableCell>
-                                                    <TableCell align="center">{row[2]}</TableCell>
-                                                    <TableCell align="center">{row[3]}</TableCell>
-                                                    <TableCell align="center">{row[4]}</TableCell>
-                                                    <TableCell align="center">{row[5]}</TableCell>
-
-                                                </TableRow>
-                                            )) : ''}
-
-                                        </TableBody>
-                                    </Table>
-                                </Grid>
-
-
-                            </Grid>
-                        </Paper>
                     </Grid>
+                  
 
                     
                 </Grid>

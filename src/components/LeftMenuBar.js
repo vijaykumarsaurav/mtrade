@@ -116,6 +116,13 @@ export const AdminMenuList = (
       </ListItemIcon>
       <ListItemText primary="Depth Live" />
     </ListItem>
+
+    <ListItem button component='a' href={"/mtrade/#/market-depth-mobile"} >  
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Depth Live Mobile" />
+    </ListItem>
     
     {/* <ListItem button component='a' href={"/mtrade/#/bn-view"} >  
       <ListItemIcon>
