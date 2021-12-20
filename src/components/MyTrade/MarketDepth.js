@@ -239,7 +239,7 @@ class LiveBid extends React.Component {
         document.getElementById('tvchart').innerHTML = '';
         let heigh =  window.innerWidth;    
         
-        const chart = createChart(domElement, { width: heigh, height: 400, timeVisible: true, secondsVisible: true, });
+        const chart = createChart(domElement, { width: heigh/2, height: 400, timeVisible: true, secondsVisible: true, });
         const candleSeries = chart.addCandlestickSeries();
         var smaLineSeries = chart.addLineSeries({
             color: 'rgba(4, 111, 232, 1)',

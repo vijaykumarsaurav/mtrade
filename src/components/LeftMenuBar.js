@@ -38,6 +38,13 @@ export const AdminMenuList = (
       <ListItemText primary="Heat Map2" />
     </ListItem>
 
+    <ListItem button component='a' href={"/mtrade/#/strong-charts"} >  
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Strong Charts" />
+    </ListItem>
+
 
 
     <ListItem button component='a' href={"/mtrade/#/delivery"} >  
