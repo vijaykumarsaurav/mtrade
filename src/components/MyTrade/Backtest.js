@@ -26,6 +26,7 @@ import EqualizerIcon from '@material-ui/icons/Equalizer';
 import vwap from 'vwap';
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import CsvDownload from 'react-json-to-csv'
 
 
 class Home extends React.Component {
@@ -41,6 +42,7 @@ class Home extends React.Component {
             ifNotBought: true,
             autoSearchTemp: [],
             backTestResult: [],
+            backTestResultCSV: [], 
             backTestFlag: true,
             patternType: "NR4",  //NR4ForNextDay  NR4_SameDay
             symboltoken: "",
@@ -251,10 +253,11 @@ class Home extends React.Component {
 
     backTestAnyPattern = async () => {
 
-        this.setState({ backTestResult: [], backTestFlag: false });
+        let filename = this.state.patternType +" "+ this.state.selectedWatchlist +" "+ moment(this.state.startDate).format("YYYY-MM-DD") +" "+ moment(this.state.endDate).format("YYYY-MM-DD") +".csv" ; 
+        this.setState({ backTestResult: [], backTestFlag: false, filename: filename });
 
 
-        console.log('this.state.patternType', this.state.patternType)
+        console.log('filename', filename ); 
 
         if (!this.state.patternType) {
             Notify.showError("Select pattern type");
@@ -1123,10 +1126,10 @@ class Home extends React.Component {
 
                                 if (next5thCandle[2] > buyentry) {
 
-                                    let exitPrice = next5thCandle[this.state.longExitPriceType], exitStatus = "Market End";  
+                                    let exitPrice = next5thCandle[this.state.longExitPriceType], exitStatus = "ME@3:30pm";  
                                     if(next5thCandle[this.state.longExitPriceType] <= stopLoss){
                                         exitPrice = stopLoss; 
-                                        exitStatus = "SL Hit";
+                                        exitStatus = "SLHit";
                                     }
 
 
@@ -1137,22 +1140,28 @@ class Home extends React.Component {
                                     console.log(element.symbol, firstCandle[0], "upside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
                                     let slPer = ((buyentry-stopLoss)*100/buyentry).toFixed(2); 
 
+
+                                    var monthMinusOneName =  moment(next5thCandle[0]).subtract(0, "month").startOf("month").format('MMMM');
+
+
+
                                     var foundStock = {
                                         foundAt: "Long - " + new Date(firstCandle[0]).toLocaleString(),
+                                        monthName: monthMinusOneName, 
                                         symbol: element.symbol,
-                                        token: element.token,
+                                        perChange: perChng.toFixed(2),
+                                        perChngOnHighLow: perChngOnHigh.toFixed(2),
+                                        brokerageCharges: 0.06,
                                         sellEntyPrice: exitPrice,
                                         stopLoss: `${stopLoss} (${slPer}%)`,
+                                        exitStatus : exitStatus,
+                                        quantity: Math.floor(10000 / firstCandle[2]),
+                                        token: element.token,
                                         highAndLow: next5thCandle[2],
-                                        perChngOnHighLow: perChngOnHigh.toFixed(2),
                                         buyExitPrice: buyentry,
-                                        brokerageCharges: 0.06,
-                                        perChange: perChng.toFixed(2),
                                         entryAt:  firstCandle[0],
                                         squareOffAt: next5thCandle[0],
-                                        quantity: Math.floor(10000 / firstCandle[2]),
                                         candleChartData: candleChartData,
-                                        exitStatus : exitStatus
                                     }
                                     if (Math.floor(10000 / firstCandle[2])) {
                                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
@@ -1165,10 +1174,10 @@ class Home extends React.Component {
                                 var stopLoss = (firstCandle[2] + (firstCandle[2] / 100 / 10)).toFixed(2);
 
                                 if (next5thCandle[3] < sellenty) {
-                                    let exitPrice = next5thCandle[this.state.longExitPriceType], exitStatus = "Market End";  
+                                    let exitPrice = next5thCandle[this.state.longExitPriceType], exitStatus = "ME@3:30pm";  
                                     if(next5thCandle[this.state.longExitPriceType] >= stopLoss){
                                         exitPrice =  stopLoss; 
-                                        exitStatus = "SL Hit";
+                                        exitStatus = "SLHit";
                                     }
                                     
                                     var perChng = (sellenty - exitPrice) * 100 / firstCandle[3];
@@ -1177,23 +1186,26 @@ class Home extends React.Component {
                                     sumPercentage += perChng;
                                     console.log(element.symbol, firstCandle[0], "dowside", "same day high", firstCandle[2], "same day low", firstCandle[3], "nextdaylow", next5thCandle[3], "nextdayhigh", next5thCandle[2], 'next day closing', next5thCandle[4], perChng + '%');
                                     let slPer = ((stopLoss-sellenty)*100/stopLoss).toFixed(2); 
+                                    var monthMinusOneName =  moment(next5thCandle[0]).subtract(0, "month").startOf("month").format('MMMM');
+
 
                                     var foundStock = {
                                         foundAt: "Short - " + new Date(firstCandle[0]).toLocaleString(),
+                                        monthName: monthMinusOneName, 
                                         symbol: element.symbol,
-                                        token: element.token,
-                                        sellEntyPrice: sellenty,
+                                        perChange: perChng.toFixed(2),
                                         perChngOnHighLow: perChngOnLow.toFixed(2),
+                                        brokerageCharges: 0.06,
+                                        sellEntyPrice: sellenty,
                                         stopLoss:  `${stopLoss} (${slPer}%)`,
+                                        exitStatus : exitStatus, 
+                                        quantity: Math.floor(10000 / firstCandle[3]),
+                                        token: element.token,
                                         highAndLow: next5thCandle[3],
                                         buyExitPrice: exitPrice,
-                                        brokerageCharges: 0.06,
-                                        perChange: perChng.toFixed(2),
                                         entryAt:  firstCandle[0],
                                         squareOffAt: next5thCandle[0],
-                                        quantity: Math.floor(10000 / firstCandle[3]),
                                         candleChartData: candleChartData,
-                                        exitStatus : "Market End"
                                     }
                                     if (Math.floor(10000 / firstCandle[3])) {
                                         this.setState({ backTestResult: [...this.state.backTestResult, foundStock] });
@@ -2709,7 +2721,7 @@ class Home extends React.Component {
             firstLavel: "Start Date and Time",
             secondLavel: "End Date and Time"
         }
-
+    
         console.log("backTestResult", this.state.backTestResult)
 
         var sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0, sumPerChangeHighLow = 0, sumPnlValue = 0, sumPnlValueOnHighLow = 0, totalInvestedValue = 0, totalLongTrade = 0, totalShortTrade = 0;
@@ -2726,13 +2738,12 @@ class Home extends React.Component {
 
 
                         <Paper style={{ padding: "10px" }}>
-                            <Typography style={{ textAlign: "center", background: "lightgray" }}>Backtest1</Typography>
+                            <Typography style={{ textAlign: "center", background: "lightgray" }}>Backtest</Typography>
 
                            
 
                             <Grid direction="row" container spacing={2}>
 
-                                
 
                                 <Grid item xs={12} sm={2}>
                                     <FormControl style={styles.selectStyle}>
@@ -2740,7 +2751,7 @@ class Home extends React.Component {
                                         <Select value={this.state.patternType} name="patternType" onChange={this.onChangePattern}>
                                             <MenuItem value={"TweezerTop"}>Tweezer Top</MenuItem>
                                             <MenuItem value={"TweezerBottom"}>Tweezer Bottom</MenuItem>
-                                            <MenuItem value={"NR4"}>Narrow Range 4 - Day SL</MenuItem>
+                                            <MenuItem value={"NR4"}>NR4 @ 3:30pm </MenuItem>
                                             <MenuItem value={"NR4Trail"}>Narrow Range 4 - Trail</MenuItem>
 
                                             <MenuItem value={"NR4ForNextDay"}>NR4 For Next Day</MenuItem>
@@ -2780,7 +2791,7 @@ class Home extends React.Component {
 
                                 </Grid>
 
-
+                               
                             </Grid>
 
                             <Grid direction="row" container spacing={2}>
@@ -2799,23 +2810,26 @@ class Home extends React.Component {
                                 <TableCell style={{ color: localStorage.getItem('netSumPerChange') > 0 ? "#20d020" : "#e66e6e" }} ><b>{localStorage.getItem('netSumPerChange')}%</b></TableCell> */}
 
 
-                                        <TableCell style={{ color: localStorage.getItem('sumPnlValue') > 0 ? "#20d020" : "#e66e6e" }} ><b>{localStorage.getItem('sumPnlValue')}</b></TableCell>
+                                        <TableCell style={{ color: localStorage.getItem('sumPnlValue') > 0 ? "#20d020" : "#e66e6e" }} >{localStorage.getItem('sumPnlValue')}</TableCell>
 
                                         <TableCell style={{ color: localStorage.getItem('sumPerChangeHighLow') > 0 ? "#20d020" : "#e66e6e" }} ><b>{localStorage.getItem('sumPerChangeHighLow')}%</b></TableCell>
-                                        <TableCell style={{ color: localStorage.getItem('sumPnlValueOnHighLow') > 0 ? "#20d020" : "#e66e6e" }} ><b>{localStorage.getItem('sumPnlValueOnHighLow')}</b></TableCell>
+                                        <TableCell style={{ color: localStorage.getItem('sumPnlValueOnHighLow') > 0 ? "#20d020" : "#e66e6e" }} >{localStorage.getItem('sumPnlValueOnHighLow')}</TableCell>
 
 
 
 
-                                        <TableCell  >T.Trades: {this.state.backTestResult && this.state.backTestResult.length} &nbsp; W: {localStorage.getItem('totalWin')} L: {localStorage.getItem('totalLoss')}</TableCell>
+                                        <TableCell  title='Total Trades'>T.T: {this.state.backTestResult && this.state.backTestResult.length} &nbsp; W: {localStorage.getItem('totalWin')} L: {localStorage.getItem('totalLoss')}</TableCell>
 
 
-                                        <TableCell   colSpan={2}>Long: {localStorage.getItem('totalLongTrade')} Short:  {this.state.backTestResult && this.state.backTestResult.length - localStorage.getItem('totalLongTrade')}</TableCell>
-                                        <TableCell  colSpan={2}> MarketEnd: {localStorage.getItem('totalMarketEnd')} SLHit: {localStorage.getItem('totalSlHit')}</TableCell>
+                                        <TableCell  title='L:long S:short'  colSpan={2}>L: {localStorage.getItem('totalLongTrade')} S:  {this.state.backTestResult && this.state.backTestResult.length - localStorage.getItem('totalLongTrade')}</TableCell>
+                                        <TableCell title='ME: MarketEnd SL: Stop Loss'  colSpan={2}> ME: {localStorage.getItem('totalMarketEnd')} SL: {localStorage.getItem('totalSlHit')}</TableCell>
 
-                                        <TableCell  colSpan={2}> Total Invested  {localStorage.getItem('totalInvestedValue')}</TableCell>
+                                        <TableCell  title='TI: Total Invested ' colSpan={2}> TI:  {localStorage.getItem('totalInvestedValue')}</TableCell>
 
-                                        <TableCell  colSpan={4}> Average gross/trade PnL:  <b style={{ color: (localStorage.getItem('sumPerChange') / this.state.backTestResult.length) > 0 ? "#20d020" : "#e66e6e" }} >{(localStorage.getItem('sumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b></TableCell>
+                                        <TableCell title=" Average gross/trade PnL: "  colSpan={4}> A.g/t PnL:  <b style={{ color: (localStorage.getItem('sumPerChange') / this.state.backTestResult.length) > 0 ? "#20d020" : "#e66e6e" }} >{(localStorage.getItem('sumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b>
+                                        
+                                        &nbsp; <CsvDownload filename={this.state.filename} data={this.state.backTestResult} />
+                                        </TableCell>
 
 
                                     </TableRow>
@@ -2833,8 +2847,8 @@ class Home extends React.Component {
                                         <TableCell className="TableHeadFormat" title="High on long side | Low in short side" >HLNet PnL</TableCell>
 
                                         <TableCell className="TableHeadFormat" >Symbol</TableCell>
-                                        <TableCell className="TableHeadFormat" >EntryTaken</TableCell>
-                                        <TableCell className="TableHeadFormat" >SquiredOffAt</TableCell>
+                                        <TableCell className="TableHeadFormat" >Entry</TableCell>
+                                        {/* <TableCell className="TableHeadFormat" >SquiredOffAt</TableCell> */}
 
                                         <TableCell className="TableHeadFormat" >ExitStatus</TableCell>
 
@@ -2873,7 +2887,7 @@ class Home extends React.Component {
         */}
                                                     <TableCell {...tradetotal = ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity)} {...sumPnlValue = sumPnlValue + tradetotal} {...totalWin += (((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) > 0 ? 1 : 0)} {...totalLoss += ((row.sellEntyPrice * (row.perChange - row.brokerageCharges) / 100) * row.quantity) < 0 ? 1 : 0} style={{ color: tradetotal > 0 ? "#20d020" : "#e66e6e" }}  > {tradetotal.toFixed(2)}</TableCell>
 
-                                                    <TableCell style={{ color: row.perChngOnHighLow > 0 ? "#20d020" : "#e66e6e" }}  {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> <b>{row.perChngOnHighLow}%</b></TableCell>
+                                                    <TableCell style={{ color: row.perChngOnHighLow > 0 ? "#20d020" : "#e66e6e" }}  {...sumPerChangeHighLow = sumPerChangeHighLow + parseFloat(row.perChngOnHighLow || 0)}> {row.perChngOnHighLow}%</TableCell>
                                                     <TableCell {...sumPnlValueOnHighLow = sumPnlValueOnHighLow + ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity)} style={{ color: ((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity) > 0 ? "#20d020" : "#e66e6e" }}  >{((row.sellEntyPrice * (row.perChngOnHighLow - row.brokerageCharges) / 100) * row.quantity).toFixed(2)}</TableCell>
 
 
@@ -2881,9 +2895,9 @@ class Home extends React.Component {
                                                     <TableCell > <Button variant="contained" style={{ marginLeft: '20px' }} onClick={() => this.showCandleBothChart(row)}>{row.symbol} <EqualizerIcon /> </Button></TableCell>
 
                                                     <TableCell  style={{ color: row.foundAt && row.foundAt.indexOf('Long') == 0 ? "#20d020" : "#e66e6e" }} {...totalLongTrade = totalLongTrade + (row.foundAt && row.foundAt.indexOf('Long') == 0 ? 1 : 0)}>{row.foundAt.substr(0, 18)}</TableCell>
-                                                    <TableCell >{row.squareOffAt.substr(0, 10)}</TableCell>
+                                                    {/* <TableCell >{row.squareOffAt.substr(0, 10)}</TableCell> */}
 
-                                                    <TableCell {...totalMarketEnd += row.exitStatus ==='Market End' ? 1 : 0}{...totalSlHit += row.exitStatus ==='SL Hit' ? 1 : 0} >{row.exitStatus}</TableCell>
+                                                    <TableCell {...totalMarketEnd += row.exitStatus ==='ME@3:30pm' ? 1 : 0}{...totalSlHit += row.exitStatus ==='SLHit' ? 1 : 0} >{row.exitStatus}</TableCell>
 
                                                     <TableCell >{row.buyExitPrice}</TableCell>
 

@@ -19,6 +19,7 @@ import LineChart from "./LineChart";
 import LightChartCom from "./LightChartCom";
 import DeliveryData from "./DeliveryData";
 import IndexCharts from "./IndexCharts";
+import StrongCharts from "./StrongCharts";
 
 
 
@@ -100,7 +101,7 @@ export default function CustomizedDialogs(props) {
         </DialogTitle>
         <DialogContent dividers id="chart">
 
-            {localStorage.getItem('clickedIndexType') == 'Charts' ?  <IndexCharts /> : <DeliveryData /> }
+            {localStorage.getItem('clickedIndexType') == 'Charts' ?  <StrongCharts /> : <DeliveryData /> }
             
         </DialogContent>
         <DialogActions>

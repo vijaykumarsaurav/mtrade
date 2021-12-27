@@ -29,6 +29,8 @@ import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import "./ViewStyle.css";
+import Hidden from '@material-ui/core/Hidden';
+
 // import vwap from 'vwap';
 // import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 // import SimpleExpansionPanel from "./SimpleExpansionPanel";
@@ -44,7 +46,7 @@ class LiveBid extends React.Component {
         this.state = {
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
-            selectedWatchlist: 'NIFTY BANK', //'Securities in F&O',
+            selectedWatchlist: 'Securities in F&O', //'Securities in F&O', 'NIFTY BANK'
             symbolList: [],
             actionList: localStorage.getItem('actionList') && JSON.parse(localStorage.getItem('actionList')) || [],
             timeFrame: "FIFTEEN_MINUTE",
@@ -242,7 +244,14 @@ class LiveBid extends React.Component {
 
         const domElement = document.getElementById('tvchart');
         document.getElementById('tvchart').innerHTML = '';
-        const chart = createChart(domElement, { width: 350, height: 250, timeVisible: true, secondsVisible: true, });
+
+        let width = window.screen.width / 2.1, height = window.screen.height / 2;
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            width = window.screen.width ;
+        }
+
+
+        const chart = createChart(domElement, { width: width, height: height, timeVisible: true, secondsVisible: true, });
         const candleSeries = chart.addCandlestickSeries();
         var smaLineSeries = chart.addLineSeries({
             color: 'rgba(4, 111, 232, 1)',
@@ -275,9 +284,34 @@ class LiveBid extends React.Component {
                     this.showStaticChart();
                 }
             }, 1000);
+
+            setInterval(() => {
+                console.log(new Date().getSeconds())
+                if (new Date().getSeconds() % 59 == 0) {
+                    this.storeChartData();
+                }
+            },1000);
         }
 
+        // setTimeout(() => {
+        //     this.storeChartData();
+ 
+        // }, 2000);
 
+    }
+
+    
+    storeChartData =()=>{
+
+        AdminService.saveCandleHistory(this.state.symbolList)
+        .then((res) => {
+            if (res.data) {
+                console.log(res.data)
+            }
+        })
+        .catch((reject) => {
+        }).finally((ok) => {
+        })
     }
 
     getUpdateIndexData = () => {
@@ -436,13 +470,13 @@ class LiveBid extends React.Component {
             beginningTime = moment(new Date()).subtract(time);
         }
 
-        if(this.state.candleHistoryFlag){
+        if (this.state.candleHistoryFlag) {
             var time = moment.duration("1000:00:00");
-            if (this.state.timeFrame == 'ONE_MINUTE') 
-            time = moment.duration("100:00:00");
-            beginningTime = moment(new Date()).subtract(time);    
+            if (this.state.timeFrame == 'ONE_MINUTE')
+                time = moment.duration("100:00:00");
+            beginningTime = moment(new Date()).subtract(time);
         }
-       
+
         var data = {
             "exchange": "NSE",
             "symboltoken": token || this.state.token,
@@ -590,7 +624,7 @@ class LiveBid extends React.Component {
                 {/* <ChartDialog /> */}
                 <Grid direction="row" container>
 
-                    <Grid item xs={12} sm={12}>
+                    <Grid item xs={12} sm={6}>
 
                         <Paper style={{ padding: "10px" }}>
 
@@ -629,6 +663,40 @@ class LiveBid extends React.Component {
                                     <div id="showChartTitle"></div>
                                     <div id="tvchart"></div>
                                 </Grid>
+
+                                <Hidden xsDown>
+                                    <Paper style={{ padding: "10px" }} >
+
+                                        <b> Indicator Details </b> <br />
+
+                                        <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
+                                            item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
+                                        ))}
+
+
+                                        <br />
+                                        <b>Vol:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
+                                            <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item / 100000).toFixed(2)}L &nbsp;</span>
+                                        ))}
+
+                                        <br />
+                                        {this.state.bblastValue ? <span item xs={12} sm={12} >
+
+                                            <span title="Green color mean price running above upper bb band" style={{ color: this.state.livePrice >= this.state.bblastValue.upper ? "green" : "", fontWeight: "bold" }}>BB Upper: {this.state.bblastValue.upper.toFixed(2)}</span><br />
+                                            BB Middle(20 SMA): {this.state.bblastValue.middle.toFixed(2)}<br />
+                                            <span title="Green red mean price running below lower bb band" style={{ color: this.state.livePrice <= this.state.bblastValue.lower ? "red" : "", fontWeight: "bold" }}>BB Lower: {this.state.bblastValue.lower.toFixed(2)}</span><br />
+                                        </span> : ""}
+
+                                        <span item xs={12} sm={12} style={{ color: this.state.livePrice > this.state.vwapvalue ? "green" : "red", fontWeight: "bold" }}>
+                                            VWAP:  {this.state.vwapvalue && this.state.vwapvalue.toFixed(2)}
+                                        </span>
+
+
+                                        <br />  <br />
+
+
+                                    </Paper>
+                                </Hidden>
 
                                 {/* <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "40vh" }} >
                                 <Typography> <b> {this.state.lightChartSymbol} </b> </Typography>
@@ -674,11 +742,7 @@ class LiveBid extends React.Component {
                         </Paper>
                     </Grid>
 
-
-                </Grid>
-
-                <Grid direction="row" container>
-                    <Grid item xs={12} sm={12} >
+                    <Grid item xs={12} sm={6} >
 
                         <Paper style={{ padding: "10px" }} >
 
@@ -688,7 +752,7 @@ class LiveBid extends React.Component {
 
 
 
-                                <Grid item xs={8} sm={2} >
+                                <Grid item xs={8} sm={6} >
                                     <FormControl style={styles.selectStyle} >
                                         <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
                                         <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
@@ -707,13 +771,20 @@ class LiveBid extends React.Component {
 
                                         </Select>
                                     </FormControl>
+
                                 </Grid>
-                                <Grid item xs={4} sm={4} >
+                                <Grid item xs={4} sm={3} >
+                                    <Button variant="" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button>
+
+                                </Grid>
+
+
+                                <Grid item xs={4} sm={3} >
                                     <FormControl style={styles.selectStyle} >
-                                    <InputLabel htmlFor="candleHistoryFlag">Candle History</InputLabel>
+                                        <InputLabel htmlFor="candleHistoryFlag">Candle History</InputLabel>
                                         <Select value={this.state.candleHistoryFlag} name="candleHistoryFlag" onChange={this.onChangeWatchlist}>
-                                            
-                                            <MenuItem value={true}>{"Yes"}</MenuItem> 
+
+                                            <MenuItem value={true}>{"Yes"}</MenuItem>
                                             <MenuItem value={false}>{"No"}</MenuItem>
                                         </Select>
                                     </FormControl>
@@ -910,7 +981,6 @@ class LiveBid extends React.Component {
                             </Grid>
 
                             <Grid item xs={6} sm={6} >
-                                {/* <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button> */}
 
                                 <FormGroup>
                                     <FormControlLabel
@@ -919,47 +989,17 @@ class LiveBid extends React.Component {
                                     />
                                 </FormGroup>
                             </Grid>
-                           
 
-
-                        </Paper>
-
-                        <Paper style={{ padding: "10px" }} >
-
-                            <b> Indicator Details </b> <br />
-
-                            <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
-                                item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
-                            ))}
-
-
-                            <br />
-                            <b>Vol:</b> {this.state.valumeData && this.state.valumeData.map((item, j) => (
-                                <span style={{ color: item > this.state.dailyAvgValume ? "green" : "", fontWeight: item > this.state.dailyAvgValume ? "bold" : "" }}> {(item / 100000).toFixed(2)}L &nbsp;</span>
-                            ))}
-
-                            <br />
-                            {this.state.bblastValue ? <span item xs={12} sm={12} >
-
-                                <span title="Green color mean price running above upper bb band" style={{ color: this.state.livePrice >= this.state.bblastValue.upper ? "green" : "", fontWeight: "bold" }}>BB Upper: {this.state.bblastValue.upper.toFixed(2)}</span><br />
-                                BB Middle(20 SMA): {this.state.bblastValue.middle.toFixed(2)}<br />
-                                <span title="Green red mean price running below lower bb band" style={{ color: this.state.livePrice <= this.state.bblastValue.lower ? "red" : "", fontWeight: "bold" }}>BB Lower: {this.state.bblastValue.lower.toFixed(2)}</span><br />
-                            </span> : ""}
-
-                            <span item xs={12} sm={12} style={{ color: this.state.livePrice > this.state.vwapvalue ? "green" : "red", fontWeight: "bold" }}>
-                                VWAP:  {this.state.vwapvalue && this.state.vwapvalue.toFixed(2)}
-                            </span>
-
-
-                            <br />  <br />
 
 
                         </Paper>
+
+
 
                     </Grid>
 
-                   
-                
+
+
 
 
                 </Grid>

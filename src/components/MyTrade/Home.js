@@ -314,7 +314,7 @@ class Home extends React.Component {
 
         const domElement = document.getElementById('tvchart');
         document.getElementById('tvchart').innerHTML = '';
-        const chart = createChart(domElement, { width: 900, height: 400, timeVisible: true, secondsVisible: true, });
+        const chart = createChart(domElement, { width: 600, height: 400, timeVisible: true, secondsVisible: true, });
         const candleSeries = chart.addCandlestickSeries();
         var smaLineSeries = chart.addLineSeries({
             color: 'rgba(4, 111, 232, 1)',

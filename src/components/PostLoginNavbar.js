@@ -211,45 +211,45 @@ export default function PostLoginNavBar(props) {
                         </Grid>
 
                         <Hidden xsDown>
-                        <Grid item  >
+                            <Grid item  >
 
-                            <Grid
-                                justify="space-between"
-                                container
-                                spacing={2}
-                            >
+                                <Grid
+                                    justify="space-between"
+                                    container
+                                    spacing={2}
+                                >
 
-                                <Grid item  >
-                                    <Typography style={{ marginTop: '20px', fontSize: "12px" }} variant="h6" noWrap >
-                                        <span id="niftySpid"  > </span>  &nbsp;&nbsp;  <span id="bankniftySpid" onClick={() => props.LoadSymbolDetails("BANKNIFTY")} > </span>
-                                    </Typography>
+                                    <Grid item  >
+                                        <Typography style={{ marginTop: '20px', fontSize: "12px" }} variant="h6" noWrap >
+                                            <span id="niftySpid"  > </span>  &nbsp;&nbsp;  <span id="bankniftySpid" onClick={() => props.LoadSymbolDetails("BANKNIFTY")} > </span>
+                                        </Typography>
 
-                                </Grid>
+                                    </Grid>
 
-                                <Grid item>
-                                    <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput} />
-                                </Grid>
-                                <Grid item>
-                                    <TextField label="Qty" style={{ width: "50px" }} type="number" name="qtyToTake" value={values.qtyToTake} onChange={handleInputQty} />
-                                </Grid>
-                                <Grid item>
-                                    {values.buyFlag ? <Button variant="contained" color="primary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("BUY")}>Buy</Button> : <Spinner />}
-                                </Grid>
+                                    <Grid item>
+                                        <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput} />
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField label="Qty" style={{ width: "50px" }} type="number" name="qtyToTake" value={values.qtyToTake} onChange={handleInputQty} />
+                                    </Grid>
+                                    <Grid item>
+                                        {values.buyFlag ? <Button variant="contained" color="primary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("BUY")}>Buy</Button> : <Spinner />}
+                                    </Grid>
 
-                                <Grid item>
-                                    {values.sellFlag ? <Button variant="contained" color="secondary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("SELL")}>SELL</Button> : <Spinner />}
+                                    <Grid item>
+                                        {values.sellFlag ? <Button variant="contained" color="secondary" style={{ marginLeft: '10px', marginTop: '10px' }} onClick={() => handleClick("SELL")}>SELL</Button> : <Spinner />}
+                                    </Grid>
+
                                 </Grid>
 
                             </Grid>
-
-                        </Grid>
 
                         </Hidden>
 
                         <Hidden xsDown>
 
 
-                       
+
                             <Grid item >
 
                                 <Grid
@@ -260,25 +260,26 @@ export default function PostLoginNavBar(props) {
                                 >
 
                                     <Grid item>
-                                        <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/index-charts"}>
+                                        <Button variant="outlined"  color="primary" href={"/mtrade/#/market-depth-mobile"}>
+                                            Depth 
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Button variant="outlined" color="primary" href={"/mtrade/#/strong-charts"}>
                                             Charts <OpenInNewIcon />
                                         </Button>
                                     </Grid>
 
-                                    <Grid item>
-                                        <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/delivery"}>
-                                            Delivery <OpenInNewIcon />
-                                        </Button>
-                                    </Grid>
 
                                     <Grid item>
                                         <Button variant="outlined" target={'_blank'} color="primary" href={"/mtrade/#/sector-heat-map2"}>
-                                            Hit Map <OpenInNewIcon />
+                                            Sector <OpenInNewIcon />
                                         </Button>
                                     </Grid>
                                     <Grid item>
                                         <Button variant="outlined" color="primary" target={'_blank'} href={"/mtrade/#/find-fast-movement"}>
-                                            Fast Move <OpenInNewIcon />
+                                            Pattern <OpenInNewIcon />
                                         </Button>
                                     </Grid>
 

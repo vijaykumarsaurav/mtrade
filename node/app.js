@@ -692,14 +692,15 @@ return;
 
 app.post('/saveCandleHistory', function (req, res) {
 
-  var sql = "insert into candle (token,symbol, datetime, open, high,low,close, volume ) VALUES ?";
-  var data = req.body.data;
-  var token = req.body.token;
-  var symbol = req.body.symbol;
+  var sql = "insert into livedata (symbol, ltp, volume, totalbuybid, totalsellbid, dtime ) VALUES ?";
+  var data = req.body;
   var values = [];
 
+  console.log(data)
+
+
   data.forEach(element => {
-    values.push([token, symbol, new Date(element[0]), element[1], element[2], element[3], element[4], element[5]]);
+    values.push([element.symbol, element.ltp, element.pChange,  element.volume, element.totalBuyQuantity,element.totalSellQuantity, new Date(element[0])]);
   });
 
   con.query(sql, [values], function (err, result) {
