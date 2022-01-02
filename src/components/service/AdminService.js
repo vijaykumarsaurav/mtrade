@@ -79,6 +79,11 @@ class AdminService {
         return axios.post('http://localhost:8081/saveCandleHistory', data,  '');
      } 
 
+     backupHistoryData(data) {
+      return axios.post('http://localhost:8081/backupHistoryData', data,  '');
+   } 
+
+
    saveDeliveryData(data) {
       return axios.post('http://localhost:8081/store_delivery_data', data,  '');
    } 

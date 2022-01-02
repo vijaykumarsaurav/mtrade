@@ -159,6 +159,13 @@ export const AdminMenuList = (
       </ListItemIcon>
       <ListItemText primary="Backtest - Research" />
     </ListItem>
+
+    <ListItem button component='a' href={"/mtrade/#/backup-history"} >  
+      <ListItemIcon>
+        <FileCopyIcon />
+      </ListItemIcon>
+      <ListItemText primary="Backup History" />
+    </ListItem>
   
 
 

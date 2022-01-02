@@ -38,6 +38,7 @@ import MarketDepth from "./MyTrade/MarketDepth";
 import MarketDepthMobile from "./MyTrade/MarketDepthMobile";
 import Backtest from "./MyTrade/Backtest";
 import StrongCharts from "./MyTrade/StrongCharts";
+import BackupHistory from "./MyTrade/BackupHistory";
 
 
 
@@ -82,8 +83,9 @@ const AppRouter = () => {
                     <Route path="/market-depth-mobile" component={MarketDepthMobile}/>
 
                     <Route path="/backtest" component={Backtest}/>
+                    <Route path="/backup-history" component={BackupHistory}/>
 
-                    
+                      
                     <Route path="/test" component={Test}/>
                     
            

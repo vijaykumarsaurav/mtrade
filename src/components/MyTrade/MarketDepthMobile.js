@@ -46,7 +46,7 @@ class LiveBid extends React.Component {
         this.state = {
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
-            selectedWatchlist: 'Securities in F&O', //'Securities in F&O', 'NIFTY BANK'
+            selectedWatchlist: 'NIFTY BANK', //'Securities in F&O', 'NIFTY BANK'
             symbolList: [],
             actionList: localStorage.getItem('actionList') && JSON.parse(localStorage.getItem('actionList')) || [],
             timeFrame: "FIFTEEN_MINUTE",
@@ -178,6 +178,7 @@ class LiveBid extends React.Component {
                     symbolListArray[index].bestbuyprice = foundLive[0].bp;
                     symbolListArray[index].bestsellquantity = foundLive[0].bs;
                     symbolListArray[index].bestsellprice = foundLive[0].sp;
+                    symbolListArray[index].ltt = moment(foundLive[0].ltt,'YYYY-MM-DD HH:mm:ss' );
 
                     // symbolListArray[index].upperCircuitLimit = foundLive[0].ucl;
                     // symbolListArray[index].lowerCircuitLimit = foundLive[0].lcl;
@@ -203,7 +204,7 @@ class LiveBid extends React.Component {
                     if (this.state.token == element.token) {
                         this.setState({ livePrice: foundLive[0].ltp, livePChange: foundLive[0].nc })
                     }
-                    //console.log("ws onmessage: ", foundLive);
+                    //console.log("ws onmessage: ", foundLive[0]);
                 }
             });
 
@@ -286,17 +287,12 @@ class LiveBid extends React.Component {
             }, 1000);
 
             setInterval(() => {
-                console.log(new Date().getSeconds())
-                if (new Date().getSeconds() % 59 == 0) {
+                console.log('Save in :', new Date().getSeconds())
+                if (new Date().getSeconds() == 0) {
                     this.storeChartData();
                 }
             },1000);
         }
-
-        // setTimeout(() => {
-        //     this.storeChartData();
- 
-        // }, 2000);
 
     }
 

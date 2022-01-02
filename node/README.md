@@ -258,3 +258,7 @@ I give credits to https://github.com/kaushiknishchay/indian-stock-exchange, usin
 ### License
 
 The content of this repository is licensed under [MIT LICENSE](LICENSE).
+
+
+
+create table history (id bigint auto_increment primary key, symbol varchar(30), token varchar(10), datetime datetime, open float, high float, low float, close float, volume bigint)
