@@ -51,6 +51,8 @@ class LiveBid extends React.Component {
             actionList: localStorage.getItem('actionList') && JSON.parse(localStorage.getItem('actionList')) || [],
             timeFrame: "FIFTEEN_MINUTE",
             softedIndexList: [],
+            gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
+            looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
             cursor: '',
             candleHistoryFlag: false,
             lightChartSymbol: "Select Symbol for Chart",
@@ -358,6 +360,14 @@ class LiveBid extends React.Component {
     onChangeWatchlist = (e) => {
         this.setState({ [e.target.name]: e.target.value }, function () {
             var watchList = this.state.staticData[this.state.selectedWatchlist];
+
+            if (this.state.selectedWatchlist == "gainerList") {
+                watchList = localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList'));
+            }
+            if (this.state.selectedWatchlist == "looserList") {
+                watchList = localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList'));
+            }
+
             this.setState({ symbolList: watchList }, () => this.updateSocketWatch(this.wsClint));
         });
     }
@@ -753,15 +763,16 @@ class LiveBid extends React.Component {
                                         <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
                                         <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
                                             {/* <MenuItem value={"selectall"}>{"Select All"}</MenuItem> */}
-
+                                            <MenuItem value={"gainerList"}>{"Gainer List (" + this.state.gainerList.length + ")"}</MenuItem>
+                                             <MenuItem value={"looserList"}>{"Looser List (" + this.state.looserList.length + ")"}</MenuItem>
                                             {this.state.softedIndexList && this.state.softedIndexList.map(element => (
                                                 <MenuItem style={{ color: element.percChange > 0 ? "green" : "red" }} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
                                             ))
                                             }
-                                            {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                                            {/* {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
                                                 <MenuItem value={element}>{element}</MenuItem>
                                             ))
-                                            }π
+                                            } */}
                                             <MenuItem value={"Securities in F&O"}>{"Securities in F&O"}</MenuItem>
 
 

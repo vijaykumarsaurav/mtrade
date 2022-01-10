@@ -36,7 +36,6 @@ import LightChartMultiple from "./LightChartMultiple";
 import TextField from "@material-ui/core/TextField";
 import { createChart } from 'lightweight-charts';
 
-
 class Home extends React.Component {
     constructor(props) {
         super(props);
@@ -54,7 +53,28 @@ class Home extends React.Component {
             strongChartList: [],
             gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
             looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
-            sortBy: "perChange"
+            sortBy: "perChange",
+            softedIndexList: [],
+            sluglist: {
+                'NIFTY 50': 'nifty',
+                'NIFTY AUTO': 'cnxAuto',
+                'NIFTY BANK': 'bankNifty',
+                'NIFTY ENERGY': 'cnxEnergy',
+                'NIFTY FIN SERVICE': 'cnxFinance',
+                'NIFTY FMCG': 'cnxFMCG',
+                'NIFTY IT': 'cnxit',
+                'NIFTY MEDIA': 'cnxMedia',
+                'NIFTY METAL': 'cnxMetal',
+                'NIFTY PHARMA': 'cnxPharma',
+                'NIFTY PSU BANK': 'cnxPSU',
+                'NIFTY REALTY': 'cnxRealty',
+                'NIFTY PVT BANK': 'niftyPvtBank',
+                'NIFTY CONSUMPTION': 'cnxConsumption',
+                'NIFTY CPSE': 'cpse',
+                'NIFTY INFRA': 'cnxInfra',
+                'NIFTY MNC': 'cnxMNC',
+                'NIFTY PSE': 'cnxPSE',
+            },
 
         };
     }
@@ -99,7 +119,9 @@ class Home extends React.Component {
         }, 1000);
 
 
-        this.findStrongCharts();
+        this.getUpdateIndexData()
+      //  this.findStrongCharts();
+
 
     }
 
@@ -401,13 +423,9 @@ class Home extends React.Component {
 
         this.state.strongChartList.sort(function (a, b) {
             return b[type] - a[type];
-        });
-
-        // volumeWithPrice 
-
+        }); 
 
         this.setState({ strongChartList: this.state.strongChartList, sortBy: type }, function () {
-
             if (document.getElementById("allchart")) {
                 document.getElementById("allchart").innerHTML = ''
             }
@@ -416,6 +434,88 @@ class Home extends React.Component {
                 this.createMultpleChart(element);
             }
         })
+    }
+
+    getUpdateIndexData = () => {
+        this.setState({ softedIndexList: [] })
+        AdminService.allIndicesDirectJSON()
+            .then((res) => {
+
+                if (res.data) {
+
+                    var softedData = res.data && res.data.data;
+                    softedData.sort(function (a, b) {
+                        return b.percChange - a.percChange;
+                    });
+
+                    for (let index = 0; index < softedData.length; index++) {
+                        const element = softedData[index];
+                        var slugName = this.state.sluglist[element.indexName];
+                        if (slugName) {
+                            this.setState({ softedIndexList: [...this.state.softedIndexList, element] } ,()=>{
+                              
+                            } );
+                        }
+                    }
+                    
+                    this.findStrongCharts()
+                }
+            })
+            .catch((reject) => {
+                // Notify.showError("All Indices API Failed");
+            }).finally((ok) => {
+            })
+    }
+
+    filterByVolumePrice=(type)=>{
+
+        if (document.getElementById("allchart")) {
+            document.getElementById("allchart").innerHTML = ''
+        }
+
+        let filteredList = []; 
+        for (let index = 0; index < this.state.strongChartList.length; index++) {
+            const element = this.state.strongChartList[index];
+            let candledata =  element.candleChartData;
+            if(element.candleChartData.length){
+                let lastCandle =  candledata[candledata.length - 1];
+                let lastCanPrs =  (lastCandle[4] - lastCandle[1])*100/lastCandle[1];
+                let secondCandle =  candledata[candledata.length - 2];
+                let secondCandlePer =  (secondCandle[4] - secondCandle[1])*100/secondCandle[1];
+               // this.state.timeFrame
+    
+               if(type === 'volumeWithPriceBuy'){
+                    if(element.candleVolBrokenCount > 9 && (lastCanPrs >= 0.3 || secondCandlePer  >= 0.3)){
+                        filteredList.push(element); 
+                        console.log(element.name, element.candleVolBrokenCount,  lastCanPrs,  secondCandlePer);
+                    }  
+                }
+
+                if(type === 'volumeWithPriceSell'){
+                    if(element.candleVolBrokenCount > 9 && (lastCanPrs <= -0.3 || secondCandlePer  <= -0.3)){
+                        filteredList.push(element); 
+                        console.log(element.name,type, element.candleVolBrokenCount,  lastCanPrs,  secondCandlePer);
+                    }  
+                }
+            }
+           
+        }
+
+        
+        // this.setState({ strongChartList:filteredList, sortBy: type }, function () { 
+        //     for (let index = 0; index < this.state.strongChartList.length; index++) {
+        //         const element = this.state.strongChartList[index];
+        //         this.createMultpleChart(element);
+        //     }
+        // })
+
+ 
+        for (let index = 0; index < filteredList.length; index++) {
+            const element = this.state.strongChartList[index];
+            this.createMultpleChart(element);
+        }
+       
+            
     }
 
 
@@ -463,6 +563,7 @@ class Home extends React.Component {
         }
         this.setState({ totalStockToWatch: watchList && watchList.length });
 
+        console.log("select wathlist",watchList)
 
         if (watchList && watchList.length) {
             for (let index = 0; index < watchList.length; index++) {
@@ -498,7 +599,7 @@ class Home extends React.Component {
                         let changePer = (lastCandle[4] - lastCandle[1]) * 100 / lastCandle[1];
                         let candleDistance = lastCandle[2] - lastCandle[3]; //high - low
                         let strongPer = ((lastCandle[4] - lastCandle[3]) * 100) / candleDistance; // close-low*100/distance 
-                        console.log(watchList[index].symbol, candleData[candleData.length - 1], strongPer);
+//                        console.log(watchList[index].symbol, candleData[candleData.length - 1], strongPer);
 
                         if (true) {   //changePer >= 0.3 ||  changePer <= -0.3
                             candleData.forEach((element, loopindex) => {
@@ -559,7 +660,7 @@ class Home extends React.Component {
                                 }
                             }
 
-                            console.log(watchList[index].symbol, candleVolBrokenCount)
+                          //  console.log(watchList[index].symbol, candleVolBrokenCount)
 
 
                             var dataltp = {
@@ -597,7 +698,6 @@ class Home extends React.Component {
                                     let sortBy = this.state.sortBy;
 
                                     this.setState({ strongChartList: [...this.state.strongChartList, data] }, function () {
-
 
                                         this.state.strongChartList && this.state.strongChartList.sort(function (a, b) {
                                             return b[sortBy] - a[sortBy];
@@ -696,8 +796,9 @@ class Home extends React.Component {
                         <Button title='previous volume broken count' style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('candleVolBrokenCount')}>VolumeBC</Button>
                         <Button style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('perChange')}>perChange</Button>
 
-                        <Button title='' style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('volumeWithPrice')}>VP BO</Button>
-                        
+                        FilterBy:<Button title=' 9 or more candles volume with price >= 0.3 breakout ' style={{ marginRight: '20px' }} onClick={() => this.filterByVolumePrice('volumeWithPriceBuy')}>Buy V+P</Button>
+                        <Button title=' 9 or more candles volume with price >= 0.3 breakout ' style={{ marginRight: '20px' }} onClick={() => this.filterByVolumePrice('volumeWithPriceSell')}>Sell V+P</Button>
+
                     </Grid>
                     <Grid item xs={12} sm={1} >
                         <FormControl style={styles.selectStyle} >
@@ -722,11 +823,17 @@ class Home extends React.Component {
                                 <MenuItem value={"gainerList"}>{"Gainer List (" + this.state.gainerList.length + ")"}</MenuItem>
                                 <MenuItem value={"looserList"}>{"Looser List (" + this.state.looserList.length + ")"}</MenuItem>
 
-                                <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
-                                {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                                {/* <MenuItem value={"selectall"}>{"Select All"}</MenuItem> */}
+                                {this.state.softedIndexList && this.state.softedIndexList.map(element => (
+                                                <MenuItem style={{ color: element.percChange > 0 ? "green" : "red" }} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
+                                            ))
+                                            }
+                              
+                                {/* {
+                                this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
                                     <MenuItem value={element}>{element}</MenuItem>
                                 ))
-                                }
+                                } */}
                             </Select>
                         </FormControl>
                     </Grid>
@@ -761,7 +868,7 @@ class Home extends React.Component {
                     </Grid> */}
 
                     <Grid item xs={12} sm={2} >
-                        <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.findStrongCharts()}>Start</Button>
+                        <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Start</Button>
                         <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.stopSearching()}>Stop</Button>
                     </Grid>
 

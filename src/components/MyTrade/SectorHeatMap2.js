@@ -299,7 +299,7 @@ class MyView extends React.Component {
 
                                 if (element.percChange >= 0.75 || (softedData[index].indexName == "NIFTY 50" && element.percChange >= 0.25)) {
 
-                                    for (let indexStock = 0; indexStock < res.data.data.length - 5; indexStock++) {
+                                    for (let indexStock = 0; indexStock < res.data.data.length - 3; indexStock++) {
                                         const stockElement = res.data.data[indexStock];
                                         var stockInfo = {
                                             name: stockElement.symbol,
