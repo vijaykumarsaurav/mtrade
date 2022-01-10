@@ -45,8 +45,6 @@ export const AdminMenuList = (
       <ListItemText primary="Strong Charts" />
     </ListItem>
 
-
-
     <ListItem button component='a' href={"/mtrade/#/delivery"} >  
       <ListItemIcon>
         <ShowChartIcon />

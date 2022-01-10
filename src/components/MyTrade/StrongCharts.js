@@ -54,7 +54,7 @@ class Home extends React.Component {
             strongChartList: [],
             gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
             looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
-
+            sortBy : "perChange"
 
         };
     }
@@ -79,7 +79,7 @@ class Home extends React.Component {
             var time = new Date();
             //console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());
             if (time.getMinutes() % 10 === 0) {
-                console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());
+              //  console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());
 
                 setTimeout(() => {
                     this.findStrongCharts();
@@ -105,7 +105,7 @@ class Home extends React.Component {
 
 
     stopSearching = () => {
-        console.log("stop the search")
+        //console.log("stop the search")
         clearInterval(this.state.strongChartListInterval);
         clearInterval(this.state.stop10bbSearch);
 
@@ -264,7 +264,7 @@ class Home extends React.Component {
         }
 
     
-        let str = row.name + " " + row.ltp + " ("+ row.perChange +'%) <br />';
+        let str = row.name + " " + row.ltp + " ("+ row.perChange +'%)  &nbsp;&nbsp; <b title="previous volume broken count" >VBC:  '+row.candleVolBrokenCount+' </b><br />';
 
         str += '<span style="color:black">Emotions: </span> ';
         if(row.strongPer){
@@ -299,7 +299,6 @@ class Home extends React.Component {
 
         const chart = createChart(div, { width: this.state.chartSize, height: this.state.chartSize, timeVisible: true, secondsVisible: true });
 
-        
         var candleSeries = chart.addCandlestickSeries({
             upColor: 'green',
             downColor: 'red',
@@ -362,7 +361,7 @@ class Home extends React.Component {
 			}
 
 			if (param.time)
-				string += " Time:<b> " + new Date(param.time).toLocaleString()+ "</b>" ;
+				string += " Time:<b> " +   moment(param.time).format("DD-MM-YYYY hh:mm A") + "</b>" ;
 
 			var str = "<span style=color:green>" + string + "</span> ";
 			if (change < 0)
@@ -371,7 +370,7 @@ class Home extends React.Component {
              legendTitle.innerHTML = str;
 		});
     
-        this.sortTheChart(); 
+      //  this.sortTheChart(); 
     }
 
     
@@ -383,7 +382,7 @@ class Home extends React.Component {
         function getItem(name){
                 document.querySelector('#allchart').childNodes.forEach(function(e){
                     if(e.innerText && e.innerText.split(' ')[0] == name){ 
-                        console.log("item",name, e.innerText.split(' ')[0], e)
+                     //   console.log("item",name, e.innerText.split(' ')[0], e)
                         allchart.appendChild(e); 
                         createNewArray.push(e);   
                      //   return e; 
@@ -398,12 +397,33 @@ class Home extends React.Component {
 
     }
 
+    shortByVolume =(type)=> {
+        
+       this.state.strongChartList.sort(function (a, b) {
+            return b[type] - a[type];
+       });
+       
+      // volumeWithPrice 
+
+
+       this.setState({  strongChartList  : this.state.strongChartList, sortBy : type },function(){
+                      
+                if(document.getElementById("allchart")){
+                    document.getElementById("allchart").innerHTML = ''
+                } 
+                for (let index = 0; index < this.state.strongChartList.length; index++) {
+                    const element = this.state.strongChartList[index];
+                    this.createMultpleChart(element);
+                }
+       })
+    }
+
 
     updateToLocalStorage = (row) => {
 
         let foundAt = new Date(row.foundAt).toLocaleString();
         var isfound = this.state.fastMovementList.filter(element => (element.token == row.token && element.foundAt == foundAt));
-        console.log("isfound", isfound);
+      //  console.log("isfound", isfound);
         if (!isfound.length) {
             var updateData = {
                 token: row.token,
@@ -463,7 +483,7 @@ class Home extends React.Component {
                     "fromdate": moment(startDate).format(format1),
                     "todate": moment(new Date()).format(format1) //moment(this.state.endDate).format(format1) /
                 }
-
+               
                 AdminService.getHistoryData(data).then(res => {
                     let histdata = resolveResponse(res, 'noPop');
                     // console.log("candle history", histdata);
@@ -525,6 +545,21 @@ class Home extends React.Component {
                             const lightChartData = candleData.map(d => {
                                 return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
                             });
+
+                            let candleVolBrokenCount = 0 , lastVol = valumeData[valumeData.length-1]; 
+                            if(valumeData && valumeData.length){
+                                valumeData.reverse();
+                                for (let indexVol = 1; indexVol < valumeData.length; indexVol++){
+                                    const volelement = valumeData[indexVol];
+                                    if(volelement <  lastVol){
+                                        candleVolBrokenCount++;  
+                                    }else {
+                                        break; 
+                                    }                    
+                                }
+                            }
+                
+                            console.log(watchList[index].symbol,  candleVolBrokenCount)
     
     
                             var dataltp = {
@@ -551,17 +586,23 @@ class Home extends React.Component {
                                         name: watchList[index].name, //index+1 +'. '+ 
                                         lightChartData: lightChartData,
                                         volumeSeriesData: volumeSeriesData, 
-                                        strongPer: strongPer
+                                        strongPer: strongPer,
+                                        candleVolBrokenCount :candleVolBrokenCount
                                     }
+
+                                   
     
                                     data.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
                                     data.ltp = LtpData.ltp;
-    
+                                    let sortBy = this.state.sortBy; 
+
                                     this.setState({ strongChartList: [...this.state.strongChartList, data] }, function(){
                                       
+                                        
                                         this.state.strongChartList && this.state.strongChartList.sort(function (a, b) {
-                                            return b.perChange - a.perChange;
+                                            return b[sortBy] - a[sortBy];
                                         });
+
                                         this.createMultpleChart(data);
                                         
                                     });
@@ -599,7 +640,7 @@ class Home extends React.Component {
 
     handleClick = (row, type, spinnerIndex) => {
 
-        console.log(row);
+     //   console.log(row);
         if (row.token && row.symbol) {
             if (type == 'BUY') {
                 this.setState({ [spinnerIndex]: true });
@@ -608,7 +649,7 @@ class Home extends React.Component {
                     symbol: row.symbol,
                     qtyToTake: this.state.qtyToTake
                 }
-                console.log(symbolInfo);
+             //   console.log(symbolInfo);
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
                 this.setState({ [spinnerIndex]: false });
 
@@ -621,7 +662,7 @@ class Home extends React.Component {
                     symbol: row.symbol,
                     qtyToTake: this.state.qtyToTake
                 }
-                console.log(symbolInfo);
+             //   console.log(symbolInfo);
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
                 this.setState({ [spinnerIndex]: false });
             }
@@ -718,7 +759,18 @@ class Home extends React.Component {
                         <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.stopSearching()}>Stop</Button>
                     </Grid>
 
+
+                    <Grid item xs={12} sm={12} >
+                        Sorted By: <b>{this.state.sortBy}</b>
+                        <Button title='previous volume broken count' style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('candleVolBrokenCount')}>VolumeBC</Button>
+                        <Button style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('perChange')}>perChange</Button>
+                       
+                        <Button title='' style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('volumeWithPrice')}>Volume with price BO</Button>
+
+                    </Grid>
                 </Grid>
+
+
 
 
                 <Grid container spacing={2} style={{padding:'10px'}} id="allchart" >

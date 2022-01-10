@@ -730,7 +730,7 @@ app.post('/saveCandleHistory', function (req, res) {
 
 app.post('/backupHistoryData', function (req, res) {
 
-  var sql = "insert into history (symbol,token, datetime, open, high, low, close, volume  ) VALUES ?";
+  var sql = "insert into intraday (symbol,token, datetime, open, high, low, close, volume  ) VALUES ?";
   var data = req.body.candleData;
   var symbol = req.body.symbol;
   var token = req.body.token;
@@ -749,7 +749,7 @@ app.post('/backupHistoryData', function (req, res) {
     console.log(values.length, " record inserted at", new Date());
 
     if(analysis){
-      var selectedSql = "select * from history where symbol='"+ symbol +"' order by datetime desc limit 100;";
+      var selectedSql = "select * from intraday where symbol='"+ symbol +"' order by datetime desc limit 100;";
 
       //console.log(symbol, selectedSql);
       con.query(selectedSql, function (err, result) {

@@ -37,7 +37,7 @@ class Home extends React.Component {
             symbolList: localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')) || [],
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
-            selectedWatchlist: 'NIFTY BANK', //'Securities in F&O',
+            selectedWatchlist: 'NIFTY 50', //'Securities in F&O',
             stopScaningFlag: false,
             backTestResultDateRange: [],
             searchFailed: 0,
@@ -142,7 +142,7 @@ class Home extends React.Component {
 
         console.log("last candle called time", new Date().toLocaleTimeString());
         var stop = new Date().toLocaleTimeString() > "15:00:00" ? clearInterval(this.state.candleHistoryInterval) : "";
-        var timediff = moment.duration("57:01:00");
+        var timediff = moment.duration("00:01:00");
         this.setState({ backupHistoryStatus: [] });
 
         const format1 = "YYYY-MM-DD HH:mm";
