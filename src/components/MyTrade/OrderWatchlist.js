@@ -23,7 +23,6 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 import BankNiftyView from './BankNiftyView'
 import OptionBuyWithSPLevel from './OptionBuyWithSPLevel'
-
 class OrderBook extends React.Component{
 
     constructor(props) {
@@ -304,6 +303,24 @@ class OrderBook extends React.Component{
 
     }
 
+    getChunkPrice = (price) => {
+     return Math.round(price/100) / 10;
+    }
+
+    suggestBuyPrice =(price)=> {
+        if(price){
+        
+            this.setState({buyAtPending : (price + this.getChunkPrice(price)).toFixed(2) }); 
+
+        }
+    }
+
+    suggestSellPrice =(price)=>{
+        if(price){
+            this.setState({sellAtPending :   (price -  this.getChunkPrice(price)).toFixed(2)  }); 
+        }
+    }
+
     buyOption =(optiontype ,symbol, strikePrice, expiryDate, noOfLot)=>{
       console.log(optiontype ,symbol, strikePrice, expiryDate); 
       let exp = expiryDate.toUpperCase().split('-'); 
@@ -386,20 +403,20 @@ class OrderBook extends React.Component{
 
             {window.location.hash == "#/order-watchlist" ? <PostLoginNavBar/> : ""}
 
-             <OptionBuyWithSPLevel  buyOption={this.buyOption} />
+            {window.location.hash == "#/order-watchlist" ?  <OptionBuyWithSPLevel  buyOption={this.buyOption} /> : ""}
+
+            
 
              <Paper style={{ overflow: "auto", padding: '5px',  background:"#d4ffe0"}} >
-
-                <Grid justify="space-between"
-                    container>
-                    <Grid item> 
-                        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+             <Typography  color="primary" gutterBottom>
                         Orders Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
                         {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
                         {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
                         </Typography> 
-
-                    </Grid>
+                        
+                <Grid justify="space-between"
+                    container>
+                  
 
                    
 
@@ -438,11 +455,15 @@ class OrderBook extends React.Component{
                             
                             <Grid item  >
                                 <TextField label="BuyAt(limit)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
-                              <br /> High: {this.state.lastTradedData.high}
+                              <br /> High: {this.state.lastTradedData.high} 
+                              <Button size="small"  style={{color: "blue"}} onClick={() => this.suggestBuyPrice(this.state.lastTradedData.high)}> Suggest Price </Button>
+
                             </Grid>
                             <Grid item  >
                                 <TextField label="SellAt(limit)" type="number" name="sellAtPending" value={this.state.sellAtPending} onChange={this.updateInput} />
                                 <br /> Low: {this.state.lastTradedData.low}
+                                <Button size="small"  style={{color: "blue"}} onClick={() => this.suggestSellPrice(this.state.lastTradedData.low)}> Suggest Price </Button>
+
                             </Grid>
                             <Grid item  >
                                 <TextField label="Which Pattern" name="pattenNamePending" value={this.state.pattenNamePending} onChange={this.updateInput} />
@@ -514,25 +535,15 @@ class OrderBook extends React.Component{
 
                 </Paper>
 
-                <br />
 
-                <Paper style={{ overflow: "auto", padding: '5px'}} > 
-                    <Grid item> 
-                        <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                          Option Chain (Equity Derivatives)
-                        </Typography> 
-
-
-                    </Grid>
-
-
-                        <BankNiftyView buyOption={this.buyOption} />
-                </Paper>
-
+                {window.location.hash == "#/order-watchlist" ?  
+                 <Paper style={{ overflow: "auto", padding: '5px'}} > 
+                     <Typography color="primary" gutterBottom>
+                       Option Chain (Equity Derivatives)
+                     </Typography>
+                     <BankNiftyView buyOption={this.buyOption} /> 
+                 </Paper>: ""}
                
-
-
-         
 
             </React.Fragment> 
         )

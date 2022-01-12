@@ -652,7 +652,7 @@ class MyView extends React.Component {
                 <Grid direction="row" container className="flexGrow" spacing={0} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
 
 
-                    <Grid id="tabledatachart" item xs={3} sm={3} style={{ padding: "2px", overflow: "auto", height: "250px" }}>
+                    <Grid id="tabledatachart" item xs={6} sm={6} style={{ padding: "2px", overflow: "auto", height: "250px" }}>
                         <Table id="tabledata" stickyHeader aria-label="sticky table" size="small">
                             <TableHead key={2222} variant="head" style={{ width: "", whiteSpace: "nowrap" }}>
                                 <TableRow variant="head">
@@ -700,12 +700,12 @@ class MyView extends React.Component {
                         </Table>
 
                     </Grid>
-                    <Grid item xs={4} sm={4} style={{ padding: "2px", overflow: "auto", height: "300px" }}>
+                    <Grid item xs={6} sm={6} style={{ padding: "2px", overflow: "auto", height: "300px" }}>
 
                         <Chart diffData={{ data: this.state.products, scrollcount: this.state.scrollcount }} />
                     </Grid>
 
-                    <Grid item xs={3} sm={3} style={{ padding: "2px", overflow: "auto", height: "250px" }}>
+                    {/* <Grid item xs={3} sm={3} style={{ padding: "2px", overflow: "auto", height: "250px" }}>
                         <Table style={{ borderLeft: 'dashed', borderRight: 'dashed', fontWeight: '500' }} id="tabledata" stickyHeader aria-label="sticky table" id="tabledata" size="small">
 
                             <TableHead style={{}} variant="head">
@@ -760,7 +760,7 @@ class MyView extends React.Component {
                             </TableBody>
                         </Table>
 
-                    </Grid>
+                    </Grid> */}
 
 
                     <Grid item xs={12} sm={12} style={{ padding: "2px", overflow: "auto", height: "900px" }}>

@@ -423,7 +423,7 @@ class OrderBook extends React.Component{
                 <Grid justify="space-between"
                     container>
                     <Grid item> 
-                        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                        <Typography  color="primary" gutterBottom>
                         Option Buy At Level Watchlist ({this.state.orderPenidngOptionList && this.state.orderPenidngOptionList.length}) 
                         {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
                         {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}

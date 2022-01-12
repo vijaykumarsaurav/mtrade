@@ -266,7 +266,7 @@ export default function PostLoginNavBar(props) {
                                     </Grid>
 
                                     <Grid item>
-                                        <Button variant="outlined" color="primary" href={"/mtrade/#/strong-charts"}>
+                                        <Button variant="outlined"  target={'_blank'}  color="primary" href={"/mtrade/#/strong-charts"}>
                                             Charts <OpenInNewIcon />
                                         </Button>
                                     </Grid>
@@ -284,16 +284,18 @@ export default function PostLoginNavBar(props) {
                                     </Grid>
 
                                     <Grid item>
+                                        <Button variant="contained" autoFocus href={"/mtrade/#/order-watchlist"} color="primary">
+                                            Order Watchlist
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid item>
                                         <Button variant="contained" autoFocus href={"/mtrade/#/position"} color="primary">
                                             Position
                                         </Button>
                                     </Grid>
 
-                                    <Grid item>
-                                        <Button variant="contained" autoFocus href={"/mtrade/#/home"} color="primary">
-                                            Home
-                                        </Button>
-                                    </Grid>
+                                  
 
 
 

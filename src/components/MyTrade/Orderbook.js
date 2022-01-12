@@ -130,7 +130,7 @@ class OrderBook extends React.Component{
 
                 <Grid spacing={1}  direction="row" alignItems="center" container>
                                 <Grid item xs={12} sm={6} >
-                                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                                    <Typography color="primary" gutterBottom>
                                          Oders Placed ({this.state.oderbookData.length}) 
                                     </Typography> 
                                 </Grid>

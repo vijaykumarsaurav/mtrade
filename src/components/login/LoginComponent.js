@@ -155,7 +155,7 @@ class LoginComponent extends React.Component{
                     
                                 localStorage.setItem('watchList', JSON.stringify(watchlist));
 
-                                window.location.replace('#/home')
+                                window.location.replace('#/strong-charts')
 
                             });
 

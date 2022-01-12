@@ -14,7 +14,6 @@ import TableBody from "@material-ui/core/TableBody";
 import * as moment from 'moment';
 import OrderBook from './Orderbook';
 import TradeConfig from './TradeConfig.json';
-import ChartDialog from './ChartDialog';
 import ChartMultiple from './ChartMultiple';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import EqualizerIcon from '@material-ui/icons/Equalizer';
@@ -35,6 +34,8 @@ import LightChart from "./LightChart";
 import LightChartMultiple from "./LightChartMultiple";
 import TextField from "@material-ui/core/TextField";
 import { createChart } from 'lightweight-charts';
+import OrderWatchlistDialog from './OrderWatchlistDialog'
+
 
 class Home extends React.Component {
     constructor(props) {
@@ -120,7 +121,7 @@ class Home extends React.Component {
 
 
         this.getUpdateIndexData()
-      //  this.findStrongCharts();
+        //  this.findStrongCharts();
 
 
     }
@@ -130,6 +131,8 @@ class Home extends React.Component {
         //console.log("stop the search")
         clearInterval(this.state.strongChartListInterval);
         clearInterval(this.state.stop10bbSearch);
+        this.setState({ stopChart: true })
+
 
     }
 
@@ -286,7 +289,7 @@ class Home extends React.Component {
         }
 
 
-        let str = row.name + " " + row.ltp + " (" + row.perChange + '%)  &nbsp;&nbsp; <b title="previous volume broken count" >VBC:  ' + row.candleVolBrokenCount + ' </b><br />';
+        let str = row.name + " " + row.ltp + " (<b>" + row.perChange + '%</b>)  &nbsp;&nbsp; <b title="previous volume broken count" >VBC:  ' + row.candleVolBrokenCount + ' </b><br />';
 
         str += '<span style="color:black">Emotions: </span> ';
         if (row.strongPer) {
@@ -419,11 +422,14 @@ class Home extends React.Component {
 
     }
 
-    shortByVolume = (type) => {
+    shortByVolume = (type, emotions) => {
 
         this.state.strongChartList.sort(function (a, b) {
-            return b[type] - a[type];
-        }); 
+            if (emotions === 'selling')
+                return a[type] - b[type];
+            else
+                return b[type] - a[type];
+        });
 
         this.setState({ strongChartList: this.state.strongChartList, sortBy: type }, function () {
             if (document.getElementById("allchart")) {
@@ -434,6 +440,14 @@ class Home extends React.Component {
                 this.createMultpleChart(element);
             }
         })
+
+        if (type === 'strongPer' && emotions === 'selling') {
+            this.setState({ sortBy: "Selling%" })
+        } else if (type === 'strongPer') {
+            this.setState({ sortBy: "Buying%" })
+        }
+
+        this.setState({ filterByCount: this.state.strongChartList.length + ' Stocks Found' })
     }
 
     getUpdateIndexData = () => {
@@ -452,12 +466,12 @@ class Home extends React.Component {
                         const element = softedData[index];
                         var slugName = this.state.sluglist[element.indexName];
                         if (slugName) {
-                            this.setState({ softedIndexList: [...this.state.softedIndexList, element] } ,()=>{
-                              
-                            } );
+                            this.setState({ softedIndexList: [...this.state.softedIndexList, element] }, () => {
+
+                            });
                         }
                     }
-                    
+
                     this.findStrongCharts()
                 }
             })
@@ -467,41 +481,48 @@ class Home extends React.Component {
             })
     }
 
-    filterByVolumePrice=(type)=>{
+    filterByVolumePrice = (type) => {
 
         if (document.getElementById("allchart")) {
             document.getElementById("allchart").innerHTML = ''
         }
 
-        let filteredList = []; 
+        let filteredList = [];
+
         for (let index = 0; index < this.state.strongChartList.length; index++) {
             const element = this.state.strongChartList[index];
-            let candledata =  element.candleChartData;
-            if(element.candleChartData.length){
-                let lastCandle =  candledata[candledata.length - 1];
-                let lastCanPrs =  (lastCandle[4] - lastCandle[1])*100/lastCandle[1];
-                let secondCandle =  candledata[candledata.length - 2];
-                let secondCandlePer =  (secondCandle[4] - secondCandle[1])*100/secondCandle[1];
-               // this.state.timeFrame
-    
-               if(type === 'volumeWithPriceBuy'){
-                    if(element.candleVolBrokenCount > 9 && (lastCanPrs >= 0.3 || secondCandlePer  >= 0.3)){
-                        filteredList.push(element); 
-                        console.log(element.name, element.candleVolBrokenCount,  lastCanPrs,  secondCandlePer);
-                    }  
+            let candledata = element.candleChartData;
+            if (element.candleChartData.length >= 1) {
+                let lastCandle = candledata[candledata.length - 1];
+                if (lastCandle)
+                    var lastCanPrs = (lastCandle[4] - lastCandle[1]) * 100 / lastCandle[1];
+                let secondCandle = candledata[candledata.length - 2];
+                if (secondCandle)
+                    var secondCandlePer = (secondCandle[4] - secondCandle[1]) * 100 / secondCandle[1];
+                // this.state.timeFrame
+
+                if (type === 'Buy V+P') {
+                    console.log("Buy V+P section")
+                    if (element.candleVolBrokenCount > 9 && (lastCanPrs >= 0.5)) {  //|| secondCandlePer  >= 0.3
+                        filteredList.push(element);
+                        console.log(element.name, element.candleVolBrokenCount, lastCanPrs, secondCandlePer);
+                    }
                 }
 
-                if(type === 'volumeWithPriceSell'){
-                    if(element.candleVolBrokenCount > 9 && (lastCanPrs <= -0.3 || secondCandlePer  <= -0.3)){
-                        filteredList.push(element); 
-                        console.log(element.name,type, element.candleVolBrokenCount,  lastCanPrs,  secondCandlePer);
-                    }  
+                if (type === 'Sell V+P') {
+                    console.log("Sell V+P section", lastCanPrs)
+
+                    if (element.candleVolBrokenCount > 9 && (lastCanPrs <= -0.5)) { // || secondCandlePer  <= -0.3
+                        filteredList.push(element);
+                        console.log(element.name, type, element.candleVolBrokenCount, lastCanPrs, secondCandlePer);
+                    }
                 }
             }
-           
-        }
 
-        
+        }
+        console.log("filteredList", filteredList)
+
+
         // this.setState({ strongChartList:filteredList, sortBy: type }, function () { 
         //     for (let index = 0; index < this.state.strongChartList.length; index++) {
         //         const element = this.state.strongChartList[index];
@@ -509,13 +530,14 @@ class Home extends React.Component {
         //     }
         // })
 
- 
+
         for (let index = 0; index < filteredList.length; index++) {
-            const element = this.state.strongChartList[index];
+            const element = filteredList[index];
             this.createMultpleChart(element);
         }
-       
-            
+        this.setState({ filterBy: type, filterByCount: filteredList.length + ' Stocks Found' })
+
+
     }
 
 
@@ -561,9 +583,9 @@ class Home extends React.Component {
         if (this.state.selectedWatchlist == "selectall") {
             watchList = localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList'));
         }
-        this.setState({ totalStockToWatch: watchList && watchList.length });
+        this.setState({ totalStockToWatch: watchList && watchList.length, stopChart: false });
 
-        console.log("select wathlist",watchList)
+        console.log("select wathlist", watchList)
 
         if (watchList && watchList.length) {
             for (let index = 0; index < watchList.length; index++) {
@@ -576,6 +598,10 @@ class Home extends React.Component {
                 let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
                 var time = moment.duration("1000:00:00");  //22:00:00" for last day  2hours  timeDuration
                 var startDate = moment(new Date()).subtract(timeDuration);
+
+                if (this.state.stopChart) {
+                    break;
+                }
 
                 var data = {
                     "exchange": watchList[index].exch_seg,
@@ -599,7 +625,7 @@ class Home extends React.Component {
                         let changePer = (lastCandle[4] - lastCandle[1]) * 100 / lastCandle[1];
                         let candleDistance = lastCandle[2] - lastCandle[3]; //high - low
                         let strongPer = ((lastCandle[4] - lastCandle[3]) * 100) / candleDistance; // close-low*100/distance 
-//                        console.log(watchList[index].symbol, candleData[candleData.length - 1], strongPer);
+                        //                        console.log(watchList[index].symbol, candleData[candleData.length - 1], strongPer);
 
                         if (true) {   //changePer >= 0.3 ||  changePer <= -0.3
                             candleData.forEach((element, loopindex) => {
@@ -660,7 +686,7 @@ class Home extends React.Component {
                                 }
                             }
 
-                          //  console.log(watchList[index].symbol, candleVolBrokenCount)
+                            //  console.log(watchList[index].symbol, candleVolBrokenCount)
 
 
                             var dataltp = {
@@ -781,25 +807,42 @@ class Home extends React.Component {
                 <PostLoginNavBar />
 
                 <br />
-                <ChartDialog /> <ChartMultiple />
 
                 <Grid justify="space-between"
                     container spacing={1}>
+                   
 
-                    <Grid item xs={12} sm={6} >
-                        <Typography color="primary" gutterBottom>
+
+                    <Grid item xs={12} sm={5} >
+
+                        <Typography color="primary" >
                             &nbsp; {this.state.selectedWatchlist} ({this.state.strongChartList && this.state.strongChartList.length})
+                            &nbsp; Sorted: <span style={{ color: 'blue' }}>{this.state.sortBy} </span>
+                            &nbsp; Filter: <span style={{ color: 'blue' }}>{this.state.filterBy} </span>
                             <span id="stockTesting" style={{ color: 'gray' }}> {this.state.strongChartListUpdate} </span>
 
-                        </Typography>
-                        &nbsp;    Sorted By: <b>{this.state.sortBy}</b>
-                        <Button title='previous volume broken count' style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('candleVolBrokenCount')}>VolumeBC</Button>
-                        <Button style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('perChange')}>perChange</Button>
 
-                        FilterBy:<Button title=' 9 or more candles volume with price >= 0.3 breakout ' style={{ marginRight: '20px' }} onClick={() => this.filterByVolumePrice('volumeWithPriceBuy')}>Buy V+P</Button>
-                        <Button title=' 9 or more candles volume with price >= 0.3 breakout ' style={{ marginRight: '20px' }} onClick={() => this.filterByVolumePrice('volumeWithPriceSell')}>Sell V+P</Button>
+                        </Typography>
+
+
+                        <Button style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('perChange')}>Chng%</Button>
+                        <Button title='previous volume broken count' style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('candleVolBrokenCount')}>VBC</Button>
+
+                        <Button title='Emotions: Buying%' style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('strongPer')}>Buying%</Button>
+                        <Button title='Emotions: Selling%' style={{ marginRight: '20px' }} onClick={() => this.shortByVolume('strongPer', 'selling')}>Selling%</Button>
+
+
+                        <Button title=' 9 or more candles volume with price >= 0.3 breakout ' style={{ marginRight: '20px' }} onClick={() => this.filterByVolumePrice('Buy V+P')}>Buy V+P</Button>
+                        <Button title=' 9 or more candles volume with price <= -0.3 breakout ' style={{ marginRight: '20px' }} onClick={() => this.filterByVolumePrice('Sell V+P')}>Sell V+P</Button>
+
+                        <span style={{ fontStyle: 'italic', fontSize: 'smaller', color: 'gray' }}>{this.state.filterByCount}</span>
 
                     </Grid>
+
+                    <Grid item xs={12} sm={1} >
+                        <OrderWatchlistDialog />
+                    </Grid>
+
                     <Grid item xs={12} sm={1} >
                         <FormControl style={styles.selectStyle} >
                             <InputLabel htmlFor="gender">Chart Size</InputLabel>
@@ -825,16 +868,19 @@ class Home extends React.Component {
 
                                 {/* <MenuItem value={"selectall"}>{"Select All"}</MenuItem> */}
                                 {this.state.softedIndexList && this.state.softedIndexList.map(element => (
-                                                <MenuItem style={{ color: element.percChange > 0 ? "green" : "red" }} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
-                                            ))
-                                            }
-                              
-                                {/* {
-                                this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
-                                    <MenuItem value={element}>{element}</MenuItem>
+                                    <MenuItem style={{ color: element.percChange > 0 ? "green" : "red" }} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
                                 ))
-                                } */}
+                                }
+
+                                {
+                                    this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                                        <MenuItem value={element}>{element}</MenuItem>
+                                    ))
+                                }
+                                <MenuItem value={"Securities in F&O"}>{"Securities in F&O"}</MenuItem>
+
                             </Select>
+
                         </FormControl>
                     </Grid>
 
@@ -870,6 +916,7 @@ class Home extends React.Component {
                     <Grid item xs={12} sm={2} >
                         <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Start</Button>
                         <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.stopSearching()}>Stop</Button>
+
                     </Grid>
 
 

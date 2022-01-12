@@ -706,31 +706,131 @@ return;
 
 app.post('/saveCandleHistory', function (req, res) {
 
-  var sql = "insert into livedata (symbol, ltp,pchange, volume, totalbuybid, totalsellbid, dtime ) VALUES ?";
-  var data = req.body;
+  var sql = "insert into intraday (symbol,ltp, pchange, volume, totalbuybid, totalsellbid, ltt, dtime  ) VALUES ?";
+  var data = req.body.symbolList;
+  var dtime = req.body.dtime;
+
+  var analysis = req.body.analysis;
+
   var values = [];
 
-  console.log(data)
-
-
   data.forEach(element => {
-    values.push([element.symbol, element.ltp, element.pChange,  element.totalTradedVolume, element.totalBuyQuantity,element.totalSellQuantity, new Date(element.ltt)]);
+    values.push([element.symbol, element.ltp, element.pChange,  element.totalTradedVolume, element.totalBuyQuantity,element.totalSellQuantity, new Date(element.ltt), new Date( dtime) ]);
   });
 
   con.query(sql, [values], function (err, result) {
     if (err) throw err;
-    res.status(200).send({ status: 200, result: values.length });
-    console.log(values.length, " record inserted at", new Date());
+    // res.status(200).send({ status: 200, result: values.length });
+  
+    if(analysis){
+
+      let formedCandle = []; 
+
+      
+
+      data.forEach((element1, i) => {
+
+        var selectedSql = "select * from intraday where symbol='"+ element1.symbol +"' order by dtime desc limit 100;";
+        console.log( selectedSql);
+        con.query(selectedSql, function (err, result) {
+          if (err) throw err;
+          if (result.length > 0) {
+            let data =  form5minCandle(result, 15); 
+            let formedShare = {
+              symbol : element1.symbol, 
+              data : data
+            }
+            formedCandle.push(formedShare)
+           // console.log("formedShare", formedShare);
+
+            if( i == data.length-1){
+              res.status(200).send({ status: 200, result: values.length, formedCandle: formedCandle });
+              return;
+            }
+
+          }
+        });
+
+      });
+
+     
+     
+    }else{
+      console.log(values.length, " record inserted at", new Date());
+      res.status(200).send({ status: 200, result: values.length });
+      return;
+    }
 
 
   });
 
-  return;
+ 
 });
 
+
+
+
+
+
+function formACandel(chunkdata){
+  let candle = {};     
+  candle.open =  chunkdata[0].ltp; 
+  candle.dtime =  new Date(chunkdata[0].dtime) ; 
+  candle.symbol =  chunkdata[0].symbol; 
+   
+ // console.log('chnkdata open',  chunkdata[0].ltp )
+
+  let highest = chunkdata[0].ltp, lowest =chunkdata[0].ltp, volumeSum =0; 
+    for (let hlIndex = 1; hlIndex < chunkdata.length; hlIndex++) {
+      if(highest < chunkdata[hlIndex].ltp){
+        highest = chunkdata[hlIndex].ltp
+      }
+      if(chunkdata[hlIndex].ltp < lowest){
+        lowest =chunkdata[hlIndex].ltp
+      }
+      volumeSum += chunkdata[hlIndex].volume; 
+    }
+    candle.high = highest; 
+    candle.low  = lowest; 
+    candle.close = chunkdata[chunkdata.length-1].ltp; 
+    candle.volume = volumeSum; 
+    return candle; 
+}
+
+
+function form5minCandle(data, timeframe){
+
+  let candlelist= []; 
+  for (let index = 0; index < data.length; index+=timeframe) {
+     let chunkdata = data.slice(index, index+timeframe);
+     // console.log('chunkdata',chunkdata); 
+
+      candlelist.push(formACandel(chunkdata));  
+  }
+
+ // console.log('candlelist',candlelist); 
+
+  return candlelist; 
+}
+
+
+function findHugeVolume(data){
+  let correntVolume = data[0].volume, count =0 ; 
+  for (let index = 1; index < data.length; index++) {
+    const element = data[index];
+    if(correntVolume > element.volume){
+      count = count +1; 
+    }
+  }
+
+  if (data.length == count )
+  return true; 
+  else 
+  return false; 
+}
 app.post('/backupHistoryData', function (req, res) {
 
-  var sql = "insert into intraday (symbol,token, datetime, open, high, low, close, volume  ) VALUES ?";
+  var sql = "insert into history (symbol,token, datetime, open, high, low, close, volume  ) VALUES ?";
   var data = req.body.candleData;
   var symbol = req.body.symbol;
   var token = req.body.token;
@@ -749,8 +849,7 @@ app.post('/backupHistoryData', function (req, res) {
     console.log(values.length, " record inserted at", new Date());
 
     if(analysis){
-      var selectedSql = "select * from intraday where symbol='"+ symbol +"' order by datetime desc limit 100;";
-
+      var selectedSql = "select * from history where symbol='"+ symbol +"' order by datetime desc limit 100;";
       //console.log(symbol, selectedSql);
       con.query(selectedSql, function (err, result) {
         if (err) throw err;
@@ -760,7 +859,6 @@ app.post('/backupHistoryData', function (req, res) {
           let hugeVol = findHugeVolume(result); 
           res.status(200).send({ status: 200, result: values.length, hugeVol : hugeVol });
         }
-    
       });
     }else{
       res.status(200).send({ status: 200, result: values.length });
@@ -770,106 +868,6 @@ app.post('/backupHistoryData', function (req, res) {
 
   return;
 });
-
-
-
-function findHugeVolume(data){
-  let correntVolume = data[0].volume, count =0 ; 
-  for (let index = 1; index < data.length; index++) {
-    const element = data[index];
-    if(correntVolume > element.volume){
-      count = count +1; 
-    }
-  }
-
-  if (data.length == count )
-  return true; 
-  else 
-  return false; 
-}
-
-
-function form5minCandle(data){
-
-  //   1133070 | SBIN-EQ | 3045  | 2021-12-31 15:29:00 |  460.2 | 460.45 |    460 | 460.45 |  40216 |
-  // | 1133069 | SBIN-EQ | 3045  | 2021-12-31 15:28:00 | 460.75 | 460.85 | 460.15 | 460.15 |  62607 |
-  // | 1133068 | SBIN-EQ | 3045  | 2021-12-31 15:27:00 |  460.7 |  460.8 |  460.5 |  460.6 |  36276 |
-  // | 1133067 | SBIN-EQ | 3045  | 2021-12-31 15:26:00 |  460.7 |  460.9 |  460.6 |  460.9 |  36204 |
-  // | 1133066 | SBIN-EQ | 3045  | 2021-12-31 15:25:00 | 460.85 |  460.9 |  460.5 |  460.7 |  34837 |
-
-//  console.log('1min candle data', data)
-
-  let highLow = [], count = 0, candlelist= []; 
-  let candle = {
-    open: 0, 
-    high: 0, 
-    low: 0,
-    close: 0,
-    volume: 0,
-    datetime : '', 
-    symbol: "", 
-  }; 
-  for (let index = 0; index < data.length; index++) {
-    const element = data[index];
-  //  console.log("data", element.symbol)
-    // if(new Date(element.datetime).getMinutes() % 5 == 0){
-    //     count = count + 1;
-    //     if(count == 1){
-    //       candle.open =  element.open; 
-    //     }
-
-    //     if(count <= 5){
-    //       highLow.push({high: element.high, low: element.low,  volume : element.volume  })
-    //     }
-      
-    // }else{
-    //     count = count + 1;
-    //     if(count <= 5){
-    //       highLow.push({high: element.high, low: element.low,  volume : element.volume  })
-    //     }
-    // }
-
-
-    count = count + 1;
-    if(count == 1){
-      candle.open =  element.open; 
-      candle.datetime = element.datetime; 
-      candle.symbol = element.symbol;
-    }
-
-    if(count <= 5){
-      highLow.push({high: element.high, low: element.low,  volume : element.volume  })
-    }
-
-    if(count == 5){
-
-      let highest = highLow[0].high, lowest =highLow[0].low, volumeSum =0; 
-      for (let hlIndex = 0; hlIndex < highLow.length; hlIndex++) {
-        if(highest < highLow[hlIndex].high){
-          highest = highLow[hlIndex].high
-        }
-        if(highLow[hlIndex].low < lowest){
-          lowest =highLow[hlIndex].low
-        }
-        volumeSum += highLow[hlIndex].volume; 
-      }
-      candle.high = highest; 
-      candle.low  = lowest; 
-      candle.close = element.close; 
-      candle.volume = volumeSum; 
-      candlelist.push(candle); 
-
-      console.log('candlelist', candlelist); 
-      count = 0; 
-      candle.open =0;  candle.high=0; candle.low = 0; candle.close = 0; candle.volume = 0; 
-    }
-
-  }
-
-  return candlelist; 
-}
-
-
 
 
 app.get('/saveNSEList/:query', function (req, res) {

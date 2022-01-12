@@ -1836,32 +1836,32 @@ class Home extends React.Component {
                 <ChartDialog /> <ChartMultiple />
                 <Grid style={{ padding: '5px' }} justify="space-between" direction="row" container>
                     <Grid item >
-                       <Typography component="h3" variant="h6" color="primary" gutterBottom>
+                       <Typography color="primary" gutterBottom>
                             Positions ({this.state.positionList && this.state.positionList.length})  {new Date().toLocaleString()}
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sm={3} > 
+                    {/* <Grid item xs={12} sm={3} > 
 
                    
-                       Stock Trail%: First Move<input name="firstTimeMove"  type={'number'}  step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
+                       S.Trail%: F.Move<input name="firstTimeMove"  type={'number'}  step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
                         SL Move<input name="firstTimeSLMove" step="0.1"  type={'number'}  onChange={this.onTrailChange}  value={this.state.firstTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
 
                         &nbsp;Next <input name="nextTimeMove" step="0.1"  type={'number'}  onChange={this.onTrailChange} value={this.state.nextTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
                         SL Move<input name="nextTimeSLMove"  step="0.1" type={'number'}  onChange={this.onTrailChange}  value={this.state.nextTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
                     
 
-                    </Grid>
+                    </Grid> */}
 
                     
                     <Grid item  >
                         <Typography component="h3">
-                            <b>Net Capital  {this.get2DecimalNumber(localStorage.getItem('netCapital'))}  </b>
+                            <b>Net C.:  {this.get2DecimalNumber(localStorage.getItem('netCapital'))}  </b>
                         </Typography>
                     </Grid>
 
                     <Grid item>
                         <Typography component="h3" >
-                            <b> Net Cap P/L </b> <b style={{ color: ((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')) > 0 ? "green" : "red" }}>{((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')).toFixed(2)}% </b>
+                            <b> Net C. P/L: </b> <b style={{ color: ((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')) > 0 ? "green" : "red" }}>{((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')).toFixed(2)}% </b>
                         </Typography>
                     </Grid>
 
@@ -1869,7 +1869,7 @@ class Home extends React.Component {
 
                     <Grid item  >
                         <Typography component="h3">
-                            <b>Turnover {this.state.totalTornOver} </b>
+                            <b>Turnover: {this.state.totalTornOver} </b>
                         </Typography>
                     </Grid>
 
@@ -1877,7 +1877,7 @@ class Home extends React.Component {
                     <Grid item >
                         <Typography component="h3"  >
 
-                        <b style={{ color: "red" }}>Expenses: {this.state.totalExpence} </b>
+                        <b style={{ color: "red" }}>Exp.: {this.state.totalExpence} </b>
 
                         </Typography>
                     </Grid>
@@ -2014,7 +2014,17 @@ class Home extends React.Component {
                                         {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
-                                        <TableCell className="TableHeadFormat" align="left">&nbsp;Total</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">&nbsp;
+
+                   
+                                        Stock Trail%: F.Move<input name="firstTimeMove"  type={'number'}  step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
+                                        SL Move<input name="firstTimeSLMove" step="0.1"  type={'number'}  onChange={this.onTrailChange}  value={this.state.firstTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
+
+                                        &nbsp;Next <input name="nextTimeMove" step="0.1"  type={'number'}  onChange={this.onTrailChange} value={this.state.nextTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
+                                        SL Move<input name="nextTimeSLMove"  step="0.1" type={'number'}  onChange={this.onTrailChange}  value={this.state.nextTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
+
+
+                                        </TableCell>
                                         <TableCell className="TableHeadFormat" align="left"></TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">{this.state.allbuyavgprice}</TableCell>

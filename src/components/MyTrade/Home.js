@@ -1597,15 +1597,15 @@ class Home extends React.Component {
 
                                         </Grid>
                                         : ""}
-                                    <Grid item xs={12} sm={!this.state.InstrumentLTP ? 12 : 9}  >
-                                        <div id="showChartTitle">
+                                        <Grid item xs={12} sm={!this.state.InstrumentLTP ? 12 : 9}  >
+                                            <div id="showChartTitle">
 
 
 
-                                        </div>
-                                        <div id="tvchart"></div>
+                                            </div>
+                                            <div id="tvchart"></div>
 
-                                    </Grid>
+                                        </Grid>
 
 
                                     <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', maxHeight: "50vh" }} >

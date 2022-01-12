@@ -180,7 +180,7 @@ class LiveBid extends React.Component {
                     symbolListArray[index].bestbuyprice = foundLive[0].bp;
                     symbolListArray[index].bestsellquantity = foundLive[0].bs;
                     symbolListArray[index].bestsellprice = foundLive[0].sp;
-                    symbolListArray[index].ltt = moment(foundLive[0].ltt,'YYYY-MM-DD HH:mm:ss' );
+                    symbolListArray[index].ltt = moment(foundLive[0].ltt,'YYYY-MM-DD HH:mm:ss').toString();
 
                     // symbolListArray[index].upperCircuitLimit = foundLive[0].ucl;
                     // symbolListArray[index].lowerCircuitLimit = foundLive[0].lcl;
@@ -207,6 +207,7 @@ class LiveBid extends React.Component {
                         this.setState({ livePrice: foundLive[0].ltp, livePChange: foundLive[0].nc })
                     }
                     //console.log("ws onmessage: ", foundLive[0]);
+
                 }
             });
 
@@ -215,7 +216,9 @@ class LiveBid extends React.Component {
             symbolListArray && symbolListArray.sort(function (a, b) {
                 return b[shortBy] - a[shortBy];
             });
-            this.setState({ symbolList: symbolListArray });
+            this.setState({ symbolList: symbolListArray }, ()=> {
+              //  console.log('updated',  this.state.symbolList )
+            });
         }
 
         wsClint.onerror = (e) => {
@@ -296,12 +299,25 @@ class LiveBid extends React.Component {
             },1000);
         }
 
+
+        setTimeout(() => {
+    
+            this.storeChartData();
+
+        },1000);
+
     }
 
     
     storeChartData =()=>{
 
-        AdminService.saveCandleHistory(this.state.symbolList)
+        let data = {
+            dtime : moment( new Date(),'YYYY-MM-DD HH:mm:ss').toString(),
+            symbolList : this.state.symbolList,
+            analysis: true
+        }
+
+        AdminService.saveCandleHistory(data)
         .then((res) => {
             if (res.data) {
                 console.log(res.data)
