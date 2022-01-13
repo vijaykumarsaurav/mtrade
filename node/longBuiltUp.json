@@ -1,0 +1,82 @@
+[
+    {
+        "Narration": "Long",
+        "symbolName": "POLYCAB",
+        "FutPrice": "2,695.65",
+        "OI": "887,400",
+        "priceChng": "8.15%",
+        "OIChange": "53.26%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "GNFC",
+        "FutPrice": "488.25",
+        "OI": "3,471,000",
+        "priceChng": "4.61%",
+        "OIChange": "24.77%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "RAIN",
+        "FutPrice": "254.35",
+        "OI": "6,045,000",
+        "priceChng": "4.97%",
+        "OIChange": "21.14%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "HINDCOPPER",
+        "FutPrice": "136.7",
+        "OI": "14,585,600",
+        "priceChng": "1.52%",
+        "OIChange": "19.35%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "ATUL",
+        "FutPrice": "10,370.85",
+        "OI": "103,650",
+        "priceChng": "3.1%",
+        "OIChange": "15.26%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "BALRAMCHIN",
+        "FutPrice": "446.65",
+        "OI": "6,350,400",
+        "priceChng": "4.91%",
+        "OIChange": "13.76%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "BANDHANBNK",
+        "FutPrice": "295.65",
+        "OI": "28,495,800",
+        "priceChng": "4.14%",
+        "OIChange": "9.81%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "BIOCON",
+        "FutPrice": "371.7",
+        "OI": "21,111,700",
+        "priceChng": "1.49%",
+        "OIChange": "9.78%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "IEX",
+        "FutPrice": "267.25",
+        "OI": "44,302,500",
+        "priceChng": "2.41%",
+        "OIChange": "7.04%"
+    },
+    {
+        "Narration": "Long",
+        "symbolName": "TVSMOTOR",
+        "FutPrice": "653.6",
+        "OI": "7,863,800",
+        "priceChng": "0.45%",
+        "OIChange": "6.97%"
+    }
+]

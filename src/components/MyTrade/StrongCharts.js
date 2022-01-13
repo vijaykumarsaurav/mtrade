@@ -96,28 +96,28 @@ class Home extends React.Component {
         var currentTime = moment(new Date(), "h:mma");
         const today = moment().isoWeekday();
 
-        var tostartInteral = setInterval(() => {
-            var time = new Date();
-            //console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());
-            if (time.getMinutes() % 10 === 0) {
-                //  console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());
+    // var tostartInteral = setInterval(() => {
+    //     var time = new Date();
+    //     //console.log("set interval 1sec min/10==0 ", time.toLocaleTimeString());
+    //     if (time.getMinutes() % 10 === 0) {
+    //         //  console.log("search method call in with setTimeout 70sec", time.toLocaleTimeString());
 
-                setTimeout(() => {
-                    this.findStrongCharts();
-                }, 70000);
-                this.setState({
-                    stop10bbSearch:
-                        setInterval(() => {
-                            console.log("search method call in with setInterval in 10min", time.toLocaleTimeString());
-                            if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-                                this.findStrongCharts();
-                            }
-                        }, 60000 * 10 + 70000)
-                });
+    //         setTimeout(() => {
+    //             this.findStrongCharts();
+    //         }, 70000);
+    //         this.setState({
+    //             stop10bbSearch:
+    //                 setInterval(() => {
+    //                     console.log("search method call in with setInterval in 10min", time.toLocaleTimeString());
+    //                     if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+    //                         this.findStrongCharts();
+    //                     }
+    //                 }, 60000 * 10 + 70000)
+    //         });
 
-                clearInterval(tostartInteral);
-            }
-        }, 1000);
+    //         clearInterval(tostartInteral);
+    //     }
+    // }, 1000);
 
 
         this.getUpdateIndexData()
