@@ -66,7 +66,7 @@ class Home extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1000) })
-              this.setState({bankNiftyInterval :  setInterval(() => {this.getNiftyLTP(); this.getBankNiftyLTP(); }, 30000)}) 
+           //   this.setState({bankNiftyInterval :  setInterval(() => {this.getNiftyLTP(); this.getBankNiftyLTP(); }, 30000)}) 
 
             var squireInterval = setInterval(() => {
                 console.log("squireoff", new Date().toLocaleString()); 
@@ -89,13 +89,12 @@ class Home extends React.Component {
 
         } else {
             clearInterval(this.state.positionInterval);
-            clearInterval(this.state.scaninterval);
+           // clearInterval(this.state.scaninterval);
             clearInterval(this.state.bankNiftyInterval);
         }
 
         var scanendTime = moment('3:30pm', 'h:mma');
         if (today <= friday && currentTime.isBetween(beginningTime, scanendTime)) {
-            //  this.setState({scaninterval :  setInterval(() => {this.getNSETopStock(); }, 5000)}) 
             //this.setState({selectedStockInteval :  setInterval(() => {this.getMySelectedStock(); }, 5000)}) 
 
 
@@ -124,7 +123,10 @@ class Home extends React.Component {
             }, foundPatternsFromStored.length * 100 + 300000);
         }
 
-       
+        setInterval(() => {
+            this.getNSETopStock(); 
+            console.log('build scan call', new Date()) 
+        }, 5000)
 
        
         //this.getCandleHistoryAndStore(); 
@@ -1092,9 +1094,9 @@ class Home extends React.Component {
                 var todayProfitPnL = 0, totalbuyvalue = 0, totalsellvalue = 0, totalQtyTraded = 0, allbuyavgprice = 0, allsellavgprice = 0, totalPercentage = 0, totalExpence=0; 
                 positionList.forEach(element => {
 
-                    if (element.producttype == "DELIVERY") {
-                        return "";
-                    }
+                    // if (element.producttype == "DELIVERY") {
+                    //     return "";
+                    // }
 
                     todayProfitPnL += parseFloat(element.pnl);
                     totalbuyvalue += parseFloat(element.totalbuyvalue);
@@ -1150,7 +1152,9 @@ class Home extends React.Component {
 
     }
 
-    getNSETopStock() {
+    
+
+     getNSETopStock = () => {
 
         var stop = new Date().toLocaleTimeString() > "15:00:00" ? clearInterval(this.state.scaninterval) : "";
 
@@ -1166,35 +1170,73 @@ class Home extends React.Component {
                     var scandata = data.result;
                     // console.log("scandata",scandata); 
 
-                    for (let index = 0; index < scandata.length; index++) {
-                        var isFound = false;
-                        for (let j = 0; j < this.state.positionList.length; j++) {
-                            if (this.state.positionList[j].symbolname === scandata[index].symbolName) {
-                                isFound = true;
-                            }
-                        }
+                    this.longBuiltUpOrder(scandata)
 
-                        //   console.log("index",index, "symbolName",scandata[index].symbolName);    
-                        if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)) {
+                    // for (let index = 0; index < scandata.length; index++) {
+                    //     var isFound = false;
+                    //     for (let j = 0; j < this.state.positionList.length; j++) {
+                    //         if (this.state.positionList[j].symbolname === scandata[index].symbolName) {
+                    //             isFound = true;
+                    //         }
+                    //     }
 
-                            AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
+                    //     //   console.log("index",index, "symbolName",scandata[index].symbolName);    
+                    //     if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)) {
 
-                                let searchResdata = searchRes.data;
-                                var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === scandata[index].symbolName);
+                    //         AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
 
-                                if (found.length) {
-                                    console.log(found[0].symbol, "found", found);
-                                    localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
-                                    this.historyWiseOrderPlace(found[0].token, found[0].symbol, scandata[index].symbolName);
-                                }
-                            })
+                    //             let searchResdata = searchRes.data;
+                    //             var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === scandata[index].symbolName);
 
-                        }
-                    }
+                    //             if (found.length) {
+                    //                 console.log(found[0].symbol, "found", found);
+                    //                 localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
+                    //                 this.historyWiseOrderPlace(found[0].token, found[0].symbol, scandata[index].symbolName);
+                    //             }
+                    //         })
+
+                    //     }
+                    // }
                 }
             })
         }
 
+    }
+
+    longBuiltUpOrder = async(scandata) => {
+
+
+        for (let index = 0; index < scandata.length; index++) {
+            var isFound = false;
+
+            // for (let j = 0; j < this.state.positionList.length; j++) {
+            //     if (this.state.positionList[j].symbolname === scandata[index].symbolName) {
+            //         isFound = true;
+            //     }
+            // }
+            var found = this.state.positionList.filter(row => row.symbolname === scandata[index].symbolName);
+
+              console.log("index",index, "symbolName",scandata[index].symbolName, found);    
+            if (!found.length  && !localStorage.getItem('NseStock_' + scandata[index].symbolName)) {
+
+                AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
+
+                    let searchResdata = searchRes.data;
+                    var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === scandata[index].symbolName);
+
+                    if (found.length) {
+                        console.log(found[0].symbol, "found", found);
+                        localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
+                        this.historyWiseOrderPlace(found[0].token, found[0].symbol, scandata[index].symbolName);
+                    }
+                })
+
+            }
+
+            await new Promise(r => setTimeout(r, 300));
+
+        }
+    
     }
 
 
@@ -1424,7 +1466,7 @@ class Home extends React.Component {
             "quantity": orderOption.quantity,
             "ordertype": orderOption.buyPrice === 0 ? "MARKET" : "LIMIT",
             "price": orderOption.buyPrice,
-            "producttype": "DELIVERY",//"DELIVERY",
+            "producttype": "INTRADAY",//"DELIVERY",
             "duration": "DAY",
             "squareoff": "0",
             "stoploss": "0",
@@ -1512,9 +1554,7 @@ class Home extends React.Component {
 
                             var stoplossPer = (highestHigh - stoploss) * 100 / highestHigh;
 
-                            console.log(symbol, " LTP ", LtpData.ltp);
                             console.log(symbol + "highestHigh:", highestHigh, "lowestLow", lowestLow, "stoploss after tick:", stoploss, "stoploss%", stoplossPer);
-                            console.log(symbol + "  close avg middle ", bbmiddleValue, "lowerest avg", bblowerValue);
 
                             var orderOption = {
                                 transactiontype: 'BUY',
@@ -1524,11 +1564,11 @@ class Home extends React.Component {
                                 quantity: quantity,
                                 stopLossPrice: stoploss
                             }
-                            if (LtpData && LtpData.ltp > highestHigh && stoplossPer <= 1.5) {
+                            if (stoplossPer <= 1.5) {
                                 this.placeOrderMethod(orderOption);
                             } else {
                                 localStorage.setItem('NseStock_' + LockedSymbolName, "");
-                                console.log(symbol + " its not fullfilled");
+                                console.log(symbol + " SL "+stoplossPer+"% is grater than our 1.5% not fullfilled");
                             }
                         }
 
@@ -1618,7 +1658,7 @@ class Home extends React.Component {
             "quantity": slmOption.quantity,
             "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
             "exchange": 'NSE',
-            "producttype": "DELIVERY",//"DELIVERY",
+            "producttype": "INTRADAY",//"DELIVERY",
             "duration": "DAY",
             "price": 0,
             "squareoff": "0",
@@ -1855,13 +1895,13 @@ class Home extends React.Component {
                     
                     <Grid item  >
                         <Typography component="h3">
-                            <b>Net C.:  {this.get2DecimalNumber(localStorage.getItem('netCapital'))}  </b>
+                            <b>Net C:  {this.get2DecimalNumber(localStorage.getItem('netCapital'))}  </b>
                         </Typography>
                     </Grid>
 
                     <Grid item>
                         <Typography component="h3" >
-                            <b> Net C. P/L: </b> <b style={{ color: ((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')) > 0 ? "green" : "red" }}>{((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')).toFixed(2)}% </b>
+                            <b> Net C P/L: </b> <b style={{ color: ((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')) > 0 ? "green" : "red" }}>{((this.state.todayProfitPnL - this.state.totalExpence) * 100/localStorage.getItem('netCapital')).toFixed(2)}% </b>
                         </Typography>
                     </Grid>
 
@@ -1877,20 +1917,20 @@ class Home extends React.Component {
                     <Grid item >
                         <Typography component="h3"  >
 
-                        <b style={{ color: "red" }}>Exp.: {this.state.totalExpence} </b>
+                        <b style={{ color: "red" }}>Expn: {this.state.totalExpence} </b>
 
                         </Typography>
                     </Grid>
 
                     <Grid item  >
                         <Typography component="h3"   >
-                            <b>  P/L </b> <b style={{ color: this.state.todayProfitPnL > 0 ? "green" : "red" }}>{this.state.todayProfitPnL} </b>
+                            <b>  P/L: </b> <b style={{ color: this.state.todayProfitPnL > 0 ? "green" : "red" }}>{this.state.todayProfitPnL} </b>
                         </Typography>
                     </Grid>
 
                     <Grid item>
                         <Typography component="h3"  {...window.document.title = "PnL:" + (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2)}>
-                            <b> Net P/L </b> <b style={{ color: (this.state.todayProfitPnL - this.state.totalExpence) > 0 ? "green" : "red" }}>{this.state.totalExpence ? (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2) : ""} </b>
+                        <b> Net P/L: </b> <b style={{ color: (this.state.todayProfitPnL - this.state.totalExpence) > 0 ? "green" : "red" }}>{this.state.totalExpence ? (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2) : ""} </b>
                         </Typography>
                     </Grid>
                     
@@ -1909,7 +1949,7 @@ class Home extends React.Component {
                 <Grid style={{ padding: '5px' }} spacing={1} direction="row" alignItems="center" container>
 
 
-                    <Grid item xs={12} sm={12}>
+                     <Grid item xs={12} sm={12}>
                         <Paper style={{ overflow: "auto", padding: '5px' }} >
 
                             <Table size="small" aria-label="sticky table" >
@@ -1920,7 +1960,7 @@ class Home extends React.Component {
                                         <TableCell style={{ paddingLeft: "3px" }} className="TableHeadFormat" align="left">&nbsp;Symbol</TableCell>
                                         {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left">Product type</TableCell> */}
-                                        <TableCell className="TableHeadFormat" align="left">Pattern Name</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">Order Type</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">Avg Buy</TableCell>
                                         {/* <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell> */}
@@ -1965,7 +2005,7 @@ class Home extends React.Component {
                                                     {row.tradingsymbol} {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon />
                                                 </Button>
                                             </TableCell>
-                                            <TableCell align="left">{row.pattenName}</TableCell>
+                                            <TableCell align="left">{row.producttype}</TableCell>
 
                                             {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                             {/* <TableCell align="left">{row.producttype}</TableCell> */}

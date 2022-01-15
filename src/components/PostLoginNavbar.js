@@ -29,6 +29,11 @@ import Spinner from "react-spinner-material";
 import Notify from '../utils/Notify';
 import Hidden from '@material-ui/core/Hidden';
 
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+
 
 const drawerWidth = 240;
 
@@ -99,6 +104,7 @@ export default function PostLoginNavBar(props) {
         buyFlag: true,
         sellFlag: true,
         searchSymbol: "",
+        producttype: "INTRADAY"
 
     });
 
@@ -136,6 +142,13 @@ export default function PostLoginNavBar(props) {
         setValues({ ...values, ['qtyToTake']: e.target.value });
     }
 
+    
+    function handleProductType(e) {
+        setValues({ ...values, ['producttype']: e.target.value });
+        console.log( e.target.value); 
+    }
+
+
     function callbackAfterOrderDone(order) {
         setValues({ ...values, ['buyFlag']: order.status });
         setValues({ ...values, ['sellFlag']: order.status });
@@ -150,7 +163,8 @@ export default function PostLoginNavBar(props) {
                 var symbolInfo = {
                     token: values.token,
                     symbol: values.searchSymbol,
-                    qtyToTake: values.qtyToTake
+                    qtyToTake: values.qtyToTake,
+                    producttype: values.producttype
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", callbackAfterOrderDone);
             }
@@ -160,7 +174,8 @@ export default function PostLoginNavBar(props) {
                 var symbolInfo = {
                     token: values.token,
                     symbol: values.searchSymbol,
-                    qtyToTake: values.qtyToTake
+                    qtyToTake: values.qtyToTake,
+                    producttype: values.producttype
                 }
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", callbackAfterOrderDone);
             }
@@ -169,8 +184,6 @@ export default function PostLoginNavBar(props) {
         }
     }
 
-    var userProfile = localStorage.getItem("userProfile")
-    userProfile = userProfile && JSON.parse(userProfile);
 
     return (
 
@@ -219,15 +232,24 @@ export default function PostLoginNavBar(props) {
                                     spacing={2}
                                 >
 
-                                    <Grid item  >
+                                    {/* <Grid item  >
                                         <Typography style={{ marginTop: '20px', fontSize: "12px" }} variant="h6" noWrap >
                                             <span id="niftySpid"  > </span>  &nbsp;&nbsp;  <span id="bankniftySpid" onClick={() => props.LoadSymbolDetails("BANKNIFTY")} > </span>
                                         </Typography>
 
-                                    </Grid>
+                                    </Grid> */}
 
                                     <Grid item>
-                                        <TextField label="Type full Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput} />
+                                        <TextField label="Search Symbol" name="searchSymbol" value={values.searchSymbol} onChange={handleInput} />
+                                    </Grid>
+                                    <Grid item>
+                                        <FormControl style={styles.selectStyle} style={{ marginTop: '3px' }} >
+                                            <InputLabel htmlFor="gender">Order Type</InputLabel>
+                                            <Select value={values.producttype} name="producttype" onChange={handleProductType}>
+                                                <MenuItem value={"INTRADAY"}>Interaday</MenuItem>
+                                                <MenuItem value={"DELIVERY"}>Delivery</MenuItem>
+                                            </Select>
+                                        </FormControl>
                                     </Grid>
                                     <Grid item>
                                         <TextField label="Qty" style={{ width: "50px" }} type="number" name="qtyToTake" value={values.qtyToTake} onChange={handleInputQty} />
@@ -278,7 +300,7 @@ export default function PostLoginNavBar(props) {
                                         </Button>
                                     </Grid>
                                     <Grid item>
-                                        <Button variant="outlined" color="primary" target={'_blank'} href={"/mtrade/#/find-fast-movement"}>
+                                        <Button variant="outlined" color="primary" target={'_blank'} href={"/mtrade/#/find-fast-movement2"}>
                                             Pattern <OpenInNewIcon />
                                         </Button>
                                     </Grid>
@@ -325,12 +347,7 @@ export default function PostLoginNavBar(props) {
                 <div className={classes.drawerHeader}>
                     {/* <img style={{ width: "207px" }} src={MyLogo} /> */}
 
-                    <InvertColor />
-
-                    {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : ''}
-                    ({userProfile && userProfile.clientcode ? userProfile.clientcode : ''})
-
-
+                    <List>{Menu.LogoutMenu}</List>                    
 
                     <IconButton onClick={handleDrawerClose}  >
                         {theme.direction === 'ltr' ? <ChevronLeftIcon style={{ color: "gray" }} /> : <ChevronRightIcon style={{ color: "gray" }} />}
@@ -344,9 +361,13 @@ export default function PostLoginNavBar(props) {
 
                 {/* <Divider />
                 <List>  <InvertColor /></List> */}
-
+{/* 
                 <Divider />
-                <List>{Menu.LogoutMenu}</List>
+                <List>{Menu.LogoutMenu}</List> */}
+
+                        <Divider />
+                   <InvertColor />
+
 
 
             </Drawer>
@@ -360,3 +381,42 @@ export default function PostLoginNavBar(props) {
         </div>
     );
 }
+
+
+
+
+
+const styles = {
+    formContainer: {
+        display: 'flex',
+        flexFlow: 'row wrap'
+    },
+
+    textStyle: {
+        display: 'flex',
+        justifyContent: 'center'
+
+    },
+    imgStyle: {
+        display: 'flex'
+    },
+
+    selectStyle: {
+        minWidth: '100%',
+        marginBottom: '10px'
+    },
+    MuiTextField: {
+        overflowY: 'scroll',
+        fontSize: "12px",
+        maxHeight: "50px",
+
+    },
+    footerButton: {
+        position: 'fixed',
+        left: 0,
+        bottom: '20px',
+        width: '100%',
+        textAlign: 'right'
+    }
+
+};

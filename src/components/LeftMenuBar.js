@@ -217,13 +217,17 @@ function logoutPortal(){
   }
 }
 
+var userProfile = localStorage.getItem("userProfile")
+userProfile = userProfile && JSON.parse(userProfile);
 
 export const LogoutMenu = (
+  
   <div>
-
     <Link to={''} style={{textDecoration: "none"}} onClick={logoutPortal}>
       <ListItem button>
-          <ListItemIcon><PowerSettingsNewIcon/></ListItemIcon><ListItemText primary="Logout" />
+          <ListItemIcon title="Logout">
+            <PowerSettingsNewIcon />
+          </ListItemIcon><ListItemText primary={<span title={userProfile && userProfile.clientcode ? userProfile.clientcode : ''}> {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : ''} </span> } />
       </ListItem>
     </Link>
 

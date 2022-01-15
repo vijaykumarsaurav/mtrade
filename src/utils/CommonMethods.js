@@ -39,7 +39,7 @@ class CommonOrderMethod {
             "quantity": slmOption.quantity,
             "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
             "exchange": 'NSE',
-            "producttype": "INTRADAY",//"DELIVERY",
+            "producttype": slmOption.producttype,//"DELIVERY" ,"INTRADAY" ,
             "duration": "DAY",
             "price": 0,
             "squareoff": "0",
@@ -261,7 +261,8 @@ class CommonOrderMethod {
                                 symboltoken: token,
                                 buyPrice: 0,
                                 quantity: quantity,
-                                stopLossPrice: stoploss
+                                stopLossPrice: stoploss,
+                                producttype: sectorItem.producttype
                             }
                             if (quantity) {
 
@@ -393,7 +394,7 @@ class CommonOrderMethod {
             "quantity": orderOption.quantity,
             "ordertype": orderOption.buyPrice === 0 ? "MARKET" : "LIMIT",
             "price": orderOption.buyPrice,
-            "producttype": "INTRADAY",//"DELIVERY",
+            "producttype": orderOption.producttype ,//"DELIVERY" "INTRADAY",
             "duration": "DAY",
             "squareoff": "0",
             "stoploss": "0",
@@ -433,7 +434,7 @@ class CommonOrderMethod {
             "quantity": slmOption.quantity,
             "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
             "exchange": 'NSE',
-            "producttype": "INTRADAY",//"DELIVERY",
+            "producttype": slmOption.producttype,//"DELIVERY" "INTRADAY",
             "duration": "DAY",
             "price": 0,
             "squareoff": "0",

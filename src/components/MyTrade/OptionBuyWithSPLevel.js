@@ -132,7 +132,6 @@ class OrderBook extends React.Component{
     placeOptionSPLevelOver=(indexData, spotPrice)=>{
 
         let today = moment().isoWeekday();
-        today = 3; 
         let strikePrice = 0; 
         let allList = localStorage.getItem('optionChainDataBN') && JSON.parse(localStorage.getItem('optionChainDataBN')); 
         let nextExp = allList["records"]["expiryDates"][0]; 
@@ -162,7 +161,10 @@ class OrderBook extends React.Component{
             }else {
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
             }
-            this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1);  
+
+            console.log(strikePrice, today);
+
+          //  this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1);  
         }
 
     }

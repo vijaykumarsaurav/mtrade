@@ -882,13 +882,31 @@ app.get('/saveNSEList/:query', function (req, res) {
   return;
 });
 
+app.post('/getBuiltUp', function (req, res) {
+  console.log("builtup",  req.body);
+
+  fs.writeFile('longBuiltUp.json', JSON.stringify(req.body), 'utf8', function callback() {
+    console.log("Added", req.body.length);
+    res.status(200).send({ data: req.body.length, status :"added"});
+  });
+
+  // console.log("toplist",toplist);
+  //res.status(200).send(name) ;
+  // fs.writeFile('nseTopScan.json', toplist, 'utf8', function callback() {
+  //   console.log("Added", toplist);
+  //   res.status(200).send("Added");
+  // });
+  // res.status(200).send("Added");
+  // return;
+});
+
 // On localhost:8081/welcome
 app.get('/getNseTopStocks', function (req, res) {
 
   //const symbolName = req.params.query.toUpperCase(); 
   var obj, fillertedData = [];
 
-  fs.readFile('nseTopScan.json', 'utf8', function (err, data) {
+  fs.readFile('longBuiltUp.json', 'utf8', function (err, data) {
 
     if (err) throw err;
     if (data) {

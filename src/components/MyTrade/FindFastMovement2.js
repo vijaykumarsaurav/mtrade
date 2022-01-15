@@ -593,7 +593,8 @@ class Home extends React.Component {
                 var symbolInfo = {
                     token: row.token,
                     symbol: row.symbol,
-                    qtyToTake: this.state.qtyToTake
+                    qtyToTake: this.state.qtyToTake,
+                    producttype: 'DELIVERY'
                 }
                 console.log(symbolInfo);
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
@@ -606,7 +607,8 @@ class Home extends React.Component {
                 var symbolInfo = {
                     token: row.token,
                     symbol: row.symbol,
-                    qtyToTake: this.state.qtyToTake
+                    qtyToTake: this.state.qtyToTake,
+                    producttype: 'DELIVERY'
                 }
                 console.log(symbolInfo);
                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
