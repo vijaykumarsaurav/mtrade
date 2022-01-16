@@ -5,6 +5,7 @@ var cors = require('cors');
 var bodyParser = require('body-parser');  
 var mysql = require('mysql');
 app.use(cors());
+var chartinkAutoOrder = require('./chartinkAutoOrder'); 
 
 
 app.use(bodyParser.json({
@@ -828,6 +829,7 @@ function findHugeVolume(data){
   else 
   return false; 
 }
+
 app.post('/backupHistoryData', function (req, res) {
 
   var sql = "insert into history (symbol,token, datetime, open, high, low, close, volume  ) VALUES ?";
@@ -1023,11 +1025,19 @@ app.get('/saveWatchList/:query', function (req, res) {
 });
 
 
+
+app.get('/chartinkScan', function (req, res) {
+    chartinkAutoOrder(req, function(data){
+      res.status(200).send(data);
+      return;
+    }); 
+    
+});
+
 process.on('uncaughtException', function (err) {
   console.log('uncaughtException:', err);
   console.log("uncaughtException", err.stack);
   //console.dir(err);
-
 });
 
 module.exports = app;
