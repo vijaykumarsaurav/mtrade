@@ -113,6 +113,13 @@ app.get("/nse/get_indices", (req, res, next) => {
     });
 });
 
+app.get("/get_chartink_stock", (req, res, next) => {
+  NSEAPI.getChartInkStock()
+    .then(function (response) {
+      res.json(response.data);
+    });
+});
+
 // Get the quotes of all indexes in NSE - HTML
 // Example: http://localhost:8081/nse/get_quotes
 app.get("/nse/get_quotes", (req, res, next) => {

@@ -22,6 +22,8 @@ var YEAR_LOW_URL = require('../constant').YEAR_LOW_URL;
 var TOP_VALUE_URL = require('../constant').TOP_VALUE_URL;
 var TOP_VOLUME_URL = require('../constant').TOP_VOLUME_URL;
 var NEW_CHART_DATA_URL = require('../constant').NEW_CHART_DATA_URL;
+var CHARTINK_GET_URL = require('../constant').CHARTINK_GET_URL;
+
 
 function getTime(periodType, time) {
   if (periodType === 1) {
@@ -98,6 +100,10 @@ function getMarketStatus() {
 
 function getIndices() {
   return axios.get(INDICES_WATCH_URL);
+}
+
+function getChartInkStock() {
+  return axios.get(CHARTINK_GET_URL);
 }
 
 function getSectorsList() {
@@ -280,6 +286,7 @@ function getTopVolumeStocks() {
 var NSEAPI = {
   getMarketStatus: getMarketStatus,
   getIndices: getIndices,
+  getChartInkStock:getChartInkStock,
   getSectorsList: getSectorsList,
   getQuotes: getQuotes,
   getQuoteInfo: getQuoteInfo,

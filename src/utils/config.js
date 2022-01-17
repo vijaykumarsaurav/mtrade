@@ -18,8 +18,11 @@ export const getPosition =  'https://apiconnect.angelbroking.com/rest/secure/ang
 export const getScannedStocks =  'http://localhost:8081/getScannedStocks';	
 export const getNseTopStocks =  'http://localhost:8081/getNseTopStocks';
 export const getSelectedStock =  'http://localhost:8081/getSelectedStock';	
+export const getChartInkURL =  'https://hookbin.com/bin/NOjrL66WJ3Fe8mNN8bo8';
 
 export const allIndices =  'https://www.nseindia.com/api/allIndices';	
 export const allIndices2Json =  'https://www1.nseindia.com/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json';
 
 export const getIndiceStockApi =  'https://www.nseindia.com/api/equity-stockIndices?index=';	
+export const getIndiceStockNodeServerApi =  'http://localhost:8081/get_chartink_stock';	
+

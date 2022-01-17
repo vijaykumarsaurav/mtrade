@@ -114,6 +114,9 @@ class AdminService {
    getNSETopStock(){
       return axios.get(apiConstant.getNseTopStocks, '');
    }
+   getChartInkStock(){
+      return axios.get(apiConstant.getIndiceStockNodeServerApi, '');
+   }
 
    getSelectedStockFromDb(){
       return axios.get(apiConstant.getSelectedStock, '');

@@ -21,6 +21,10 @@ function getIndices() {
   return NSEAPI.getIndices();
 }
 
+function getChartInkStock() {
+  return NSEAPI.getChartInkStock();
+}
+
 
 /**
  * Return list of companies with their sector name
@@ -167,6 +171,7 @@ function getTopVolumeStocks() {
 var nse = {
   getMarketStatus: getMarketStatus,
   getIndices: getIndices,
+  getChartInkStock:getChartInkStock,
   getSectorsList: getSectorsList,
   getQuotes: getQuotes,
   getQuoteInfoOptionChain:getQuoteInfoOptionChain, 

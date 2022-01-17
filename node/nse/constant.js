@@ -17,3 +17,5 @@ exports.TOP_VOLUME_URL = 'https://www1.nseindia.com/live_market/dynaContent/live
 exports.NEW_CHART_DATA_URL = 'https://www1.nseindia.com/ChartApp/install/charts/data/GetHistoricalNew.jsp';
 exports.OPTION_CHAIN_INDEX = 'https://www.nseindia.com/api/option-chain-indices?symbol=';
 exports.OPTION_CHAIN_EQUITY = 'https://www.nseindia.com/api/option-chain-equities?symbol=';
+
+exports.CHARTINK_GET_URL = 'https://hookbin.com/bin/NOjrL66WJ3Fe8mNN8bo8';

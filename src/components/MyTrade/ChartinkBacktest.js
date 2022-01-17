@@ -65,7 +65,9 @@ class Home extends React.Component {
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
             newJsonList: [],
             timeFrame :"FIVE_MINUTE", 
-            overAllResult: []
+            overAllResult: [],
+            pertradePandL : 0,
+            pertradePandLNet : 0
         };
 
     }
@@ -144,7 +146,7 @@ class Home extends React.Component {
           
          })
   
-         await new Promise(r => setTimeout(r, 50));  
+         await new Promise(r => setTimeout(r, 100));  
         
          
         }
@@ -153,9 +155,7 @@ class Home extends React.Component {
 
     backTestAnyPattern =  () => {
 
-        this.setState({ backTestResult: [],overAllResult : [],  backTestFlag: false, filename: '', searchFailed:0 });
-
-
+        this.setState({ backTestResult: [],overAllResult : [],  backTestFlag: false, filename: '', searchFailed:0 , pertradePandL: 0, pertradePandLNet : 0});
 
         this.readCsv( async()=> {
         let newJsonList = this.state.newJsonList; 
@@ -211,7 +211,7 @@ class Home extends React.Component {
                     }
                     stock.candleData = priceChangeList; 
                     this.setState({ backTestResult: [...this.state.backTestResult, stock] }, ()=>{
-                        this.updateOverall(); 
+                        this.updateOverall();   
                     });
                 } else {
                     console.log(" candle data emply");
@@ -276,6 +276,12 @@ class Home extends React.Component {
 
         this.setState({ overAllResult: overallData.reverse() }, ()=>{
            console.log('overAllResult', this.state.overAllResult)
+
+           let pertradePandLgross = (this.state.overAllResult[0].sumofall/this.state.overAllResult[0].noOfTrade); 
+           let pertradePandLNet = pertradePandLgross - 0.06; 
+           this.setState({"pertradePandL":  pertradePandLgross.toFixed(2), pertradePandLNet : pertradePandLNet.toFixed(2)});
+
+
         });
         
     }
@@ -652,9 +658,9 @@ class Home extends React.Component {
                                 </Grid>
 
                                 <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "40vh" }} >
-                                <Typography> Overall P/L% Time Wise <Button onClick={this.updateOverall}> Overall Again </Button> </Typography>
-
-                                    
+                            <Typography> <Button variant='outlined' onClick={this.updateOverall}> Overall </Button> 
+                            {this.state.pertradePandL > 0 ? <span style={{ color: 'green'}}> {this.state.pertradePandL}</span> : <span style={{ color: 'red' }}> {this.state.pertradePandL}</span>}% Gross/Trade   | 
+                            {this.state.pertradePandLNet > 0 ? <span style={{ color: 'green'}}> {this.state.pertradePandLNet}</span> : <span style={{ color: 'red' }}> {this.state.pertradePandLNet}</span>}% Net/Trade  </Typography>
 
                                     <Table size="small" aria-label="sticky table" >
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">

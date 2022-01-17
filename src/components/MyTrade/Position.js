@@ -69,7 +69,7 @@ class Home extends React.Component {
            //   this.setState({bankNiftyInterval :  setInterval(() => {this.getNiftyLTP(); this.getBankNiftyLTP(); }, 30000)}) 
 
             var squireInterval = setInterval(() => {
-                console.log("squireoff", new Date().toLocaleString()); 
+            //    console.log("squireoff", new Date().toLocaleString()); 
                 let sqrOffbeginningTime = moment('3:14pm', 'h:mma');
                 let sqrOffendTime = moment('3:15pm', 'h:mma');
                 let sqrOffcurrentTime = moment(new Date(), "h:mma");
@@ -99,20 +99,20 @@ class Home extends React.Component {
 
 
 
-            var tostartInteral =   setInterval(() => {
-                var time = new Date(); 
-                if(time.getMinutes() % 15 === 0){
-                    setTimeout(() => {
-                        this.getCandleHistoryAndStore(); 
-                    }, 70000);
-                    setInterval(() => {
-                            if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
-                            this.getCandleHistoryAndStore(); 
-                        }
-                     }, 60000 * 15 + 70000 );  
-                     clearInterval(tostartInteral); 
-                } 
-            }, 1000);
+            // var tostartInteral =   setInterval(() => {
+            //     var time = new Date(); 
+            //     if(time.getMinutes() % 15 === 0){
+            //         setTimeout(() => {
+            //             this.getCandleHistoryAndStore(); 
+            //         }, 70000);
+            //         setInterval(() => {
+            //                 if(today <= friday && currentTime.isBetween(beginningTime, scanendTime)){
+            //                 this.getCandleHistoryAndStore(); 
+            //             }
+            //          }, 60000 * 15 + 70000 );  
+            //          clearInterval(tostartInteral); 
+            //     } 
+            // }, 1000);
 
 
 
@@ -123,10 +123,22 @@ class Home extends React.Component {
             }, foundPatternsFromStored.length * 100 + 300000);
         }
 
-        setInterval(() => {
-            this.getNSETopStock(); 
-            console.log('build scan call', new Date()) 
-        }, 5000)
+        // setInterval(() => {
+        //     this.getNSETopStock(); 
+        
+        //     console.log('build scan call', new Date()) 
+        // }, 5000)
+
+        var tostartInteral =   setInterval(() => {
+            var time = new Date(); 
+            console.log("chartink scanning in", time.toLocaleTimeString())
+            if(time.getMinutes() % 5 === 0 && time.getSeconds() === 5){
+                this.getChartInkStock(); 
+            } 
+        }, 1000);
+        
+        this.getChartInkStock(); 
+
 
        
         //this.getCandleHistoryAndStore(); 
@@ -1170,7 +1182,7 @@ class Home extends React.Component {
                     var scandata = data.result;
                     // console.log("scandata",scandata); 
 
-                    this.longBuiltUpOrder(scandata)
+                //    this.longBuiltUpOrder(scandata)
 
                     // for (let index = 0; index < scandata.length; index++) {
                     //     var isFound = false;
@@ -1197,6 +1209,67 @@ class Home extends React.Component {
 
                     //     }
                     // }
+                }
+            })
+        }
+
+    }
+
+    getChartInkStock = () => {
+
+        var stop = new Date().toLocaleTimeString() > "15:00:00" ? clearInterval(this.state.scaninterval) : "";
+
+        var totalDayLoss = TradeConfig.totalCapital * TradeConfig.dailyLossPer / 100;
+        totalDayLoss = -Math.abs(totalDayLoss);
+        if (this.state.todayProfitPnL < totalDayLoss) {
+            console.log("daily loss crossed", totalDayLoss);
+            clearInterval(this.state.scaninterval);
+        } else {
+            AdminService.getChartInkStock().then(res => {
+               // let data = resolveResponse(res, "noPop");
+               let response = res.data; 
+
+                if (response.success) {
+
+                    let triggered_at = response.results[0] && response.results[0].body.data.triggered_at; 
+                    let scandata = response.results[0] && response.results[0].body.data.stocks; 
+
+                    let time = triggered_at.split(' '); 
+                    let mtime = time[0]+time[1]; 
+                    var endTime = moment(mtime, 'h:mma');
+                    console.log("last triggered_at ", triggered_at, "stock found", scandata , endTime.minutes(), new Date().getMinutes() ); 
+
+                    if(endTime.minutes() != new Date().getMinutes()){
+
+                        scandata = scandata.split(','); 
+    
+                        for (let index = 0; index < scandata.length; index++) {
+                            var isFound = false;
+                            for (let j = 0; j < this.state.positionList.length; j++) {
+                                if (this.state.positionList[j].symbolname === scandata[index].symbolName) {
+                                    isFound = true;
+                                }
+                            }
+    
+                            if (!isFound && !localStorage.getItem('NseStock_' + scandata[index])) {
+    
+                                AdminService.autoCompleteSearch(scandata[index]).then(searchRes => {
+    
+                                    let searchResdata = searchRes.data;
+                                    var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === scandata[index]);
+    
+                                    if (found.length) {
+                                        console.log(found[0].symbol, "found", found);
+                                        localStorage.setItem('NseStock_' + scandata[index], "orderdone");
+                                        this.historyWiseOrderPlace(found[0].token, found[0].symbol, scandata[index]);
+                                    }
+                                })
+    
+                            }
+                        }
+                    }
+                    
+                   
                 }
             })
         }
@@ -1466,7 +1539,7 @@ class Home extends React.Component {
             "quantity": orderOption.quantity,
             "ordertype": orderOption.buyPrice === 0 ? "MARKET" : "LIMIT",
             "price": orderOption.buyPrice,
-            "producttype": "INTRADAY",//"DELIVERY",
+            "producttype": "DELIVERY",//"DELIVERY",
             "duration": "DAY",
             "squareoff": "0",
             "stoploss": "0",
@@ -1564,7 +1637,7 @@ class Home extends React.Component {
                                 quantity: quantity,
                                 stopLossPrice: stoploss
                             }
-                            if (stoplossPer <= 1.5) {
+                            if (stoplossPer <= 3.5) {
                                 this.placeOrderMethod(orderOption);
                             } else {
                                 localStorage.setItem('NseStock_' + LockedSymbolName, "");
@@ -1625,7 +1698,7 @@ class Home extends React.Component {
         // }
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
-            console.log("squireoff", data);
+          //  console.log("squireoff", data);
             if (data.status && data.message === 'SUCCESS') {
                 this.setState({ orderid: data.data && data.data.orderid });
                 this.cancelOrderOfSame(row);
@@ -1658,7 +1731,7 @@ class Home extends React.Component {
             "quantity": slmOption.quantity,
             "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
             "exchange": 'NSE',
-            "producttype": "INTRADAY",//"DELIVERY",
+            "producttype": "DELIVERY",//"DELIVERY",
             "duration": "DAY",
             "price": 0,
             "squareoff": "0",
