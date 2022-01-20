@@ -45,9 +45,9 @@ class Home extends React.Component {
             stockTesting: "",
             perHighLowTotal: 0,
             netPnLAmountOnHighlowTotal: 0,
-            firstTimeMove : 0.5, 
+            firstTimeMove : 0.7, 
             firstTimeSLMove: 0.3, 
-            nextTimeMove : 0.5, 
+            nextTimeMove : 0.7, 
             nextTimeSLMove: 0.3, 
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
 
@@ -123,21 +123,21 @@ class Home extends React.Component {
             }, foundPatternsFromStored.length * 100 + 300000);
         }
 
-        // setInterval(() => {
-        //     this.getNSETopStock(); 
+        setInterval(() => {
+            this.getNSETopStock(); 
         
-        //     console.log('build scan call', new Date()) 
-        // }, 5000)
+            console.log('chartink scan call 2 sec:', new Date()) 
+        }, 2000)
 
-        var tostartInteral =   setInterval(() => {
-            var time = new Date(); 
-            console.log("chartink scanning in", time.toLocaleTimeString())
-            if(time.getMinutes() % 5 === 0 && time.getSeconds() === 5){
-                this.getChartInkStock(); 
-            } 
-        }, 1000);
+        // var tostartInteral =   setInterval(() => {
+        //     var time = new Date(); 
+        //     console.log("chartink scanning in", time.toLocaleTimeString())
+        //     if(time.getMinutes() % 5 === 0 && time.getSeconds() === 5){
+        //         this.getChartInkStock(); 
+        //     } 
+        // }, 1000);
         
-        this.getChartInkStock(); 
+        // this.getChartInkStock(); 
 
 
        
@@ -1104,11 +1104,14 @@ class Home extends React.Component {
 
 
                 var todayProfitPnL = 0, totalbuyvalue = 0, totalsellvalue = 0, totalQtyTraded = 0, allbuyavgprice = 0, allsellavgprice = 0, totalPercentage = 0, totalExpence=0; 
-                positionList.forEach(element => {
-
-                    // if (element.producttype == "DELIVERY") {
-                    //     return "";
-                    // }
+                
+                let tradingPositionlist = []; 
+                for (let index = 0; index < positionList.length; index++) {
+                    const element = positionList[index];
+                    if (element.netqty < 0) {
+                        continue;
+                    }
+                    tradingPositionlist.push(element); 
 
                     todayProfitPnL += parseFloat(element.pnl);
                     totalbuyvalue += parseFloat(element.totalbuyvalue);
@@ -1138,9 +1141,8 @@ class Home extends React.Component {
                         element.stopLossAmount = slData.maxLossAmount;
                         totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;
                     }
-
-
-                });
+                }
+               
                 this.setState({ todayProfitPnL: todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue: totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded });
                 this.setState({ allbuyavgprice: (allbuyavgprice / positionList.length).toFixed(2), allsellavgprice: (allsellavgprice / positionList.length).toFixed(2), totalPercentage: totalPercentage });
 
@@ -1150,14 +1152,9 @@ class Home extends React.Component {
 
                 this.setState({ totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL: totalMaxPnL.toFixed(2) });
 
-                
-                positionList.sort(function (a, b) {
-                    return (b.netqty - a.netqty);
+            
 
-                    //return b.netqty && (b.ltp - b.totalbuyvalue)*100/b.totalbuyvalue -  b.netqty && (a.ltp - a.totalbuyvalue)*100/a.totalbuyvalue;
-                });
-
-                this.setState({ positionList: positionList });
+                this.setState({ positionList: tradingPositionlist });
 
             }
         })
@@ -1181,34 +1178,31 @@ class Home extends React.Component {
                 if (data.status && data.message === 'SUCCESS') {
                     var scandata = data.result;
                     // console.log("scandata",scandata); 
+                    for (let index = 0; index < scandata.length; index++) {
+                        var isFound = false;
+                        for (let j = 0; j < this.state.positionList.length; j++) {
+                            if (this.state.positionList[j].symbolname === scandata[index].symbolName) {
+                                isFound = true;
+                            }
+                        }
 
-                //    this.longBuiltUpOrder(scandata)
+                        console.log("index",index, "symbolName",scandata[index].symbolName);    
+                        if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)) {
 
-                    // for (let index = 0; index < scandata.length; index++) {
-                    //     var isFound = false;
-                    //     for (let j = 0; j < this.state.positionList.length; j++) {
-                    //         if (this.state.positionList[j].symbolname === scandata[index].symbolName) {
-                    //             isFound = true;
-                    //         }
-                    //     }
+                            AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
 
-                    //     //   console.log("index",index, "symbolName",scandata[index].symbolName);    
-                    //     if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)) {
+                                let searchResdata = searchRes.data;
+                                var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === scandata[index].symbolName);
 
-                    //         AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
+                                if (found.length) {
+                                    console.log(found[0].symbol, "found", found);
+                                    localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
+                                    this.historyWiseOrderPlace(found[0].token, found[0].symbol, scandata[index].symbolName);
+                                }
+                            })
 
-                    //             let searchResdata = searchRes.data;
-                    //             var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === scandata[index].symbolName);
-
-                    //             if (found.length) {
-                    //                 console.log(found[0].symbol, "found", found);
-                    //                 localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
-                    //                 this.historyWiseOrderPlace(found[0].token, found[0].symbol, scandata[index].symbolName);
-                    //             }
-                    //         })
-
-                    //     }
-                    // }
+                        }
+                    }
                 }
             })
         }
@@ -1239,7 +1233,7 @@ class Home extends React.Component {
                     var endTime = moment(mtime, 'h:mma');
                     console.log("last triggered_at ", triggered_at, "stock found", scandata , endTime.minutes(), new Date().getMinutes() ); 
 
-                    if(endTime.minutes() != new Date().getMinutes()){
+                    if(endTime.minutes() == new Date().getMinutes()){
 
                         scandata = scandata.split(','); 
     
@@ -1637,11 +1631,12 @@ class Home extends React.Component {
                                 quantity: quantity,
                                 stopLossPrice: stoploss
                             }
-                            if (stoplossPer <= 3.5) {
+                            let mySL = 3.5; 
+                            if (stoplossPer) {
                                 this.placeOrderMethod(orderOption);
                             } else {
                                 localStorage.setItem('NseStock_' + LockedSymbolName, "");
-                                console.log(symbol + " SL "+stoplossPer+"% is grater than our 1.5% not fullfilled");
+                                console.log(symbol + " SL "+stoplossPer+"% is grater than my SL: "+mySL+"  not fullfilled");
                             }
                         }
 
@@ -1747,7 +1742,7 @@ class Home extends React.Component {
                 this.setState({ orderid: data.data && data.data.orderid });
                 // this.updateOrderList(); 
                 var msg = new SpeechSynthesisUtterance();
-                msg.text = 'hey Vijay, ' + slmOption.tradingsymbol;
+                msg.text = slmOption.tradingsymbol;
                 window.speechSynthesis.speak(msg);
 
                 document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();

@@ -369,6 +369,33 @@ app.get("/nse/getOptionChainEquity", (req, res, next) => {
 
 
 // On localhost:8081/welcome
+app.post('/getAllListTokens', function (req, res) {
+
+  const sybollist = req.body
+  var obj, fillertedData = [];
+
+  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    obj = JSON.parse(data);
+
+    sybollist.forEach(element => {
+      for (let index = 0; index < obj.length; index++) {
+        // if(obj[index].name.startsWith(symbolName) && obj[index].lotsize == "1" && obj[index].exch_seg == "NSE"  && !obj[index].symbol.endsWith("-BL")) {
+        //   fillertedData.push(obj[index])
+        // }
+        if(obj[index].symbol.endsWith('-EQ')  && obj[index].name == element.symbol  && obj[index].lotsize == "1") {
+          fillertedData.push(obj[index])
+        }
+      }
+    });
+
+    res.status(200).send(JSON.stringify(fillertedData));
+
+  });
+  return;
+
+});
+// On localhost:8081/welcome
 app.get('/search/:query', function (req, res) {
 
   const symbolName = req.params.query.toUpperCase();

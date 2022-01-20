@@ -57,6 +57,9 @@ class AdminService {
      autoCompleteSearch(query) {
         return axios.get('http://localhost:8081/search/'+query, '');
      } 
+     getAllListTokens(data) {
+      return axios.post('http://localhost:8081/getAllListTokens', data, '');
+   } 
      saveWatchList(data) {
         return axios.get('http://localhost:8081/saveWatchList/'+data, '');
      } 

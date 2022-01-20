@@ -120,7 +120,7 @@ class Home extends React.Component {
     // }, 1000);
 
 
-        this.getUpdateIndexData()
+      //  this.getUpdateIndexData()
         //  this.findStrongCharts();
 
 
