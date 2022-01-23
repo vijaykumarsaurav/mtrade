@@ -61,7 +61,7 @@ class MyView extends React.Component {
             filtered: JSON.parse(localStorage.getItem('optionChainDataBN')) && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered.data,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             selectedWatchlist: 'Securities in F&O',
-            selectOptionStock: "BANKNIFTY",
+            selectOptionStock: "NIFTY",
             underlyingValue: JSON.parse(localStorage.getItem('optionChainDataBN')) && JSON.parse(localStorage.getItem('optionChainDataBN')).records && JSON.parse(localStorage.getItem('optionChainDataBN')).records.underlyingValue,
 
             buyCallLot:1, 

@@ -14,7 +14,8 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import * as moment from 'moment';
 import Notify from "../../utils/Notify";
-
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
@@ -28,6 +29,8 @@ import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import CsvDownload from 'react-json-to-csv'
 import TextField from '@material-ui/core/TextField';
+import worker_script from './worker';
+import Switch from '@material-ui/core/Switch';
 
 
 class Home extends React.Component {
@@ -43,7 +46,7 @@ class Home extends React.Component {
             ifNotBought: true,
             autoSearchTemp: [],
             backTestResult: [],
-            backTestResultCSV: [], 
+            backTestResultCSV: [],
             backTestFlag: true,
             patternType: "NR4",  //NR4ForNextDay  NR4_SameDay
             symboltoken: "",
@@ -64,15 +67,19 @@ class Home extends React.Component {
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || [],
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
             newJsonList: [],
-            timeFrame :"FIVE_MINUTE", 
+            timeFrame: "FIVE_MINUTE",
             overAllResult: [],
-            pertradePandL : 0,
-            pertradePandLNet : 0
+            pertradePandL: 0,
+            pertradePandLNet: 0,
+            allQniqueStockList: [],
+            isSameDayDuplcate: true,
+            stockWiseListOverall: [],
+            filename: ""
         };
 
     }
     onChange = (e) => {
-        this.setState({[e.target.name] : e.target.value })
+        this.setState({ [e.target.name]: e.target.value })
     }
 
     onInputChange = (e) => {
@@ -83,11 +90,19 @@ class Home extends React.Component {
             }
         });
     }
+    handleChange = (event) => {
 
+        this.setState({ isSameDayDuplcate: event.target.checked }, () => {
+            console.log("isSameDayDuplcate", this.state.isSameDayDuplcate, event.target.checked);
+        })
+
+    };
     componentDidMount() {
 
         window.document.title = "Backtest";
         this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] });
+        var myWorker = new Worker(worker_script);
+        this.setState({ myWorker :  myWorker}); 
 
         const domElement = document.getElementById('tvchart');
         document.getElementById('tvchart').innerHTML = '';
@@ -116,89 +131,90 @@ class Home extends React.Component {
         this.setState({ stopScaningFlag: true });
     }
 
-    readCsv = async(callback) => {
-        this.setState({newJsonList :[]})
+    readCsv = async (callback) => {
+        this.setState({ newJsonList: [] })
         let csvFormatInput = this.state.csvFormatInput.trim().split('\n');
         for (let index = 0; index < csvFormatInput.length; index++) {
-          const element = csvFormatInput[index];
-          let symbol = element.split('\t')[1]; 
-          let startTime = element.split('\t')[0]; 
-          this.setState({ stockTesting: index + 1 + ". " + symbol + " getting details" })
+            const element = csvFormatInput[index];
+            let symbol = element.split('\t')[1];
+            let startTime = element.split('\t')[0];
+            this.setState({ stockTesting: index + 1 + ". " + symbol + " getting details" })
 
-          console.log(element, symbol, startTime);
+            //   console.log(element, symbol, startTime);
 
-          // "13-01-2022 11:20\tSHREEPUSHK\tSmallcap\tIndustrials"
-  
-          AdminService.autoCompleteSearch(symbol).then(searchRes => {
-  
-            let searchResdata =  searchRes.data; 
-            var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === symbol);                                
-            console.log("found",  found)
+            // "13-01-2022 11:20\tSHREEPUSHK\tSmallcap\tIndustrials"
 
-            if(found.length){ 
-                found[0].startTime = startTime;
-               this.setState({ newJsonList: [...this.state.newJsonList, found[0]] }, ()=> {
-                   if(csvFormatInput.length-1 == index){
-                    callback()
-                    }
-               });
-            }
-          
-         })
-  
-         await new Promise(r => setTimeout(r, 150));  
+            AdminService.autoCompleteSearch(symbol).then(searchRes => {
+
+                let searchResdata = searchRes.data;
+                var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === symbol);
+                //     console.log("found",  found)
+
+                if (found.length) {
+                    found[0].startTime = startTime;
+                    this.setState({ newJsonList: [...this.state.newJsonList, found[0]] }, () => {
+                        if (csvFormatInput.length - 1 == index) {
+                            callback()
+                        }
+                    });
+                }
+
+            })
+
+            await new Promise(r => setTimeout(r, 150));
         }
-        
-      }
+    }
 
-      getAlltokenOfList = (  callback ) => {
-        let listofstockfound = []; 
-        let allStockWithTime = []; 
-        let updateList= []; 
+    getAlltokenOfList = (callback) => {
+        let listofstockfound = [];
+        let allStockWithTime = [];
+        let updateList = [];
         let csvFormatInput = this.state.csvFormatInput.trim().split('\n');
         for (let index = 0; index < csvFormatInput.length; index++) {
-          const element = csvFormatInput[index];
+            const element = csvFormatInput[index];
 
-          let symbol = element.split('\t')[1]; 
-          let startTime = element.split('\t')[0]; 
+            let name = element.split('\t')[1];
+            let startTime = element.split('\t')[0];
 
-          this.setState({ stockTesting: index + 1 + ". " + symbol + " getting details" });
-          allStockWithTime.push({symbol: symbol, startTime: startTime}); 
-            let found = listofstockfound.filter((item)=> item.symbol === symbol); 
-                if(!found[0]){   
-                listofstockfound.push({symbol: symbol}); 
+            this.setState({ stockTesting: index + 1 + ". " + name + " getting details" });
+            allStockWithTime.push({ name: name, startTime: startTime });
+            let found = listofstockfound.filter((item) => item.name === name);
+            if (!found[0]) {
+                listofstockfound.push({ name: name });
             }
         }
-        this.setState({totaluniqueStocks: listofstockfound.length })
+        this.setState({ totaluniqueStocks: listofstockfound.length, allQniqueStockList: listofstockfound })
 
         AdminService.getAllListTokens(listofstockfound).then(searchRes => {
-            let searchResdata =  searchRes.data; 
-            if(searchResdata.length > 0){
+            let searchResdata = searchRes.data;
+            if (searchResdata.length > 0) {
                 for (let index = 0; index < allStockWithTime.length; index++) {
                     const element = allStockWithTime[index];
 
-                    let filerdata =  searchResdata.filter((item => item.name == element.symbol ));
-                    if(filerdata.length > 0){
+                    let filerdata = searchResdata.filter((item => item.name == element.name));
+                    if (filerdata.length > 0) {
                         let data = {
-                            symbol: filerdata[0].symbol, 
-                            name: filerdata[0].name, 
-                            startTime: element.startTime, 
-                            token: filerdata[0].token, 
+                            symbol: filerdata[0].symbol,
+                            name: filerdata[0].name,
+                            startTime: element.startTime,
+                            token: filerdata[0].token,
                         }
-                        updateList.push(data); 
+                        updateList.push(data);
                     }
-                  
+
                 }
             }
 
-         
 
-         //   var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === symbol);                                
-        //  console.log("uniquestockfound",  listofstockfound)
-        //  console.log("searchResdata",  searchResdata)
-          console.log("updateList",  updateList)
 
-         callback(updateList,listofstockfound)
+            //   var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === symbol);                                
+            //  console.log("uniquestockfound",  listofstockfound)
+            //  console.log("searchResdata",  searchResdata)
+            //  console.log("updateList",  updateList)
+
+            callback(updateList, listofstockfound, searchResdata);
+
+
             // if(searchResdata.length > 0){ 
             //     found[0].startTime = startTime;
             //    this.setState({ newJsonList: [...this.state.newJsonList, found[0]] }, ()=> {
@@ -207,175 +223,300 @@ class Home extends React.Component {
             //         }
             //    });
             // }
-         })
-        
-      }
+        })
+
+    }
+
+    getDateFormate = (givendate, time) => {
+        let dateinfo = givendate.split(' ');
+        let sdate = dateinfo[0].split('-');
+        return moment(sdate[2] + '/' + sdate[1] + '/' + sdate[0] + ' ' + time);
+    }
+
+    convertDateFormat = (datetime) => {
+        let dateinfo = datetime.split(' ');
+        let date = dateinfo[0].split('-');
+        let input = date[2] + '/' + date[1] + '/' + date[0];
+        let time = '';
+        if (dateinfo && dateinfo[1]) {
+            time = moment(dateinfo[1], 'HH:mm').format('HH:mm');
+        }
+        // console.log(time)
+        return moment(input + ' ' + time);
+    }
+
+    getPerChangeOfStock = (histdata, stockInfo) => {
+
+        // let foundtime = false;  let stockinfo = {}; let priceChangeList = []; 
+
+        // for (let histIndex = 0; histIndex < histdata.data.length; histIndex++) {
+        //     const candle = histdata.data[histIndex];
+        //     var candleData = histdata.data;
+
+        //     let foundat = this.convertDateFormat(stock.startTime); 
+        //     console.log("time", moment(candle[0]).format("YYYY-MM-DD HH:mm"),stock,  moment(foundat).format("YYYY-MM-DD HH:mm"));
+
+        //     if(moment(candle[0]).format("YYYY-MM-DD HH:mm")  ==  moment(foundat).format("YYYY-MM-DD HH:mm")){
+        //         stockinfo = {
+        //             symbol: stock.name, 
+        //             token: stock.token, 
+        //             entryPrice : candle[4], 
+        //             foundAt: moment(candleData[0]).format('YYYY-MM-DD HH:mm')
+        //         } 
+        //         foundtime = true; 
+        //     }
+        //     if(foundtime && moment(stockinfo.foundAt).isBetween(moment(stockinfo.foundAt).set("3:30pm", "h:mma")) ){
+        //         let perChange =  (candleData[4] - stockinfo.entryPrice) * 100 / stockinfo.entryPrice; 
+        //         let datetime = moment(candleData[0]).format('h:mma')
+        //         if(this.state.timeFrame == 'ONE_DAY' ){
+        //             datetime = moment(candleData[0]).format('DD/MM/YYYY h:mma')
+        //         }
+        //         priceChangeList.push({perChange : perChange.toFixed(2),close: candleData[4],  datetime :  datetime}); 
+        //         stockinfo.candleData = priceChangeList; 
+        //         this.setState({ backTestResult: [...this.state.backTestResult, stockinfo] }, ()=>{
+        //             this.updateOverall();   
+        //         });
+        //     }
+
+        // }
+
+        if (histdata.length > 0) {
+
+            var candleData = histdata;
+            let stock = {
+                name: stockInfo.name,
+                symbol: stockInfo.symbol,
+                token: stockInfo.token,
+                entryPrice: candleData[0][4],
+                foundAt: moment(candleData[0][0]).format('YYYY-MM-DD HH:mm')
+            }
+
+            let priceChangeList = [];
+            for (let index2 = 1; index2 < candleData.length; index2++) {
+                let perChange = (candleData[index2][4] - stock.entryPrice) * 100 / stock.entryPrice;
+                let datetime = moment(candleData[index2][0]).format('h:mma')
+                if (this.state.timeFrame == 'ONE_DAY') {
+                    datetime = moment(candleData[index2][0]).format('DD/MM/YYYY h:mma')
+                }
+                priceChangeList.push({ perChange: perChange.toFixed(2), close: candleData[index2][4], datetime: datetime });
+            }
+            stock.candleData = priceChangeList;
+            this.setState({ backTestResult: [...this.state.backTestResult, stock] }, () => {
+                //   this.updateOverall();   
+            });
+        } else {
+            console.log(" candle data emply");
+            this.setState({ searchFailed: this.state.searchFailed + 1 })
+
+        }
+    }
 
 
-      backTestAnyPatternStockWise =()=>{
+    backTestAnyPatternStockWise = () => {
+        this.setState({ backTestResult: [], overAllResult: [],stockWiseListOverall:[], backTestFlag: false, filename: '', searchFailed: 0, pertradePandL: 0, pertradePandLNet: 0 });
+        this.setState({ totalgross: 0, totalAvg: 0, totTrade: 0, totalNet: 0, totalExp: 0 });
 
-        this.getAlltokenOfList(async(newJsonList, listofstockfound)=> {
+        this.getAlltokenOfList(async (newJsonList, listofstockfound, searchResdata) => {
 
-           // newJsonList.sort((a ,b) => a.symbol - b.symbol);
-           // newJsonList.sort((a, b) => a.startTime.localeCompare(b.startTime));
-            let filerdata =  newJsonList.filter((item => item.name == 'HINDPETRO'));
-            
-            console.log("newJsonList",newJsonList);
-            console.log("filerdata", filerdata);
+            //    newJsonList.sort((a, b) => a.startTime.localeCompare(b.startTime));
+            // console.log("newJsonList",newJsonList[0].startTime, newJsonList[newJsonList.length-1 ].startTime);
 
-              for (let index = 0; index < newJsonList.length; index++) {
-      
-                  if (this.state.stopScaningFlag) {
-                      this.setState({stopScaningFlag : false})
-                      break;
-                  }
-      
-                  const element = newJsonList[index];
-                  console.log(element)
-  
-                  let dateinfo = element.startTime.split(' ');
-                  let date = dateinfo[0].split('-');
-                  let input = date[2] + '/' + date[1] + '/' + date[0] ;
-                  let time = '9:15'; 
-                  if(dateinfo && dateinfo[1]){
-                       moment(dateinfo[1], 'HH:mm').format('HH:mm'); 
-                  }
-                  console.log(time)
-                  var startDate = moment(input + ' ' + time);
-                  var marketendtime = "15:30";
-                  var endtime = moment(input + ' ' + marketendtime);
-                   if(this.state.timeFrame == 'ONE_DAY' ){
-  
-                      endtime = moment(startDate, "DD-MM-YYYY").add(5, 'days');
-                      let nextdate = moment(endtime).format("YYYY-MM-DD"); 
-                     endtime = moment(nextdate + ' ' + marketendtime); 
-                  }
-      
-                  var data = {
-                      "exchange": "NSE",
-                      "symboltoken": element.token,
-                      "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                      "fromdate": moment(startDate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
-                      "todate": moment( endtime ).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
-                  }
-      
-                  AdminService.getHistoryData(data).then(res => {
-                      let histdata = resolveResponse(res, 'noPop');
-                      if (histdata && histdata.data && histdata.data.length) {
-      
-                          var candleData = histdata.data;
-                          let stock = {
-                              symbol: element.symbol, 
-                              token:element.token, 
-                              entryPrice : candleData[0][4], 
-                              foundAt: moment(candleData[0][0]).format('YYYY-MM-DD HH:mm')   
-                          }
-      
-                          let priceChangeList = []; 
-                          for (let index2 = 1; index2 < candleData.length; index2++) {
-                              let perChange =  (candleData[index2][4] - stock.entryPrice) * 100 / stock.entryPrice; 
-                              let datetime = moment(candleData[index2][0]).format('h:mma')
-                              if(this.state.timeFrame == 'ONE_DAY' ){
-                                  datetime = moment(candleData[index2][0]).format('DD/MM/YYYY h:mma')
-                              }
-                              priceChangeList.push({perChange : perChange.toFixed(2),close: candleData[index2][4],  datetime :  datetime}); 
-                          }
-                          stock.candleData = priceChangeList; 
-                          this.setState({ backTestResult: [...this.state.backTestResult, stock] }, ()=>{
-                              this.updateOverall();   
-                          });
-                      } else {
-                          console.log(" candle data emply");
-                          this.setState({ searchFailed: this.state.searchFailed + 1 })
-      
-                      }
-                  }).catch((error)=>{
-                      console.log(element.symbol, error)
-                      this.setState({ searchFailed: this.state.searchFailed + 1 })
-      
-                  })
-                  await new Promise(r => setTimeout(r, 350));
-                  this.setState({ stockTesting: index + 1 + ". " + element.symbol })
-              }
-              this.setState({ backTestFlag: true });
-          });
-      }
+            for (let index = 0; index < listofstockfound.length; index++) {
 
-    backTestAnyPattern =  () => {
-        this.setState({ backTestResult: [],overAllResult : [],  backTestFlag: false, filename: '', searchFailed:0 , pertradePandL: 0, pertradePandLNet : 0});
-
-        this.getAlltokenOfList(async(newJsonList)=> {
-          //  let newJsonList = this.state.newJsonList; 
-            for (let index = 0; index < newJsonList.length; index++) {
-    
                 if (this.state.stopScaningFlag) {
-                    this.setState({stopScaningFlag : false})
+                    this.setState({ stopScaningFlag: false })
                     break;
                 }
-    
+
+                const element = listofstockfound[index];
+                 console.log("unique loop", element, new Date().toLocaleTimeString())
+
+                let filerdata = searchResdata.filter((item => item.name == element.name));
+                let stocktoken = filerdata.length > 0 ? filerdata[0].token : "";
+                if (stocktoken) {
+
+                    
+                    let sameAllStock = newJsonList.filter((item => item.name == element.name));
+                  //  console.log("sameAllStock",sameAllStock); 
+
+                    if(this.state.isSameDayDuplcate){
+                        let singleDatewiseSamestock = [];
+                        sameAllStock.forEach(elementstock => {
+                            let uniquestock = singleDatewiseSamestock.filter((item => moment(item.startTime).format('YYYY-MM-DD') == moment(elementstock.startTime).format('YYYY-MM-DD')));
+                            if(!uniquestock.length)
+                            singleDatewiseSamestock.push(elementstock); 
+                        });
+                        sameAllStock = singleDatewiseSamestock;
+                    }
+             
+                    let datelist = [];
+                    sameAllStock.forEach(elementsame => {
+                        datelist.push(this.convertDateFormat(elementsame.startTime))
+                    });
+
+                    let momentsDates = datelist.map(d => moment(d));
+                    let startDate = moment.min(momentsDates);
+                    let endDate = moment.max(momentsDates);
+
+                     
+                    
+
+                    var data = {
+                        "exchange": "NSE",
+                        "symboltoken": stocktoken,
+                        "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                        "fromdate": moment(startDate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                        "todate": moment(endDate.format("YYYY-MM-DD")+ ' ' + '15:30').format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+                    }
+
+                    AdminService.getHistoryData(data).then(res => {
+                        let histdata = resolveResponse(res, 'noPop');
+                        if (histdata && histdata.data && histdata.data.length) {
+
+                            console.log("history", element, new Date().toLocaleTimeString())
+
+
+                            for (let index = 0; index < sameAllStock.length; index++) {
+                                const samestock = sameAllStock[index];
+
+                                let foundat = this.convertDateFormat(samestock.startTime);
+                                let endtime = moment(foundat.format('YYYY-MM-DD') + ' ' + '15:30');
+                                // console.log("startime",foundat, endtime)
+
+                                let chunkCandleData = histdata.data.filter((candleInfo => moment(candleInfo[0]).isSameOrAfter(foundat) && moment(candleInfo[0]).isSameOrBefore(endtime)))  //isBetween(foundat, endtime);
+
+                              //    console.log("chunkdata", stock,chunkCandleData )
+                         //     console.log("inside for loop start", samestock, new Date().toLocaleTimeString())
+
+                                this.getPerChangeOfStock(chunkCandleData, samestock);
+                            //    console.log("inside", samestock, new Date().toLocaleTimeString())
+                            }
+                            // sameAllStock.forEach((stock, i) => {
+
+                            //     console.log("inside foreach loop", stock, new Date().toLocaleTimeString())
+
+                            //     let foundat = this.convertDateFormat(stock.startTime);
+                            //     let endtime = moment(foundat.format('YYYY-MM-DD') + ' ' + '15:30');
+                            //     // console.log("startime",foundat, endtime)
+
+                            //     let chunkCandleData = histdata.data.filter((candleInfo => moment(candleInfo[0]).isSameOrAfter(foundat) && moment(candleInfo[0]).isSameOrBefore(endtime)))  //isBetween(foundat, endtime);
+
+                            //   //    console.log("chunkdata", stock,chunkCandleData )
+                            //     this.getPerChangeOfStock(chunkCandleData, stock);
+
+                            // //    this.state.myWorker.postMessage({chunkCandleData: chunkCandleData, stock: stock});
+
+                            // });
+
+                            // this.state.myWorker.onmessage = (m) => {
+                            //     console.log("msg from worker: ", m.data);
+                            // };
+
+
+                             this.updateOverall();
+                             
+                           this.updateStockWiseOverall();
+                        } else {
+                            console.log(" candle data emply");
+                            this.setState({ searchFailed: this.state.searchFailed + 1 })
+                        }
+                    }).catch((error) => {
+                        console.log(element.symbol, error)
+                        this.setState({ searchFailed: this.state.searchFailed + 1 })
+                    })
+
+                } else {
+                    continue;
+                }
+
+
+
+
+
+                await new Promise(r => setTimeout(r, 350));
+                this.setState({ stockTesting: index + 1 + ". " + element.name })
+            }
+
+            this.setState({ backTestFlag: true });
+
+        });
+    }
+
+    backTestAnyPattern = () => {
+        this.setState({ backTestResult: [], overAllResult: [], backTestFlag: false, filename: '', searchFailed: 0, pertradePandL: 0, pertradePandLNet: 0 });
+
+        this.getAlltokenOfList(async (newJsonList) => {
+            //  let newJsonList = this.state.newJsonList; 
+            for (let index = 0; index < newJsonList.length; index++) {
+
+                if (this.state.stopScaningFlag) {
+                    this.setState({ stopScaningFlag: false })
+                    break;
+                }
+
                 const element = newJsonList[index];
-                console.log(element)
+                //    console.log(element)
 
                 let dateinfo = element.startTime.split(' ');
                 let date = dateinfo[0].split('-');
-                let input = date[2] + '/' + date[1] + '/' + date[0] ;
-                let time = '9:15'; 
-                if(dateinfo && dateinfo[1]){
-                     moment(dateinfo[1], 'HH:mm').format('HH:mm'); 
+                let input = date[2] + '/' + date[1] + '/' + date[0];
+                let time = '9:15';
+                if (dateinfo && dateinfo[1]) {
+                    moment(dateinfo[1], 'HH:mm').format('HH:mm');
                 }
-                console.log(time)
+                //   console.log(time)
                 var startDate = moment(input + ' ' + time);
                 var marketendtime = "15:30";
                 var endtime = moment(input + ' ' + marketendtime);
-                 if(this.state.timeFrame == 'ONE_DAY' ){
+                if (this.state.timeFrame == 'ONE_DAY') {
 
                     endtime = moment(startDate, "DD-MM-YYYY").add(5, 'days');
-                    let nextdate = moment(endtime).format("YYYY-MM-DD"); 
-                   endtime = moment(nextdate + ' ' + marketendtime); 
+                    let nextdate = moment(endtime).format("YYYY-MM-DD");
+                    endtime = moment(nextdate + ' ' + marketendtime);
                 }
-    
+
                 var data = {
                     "exchange": "NSE",
                     "symboltoken": element.token,
                     "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
                     "fromdate": moment(startDate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
-                    "todate": moment( endtime ).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+                    "todate": moment(endtime).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
                 }
-    
+
                 AdminService.getHistoryData(data).then(res => {
                     let histdata = resolveResponse(res, 'noPop');
                     if (histdata && histdata.data && histdata.data.length) {
-    
+
                         var candleData = histdata.data;
                         let stock = {
-                            symbol: element.symbol, 
-                            token:element.token, 
-                            entryPrice : candleData[0][4], 
-                            foundAt: moment(candleData[0][0]).format('YYYY-MM-DD HH:mm')   
+                            symbol: element.symbol,
+                            token: element.token,
+                            entryPrice: candleData[0][4],
+                            foundAt: moment(candleData[0][0]).format('YYYY-MM-DD HH:mm')
                         }
-    
-                        let priceChangeList = []; 
+
+                        let priceChangeList = [];
                         for (let index2 = 1; index2 < candleData.length; index2++) {
-                            let perChange =  (candleData[index2][4] - stock.entryPrice) * 100 / stock.entryPrice; 
+                            let perChange = (candleData[index2][4] - stock.entryPrice) * 100 / stock.entryPrice;
                             let datetime = moment(candleData[index2][0]).format('h:mma')
-                            if(this.state.timeFrame == 'ONE_DAY' ){
+                            if (this.state.timeFrame == 'ONE_DAY') {
                                 datetime = moment(candleData[index2][0]).format('DD/MM/YYYY h:mma')
                             }
-                            priceChangeList.push({perChange : perChange.toFixed(2),close: candleData[index2][4],  datetime :  datetime}); 
+                            priceChangeList.push({ perChange: perChange.toFixed(2), close: candleData[index2][4], datetime: datetime });
                         }
-                        stock.candleData = priceChangeList; 
-                        this.setState({ backTestResult: [...this.state.backTestResult, stock] }, ()=>{
-                            this.updateOverall();   
+                        stock.candleData = priceChangeList;
+                        this.setState({ backTestResult: [...this.state.backTestResult, stock] }, () => {
+                            this.updateOverall();
                         });
                     } else {
                         console.log(" candle data emply");
                         this.setState({ searchFailed: this.state.searchFailed + 1 })
-    
+
                     }
-                }).catch((error)=>{
+                }).catch((error) => {
                     console.log(element.symbol, error)
                     this.setState({ searchFailed: this.state.searchFailed + 1 })
-    
+
                 })
                 await new Promise(r => setTimeout(r, 350));
                 this.setState({ stockTesting: index + 1 + ". " + element.symbol })
@@ -383,59 +524,132 @@ class Home extends React.Component {
             this.setState({ backTestFlag: true });
         });
 
-    //    this.readCsv( );//callback end 
+        //    this.readCsv( );//callback end 
 
     }
 
-    updateOverall =()=>{
-       // this.setState({ overAllResult : [] });
+    updateOverall = () => {
+        // this.setState({ overAllResult : [] });
 
-        let timelist = []; 
+        let timelist = [];
         this.state.backTestResult.forEach(element => {
-            element.candleData.forEach((item)=>{ 
-               let found = timelist.filter((time)=> time === item.datetime); 
-               if(!found[0]){   
-                    timelist.push(item.datetime);  
-               }
-            }); 
+            element.candleData.forEach((item) => {
+                let found = timelist.filter((time) => time === item.datetime);
+                if (!found[0]) {
+                    timelist.push(item.datetime);
+                }
+            });
         });
 
-        let overallData = []; 
+        let overallData = [];
 
         timelist.forEach(timeelement => {
             let sumofall = 0;
             this.state.backTestResult.forEach(element => {
-                for (let index = 0; index <  element.candleData.length; index++) {
+                for (let index = 0; index < element.candleData.length; index++) {
                     const item = element.candleData[index];
-                    if(timeelement === item.datetime ){
+                    if (timeelement === item.datetime) {
                         sumofall += parseFloat(item.perChange)
-                        break; 
+                        break;
                     }
                 }
             });
 
-            let expence =  this.state.backTestResult.length * 0.06; 
+            let expence = this.state.backTestResult.length * 0.06;
             overallData.push({
                 datetime: timeelement,
-                sumofall: sumofall.toFixed(2), 
-                expence : expence.toFixed(2), 
-                netOverAll : (sumofall-expence).toFixed(2),
+                sumofall: sumofall.toFixed(2),
+                expence: expence.toFixed(2),
+                netOverAll: (sumofall - expence).toFixed(2),
                 noOfTrade: this.state.backTestResult.length
             })
         });
-    
-        // overallData.reverse()
-        this.setState({ overAllResult: overallData }, ()=>{
-           console.log('overAllResult', this.state.overAllResult)
-           let pertradePandLgross = (this.state.overAllResult[this.state.overAllResult.length-1].sumofall/this.state.overAllResult[this.state.overAllResult.length-1].noOfTrade); 
-           let pertradePandLNet = pertradePandLgross - 0.06; 
-           this.setState({"pertradePandL":  pertradePandLgross.toFixed(2), pertradePandLNet : pertradePandLNet.toFixed(2)});
 
+        // overallData.reverse()
+        overallData.sort((a, b) => moment(b.datetime, 'h:mma') - moment(a.datetime, 'h:mma'));
+
+        this.setState({ overAllResult: overallData }, () => {
+            //  console.log('overAllResult', this.state.overAllResult)
+            if(this.state.overAllResult.length > 0){
+                let pertradePandLgross = (this.state.overAllResult[0].sumofall / this.state.overAllResult[0].noOfTrade);
+                let pertradePandLNet = pertradePandLgross - 0.06;
+                this.setState({ "pertradePandL": pertradePandLgross.toFixed(2), pertradePandLNet: pertradePandLNet.toFixed(2) });    
+            }
+         
         });
-        
+
     }
 
-    
+
+    updateStockWiseOverall = () => {
+        // this.setState({ overAllResult : [] });
+        this.setState({ stockWiseListOverall: [] })
+
+        let overall = []; 
+      //  console.log("this.state.allQniqueStockList", this.state.allQniqueStockList, this.state.backTestResult)
+
+        this.state.allQniqueStockList.forEach(stockelement => {
+
+         //   console.log('stockelement', stockelement); 
+            let sumofall = 0, totalSameTrade = 0;
+            this.state.backTestResult.forEach(element => {
+                if (stockelement.name == element.name) {
+                 //   console.log('result element', element); 
+
+                    if (element.candleData.length > 0) {
+                        sumofall += parseFloat(element.candleData[element.candleData.length - 1].perChange)
+                        totalSameTrade += 1;
+                    }
+                }
+            });
+            let expence = totalSameTrade * 0.06;
+            let data = {
+                name: stockelement.name,
+                totalSameTrade: totalSameTrade,
+                sumofall: sumofall,
+                expence: expence,
+                netPnL: (sumofall - expence)
+            }
+
+            overall.push(data); 
+            
+        });
+
+
+        this.setState({ stockWiseListOverall: overall}, () => {
+
+            let totalgross = 0, totalAvg = 0, totTrade = 0, totalNet = 0, totalExp = 0, winCount=0,lossCount=0;
+            this.state.stockWiseListOverall.forEach(item => {
+                totalgross += item.sumofall;
+                totTrade += item.totalSameTrade;
+                totalNet += item.netPnL;
+                totalExp += item.expence;
+                winCount += item.netPnL>0 ? 1 : 0;
+                lossCount += item.netPnL<0 ? 1 : 0;
+            })
+
+            totalAvg = (totalgross/totTrade).toFixed(2);
+
+            let data = {
+                name: "Total (Gross Avg%): "+totalAvg,
+                totalSameTrade: totTrade,
+                sumofall: totalgross ,
+                expence: totalExp,
+                netPnL: totalNet,
+                winCount:winCount,
+                lossCount:lossCount
+            }
+
+            this.state.stockWiseListOverall.push(data); 
+
+
+            this.setState({stockWiseListOverall: this.state.stockWiseListOverall, lossCount:lossCount,winCount:winCount,  totalgross: totalgross.toFixed(2), totalAvg: totalAvg, totTrade: totTrade, totalNet: totalNet.toFixed(2), totalExp: totalExp.toFixed(2) });
+
+
+        })
+    }
+
+
     calculateSMA = (data, count) => {
 
         //  console.log("smarowdata", data, count);
@@ -454,30 +668,30 @@ class Home extends React.Component {
         }
         return result;
     }
-    
+
     showStaticChart = (token, symbol, entryAt, exitAt) => {
 
-        
+
 
         console.log('token, symbol, entryAt, exitAt', token, symbol, entryAt, exitAt)
 
-        this.setState({ chartStaticData: '' , lightChartSymbol :symbol }, function () {
+        this.setState({ chartStaticData: '', lightChartSymbol: symbol }, function () {
             console.log('reset done', token);
         });
 
-    //     console.log("time in function ", this.state.timeFrame);
+        //     console.log("time in function ", this.state.timeFrame);
 
         const format1 = "YYYY-MM-DD HH:mm";
-    //     // var time = moment.duration("10:50:00");
-    //     // var startDate = moment(new Date()).subtract(time);
-    //     // var startdate = moment(this.state.startDate).subtract(time);
-    //     var beginningTime = moment('9:15am', 'h:mma');
+        //     // var time = moment.duration("10:50:00");
+        //     // var startDate = moment(new Date()).subtract(time);
+        //     // var startdate = moment(this.state.startDate).subtract(time);
+        //     var beginningTime = moment('9:15am', 'h:mma');
 
-    //     let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
-    //     var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
-    //    // var startDate = moment(new Date(foundAt)).set()
-     
-       var startDate = moment(entryAt).set("hour", '09').set("minute", '15');
+        //     let timeDuration = this.getTimeFrameValue(this.state.timeFrame);
+        //     var time = moment.duration(timeDuration);  //22:00:00" for last day  2hours 
+        //    // var startDate = moment(new Date(foundAt)).set()
+
+        var startDate = moment(entryAt).set("hour", '09').set("minute", '15');
         var enddate = moment(exitAt).set("hour", '15').set("minute", '30');
 
 
@@ -627,7 +841,7 @@ class Home extends React.Component {
     }
 
 
-   
+
     getPercentageColor = (percent) => {
         percent = percent * 100;
         var r = percent < 50 ? 255 : Math.floor(255 - (percent * 2 - 100) * 255 / 100);
@@ -638,8 +852,8 @@ class Home extends React.Component {
 
 
 
-    onFileChange =(e)=> {
-        this.setState({ [e.target.name]: e.target.files[0] });       
+    onFileChange = (e) => {
+        this.setState({ [e.target.name]: e.target.files[0] });
     }
 
     render() {
@@ -650,14 +864,17 @@ class Home extends React.Component {
             firstLavel: "Start Date and Time",
             secondLavel: "End Date and Time"
         }
-    
-        console.log("backTestResult", this.state.backTestResult)
+
+        //    console.log("backTestResult", this.state.backTestResult)
+        //    console.log("stockWiseListOverall", this.state.stockWiseListOverall)
+
+
 
         var sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0, sumPerChangeHighLow = 0, sumPnlValue = 0, sumPnlValueOnHighLow = 0, totalInvestedValue = 0, totalLongTrade = 0, totalShortTrade = 0;
-        var tradetotal = 0, totalWin = 0, totalLoss = 0, totalMarketEnd = 0, totalSlHit =0;
+        var tradetotal = 0, totalWin = 0, totalLoss = 0, totalMarketEnd = 0, totalSlHit = 0;
         return (
             <React.Fragment>
-                <PostLoginNavBar  />
+                <PostLoginNavBar />
                 <ChartDialog />
                 <Grid direction="row" container spacing={1} style={{ padding: "5px" }} >
 
@@ -672,12 +889,12 @@ class Home extends React.Component {
                             <Grid direction="row" container spacing={2}>
 
                                 <Grid item xs={12} sm={6}>
-                                    <TextField variant="outlined" id="textarea" multiline rows={10} fullwidth style={{width:'90%', height: '50%'}}  label="1. Datetime 2. Symbol format : Paste"  value={this.state.csvFormatInput }   name="csvFormatInput" onChange={this.onChange}/>
-                                    
+                                    <TextField variant="outlined" id="textarea" multiline rows={10} fullwidth style={{ width: '90%', height: '50%' }} label="1. Datetime 2. Symbol format : Paste" value={this.state.csvFormatInput} name="csvFormatInput" onChange={this.onChange} />
+
                                 </Grid>
 
-                                <Grid item xs={12} sm={2} > 
-                                         <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
+                                <Grid item xs={12} sm={2} >
+                                    <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
                                         <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
                                             <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
                                             <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
@@ -687,24 +904,79 @@ class Home extends React.Component {
                                             <MenuItem value={'ONE_HOUR'}>{'1H'}</MenuItem>
                                             <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
                                         </Select>
-                                        </FormControl>
 
-                                        
-                                    
+                                        <FormGroup>
+                                            <FormControlLabel
+                                                control={<Switch checked={this.state.isSameDayDuplcate} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
+                                                label={this.state.isSameDayDuplcate ? 'Same Day Duplcate: Yes' : 'Same Day Duplcate: No'}
+                                            />
+                                        </FormGroup>
+                                    </FormControl>
+
+
+
 
                                 </Grid>
 
 
                                 <Grid item xs={12} sm={4} style={{ marginTop: '5px' }}>
-                                    {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>}
-                                    {/* {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPatternStockWise()}>Search Stock Wise</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>} */}
-
-                                    &nbsp;&nbsp; {this.state.stockTesting} 
+                                    {/* {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>} */}
+                                    {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPatternStockWise()}>Search Stock Wise</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>}
+                                    <br /> <br />
+                                    &nbsp;&nbsp; {this.state.stockTesting}
                                     &nbsp;&nbsp; Failed:{this.state.searchFailed}
-                                   
-                                   <br />  <br />  <br />
-                                   {this.state.totaluniqueStocks ? this.state.totaluniqueStocks + " unique stocks found" : ""  }
+                                    <br />  <br /> 
+                                    {this.state.totaluniqueStocks ? this.state.totaluniqueStocks + " unique stocks found" : ""}
+                                    <br /> <br />
+                                    <TextField variant="outlined" id="textarea" multiline fullwidth style={{ width: '90%', height: '50%' }} label="Filename" value={this.state.filename} name="filename" onChange={this.onChange} />
+
+
                                 </Grid>
+
+                                <Grid item xs={12} sm={12} >
+
+                                <Table size="small" aria-label="sticky table" >
+                                        <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
+                                            <TableRow variant="head" style={{ fontWeight: 'bold' }} >
+                                            <TableCell>Sr.&nbsp;</TableCell>
+
+                                                <TableCell className="TableHeadFormat" >Stock
+                                                &nbsp; <CsvDownload filename={'Overall_'+this.state.filename+'.csv'} data={this.state.stockWiseListOverall} />
+
+                                                </TableCell>
+                                                <TableCell className="TableHeadFormat" >T.T ({this.state.totTrade})  Avg:
+                                                ({this.state.totalAvg > 0 ? <span style={{ color: 'green' }}> {this.state.totalAvg}</span> : <span style={{ color: 'red' }}> {this.state.totalAvg}</span>})%
+                                                </TableCell>
+                                                <TableCell className="TableHeadFormat" >Gross P/L
+                                                    ({this.state.totalgross > 0 ? <span style={{ color: 'green' }}> {this.state.totalgross}</span> : <span style={{ color: 'red' }}> {this.state.totalgross}</span>})%
+                                                </TableCell>
+                                                <TableCell className="TableHeadFormat" >Expence ({this.state.totalExp})%</TableCell>
+                                                <TableCell className="TableHeadFormat" > Net P/L
+                                                    ({this.state.totalNet > 0 ? <span style={{ color: 'green' }}> {this.state.totalNet}</span> : <span style={{ color: 'red' }}> {this.state.totalNet}</span>})%
+
+                                                    &nbsp;  W:{this.state.winCount}  &nbsp; L:{this.state.lossCount}
+                                                </TableCell>
+
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
+                                            {this.state.stockWiseListOverall ? this.state.stockWiseListOverall.map((item, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell>{i+1}</TableCell>
+
+                                                    <TableCell>{item.name}</TableCell>
+                                                    <TableCell>{item.totalSameTrade}</TableCell>
+                                                    <TableCell>{item.sumofall > 0 ? <span style={{ color: 'green' }}> {item.sumofall}</span> : <span style={{ color: 'red' }}> {item.sumofall}</span>}% </TableCell>
+                                                    <TableCell>{item.expence}%</TableCell>
+                                                    <TableCell>{item.netPnL > 0 ? <span style={{ color: 'green' }}> {item.netPnL}</span> : <span style={{ color: 'red' }}> {item.netPnL}</span>}% </TableCell>
+
+                                                </TableRow>
+                                            )) : ''}
+
+                                        </TableBody>
+                                    </Table>
+                                </Grid>
+
 
                             </Grid>
 
@@ -712,55 +984,64 @@ class Home extends React.Component {
 
                                 <Grid item xs={12} sm={12}>
 
-                                <div style={{overflow:"auto", maxHeight:"550px"}}> 
+                                    <div style={{ overflow: "auto", maxHeight: "550px" }}>
 
-                                    <Table size="small" aria-label="sticky table" >
+                                        <Table size="small" aria-label="sticky table" >
 
-                                    <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                
-                                        <TableRow variant="head" style={{ fontWeight: 'bold' }}>
-                                            <TableCell className="TableHeadFormat" >FoundAt</TableCell>
-                                            <TableCell className="TableHeadFormat" >Symbol({this.state.backTestResult.length})</TableCell>
-                                            <TableCell className="TableHeadFormat" >Entry</TableCell>
-                                            <TableCell className="TableHeadFormat" >NextCandles</TableCell>
-                                        </TableRow>
-                                    </TableHead>
+                                            <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
 
-                                    <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
+                                                <TableRow variant="head" style={{ fontWeight: 'bold' }}>
+                                                    <TableCell className="TableHeadFormat" >Sr.</TableCell>
 
+                                                    <TableCell className="TableHeadFormat" >FoundAt
+                                                    &nbsp; <CsvDownload filename={'Trade_'+this.state.filename+'.csv'} data={this.state.backTestResult} />
+                                                    </TableCell>
+                                                    <TableCell className="TableHeadFormat" >Symbol({this.state.backTestResult.length})</TableCell>
+                                                    <TableCell className="TableHeadFormat" >EntryAt</TableCell>
+                                                    <TableCell className="TableHeadFormat" >NextCandles
+                                                    
+                                                  
 
-                                        {this.state.backTestResult ? this.state.backTestResult.map((row, i) => (
+                                                     </TableCell>
+                                                </TableRow>
+                                            </TableHead>
 
-                                            //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
-                                            <TableRow hover key={i}  >                            
-
-
-                                                <TableCell >{row.foundAt}</TableCell>
-                                                <TableCell><Button size='small' variant='contained' onClick={()=>this.showStaticChart(row.token, row.symbol, row.foundAt, row.foundAt)}>{row.symbol} </Button> </TableCell>
-                                                <TableCell >{row.entryPrice}</TableCell>
-
-                                                <TableCell >
-                                                    {row.candleData.map((item, j) => (<>
-                                                        <span>{item.datetime}: </span>{item.close}({item.perChange > 0 ? <span style={{ color: 'green'}}> {item.perChange}%</span> : <span style={{ color: 'red' }}> {item.perChange}%</span>}) &nbsp;
-                                                    </>
-                                                    ))}
-
-                                                </TableCell>
-
-                                              
-
-                                            </TableRow>
+                                            <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
 
 
+                                                {this.state.backTestResult ? this.state.backTestResult.map((row, i) => (
 
-                                        )) : ''}
-                                    
+                                                    //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
+                                                    <TableRow hover key={i}  >
 
-                                    
-                                    </TableBody>
+                                                        <TableCell>{i + 1}</TableCell>
+
+                                                        <TableCell >{row.foundAt} &nbsp;</TableCell>
+                                                        <TableCell><Button size='small' variant='contained' onClick={() => this.showStaticChart(row.token, row.symbol, row.foundAt, row.foundAt)}>{row.symbol} </Button> </TableCell>
+                                                        <TableCell><span style={{ fontStyle: 'italic' }}> {row.entryPrice}</span></TableCell>
+
+                                                        <TableCell >
+                                                            {row.candleData.map((item, j) => (<>
+                                                                <span>{item.datetime}: </span>{item.close}({item.perChange > 0 ? <span style={{ color: 'green' }}> {item.perChange}%</span> : <span style={{ color: 'red' }}> {item.perChange}%</span>}) &nbsp;
+                                                            </>
+                                                            ))}
+
+                                                        </TableCell>
 
 
-                                    </Table>
+
+                                                    </TableRow>
+
+
+
+                                                )) : ''}
+
+
+
+                                            </TableBody>
+
+
+                                        </Table>
                                     </div>
 
 
@@ -777,42 +1058,42 @@ class Home extends React.Component {
 
                             <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
 
-                                
+
                                 <Grid item xs={12} sm={12}  >
-                                    <Grid  spacing={1} direction="row" alignItems="center" container>
-                                        <Grid item xs={12} sm={2} > 
-                                         <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
-                                        <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
-                                            <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
-                                            <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
-                                            <MenuItem value={'TEN_MINUTE'}>{'10M'}</MenuItem>
-                                            <MenuItem value={'FIFTEEN_MINUTE'}>{'15M'}</MenuItem>
-                                            <MenuItem value={'THIRTY_MINUTE'}>{'30M'}</MenuItem>
-                                            <MenuItem value={'ONE_HOUR'}>{'1H'}</MenuItem>
-                                            <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
-                                        </Select>
-                                        </FormControl>
-                                    
+                                    <Grid spacing={1} direction="row" alignItems="center" container>
+                                        <Grid item xs={12} sm={2} >
+                                            <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
+                                                <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
+                                                    <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
+                                                    <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
+                                                    <MenuItem value={'TEN_MINUTE'}>{'10M'}</MenuItem>
+                                                    <MenuItem value={'FIFTEEN_MINUTE'}>{'15M'}</MenuItem>
+                                                    <MenuItem value={'THIRTY_MINUTE'}>{'30M'}</MenuItem>
+                                                    <MenuItem value={'ONE_HOUR'}>{'1H'}</MenuItem>
+                                                    <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
+                                                </Select>
+                                            </FormControl>
 
-                                         </Grid>
-                                         <Grid item xs={12} sm={10} > 
-                                         <Typography>Same Day Chart:  {this.state.lightChartSymbol}</Typography>
 
-                                         </Grid>
-                                        
+                                        </Grid>
+                                        <Grid item xs={12} sm={10} >
+                                            <Typography>Same Day Chart:  {this.state.lightChartSymbol}</Typography>
+
+                                        </Grid>
+
                                     </Grid>
-                                    
 
-                                        
+
+
 
                                     <div id="showChartTitle"></div>
                                     <div id="tvchart"></div>
                                 </Grid>
 
                                 <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "40vh" }} >
-                            <Typography> <Button variant='outlined' onClick={this.updateOverall}> Overall </Button> 
-                            {this.state.pertradePandL > 0 ? <span style={{ color: 'green'}}> {this.state.pertradePandL}</span> : <span style={{ color: 'red' }}> {this.state.pertradePandL}</span>}% Gross/Trade   | 
-                            {this.state.pertradePandLNet > 0 ? <span style={{ color: 'green'}}> {this.state.pertradePandLNet}</span> : <span style={{ color: 'red' }}> {this.state.pertradePandLNet}</span>}% Net/Trade  </Typography>
+                                    <Typography> <Button variant='outlined' onClick={this.updateOverall}> Overall </Button>
+                                        {this.state.pertradePandL > 0 ? <span style={{ color: 'green' }}> {this.state.pertradePandL}</span> : <span style={{ color: 'red' }}> {this.state.pertradePandL}</span>}% Gross/Trade   |
+                                        {this.state.pertradePandLNet > 0 ? <span style={{ color: 'green' }}> {this.state.pertradePandLNet}</span> : <span style={{ color: 'red' }}> {this.state.pertradePandLNet}</span>}% Net/Trade  </Typography>
 
                                     <Table size="small" aria-label="sticky table" >
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
@@ -821,24 +1102,24 @@ class Home extends React.Component {
                                                 <TableCell className="TableHeadFormat" >Timestamp</TableCell>
                                                 <TableCell className="TableHeadFormat" >No Of Trade</TableCell>
 
-                                                
+
                                                 <TableCell className="TableHeadFormat" >Gross Overall P/L%</TableCell>
                                                 <TableCell className="TableHeadFormat" >Expence%</TableCell>
                                                 <TableCell className="TableHeadFormat" >Net P/L%</TableCell>
-                                                
+
                                             </TableRow>
                                         </TableHead>
                                         <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-                                            { this.state.overAllResult ? this.state.overAllResult.map((item, i) => (
+                                            {this.state.overAllResult ? this.state.overAllResult.map((item, i) => (
                                                 <TableRow key={i}>
-                             
-                             
+
+
                                                     <TableCell>{item.datetime}</TableCell>
                                                     <TableCell>{item.noOfTrade}</TableCell>
 
-                                                    <TableCell>{item.sumofall > 0 ? <span style={{ color: 'green'}}> {item.sumofall}</span> : <span style={{ color: 'red' }}> {item.sumofall}</span>}% </TableCell>
+                                                    <TableCell>{item.sumofall > 0 ? <span style={{ color: 'green' }}> {item.sumofall}</span> : <span style={{ color: 'red' }}> {item.sumofall}</span>}% </TableCell>
                                                     <TableCell>{item.expence}%</TableCell>
-                                                    <TableCell>{item.netOverAll > 0 ? <span style={{ color: 'green'}}> {item.netOverAll}</span> : <span style={{ color: 'red' }}> {item.netOverAll}</span>}% </TableCell>
+                                                    <TableCell>{item.netOverAll > 0 ? <span style={{ color: 'green' }}> {item.netOverAll}</span> : <span style={{ color: 'red' }}> {item.netOverAll}</span>}% </TableCell>
 
                                                 </TableRow>
                                             )) : ''}

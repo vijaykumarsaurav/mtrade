@@ -114,7 +114,6 @@ class OrderBook extends React.Component{
            }
        }
 
-       
        console.log("del", delitem)
        if(delitem && delitem[0].symbol == row.symbol){
         return true;
@@ -164,7 +163,7 @@ class OrderBook extends React.Component{
 
             console.log(strikePrice, today);
 
-          //  this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1);  
+            this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1);  
         }
 
     }
@@ -188,6 +187,8 @@ class OrderBook extends React.Component{
                     if(element.buyAt && LtpData.ltp >= parseFloat(element.buyAt)){
                         var isDelete = this.deleteInOrderPenidngList(element); 
                         if(isDelete){ // && !this.state.buyOptionFlag
+                            console.log("buyopiton",element.symbol,element)
+
                             this.setState({buyOptionFlag: true}, function(){
                                 this.placeOptionSPLevelOver(element, LtpData.ltp); 
                             })

@@ -383,7 +383,7 @@ app.post('/getAllListTokens', function (req, res) {
         // if(obj[index].name.startsWith(symbolName) && obj[index].lotsize == "1" && obj[index].exch_seg == "NSE"  && !obj[index].symbol.endsWith("-BL")) {
         //   fillertedData.push(obj[index])
         // }
-        if(obj[index].symbol.endsWith('-EQ')  && obj[index].name == element.symbol  && obj[index].lotsize == "1") {
+        if(obj[index].symbol.endsWith('-EQ')  && obj[index].name == element.name  && obj[index].lotsize == "1") {
           fillertedData.push(obj[index])
         }
       }
