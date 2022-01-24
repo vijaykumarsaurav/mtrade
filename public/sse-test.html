@@ -2,7 +2,7 @@
 <head>
   <script>
   if (!!window.EventSource) {
-    var source = new EventSource('/countdown')
+    var source = new EventSource('http://localhost:8081/getChartInkStockSSE')
 
     source.addEventListener('message', function(e) {
       document.getElementById('data').innerHTML = e.data
@@ -26,6 +26,10 @@
   } else {
     console.log("Your browser doesn't support SSE")
   }
+
+
+
+  
   </script>
 </head>
 <body>

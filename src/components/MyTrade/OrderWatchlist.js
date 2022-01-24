@@ -35,7 +35,9 @@ class OrderBook extends React.Component{
             pattenNamePending: "",
             searchSymbolPending : "",
             autoSearchList: [], 
-            lastTradedData : {}
+            lastTradedData : {},
+            trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
+
         }
     }
 
@@ -321,7 +323,7 @@ class OrderBook extends React.Component{
         }
     }
 
-    buyOption =(optiontype ,symbol, strikePrice, expiryDate, noOfLot)=>{
+    buyOption =(optiontype ,symbol, strikePrice, expiryDate, noOfLot , priceStopLoss)=>{
       console.log(optiontype ,symbol, strikePrice, expiryDate); 
       let exp = expiryDate.toUpperCase().split('-'); 
        exp = exp[0]+exp[1]+exp[2]%1000; 
@@ -363,7 +365,22 @@ class OrderBook extends React.Component{
 
                    stopLossPrice =  CommonOrderMethod.getMinPriceAllowTick(stopLossPrice); 
 
+                   if(priceStopLoss){
+                      stopLossPrice = '';  
+                      perStopTrigerLoss = ''; 
+                      let trackSLPrice = {
+                        name :  symbol, 
+                        priceStopLoss :  priceStopLoss, 
+                        tradingsymbol : optionData.symbol, 
+                        symboltoken : optionData.token, 
+                        optiontype : optiontype
+                      }
+                      this.setState({trackSLPrice : [...this.state.trackSLPrice, trackSLPrice]}, function(){
+                        localStorage.setItem('trackSLPrice', JSON.stringify(this.state.trackSLPrice));
+                      }) 
+                    }
     
+
                     let element = {
                         tradingsymbol : optionData.symbol, 
                         symboltoken : optionData.token, 
@@ -403,138 +420,150 @@ class OrderBook extends React.Component{
 
             {window.location.hash == "#/order-watchlist" ? <PostLoginNavBar/> : ""}
 
-            {window.location.hash == "#/order-watchlist" ?  <OptionBuyWithSPLevel  buyOption={this.buyOption} /> : ""}
 
-            
+            <Grid justify="space-between" container>
+                <Grid item  xs={6} sm={6}> 
+                        {window.location.hash == "#/order-watchlist" ?  <OptionBuyWithSPLevel  buyOption={this.buyOption} /> : ""}
 
-             <Paper style={{ overflow: "auto", padding: '5px',  background:"#d4ffe0"}} >
-             <Typography  color="primary" gutterBottom>
-                        Orders Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
-                        {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
-                        {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
-                        </Typography> 
-                        
-                <Grid justify="space-between"
-                    container>
-                  
+               </Grid>
 
-                   
 
-                    <Grid item >
-
-                        <Grid container spacing={2}>
-                        <Grid item >
-                                {/* <TextField label="Type full Symbol" name="searchSymbolPending" value={this.state.searchSymbolPending} onChange={this.searchSymbolPendingOrder} /> */}
-                                <Autocomplete
-                                        freeSolo
-                                        id="free-solo-2-demo"
-                                        
-                                        disableClearable
-                                        onChange={this.onSelectItem}
-                                        value={this.state.searchSymbolPending}
-                                        //+ ' '+  option.exch_seg
-                                        options={this.state.autoSearchList.length > 0 ? this.state.autoSearchList.map((option) =>
-                                            option.symbol
-                                        ) : []}
-                                        renderInput={(params) => (
-                                            <TextField
-                                                onChange={this.onChange2}
-                                                {...params}
-                                                label={"Search Symbol"}
-                                                margin="normal"
-                                                style={{  width:"500px",marginTop: 'inherit' }}
-                                                name="searchSymbolPending"
-                                                variant="standard"
-                                                InputProps={{ ...params.InputProps, type: 'search' }}
-                                            /> 
-                                        )}
-                                    />
-                              {this.state.lastTradedData.symbol}  Ltp: <b style={{ color:this.state.lastTradedData.perChange == 0 ? "none" : this.state.lastTradedData.perChange > 0 ? "green" : "red"}}> {this.state.lastTradedData.ltp} {this.state.lastTradedData.ltp ? "("+this.state.lastTradedData.perChange+"%)"  : ""}</b> 
-                    </Grid>
-
+                <Grid item  xs={6} sm={6}> 
+                         <Paper style={{ overflow: "auto", padding: '5px',  background:"#d4ffe0"}} >
+                        <Typography  color="primary" gutterBottom>
+                          Stock  Order Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length}) 
+                            {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
+                            {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
+                            </Typography> 
                             
-                            <Grid item  >
-                                <TextField label="BuyAt(limit)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
-                              <br /> High: {this.state.lastTradedData.high} 
-                              <Button size="small"  style={{color: "blue"}} onClick={() => this.suggestBuyPrice(this.state.lastTradedData.high)}> Suggest Price </Button>
+                    <Grid justify="space-between"
+                        container>
+                    
 
-                            </Grid>
-                            <Grid item  >
-                                <TextField label="SellAt(limit)" type="number" name="sellAtPending" value={this.state.sellAtPending} onChange={this.updateInput} />
-                                <br /> Low: {this.state.lastTradedData.low}
-                                <Button size="small"  style={{color: "blue"}} onClick={() => this.suggestSellPrice(this.state.lastTradedData.low)}> Suggest Price </Button>
+                    
 
-                            </Grid>
-                            <Grid item  >
-                                <TextField label="Which Pattern" name="pattenNamePending" value={this.state.pattenNamePending} onChange={this.updateInput} />
-                                <br /> Open: {this.state.lastTradedData.open}
-                            </Grid>
-                            <Grid item  >
-                                <Button variant="contained" style={{ marginLeft: '20px', marginTop: '10px' }} onClick={() => this.addInOrderPenidngList()}> Add </Button>
-                                <br /> P.Close: {this.state.lastTradedData.close}
-                            </Grid>
+                        <Grid item  >
+
+                            <Grid container spacing={2}>
+                            <Grid item >
+                                    {/* <TextField label="Type full Symbol" name="searchSymbolPending" value={this.state.searchSymbolPending} onChange={this.searchSymbolPendingOrder} /> */}
+                                    <Autocomplete
+                                            freeSolo
+                                            id="free-solo-2-demo"
+                                            
+                                            disableClearable
+                                            onChange={this.onSelectItem}
+                                            value={this.state.searchSymbolPending}
+                                            //+ ' '+  option.exch_seg
+                                            options={this.state.autoSearchList.length > 0 ? this.state.autoSearchList.map((option) =>
+                                                option.symbol
+                                            ) : []}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    onChange={this.onChange2}
+                                                    {...params}
+                                                    label={"Search Symbol"}
+                                                    margin="normal"
+                                                    style={{  width:"200px",marginTop: 'inherit' }}
+                                                    name="searchSymbolPending"
+                                                    variant="standard"
+                                                    InputProps={{ ...params.InputProps, type: 'search' }}
+                                                /> 
+                                            )}
+                                        />
+                                {this.state.lastTradedData.symbol}  Ltp: <b style={{ color:this.state.lastTradedData.perChange == 0 ? "none" : this.state.lastTradedData.perChange > 0 ? "green" : "red"}}> {this.state.lastTradedData.ltp} {this.state.lastTradedData.ltp ? "("+this.state.lastTradedData.perChange+"%)"  : ""}</b> 
                         </Grid>
 
-                    </Grid>
+                                
+                                <Grid item  >
+                                    <TextField label="BuyAt(Above)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
+                                <br /> High: {this.state.lastTradedData.high} 
+                                <Button size="small"  style={{color: "blue"}} onClick={() => this.suggestBuyPrice(this.state.lastTradedData.high)}> Suggest Price </Button>
+
+                                </Grid>
+                                <Grid item  >
+                                    <TextField label="SellAt(Below)" type="number" name="sellAtPending" value={this.state.sellAtPending} onChange={this.updateInput} />
+                                    <br /> Low: {this.state.lastTradedData.low}
+                                    <Button size="small"  style={{color: "blue"}} onClick={() => this.suggestSellPrice(this.state.lastTradedData.low)}> Suggest Price </Button>
+
+                                </Grid>
+                                <Grid item  >
+                                    <TextField label="Which Pattern" name="pattenNamePending" value={this.state.pattenNamePending} onChange={this.updateInput} />
+                                    <br /> Open: {this.state.lastTradedData.open}
+                                </Grid>
+                                <Grid item  >
+                                    <Button variant="contained" style={{ marginLeft: '20px', marginTop: '10px' }} onClick={() => this.addInOrderPenidngList()}> Add </Button>
+                                    <br /> P.Close: {this.state.lastTradedData.close}
+                                </Grid>
+                            </Grid>
+
+                        </Grid>
 
 
-                    <Table size="small" aria-label="sticky table" >
-                        <TableHead style={{ whiteSpace: "nowrap", }} variant="head">
-                            <TableRow key="1" variant="head" style={{ fontWeight: 'bold' }}>
+                        <Table size="small" aria-label="sticky table" >
+                            <TableHead style={{ whiteSpace: "nowrap", }} variant="head">
+                                <TableRow key="1" variant="head" style={{ fontWeight: 'bold' }}>
 
-                                <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">CreatetAt</TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">CreatetAt</TableCell>
 
-                                <TableCell className="TableHeadFormat" align="left">Exch_seg</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">Token</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">Patten Name</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">BuyAt</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">SellAt</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">Delete</TableCell>
-
-                            </TableRow>
-                        </TableHead>
-                        <TableBody id="tableAdd" style={{ width: "", whiteSpace: "nowrap" }}>
-
-                            {this.state.orderPenidngList ? this.state.orderPenidngList.map(row => (
-                                 <TableRow hover >
-
-                                   
-
-
-                                    <TableCell align="left">
-                                        <Button style={{ color: row.perChange > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
-                                            {row.symbol} {row.ltp} ({row.perChange}) <ShowChartIcon />
-                                        </Button>
-                                    </TableCell>
-
-                                    <TableCell align="left">{row.createdAt}</TableCell>
-
-
-                                    <TableCell align="left">{row.exch_seg}</TableCell>
-                                    <TableCell align="left">{row.token}</TableCell>
-
-                                    <TableCell align="left">{row.pattenName}</TableCell>
-                                    <TableCell align="left">{row.buyAt}</TableCell>
-                                    <TableCell align="left">{row.sellAt}</TableCell>
-                                    <TableCell align="left" style={{color: row.perChange == 0.00 ? "none" :  row.perChange > 0 ? "green" :"red"}}><b>{row.ltp} ({row.perChange}%) </b></TableCell>
-
-                                    <TableCell align="left">
-                                     <DeleteIcon style={{cursor:"pointer"}} onClick={() => this.deleteInOrderPenidngList(row)} />
-                                    </TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">Exch_seg</TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">Token</TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">Patten Name</TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">BuyAt</TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">SellAt</TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
+                                    <TableCell className="TableHeadFormat" align="left">Delete</TableCell>
 
                                 </TableRow>
-                            )) : ''}
-                        </TableBody>
-                    </Table>
+                            </TableHead>
+                            <TableBody id="tableAdd" style={{ width: "", whiteSpace: "nowrap" }}>
+
+                                {this.state.orderPenidngList ? this.state.orderPenidngList.map(row => (
+                                    <TableRow hover >
+
+                                    
 
 
-                </Grid>
+                                        <TableCell align="left">
+                                            <Button style={{ color: row.perChange > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
+                                                {row.symbol} {row.ltp} ({row.perChange}) <ShowChartIcon />
+                                            </Button>
+                                        </TableCell>
+
+                                        <TableCell align="left">{row.createdAt}</TableCell>
+
+
+                                        <TableCell align="left">{row.exch_seg}</TableCell>
+                                        <TableCell align="left">{row.token}</TableCell>
+
+                                        <TableCell align="left">{row.pattenName}</TableCell>
+                                        <TableCell align="left">{row.buyAt}</TableCell>
+                                        <TableCell align="left">{row.sellAt}</TableCell>
+                                        <TableCell align="left" style={{color: row.perChange == 0.00 ? "none" :  row.perChange > 0 ? "green" :"red"}}><b>{row.ltp} ({row.perChange}%) </b></TableCell>
+
+                                        <TableCell align="left">
+                                        <DeleteIcon style={{cursor:"pointer"}} onClick={() => this.deleteInOrderPenidngList(row)} />
+                                        </TableCell>
+
+                                    </TableRow>
+                                )) : ''}
+                            </TableBody>
+                        </Table>
+
+
+                    </Grid>
 
 
                 </Paper>
 
+                        </Grid>
+
+            
+            </Grid>
+            
+
+             
 
                 {window.location.hash == "#/order-watchlist" ?  
                  <Paper style={{ overflow: "auto", padding: '5px'}} > 

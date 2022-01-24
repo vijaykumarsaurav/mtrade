@@ -337,7 +337,7 @@ class CommonOrderMethod {
                 if (orderOption.stopLossPrice) {
                     setTimeout(() => {
                         this.placeOptionSLMOrder(orderOption);
-                    }, 1000);
+                    }, 3000);
                 }
                 this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
              

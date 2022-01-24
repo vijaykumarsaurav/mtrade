@@ -86,6 +86,7 @@ class OrderBook extends React.Component{
                 sellAt: this.state.sellAtPending,  
                 pattenName: this.state.pattenNamePending,
                 exch_seg:  this.state.exch_seg,
+                priceStopLoss: this.state.priceStopLoss
             }
 
             this.setState({orderPenidngOptionList : [...this.state.orderPenidngOptionList, data]}, function(){
@@ -138,32 +139,50 @@ class OrderBook extends React.Component{
         if(indexData.buyAt){
             if(today == 5 || today == 1){
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 400
+                if(indexData.symbol == 'NIFTY'){
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 200
+                }
             }
             else  if(today == 2){
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 300
+                if(indexData.symbol == 'NIFTY'){
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 150
+                }
             }
             else  if(today == 3){
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 200
+                if(indexData.symbol == 'NIFTY'){
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 100
+                }
             }else {
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
             }
-            this.props.buyOption("CE", indexData.symbol, strikePrice, nextExp, 1);  
+            this.props.buyOption("CE", indexData.symbol, strikePrice, nextExp, 1 , indexData.priceStopLoss);  
         }else if(indexData.sellAt){
             if(today == 5 || today == 1){
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 400
+                if(indexData.symbol == 'NIFTY'){
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 200
+                }
             }
             else  if(today == 2){
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 300
+                if(indexData.symbol == 'NIFTY'){
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 150
+                }
             }
             else  if(today == 3){
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 200
+                if(indexData.symbol == 'NIFTY'){
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 100
+                }
             }else {
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
             }
 
             console.log(strikePrice, today);
 
-            this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1);  
+            this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1, indexData.priceStopLoss);  
         }
 
     }
@@ -205,7 +224,7 @@ class OrderBook extends React.Component{
                 }
             })
 
-            await new Promise(r => setTimeout(r, 100)); 
+            await new Promise(r => setTimeout(r, 500)); 
         }
     }
 
@@ -237,7 +256,7 @@ class OrderBook extends React.Component{
 
     componentDidMount() {
 
-         this.updateLTP(); 
+        this.updateLTP(); 
 
         var beginningTime = moment('9:15am', 'h:mma');
         var endTime = moment('3:30pm', 'h:mma');
@@ -252,9 +271,6 @@ class OrderBook extends React.Component{
             }
             this.setState({ findlast5minMovementInterval: setInterval(() => { this.updateLTP(); }, intervaltime ) });
         }
-        
-       // this.setState({ findlast5minMovementInterval: setInterval(() => { this.updateLTP(); }, 2000 ) });
-
 
         localStorage.setItem('autoSearchTemp',JSON.stringify(this.state.autoSearchList))
     }
@@ -427,7 +443,7 @@ class OrderBook extends React.Component{
                     container>
                     <Grid item> 
                         <Typography  color="primary" gutterBottom>
-                        Option Buy At Level Watchlist ({this.state.orderPenidngOptionList && this.state.orderPenidngOptionList.length}) 
+                        Option Buy With Level ({this.state.orderPenidngOptionList && this.state.orderPenidngOptionList.length}) 
                         {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
                         {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
                         </Typography> 
@@ -460,7 +476,7 @@ class OrderBook extends React.Component{
                                                 {...params}
                                                 label={"Search Symbol"}
                                                 margin="normal"
-                                                style={{  width:"500px",marginTop: 'inherit' }}
+                                                style={{  width:"200px",marginTop: 'inherit' }}
                                                 name="searchSymbolPending"
                                                 variant="standard"
                                                 InputProps={{ ...params.InputProps, type: 'search' }}
@@ -472,16 +488,20 @@ class OrderBook extends React.Component{
 
                             
                             <Grid item  >
-                                <TextField label="BuyAt(limit)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
+                                <TextField label="BuyAt(Above))" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
                               <br /> High: {this.state.lastTradedData.high}
                             </Grid>
                             <Grid item  >
-                                <TextField label="SellAt(limit)" type="number" name="sellAtPending" value={this.state.sellAtPending} onChange={this.updateInput} />
+                                <TextField label="SellAt(Below)" type="number" name="sellAtPending" value={this.state.sellAtPending} onChange={this.updateInput} />
                                 <br /> Low: {this.state.lastTradedData.low}
                             </Grid>
                             <Grid item  >
                                 <TextField label="Which Pattern" name="pattenNamePending" value={this.state.pattenNamePending} onChange={this.updateInput} />
                                 <br /> Open: {this.state.lastTradedData.open}
+                            </Grid>
+                            <Grid item  >
+                                <TextField label="Price Stop Loss" name="priceStopLoss" value={this.state.priceStopLoss} onChange={this.updateInput} />
+                                <br /> 
                             </Grid>
                             <Grid item  >
                                 <Button variant="contained" style={{ marginLeft: '20px', marginTop: '10px' }} onClick={() => this.addInOrderPenidngList()}> Add </Button>

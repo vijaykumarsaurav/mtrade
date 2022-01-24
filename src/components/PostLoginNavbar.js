@@ -236,7 +236,6 @@ export default function PostLoginNavBar(props) {
                                         <Typography style={{ marginTop: '20px', fontSize: "12px" }} variant="h6" noWrap >
                                             <span id="niftySpid"  > </span>  &nbsp;&nbsp;  <span id="bankniftySpid" onClick={() => props.LoadSymbolDetails("BANKNIFTY")} > </span>
                                         </Typography>
-
                                     </Grid> */}
 
                                     <Grid item>

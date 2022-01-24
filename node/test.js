@@ -42,10 +42,6 @@ for (let index = 0; index < 10; index++) {
 }
 
 
-
-
-
-
 // const format1 = "YYYY-MM-DD HH:mm";
 // var time = moment.duration("20:10:00");
 // var startdate = moment(new Date()).subtract(time);

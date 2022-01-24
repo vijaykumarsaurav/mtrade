@@ -50,8 +50,7 @@ class Home extends React.Component {
             nextTimeMove : 0.7, 
             nextTimeSLMove: 0.3, 
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
-
-
+            trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
         };
     }
     componentDidMount() {
@@ -66,10 +65,9 @@ class Home extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1000) })
-           //   this.setState({bankNiftyInterval :  setInterval(() => {this.getNiftyLTP(); this.getBankNiftyLTP(); }, 30000)}) 
+              this.setState({bankNiftyInterval :  setInterval(() => {this.getNiftyLTP(); this.getBankNiftyLTP(); }, 1000)}) 
 
             var squireInterval = setInterval(() => {
-            //    console.log("squireoff", new Date().toLocaleString()); 
                 let sqrOffbeginningTime = moment('3:14pm', 'h:mma');
                 let sqrOffendTime = moment('3:15pm', 'h:mma');
                 let sqrOffcurrentTime = moment(new Date(), "h:mma");
@@ -89,15 +87,12 @@ class Home extends React.Component {
 
         } else {
             clearInterval(this.state.positionInterval);
-           // clearInterval(this.state.scaninterval);
-            clearInterval(this.state.bankNiftyInterval);
+           // clearInterval(this.state.bankNiftyInterval);
         }
 
         var scanendTime = moment('3:30pm', 'h:mma');
         if (today <= friday && currentTime.isBetween(beginningTime, scanendTime)) {
             //this.setState({selectedStockInteval :  setInterval(() => {this.getMySelectedStock(); }, 5000)}) 
-
-
 
             // var tostartInteral =   setInterval(() => {
             //     var time = new Date(); 
@@ -115,21 +110,18 @@ class Home extends React.Component {
             // }, 1000);
 
 
-
-            var foundPatternsFromStored = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
-
-            setInterval(() => {
-                this.refreshLtpOnFoundPattern();
-            }, foundPatternsFromStored.length * 100 + 300000);
+            // var foundPatternsFromStored = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
+            // setInterval(() => {
+            //     this.refreshLtpOnFoundPattern();
+            // }, foundPatternsFromStored.length * 100 + 300000);
         }
 
         setInterval(() => {
             this.getNSETopStock(); 
-        
             console.log('chartink scan call 2 sec:', new Date()) 
         }, 2000)
 
-        // var tostartInteral =   setInterval(() => {
+        // var tostartInteral = setInterval(() => {
         //     var time = new Date(); 
         //     console.log("chartink scanning in", time.toLocaleTimeString())
         //     if(time.getMinutes() % 5 === 0 && time.getSeconds() === 5){
@@ -138,57 +130,16 @@ class Home extends React.Component {
         // }, 1000);
         
         // this.getChartInkStock(); 
-
-
-       
-        //this.getCandleHistoryAndStore(); 
-
+        // this.getCandleHistoryAndStore(); 
         // this.findNR4PatternLive();
-        //this.findNR7PatternLive();
-
-
-
+        // this.findNR7PatternLive();
         // this.getPositionData();
         // this.getNSETopStock();
-
-
-        //  this.getMySelectedStock();
-
-
-
-        // setInterval(() => {
-
-        //     var timediff = moment.duration("00:50:00");
-        //     var startdate = moment(new Date()).subtract(timediff);
-
-
-        //     var enddiff = moment.duration("00:01:00");
-        //     var enddate = moment(new Date()).add(enddiff);
-
-
-        //     var data  = {
-        //         "exchange": "NSE",
-        //         "symboltoken": 212,
-        //         "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE
-        //         "fromdate": moment(startdate).format("YYYY-MM-DD HH:mm") , 
-        //         "todate": moment(enddate).format("YYYY-MM-DD HH:mm") , //moment(this.state.endDate).format(format1) /
-        //     }
-
-        //     AdminService.getHistoryData(data).then(res => { 
-        //         let histdata = resolveResponse(res,'noPop' );
-        //         var candleData = histdata.data; 
-        //         candleData.reverse(); 
-        //         console.log( new Date().toLocaleTimeString(),"testlive", candleData[0])
-        //     }); 
-
-        // }, 1000);
+        // this.getMySelectedStock();
 
         var backTestResult = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
 
-
-        this.setState({ foundPatternList: backTestResult })
-
-
+        this.setState({ foundPatternList: backTestResult }); 
 
     }
 
@@ -829,12 +780,9 @@ class Home extends React.Component {
 
     showCandleChart = (candleData, symbol) => {
 
-
         candleData = candleData && candleData.reverse();
-
         localStorage.setItem('candleChartData', JSON.stringify(candleData))
         localStorage.setItem('cadleChartSymbol', symbol)
-
         document.getElementById('showCandleChart').click();
     }
 
@@ -1152,8 +1100,6 @@ class Home extends React.Component {
 
                 this.setState({ totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL: totalMaxPnL.toFixed(2) });
 
-            
-
                 this.setState({ positionList: tradingPositionlist });
 
             }
@@ -1177,32 +1123,35 @@ class Home extends React.Component {
                 let data = resolveResponse(res, "noPop");
                 if (data.status && data.message === 'SUCCESS') {
                     var scandata = data.result;
-                    // console.log("scandata",scandata); 
-                    for (let index = 0; index < scandata.length; index++) {
-                        var isFound = false;
-                        for (let j = 0; j < this.state.positionList.length; j++) {
-                            if (this.state.positionList[j].symbolname === scandata[index].symbolName) {
-                                isFound = true;
+                    // console.log("scandata",scandata);  
+                    if(scandata &&  scandata.length){
+                        for (let index = 0; index < scandata.length; index++) {
+                            var isFound = false;
+                            for (let j = 0; j < this.state.positionList.length; j++) {
+                                if (this.state.positionList[j].symbolname === scandata[index].symbolName) {
+                                    isFound = true;
+                                }
+                            }
+    
+                            console.log("index",index, "symbolName",scandata[index].symbolName);    
+                            if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)) {
+    
+                                AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
+    
+                                    let searchResdata = searchRes.data;
+                                    var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === scandata[index].symbolName);
+    
+                                    if (found.length) {
+                                        console.log(found[0].symbol, "found", found);
+                                        localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
+                                        this.historyWiseOrderPlace(found[0].token, found[0].symbol, scandata[index].symbolName);
+                                    }
+                                })
+    
                             }
                         }
-
-                        console.log("index",index, "symbolName",scandata[index].symbolName);    
-                        if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)) {
-
-                            AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
-
-                                let searchResdata = searchRes.data;
-                                var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.name === scandata[index].symbolName);
-
-                                if (found.length) {
-                                    console.log(found[0].symbol, "found", found);
-                                    localStorage.setItem('NseStock_' + scandata[index].symbolName, "orderdone");
-                                    this.historyWiseOrderPlace(found[0].token, found[0].symbol, scandata[index].symbolName);
-                                }
-                            })
-
-                        }
                     }
+                  
                 }
             })
         }
@@ -1461,6 +1410,21 @@ class Home extends React.Component {
         this.setState({ [e.target.name]: e.target.value });
     }
 
+    deleteOptionPriceSL =(element, index)=> {
+        for (let indexP = 0; indexP <  this.state.positionList.length; indexP++) {
+            const position = this.state.positionList[indexP];
+            if(position.tradingsymbol == element.symbol && element.netqty > 0){
+                var trackSLPriceList = localStorage.getItem('trackSLPrice') && JSON.parse( localStorage.getItem('trackSLPrice')); 
+                trackSLPriceList.splice(index, 1); 
+                localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPriceList)); 
+                this.setState({trackSLPrice : trackSLPriceList},  ()=> {
+                    this.squareOff(position);
+                }); 
+                break; 
+            }
+        }
+    }
+
     getNiftyLTP = () => {
         var data = {
             "exchange": "NSE",
@@ -1478,8 +1442,25 @@ class Home extends React.Component {
                 else
                 document.getElementById('niftySpid').innerHTML = "<span style='color:red'> Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
             }
+            
+            if(this.state.trackSLPrice && this.state.trackSLPrice.length>0){
+                for (let index = 0; index < this.state.trackSLPrice.length; index++) {
+                    const element = this.state.trackSLPrice[index];
+                    if(element.name == 'NIFTY' && element.optiontype == 'CE' && LtpData.ltp < element.priceStopLoss){
+                        //delete sloption &  trigeer squireoff  
+                        this.deleteOptionPriceSL(element, index); 
+                    }
+                    if(element.name == 'NIFTY' && element.optiontype == 'PE' && LtpData.ltp > element.priceStopLoss){
+                        //delete sloption &  trigeer sl  
+                        this.deleteOptionPriceSL(element);   
+                    }
+                }
+            }
+            
+
         })
     }
+
 
     getBankNiftyLTP = () => {
         var data = {
@@ -1494,9 +1475,23 @@ class Home extends React.Component {
             if (LtpData && LtpData.ltp) {
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close; 
                 if(per > 0)
-                document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Bank Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+                document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
                 else
-                document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Bank Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+                document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+            }
+
+            if(this.state.trackSLPrice && this.state.trackSLPrice.length>0){
+                for (let index = 0; index < this.state.trackSLPrice.length; index++) {
+                    const element = this.state.trackSLPrice[index];
+                    if(element.name == 'BANKNIFTY' && element.optiontype == 'CE' && LtpData.ltp < element.priceStopLoss){
+                        //delete sloption &  trigeer sl    
+                        this.deleteOptionPriceSL(element, index); 
+                    }
+                    if(element.name == 'BANKNIFTY' && element.optiontype == 'PE' && LtpData.ltp > element.priceStopLoss){
+                        //delete sloption &  trigeer sl    
+                        this.deleteOptionPriceSL(element, index); 
+                    }
+                }
             }
         })
     }
@@ -1533,7 +1528,7 @@ class Home extends React.Component {
             "quantity": orderOption.quantity,
             "ordertype": orderOption.buyPrice === 0 ? "MARKET" : "LIMIT",
             "price": orderOption.buyPrice,
-            "producttype": "DELIVERY",//"DELIVERY",
+            "producttype": "INTRADAY",//"DELIVERY",
             "duration": "DAY",
             "squareoff": "0",
             "stoploss": "0",
@@ -1726,7 +1721,7 @@ class Home extends React.Component {
             "quantity": slmOption.quantity,
             "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
             "exchange": 'NSE',
-            "producttype": "DELIVERY",//"DELIVERY",
+            "producttype": "INTRADAY",//"DELIVERY",
             "duration": "DAY",
             "price": 0,
             "squareoff": "0",
@@ -1945,8 +1940,10 @@ class Home extends React.Component {
                 <Grid style={{ padding: '5px' }} justify="space-between" direction="row" container>
                     <Grid item >
                        <Typography color="primary" gutterBottom>
-                            Positions ({this.state.positionList && this.state.positionList.length})  {new Date().toLocaleString()}
+                            Positions ({this.state.positionList && this.state.positionList.length})    <span id="niftySpid"  > Nifty </span>  &nbsp;&nbsp;  <span id="bankniftySpid" >Banknifty </span>
                         </Typography>
+
+                     
                     </Grid>
                     {/* <Grid item xs={12} sm={3} > 
 

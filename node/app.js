@@ -985,6 +985,45 @@ app.get('/getSelectedStock', function (req, res) {
 });
 
 
+// sse event url 
+app.get('/getChartInkStockSSE', function (req, res) {
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  })
+  countdown(res, 10)
+
+  function countdown(res, count) {
+
+    var obj, fillertedData = [];
+
+    fs.readFile('longBuiltUp.json', 'utf8', function (err, data) {
+  
+      if (err) throw err;
+      if (data) {
+        obj = JSON.parse(data);
+      }
+  
+      var response = {
+        result: obj,
+        message: "SUCCESS",
+        status: true
+      }
+
+      //res.status(200).send(response);
+      res.write("data: " + JSON.stringify(response) + "\n\n")
+      res.end();
+        
+    });
+
+    
+  }
+
+});
+
+
 app.get('/saveScanList/:query', function (req, res) {
   const symbolName = req.params.query.toUpperCase();
 
@@ -1060,7 +1099,7 @@ app.get('/saveWatchList/:query', function (req, res) {
 
 
 
-app.get('/chartinkScan', function (req, res) {
+app.post('/chartinkscan', function (req, res) {
     chartinkAutoOrder(req, function(data){
       res.status(200).send(data);
       return;

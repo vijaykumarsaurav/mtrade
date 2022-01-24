@@ -61,7 +61,7 @@ class MyView extends React.Component {
             filtered: JSON.parse(localStorage.getItem('optionChainDataBN')) && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered && JSON.parse(localStorage.getItem('optionChainDataBN')).filtered.data,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             selectedWatchlist: 'Securities in F&O',
-            selectOptionStock: "NIFTY",
+            selectOptionStock: "BANKNIFTY",
             underlyingValue: JSON.parse(localStorage.getItem('optionChainDataBN')) && JSON.parse(localStorage.getItem('optionChainDataBN')).records && JSON.parse(localStorage.getItem('optionChainDataBN')).records.underlyingValue,
 
             buyCallLot:1, 
@@ -154,8 +154,8 @@ class MyView extends React.Component {
     calculateCallMargin =(e)=> {
         this.state.filtered && this.state.filtered.forEach(element => {
             if(element.CE && element.CE.lastPrice)  {
-                element.CE.totalMargin = Parser(  this.state.lotSize * this.state.buyCallLot+ " * " + element.CE.lastPrice  + "<br /> <b> " + (element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize).toFixed(2) + "</b>");
-                element.CE.maxLoss = Parser( " <b> Max Loss: <br />" + ((element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize) * 10/100).toFixed(2) + "</b>");
+                element.CE.totalMargin = Parser(  (element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize).toFixed(2) ); // this.state.lotSize * this.state.buyCallLot+ " * " + element.CE.lastPrice  + "<br /> 
+                element.CE.maxLoss = Parser( " SL 10%: <br /><b style='color:red'>" + ((element.CE.lastPrice * this.state.buyCallLot * this.state.lotSize) * 10/100).toFixed(2) +"</b>" );
     
             }
          
@@ -173,8 +173,8 @@ class MyView extends React.Component {
 
         this.state.filtered &&  this.state.filtered.forEach(element => {
             if(element.PE && element.PE.lastPrice)  {
-                element.PE.totalMargin = Parser(  this.state.lotSize * this.state.buyPutLot+ " * " + element.PE.lastPrice  + "<br /> <b> " + (element.PE.lastPrice * this.state.buyPutLot * this.state.lotSize).toFixed(2) + "</b>");
-                element.PE.maxLoss = Parser( " <b> Max Loss: <br />" + ((element.PE.lastPrice * this.state.buyPutLot * this.state.lotSize) * 10/100).toFixed(2) + "</b>");
+                element.PE.totalMargin = Parser(  (element.PE.lastPrice * this.state.buyPutLot * this.state.lotSize).toFixed(2) ); //this.state.lotSize * this.state.buyPutLot+ " * " + element.PE.lastPrice  + "<br /> <b> "
+                element.PE.maxLoss = Parser( " SL 10%: <br /><b style='color:red'>" + ((element.PE.lastPrice * this.state.buyPutLot * this.state.lotSize) * 10/100).toFixed(2)  +'</b>' );
 
             }
         });
@@ -237,7 +237,7 @@ class MyView extends React.Component {
         if(this.state.selectOptionStock == "NIFTY")
          lotSize = 50;
         if(this.state.selectOptionStock == "BANKNIFTY")
-        lotSize = 50;
+        lotSize = 25;
 
         this.setState({lotSize :lotSize}, function(){
             this.calculateCallMargin(); 
@@ -652,7 +652,7 @@ class MyView extends React.Component {
                 <Grid direction="row" container className="flexGrow" spacing={0} style={{ paddingLeft: "5px", paddingRight: "5px" }}>
 
 
-                    <Grid id="tabledatachart" item xs={6} sm={6} style={{ padding: "2px", overflow: "auto", height: "250px" }}>
+                    <Grid id="tabledatachart" item xs={6} sm={6} style={{ padding: "2px", overflow: "auto", height: "350px" }}>
                         <Table id="tabledata" stickyHeader aria-label="sticky table" size="small">
                             <TableHead key={2222} variant="head" style={{ width: "", whiteSpace: "nowrap" }}>
                                 <TableRow variant="head">
@@ -700,7 +700,7 @@ class MyView extends React.Component {
                         </Table>
 
                     </Grid>
-                    <Grid item xs={6} sm={6} style={{ padding: "2px", overflow: "auto", height: "300px" }}>
+                    <Grid item xs={6} sm={6} style={{ padding: "2px", overflow: "auto"}}>
 
                         <Chart diffData={{ data: this.state.products, scrollcount: this.state.scrollcount }} />
                     </Grid>
@@ -784,7 +784,7 @@ class MyView extends React.Component {
                                     <TableCell align="center"><b>OI Total OI <br />{localStorage.getItem('totCEOI')}({(localStorage.getItem('totCEOI') / 100000).toFixed(3)}L) </b></TableCell>
                                     <TableCell align="center"><b>Chng in OI <br />{localStorage.getItem('totCEOIChange')}({(localStorage.getItem('totCEOIChange') / 100000).toFixed(3)}L)</b></TableCell>
                                     {/* <TableCell align="center"><b>Volume <br />{localStorage.getItem('totCEVol')}({(localStorage.getItem('totCEVol')/100000).toFixed(3)}L)</b> </TableCell> */}
-                                    <TableCell align="center"><b>IV</b></TableCell>
+                                    {/* <TableCell align="center"><b>IV</b></TableCell> */}
                                     {/* <TableCell align="center"><b>Delta</b></TableCell> */}
 
                                     <TableCell align="center"><b>LTP</b></TableCell>
@@ -829,7 +829,7 @@ class MyView extends React.Component {
                                     <TableCell align="center"><b>CHNG</b></TableCell>
                                     {/* <TableCell align="center"><b>PChange%</b></TableCell> */}
                                     <TableCell align="center"><b>LTP</b></TableCell>
-                                    <TableCell align="center"><b>IV</b></TableCell>
+                                    {/* <TableCell align="center"><b>IV</b></TableCell> */}
 
                                     {/* <TableCell align="center"><b>Delta</b></TableCell> */}
 
@@ -845,32 +845,32 @@ class MyView extends React.Component {
                             <TableBody>
 
                                 {this.state.filtered ? this.state.filtered.map((opdata, index) => (
-                                    <TableRow hover key={index} style={{ background: opdata.isDuplicate ? "lightgray" : "" }}>
+                                    <TableRow hover key={index} >
 
                                         {/* <TableCell style={{whiteSpace: "nowrap"}} align="center">{index+1} </TableCell>*/}
                                         {opdata && opdata.CE && opdata.PE && (opdata.strikePrice >= opdata.CE.underlyingValue - this.state.showOptionUpside && opdata.strikePrice <= opdata.CE.underlyingValue + this.state.showOptionDownside) ? <>
 
-                                            <TableCell {...totCEOI = totCEOI + opdata.CE.openInterest} style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.CE.openInterest}</TableCell>
-                                            <TableCell {...totCEOIChange = totCEOIChange + opdata.CE.changeinOpenInterest} style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.CE.changeinOpenInterest}</TableCell>
+                                            <TableCell {...totCEOI = totCEOI + opdata.CE.openInterest} style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">{opdata.CE.openInterest}</TableCell>
+                                            <TableCell {...totCEOIChange = totCEOIChange + opdata.CE.changeinOpenInterest} style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">{opdata.CE.changeinOpenInterest}</TableCell>
                                             {/* <TableCell {...totCEVol = totCEVol + opdata.CE.totalTradedVolume} style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.totalTradedVolume} </TableCell> */}
-                                            <TableCell align="center">{opdata.CE.impliedVolatility} </TableCell>
+                                            {/* <TableCell align="center">{opdata.CE.impliedVolatility} </TableCell> */}
                                             {/* <TableCell align="center">{(opdata.CE.change / (opdata.strikePrice - opdata.CE.underlyingValue)).toFixed(2)} </TableCell> */}
 
 
 
-                                            <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center"><span style={{ color: '#3e85c5', fontWeight: 'bold' }}> {opdata.CE.lastPrice}</span>({opdata.CE.pChange > 0 ? <span style={{ color: 'green', fontWeight: 'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span> : opdata.CE.pChange == 0 ? <span>{opdata.CE.pChange.toFixed(2)}%</span> : <span style={{ color: 'red', fontWeight: 'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span>}) </TableCell>
+                                            <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center"><span style={{ color: '#3e85c5', fontWeight: 'bold' }}> {opdata.CE.lastPrice}</span>({opdata.CE.pChange > 0 ? <span style={{ color: 'green', fontWeight: 'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span> : opdata.CE.pChange == 0 ? <span>{opdata.CE.pChange.toFixed(2)}%</span> : <span style={{ color: 'red', fontWeight: 'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span>}) </TableCell>
                                             {/* <TableCell style={{backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.CE.pChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{opdata.CE.pChange.toFixed(2)}%</span>: opdata.CE.pChange == 0 ? <span>{opdata.CE.pChange.toFixed(2)}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{opdata.CE.pChange.toFixed(2)}%</span> } </TableCell> */}
-                                            <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.CE.change.toFixed(2)} </TableCell>
+                                            <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">{opdata.CE.change.toFixed(2)} </TableCell>
                                             
-                                            <TableCell align="center">                            
+                                            <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">                            
                                                 <TextField label={"Lot: " + this.state.lotSize} type={"number"} style={{width:"50px", textAlign:"center"}} value={this.state.buyCallLot} onChange={this.onChangeCallLot} name="buyCallLot"  />
                                              </TableCell>
-                                            <TableCell align="center"> {opdata.CE.totalMargin} </TableCell>
-                                            <TableCell align="center"> {opdata.CE.maxLoss} </TableCell>
+                                            <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center"> {opdata.CE.totalMargin} </TableCell>
+                                            <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center"> {opdata.CE.maxLoss} </TableCell>
 
                                             
 
-                                            <TableCell align="center">  <Button size={"small"} variant="contained" onClick={() => this.props.buyOption("CE", this.state.selectOptionStock, opdata.strikePrice, opdata.expiryDate, this.state.buyCallLot)}> Call Buy </Button> </TableCell>
+                                            <TableCell style={{ backgroundColor: opdata.strikePrice < opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">  <Button size={"small"} variant="contained" onClick={() => this.props.buyOption("CE", this.state.selectOptionStock, opdata.strikePrice, opdata.expiryDate, this.state.buyCallLot)}> Call Buy </Button> </TableCell>
 
                                             {/* <TableCell align="center">{opdata.CE.bidQty} </TableCell>
                                             <TableCell align="center">{opdata.CE.bidprice} </TableCell>
@@ -883,12 +883,12 @@ class MyView extends React.Component {
                                             <TableCell style={{ borderLeft: 'dashed', borderRight: 'dashed', fontWeight: '500' }} align="center"><span> <a href="#" style={{ textDecoration: 'none' }} onClick={() => this.filterOptionChain('strike', opdata.strikePrice)}> {opdata.strikePrice}</a> </span> </TableCell>
                                             <TableCell style={{ borderRight: 'dashed', whiteSpace: "nowrap" }} align="center" ><span style={{ paddingLeft: '5px', paddingRight: '5px' }}> <a href="#" style={{ textDecoration: 'none' }} onClick={() => this.filterOptionChain('expiry', opdata.expiryDate)}> {opdata.expiryDate}</a></span> </TableCell>
 
-                                            <TableCell align="center">  <Button size={"small"} variant="contained" onClick={() => this.props.buyOption("PE", this.state.selectOptionStock, opdata.strikePrice, opdata.expiryDate, this.state.buyPutLot)}>Put Buy </Button> </TableCell>
-                                            <TableCell align="center"> {opdata.PE.maxLoss} </TableCell>
+                                            <TableCell  style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">  <Button size={"small"} variant="contained" onClick={() => this.props.buyOption("PE", this.state.selectOptionStock, opdata.strikePrice, opdata.expiryDate, this.state.buyPutLot)}>Put Buy </Button> </TableCell>
+                                            <TableCell  style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center"> {opdata.PE.maxLoss} </TableCell>
 
-                                            <TableCell align="center"> {opdata.PE.totalMargin} </TableCell>
+                                            <TableCell  style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center"> {opdata.PE.totalMargin} </TableCell>
 
-                                            <TableCell align="center">                            
+                                            <TableCell  style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">                            
                                                 <TextField label={"Lot: " + this.state.lotSize} type={"number"} style={{width:"50px", textAlign:"center"}} value={this.state.buyPutLot} onChange={this.onChangePutLot} name="buyPutLot"  />
                                              </TableCell>
                                             {/* <TableCell {...totPESell = totPESell + opdata.PE.totalSellQuantity} style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} title={'Total PUT Sell Qty'} align="center">{opdata.PE.totalSellQuantity}({(opdata.PE.totalSellQuantity/100000).toFixed(3)}L) </TableCell>
@@ -899,16 +899,16 @@ class MyView extends React.Component {
                                             <TableCell align="center">{opdata.PE.askPrice} </TableCell>
                                             <TableCell align="center">{opdata.PE.askQty} </TableCell>
                                             */}
-                                            <TableCell style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.PE.change.toFixed(2)} </TableCell>
+                                            <TableCell  style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">{opdata.PE.change.toFixed(2)} </TableCell>
                                             {/* <TableCell style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.PE.pChange > 0 ?  <span style={{ color:'green', fontWeight:'bold' }} >{opdata.PE.pChange.toFixed(2)}%</span>: opdata.PE.pChange == 0 ? <span>{opdata.PE.pChange.toFixed(2)}%</span> : <span style={{ color:'red',fontWeight:'bold'}} >{opdata.PE.pChange.toFixed(2)}%</span>} </TableCell> */}
-                                            <TableCell style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center"><span style={{ color: '#3e85c5', fontWeight: 'bold' }}> {opdata.PE.lastPrice}</span>({opdata.PE.pChange > 0 ? <span style={{ color: 'green', fontWeight: 'bold' }} >{opdata.PE.pChange.toFixed(2)}%</span> : opdata.PE.pChange == 0 ? <span>{opdata.PE.pChange.toFixed(2)}%</span> : <span style={{ color: 'red', fontWeight: 'bold' }} >{opdata.PE.pChange.toFixed(2)}%</span>})</TableCell>
+                                            <TableCell style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center"><span style={{ color: '#3e85c5', fontWeight: 'bold' }}> {opdata.PE.lastPrice}</span>({opdata.PE.pChange > 0 ? <span style={{ color: 'green', fontWeight: 'bold' }} >{opdata.PE.pChange.toFixed(2)}%</span> : opdata.PE.pChange == 0 ? <span>{opdata.PE.pChange.toFixed(2)}%</span> : <span style={{ color: 'red', fontWeight: 'bold' }} >{opdata.PE.pChange.toFixed(2)}%</span>})</TableCell>
 
-                                            <TableCell align="center">{opdata.PE.impliedVolatility} </TableCell>
+                                            {/* <TableCell align="center">{opdata.PE.impliedVolatility} </TableCell> */}
                                             {/* <TableCell align="center">{(opdata.PE.change / (opdata.strikePrice - opdata.PE.underlyingValue)).toFixed(2)} </TableCell> */}
 
                                             {/* <TableCell {...totPEVol = totPEVol + opdata.PE.totalTradedVolume}  style={{backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : ''}} align="center">{opdata.PE.totalTradedVolume} </TableCell> */}
-                                            <TableCell {...totPEOIChange = totPEOIChange + opdata.PE.changeinOpenInterest} style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.PE.changeinOpenInterest}</TableCell>
-                                            <TableCell {...totPEOI = totPEOI + opdata.PE.openInterest} style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#ded6a269' : '' }} align="center">{opdata.PE.openInterest} </TableCell>
+                                            <TableCell {...totPEOIChange = totPEOIChange + opdata.PE.changeinOpenInterest} style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">{opdata.PE.changeinOpenInterest}</TableCell>
+                                            <TableCell {...totPEOI = totPEOI + opdata.PE.openInterest} style={{ backgroundColor: opdata.strikePrice > opdata.CE.underlyingValue ? '#caca5b' : '' }} align="center">{opdata.PE.openInterest} </TableCell>
                                         </> : ""
                                         }
 

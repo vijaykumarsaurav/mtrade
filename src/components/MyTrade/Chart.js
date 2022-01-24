@@ -94,7 +94,7 @@ export default function App( props ) {
   } 
 
   return (
-    <div className="App">
+    <div >
       <Line data={chartData} options={options} />
     </div>
   );
