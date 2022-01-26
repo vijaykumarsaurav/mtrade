@@ -74,7 +74,8 @@ class Home extends React.Component {
             allQniqueStockList: [],
             isSameDayDuplcate: true,
             stockWiseListOverall: [],
-            filename: ""
+            filename: "",
+            overallMonthWise: []
         };
 
     }
@@ -416,6 +417,7 @@ class Home extends React.Component {
                              this.updateOverall();
                              
                            this.updateStockWiseOverall();
+                           this.updateMonthWise();
                         } else {
                             console.log(" candle data emply");
                             this.setState({ searchFailed: this.state.searchFailed + 1 })
@@ -443,7 +445,7 @@ class Home extends React.Component {
     }
 
     backTestAnyPattern = () => {
-        this.setState({ backTestResult: [], overAllResult: [], backTestFlag: false, filename: '', searchFailed: 0, pertradePandL: 0, pertradePandLNet: 0 });
+        this.setState({ backTestResult: [], overAllResult: [],overallMonthWise:[], backTestFlag: false, filename: '', searchFailed: 0, pertradePandL: 0, pertradePandLNet: 0 });
 
         this.getAlltokenOfList(async (newJsonList) => {
             //  let newJsonList = this.state.newJsonList; 
@@ -645,6 +647,88 @@ class Home extends React.Component {
 
             this.setState({stockWiseListOverall: this.state.stockWiseListOverall, lossCount:lossCount,winCount:winCount,  totalgross: totalgross.toFixed(2), totalAvg: totalAvg, totTrade: totTrade, totalNet: totalNet.toFixed(2), totalExp: totalExp.toFixed(2) });
 
+
+        })
+    }
+
+
+    
+    updateMonthWise = () => {
+        this.setState({ overallMonthWise: [] })
+        let months = [
+            {name: 'Jan'}, 
+            {name: 'Feb'}, 
+            {name: 'Mar'}, 
+            {name: 'Apr'}, 
+            {name: 'May'}, 
+            {name: 'Jun'}, 
+            {name: 'Jul'}, 
+            {name: 'Aug'}, 
+            {name: 'Sep'}, 
+            {name: 'Nov'}, 
+            {name: 'Dec'}, 
+            
+        ]; 
+        let overall = []; 
+
+        let sumofall = 0, totalSameTrade = 0;
+       
+        months.forEach(month => {
+
+            //   console.log('stockelement', stockelement); 
+               let sumofall = 0, totalSameTrade = 0;
+               this.state.backTestResult.forEach(element => {
+                   let tradeMonth = moment(element.foundAt).format('MMM'); 
+                   if (month.name == tradeMonth) {
+                       if (element.candleData.length > 0) {
+                           sumofall += parseFloat(element.candleData[element.candleData.length - 1].perChange)
+                           totalSameTrade += 1;
+                       }
+                   }
+               });
+               let expence = totalSameTrade * 0.06;
+               let data = {
+                   name: month.name,
+                   totalSameTrade: totalSameTrade,
+                   sumofall: sumofall.toFixed(2),
+                   expence: expence.toFixed(2),
+                   netPnL: (sumofall - expence).toFixed(2)
+               }
+
+               overall.push(data); 
+               
+           });
+
+        this.setState({ overallMonthWise: overall}, () => {
+
+            // let totalgross = 0, totalAvg = 0, totTrade = 0, totalNet = 0, totalExp = 0, winCount=0,lossCount=0;
+            // this.state.overallMonthWise.forEach(item => {
+            //     totalgross += item.sumofall;
+            //     totTrade += item.totalSameTrade;
+            //     totalNet += item.netPnL;
+            //     totalExp += item.expence;
+            //     winCount += item.netPnL>0 ? 1 : 0;
+            //     lossCount += item.netPnL<0 ? 1 : 0;
+            // })
+
+            // totalAvg = (totalgross/totTrade).toFixed(2);
+
+            // let data = {
+            //     name: "Total (Gross Avg%): "+totalAvg,
+            //     totalSameTrade: totTrade,
+            //     sumofall: totalgross ,
+            //     expence: totalExp,
+            //     netPnL: totalNet,
+            //     winCount:winCount,
+            //     lossCount:lossCount
+            // }
+
+            // this.state.overallMonthWise.push(data); 
+
+
+            // this.setState({overallMonthWise: this.state.overallMonthWise, lossCount:lossCount,winCount:winCount,  totalgross: totalgross.toFixed(2), totalAvg: totalAvg, totTrade: totTrade, totalNet: totalNet.toFixed(2), totalExp: totalExp.toFixed(2) });
+
+            console.log("overallMonthWise", this.state.overallMonthWise)
 
         })
     }
@@ -911,10 +995,9 @@ class Home extends React.Component {
                                                 label={this.state.isSameDayDuplcate ? 'Same Day Duplcate: Yes' : 'Same Day Duplcate: No'}
                                             />
                                         </FormGroup>
+
+                                    <TextField variant="outlined" id="textarea" multiline fullwidth style={{ width: '90%', height: '50%' }} label="Filename" value={this.state.filename} name="filename" onChange={this.onChange} />
                                     </FormControl>
-
-
-
 
                                 </Grid>
 
@@ -922,15 +1005,44 @@ class Home extends React.Component {
                                 <Grid item xs={12} sm={4} style={{ marginTop: '5px' }}>
                                     {/* {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>} */}
                                     {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPatternStockWise()}>Search Stock Wise</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>}
-                                    <br /> <br />
-                                    &nbsp;&nbsp; {this.state.stockTesting}
-                                    &nbsp;&nbsp; Failed:{this.state.searchFailed}
-                                    <br />  <br /> 
+                                    <br />
+                                    &nbsp;{this.state.stockTesting}
+                                    Failed:{this.state.searchFailed}
+                                    <br /> 
                                     {this.state.totaluniqueStocks ? this.state.totaluniqueStocks + " unique stocks found" : ""}
-                                    <br /> <br />
-                                    <TextField variant="outlined" id="textarea" multiline fullwidth style={{ width: '90%', height: '50%' }} label="Filename" value={this.state.filename} name="filename" onChange={this.onChange} />
 
+                                    <Table size="small" aria-label="sticky table" >
+                                        <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
+                                            <TableRow variant="head" style={{ fontWeight: 'bold' }} >
 
+                                                <TableCell className="TableHeadFormat" >Month
+                                                {/* <CsvDownload filename={'Overall_'+this.state.filename+'.csv'} data={this.state.overallMonthWise} /> */}
+                                                </TableCell>
+                                                <TableCell className="TableHeadFormat" >Trades
+                                                </TableCell>
+                                                <TableCell className="TableHeadFormat" >Gross P/L
+                                                </TableCell>
+                                                <TableCell className="TableHeadFormat" >Expence</TableCell>
+                                                <TableCell className="TableHeadFormat" > Net P/L
+                                                </TableCell>
+
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
+                                            {this.state.overallMonthWise ? this.state.overallMonthWise.map((item, i) => (
+                                                item.totalSameTrade > 0 ?  <TableRow key={i}>
+                                                <TableCell>{item.name}</TableCell>
+                                                <TableCell>{item.totalSameTrade}</TableCell>
+                                                <TableCell>{item.sumofall > 0 ? <span style={{ color: 'green' }}> {item.sumofall}</span> : <span style={{ color: 'red' }}> {item.sumofall}</span>}% </TableCell>
+                                                <TableCell>{item.expence}%</TableCell>
+                                                <TableCell>{item.netPnL > 0 ? <span style={{ color: 'green' }}> {item.netPnL}</span> : <span style={{ color: 'red' }}> {item.netPnL}</span>}% </TableCell>
+
+                                            </TableRow>:""
+                                            )) : ''}
+
+                                        </TableBody>
+                                    </Table>
+                                   
                                 </Grid>
 
                                 <Grid item xs={12} sm={12} >
