@@ -699,36 +699,7 @@ class Home extends React.Component {
                
            });
 
-        this.setState({ overallMonthWise: overall}, () => {
-
-            // let totalgross = 0, totalAvg = 0, totTrade = 0, totalNet = 0, totalExp = 0, winCount=0,lossCount=0;
-            // this.state.overallMonthWise.forEach(item => {
-            //     totalgross += item.sumofall;
-            //     totTrade += item.totalSameTrade;
-            //     totalNet += item.netPnL;
-            //     totalExp += item.expence;
-            //     winCount += item.netPnL>0 ? 1 : 0;
-            //     lossCount += item.netPnL<0 ? 1 : 0;
-            // })
-
-            // totalAvg = (totalgross/totTrade).toFixed(2);
-
-            // let data = {
-            //     name: "Total (Gross Avg%): "+totalAvg,
-            //     totalSameTrade: totTrade,
-            //     sumofall: totalgross ,
-            //     expence: totalExp,
-            //     netPnL: totalNet,
-            //     winCount:winCount,
-            //     lossCount:lossCount
-            // }
-
-            // this.state.overallMonthWise.push(data); 
-
-
-            // this.setState({overallMonthWise: this.state.overallMonthWise, lossCount:lossCount,winCount:winCount,  totalgross: totalgross.toFixed(2), totalAvg: totalAvg, totTrade: totTrade, totalNet: totalNet.toFixed(2), totalExp: totalExp.toFixed(2) });
-
-            console.log("overallMonthWise", this.state.overallMonthWise)
+        this.setState({ overallMonthWise: overall}, () => {            
 
         })
     }
@@ -996,7 +967,16 @@ class Home extends React.Component {
                                             />
                                         </FormGroup>
 
-                                    <TextField variant="outlined" id="textarea" multiline fullwidth style={{ width: '90%', height: '50%' }} label="Filename" value={this.state.filename} name="filename" onChange={this.onChange} />
+                                      
+                                   
+
+                                         <TextField variant="outlined" id="textarea" multiline fullwidth style={{ width: '90%', height: '50%' }} label="Filename" value={this.state.filename} name="filename" onChange={this.onChange} />
+
+                                         Failed:{this.state.searchFailed} 
+                                     <br /> 
+                                    {this.state.totaluniqueStocks ? this.state.totaluniqueStocks + " unique stocks found" : ""}
+                                    <br />
+                                    &nbsp;{this.state.stockTesting}
                                     </FormControl>
 
                                 </Grid>
@@ -1004,12 +984,8 @@ class Home extends React.Component {
 
                                 <Grid item xs={12} sm={4} style={{ marginTop: '5px' }}>
                                     {/* {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>} */}
-                                    {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPatternStockWise()}>Search Stock Wise</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>}
-                                    <br />
-                                    &nbsp;{this.state.stockTesting}
-                                    Failed:{this.state.searchFailed}
-                                    <br /> 
-                                    {this.state.totaluniqueStocks ? this.state.totaluniqueStocks + " unique stocks found" : ""}
+                                    {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPatternStockWise()}>Search Stock Wise</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button>  </>}
+                                   
 
                                     <Table size="small" aria-label="sticky table" >
                                         <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">

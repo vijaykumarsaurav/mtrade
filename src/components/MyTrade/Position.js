@@ -22,6 +22,8 @@ import EqualizerIcon from '@material-ui/icons/Equalizer';
 import Notify from "../../utils/Notify";
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import TextField from "@material-ui/core/TextField";
+import CommonOrderMethod from "../../utils/CommonMethods";
+import CommonMethods from '../../utils/CommonMethods';
 
 class Home extends React.Component {
     constructor(props) {
@@ -51,6 +53,8 @@ class Home extends React.Component {
             nextTimeSLMove: 0.3, 
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
+            enableSLMOrderUi:false,
+            addSLInfo : {}
         };
     }
     componentDidMount() {
@@ -92,6 +96,11 @@ class Home extends React.Component {
 
         var scanendTime = moment('3:30pm', 'h:mma');
         if (today <= friday && currentTime.isBetween(beginningTime, scanendTime)) {
+            setInterval(() => {
+                this.getNSETopStock(); 
+              //  console.log('chartink scan call 2 sec:', new Date()) 
+            }, 2000)
+
             //this.setState({selectedStockInteval :  setInterval(() => {this.getMySelectedStock(); }, 5000)}) 
 
             // var tostartInteral =   setInterval(() => {
@@ -116,10 +125,7 @@ class Home extends React.Component {
             // }, foundPatternsFromStored.length * 100 + 300000);
         }
 
-        setInterval(() => {
-            this.getNSETopStock(); 
-            console.log('chartink scan call 2 sec:', new Date()) 
-        }, 2000)
+      
 
         // var tostartInteral = setInterval(() => {
         //     var time = new Date(); 
@@ -791,8 +797,6 @@ class Home extends React.Component {
         document.getElementById('showMultipleChart').click();
     }
 
-
-
     refreshLtpOnFoundPattern = async () => {
 
         this.setState({ nr4TotalPer: 0, totalBrokerChargesNR4: 0, totalNetProfit: 0, totelActivatedCount: 0, pnlAmountTotal: 0, perHighLowTotal: 0, netPnLAmountOnHighlowTotal: 0 });
@@ -1045,6 +1049,8 @@ class Home extends React.Component {
     getPositionData = async () => {
         //   document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
         var maxPnL = 0, totalMaxPnL = 0;
+        var trackSLPriceList = localStorage.getItem('trackSLPrice') ? JSON.parse( localStorage.getItem('trackSLPrice')) : []; 
+
         AdminService.getPosition().then(res => {
             let data = resolveResponse(res, 'noPop');
             var positionList = data && data.data;
@@ -1089,6 +1095,8 @@ class Home extends React.Component {
                         element.stopLossAmount = slData.maxLossAmount;
                         totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;
                     }
+
+                   
                 }
                
                 this.setState({ todayProfitPnL: todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue: totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded });
@@ -1101,6 +1109,8 @@ class Home extends React.Component {
                 this.setState({ totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL: totalMaxPnL.toFixed(2) });
 
                 this.setState({ positionList: tradingPositionlist });
+
+                positionList.sort((a,b) => a.netqty - b.netqty);
 
             }
         })
@@ -1133,7 +1143,7 @@ class Home extends React.Component {
                                 }
                             }
     
-                            console.log("index",index, "symbolName",scandata[index].symbolName);    
+                           // console.log("index",index, "symbolName",scandata[index].symbolName);    
                             if (!isFound && !localStorage.getItem('NseStock_' + scandata[index].symbolName)) {
     
                                 AdminService.autoCompleteSearch(scandata[index].symbolName).then(searchRes => {
@@ -1410,12 +1420,21 @@ class Home extends React.Component {
         this.setState({ [e.target.name]: e.target.value });
     }
 
-    deleteOptionPriceSL =(element, index)=> {
+    onAddSLChange=(e)=>{
+        let addSLInfo = this.state.addSLInfo; 
+        addSLInfo[e.target.name] = e.target.value.toUpperCase(); 
+        this.setState({ addSLInfo: addSLInfo });
+    }
+
+    deleteOptionPriceSL =(element, deleteindex)=> {
         for (let indexP = 0; indexP <  this.state.positionList.length; indexP++) {
             const position = this.state.positionList[indexP];
-            if(position.tradingsymbol == element.symbol && element.netqty > 0){
+            console.log("squireoffff", position.tradingsymbol, element.tradingsymbol,  position.buyqty )
+
+            if(position.tradingsymbol == element.tradingsymbol && position.buyqty > 0){
+
                 var trackSLPriceList = localStorage.getItem('trackSLPrice') && JSON.parse( localStorage.getItem('trackSLPrice')); 
-                trackSLPriceList.splice(index, 1); 
+                trackSLPriceList.splice(deleteindex, 1); 
                 localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPriceList)); 
                 this.setState({trackSLPrice : trackSLPriceList},  ()=> {
                     this.squareOff(position);
@@ -1437,21 +1456,29 @@ class Home extends React.Component {
             //console.log(LtpData);
             if (LtpData && LtpData.ltp) {
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close; 
-                if(per > 0)
+                if(per && per > 0)
                 document.getElementById('niftySpid').innerHTML = "<span style='color:green'> Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
                 else
                 document.getElementById('niftySpid').innerHTML = "<span style='color:red'> Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
             }
             
-            if(this.state.trackSLPrice && this.state.trackSLPrice.length>0){
-                for (let index = 0; index < this.state.trackSLPrice.length; index++) {
-                    const element = this.state.trackSLPrice[index];
-                    if(element.name == 'NIFTY' && element.optiontype == 'CE' && LtpData.ltp < element.priceStopLoss){
+            let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse( localStorage.getItem('trackSLPrice')) : []; 
+            if(trackSLPrice.length>0){
+                console.log("this.state.trackSLPrice", this.state.trackSLPrice)
+                for (let index = 0; index < trackSLPrice.length; index++) {
+                    const element = trackSLPrice[index];
+
+                    if(element.name == 'NIFTY' && element.optiontype == 'CE' && (LtpData.ltp < element.priceStopLoss || LtpData.ltp >= element.priceTarget)){
                         //delete sloption &  trigeer squireoff  
+            let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse( localStorage.getItem('trackSLPrice')) : []; 
+                        console.log("deleteOptionPriceSL call sl ", element, index)
+
                         this.deleteOptionPriceSL(element, index); 
                     }
-                    if(element.name == 'NIFTY' && element.optiontype == 'PE' && LtpData.ltp > element.priceStopLoss){
+                    if(element.name == 'NIFTY' && element.optiontype == 'PE' &&  (LtpData.ltp > element.priceStopLoss || LtpData.ltp <= element.priceTarget)){
                         //delete sloption &  trigeer sl  
+                        console.log("deleteOptionPriceSL put sl ", element, index)
+
                         this.deleteOptionPriceSL(element);   
                     }
                 }
@@ -1474,20 +1501,20 @@ class Home extends React.Component {
             //console.log(LtpData);
             if (LtpData && LtpData.ltp) {
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close; 
-                if(per > 0)
+                if(per && per > 0)
                 document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
                 else
                 document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
             }
-
-            if(this.state.trackSLPrice && this.state.trackSLPrice.length>0){
-                for (let index = 0; index < this.state.trackSLPrice.length; index++) {
-                    const element = this.state.trackSLPrice[index];
-                    if(element.name == 'BANKNIFTY' && element.optiontype == 'CE' && LtpData.ltp < element.priceStopLoss){
+            let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse( localStorage.getItem('trackSLPrice')) : []; 
+            if(trackSLPrice.length>0){
+                for (let index = 0; index < trackSLPrice.length; index++) {
+                    const element = trackSLPrice[index];
+                    if(element.name == 'BANKNIFTY' && element.optiontype == 'CE' && (LtpData.ltp < element.priceStopLoss || LtpData.ltp >= element.priceTarget)){
                         //delete sloption &  trigeer sl    
                         this.deleteOptionPriceSL(element, index); 
                     }
-                    if(element.name == 'BANKNIFTY' && element.optiontype == 'PE' && LtpData.ltp > element.priceStopLoss){
+                    if(element.name == 'BANKNIFTY' && element.optiontype == 'PE' && (LtpData.ltp > element.priceStopLoss || LtpData.ltp <= element.priceTarget)){
                         //delete sloption &  trigeer sl    
                         this.deleteOptionPriceSL(element, index); 
                     }
@@ -1660,6 +1687,7 @@ class Home extends React.Component {
             let data = resolveResponse(res);
             if (data.status && data.message === 'SUCCESS') {
                 console.log("cancel order", data);
+                this.deleteOptionPriceSL(row);   
                 // this.setState({ orderid : data.data && data.data.orderid });
             }
         })
@@ -1712,6 +1740,13 @@ class Home extends React.Component {
             });
     }
 
+    addSLOrderInfo =(row)=> {
+        this.setState({ addSLInfo : row, enableSLMOrderUi : true }); 
+    }
+    placeSLMOrderManually =()=> {
+        this.placeSLMOrder(this.state.addSLInfo); 
+       // CommonMethods.placeOptionSLMOrder(this.state.addSLInfo)
+    }
     placeSLMOrder = (slmOption) => {
 
         var data = {
@@ -1723,7 +1758,7 @@ class Home extends React.Component {
             "exchange": 'NSE',
             "producttype": "INTRADAY",//"DELIVERY",
             "duration": "DAY",
-            "price": 0,
+            "price": slmOption.price ? slmOption.price : 0 ,
             "squareoff": "0",
             "stoploss": "0",
             "ordertype": "STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
@@ -1735,7 +1770,7 @@ class Home extends React.Component {
             //  console.log(data);   
             if (data.status && data.message === 'SUCCESS') {
                 this.setState({ orderid: data.data && data.data.orderid });
-                // this.updateOrderList(); 
+                this.updateOrderList(); 
                 var msg = new SpeechSynthesisUtterance();
                 msg.text = slmOption.tradingsymbol;
                 window.speechSynthesis.speak(msg);
@@ -1833,9 +1868,9 @@ class Home extends React.Component {
 
         row.buyavgprice = parseFloat(row.buyavgprice);
         percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 6) {
+        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 5) {
 
-            var minTriggerPrice = row.buyavgprice + (row.buyavgprice * 2 / 100);
+            var minTriggerPrice = row.buyavgprice + (row.buyavgprice * 3 / 100);
             let slPriceData =  this.getSLAndTriggerPrice(minTriggerPrice); 
 
             if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice){
@@ -1847,7 +1882,7 @@ class Home extends React.Component {
             var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
             trailPerChange = perchngfromTriggerPrice; 
             if (perchngfromTriggerPrice >= 5) {
-                minTriggerPrice = lastTriggerprice + (lastTriggerprice * 1 / 100);
+                minTriggerPrice = lastTriggerprice + (lastTriggerprice * 3 / 100);
                 let slPriceData =  this.getSLAndTriggerPrice(minTriggerPrice); 
 
                 if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice){
@@ -2037,13 +2072,15 @@ class Home extends React.Component {
                                         <TableCell className="TableHeadFormat" align="left">Net Qty</TableCell>
                                         <TableCell className="TableHeadFormat" align="left">Expense</TableCell>
 
-                                        <TableCell className="TableHeadFormat" align="left">Trailing SL</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">SL</TableCell>
                                         <TableCell className="TableHeadFormat" align="left">Max P/L</TableCell>
 
 
                                         <TableCell className="TableHeadFormat" align="left">P/L </TableCell>
                                         <TableCell className="TableHeadFormat" align="left">Chng % </TableCell>
                                         <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
+
+                                        <TableCell className="TableHeadFormat" align="left">Action</TableCell>
 
 
                                         {this.state.showHighLowWisePer ? 
@@ -2054,7 +2091,7 @@ class Home extends React.Component {
 
 
 
-                                        <TableCell className="TableHeadFormat" align="left">Action</TableCell>
+                                     
 
                                     </TableRow>
                                 </TableHead>
@@ -2075,7 +2112,7 @@ class Home extends React.Component {
                                             {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                             {/* <TableCell align="left">{row.producttype}</TableCell> */}
 
-                                            <TableCell align="left">{row.totalbuyavgprice}</TableCell>
+                                            <TableCell align="left"><Button onClick={() => this.addSLOrderInfo(row)}> {row.totalbuyavgprice} Add SL</Button>  </TableCell>
                                             {/* <TableCell align="left">{row.totalbuyvalue}</TableCell> */}
 
                                             <TableCell align="left">{row.totalsellavgprice}</TableCell>
@@ -2098,7 +2135,11 @@ class Home extends React.Component {
                                             </TableCell>
                                             <TableCell align="left">{row.ltp}</TableCell>
 
+                                           
 
+                                             <TableCell align="left">
+                                                {row.netqty !== "0" ? <Button size={'small'} type="number" variant="contained" color="Secondary" onClick={() => this.squareOff(row)}>Square Off</Button> : ""}
+                                            </TableCell>
 
                                         {this.state.showHighLowWisePer ? <>
                                             <TableCell   align="left">{row.high}</TableCell>
@@ -2106,9 +2147,7 @@ class Home extends React.Component {
                                           </> : ""}
 
 
-                                            <TableCell align="left">
-                                                {row.netqty !== "0" ? <Button size={'small'} type="number" variant="contained" color="Secondary" onClick={() => this.squareOff(row)}>Square Off</Button> : ""}
-                                            </TableCell>
+                                           
 
                                         </TableRow> : ""
 
@@ -2167,6 +2206,23 @@ class Home extends React.Component {
 
 
                                     </TableRow>
+
+                                    {this.state.enableSLMOrderUi ? 
+                                    <TableRow variant="head">
+                                        <TableCell className="TableHeadFormat" colSpan={15} align="center">
+
+                                        Stoploss
+                                        &nbsp;<input placeholder='Symbol' name="tradingsymbol"  onChange={this.onAddSLChange} value={this.state.addSLInfo && this.state.addSLInfo.tradingsymbol}  style={{ width:'200px',  textAlign:'center'}} /> 
+                                        &nbsp;<input placeholder='Price' name="stopLossPrice"  type={'number'}  step="0.1" onChange={this.onAddSLChange} value={this.state.addSLInfo && this.state.addSLInfo.stopLossPrice}  style={{width:'100px',textAlign:'center'}} /> 
+                                        &nbsp;<input placeholder='Trigger Price' name="price" step="0.1"  type={'number'}  onChange={this.onAddSLChange}  value={this.state.addSLInfo && this.state.addSLInfo.price} style={{width:'100px',textAlign:'center'}} /> 
+                                        &nbsp; <Button size={'small'} type="number" variant="contained"  onClick={() => this.placeSLMOrderManually()}>Place SL</Button> 
+                                    
+                                        </TableCell>
+                                    
+                                        </TableRow>
+
+                                     : ""}
+                                    
 
 
                                 </TableBody>

@@ -28,12 +28,19 @@ class OrderBook extends React.Component{
             triggerprice :0,
             price:0,
             lotsize:0,
-            firstTimeFlag: true
+            firstTimeFlag: true,
+            trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
 
         }
     }
 
     getTodayOrder = () => {
+
+        console.log('this.state.trackSLPrice', this.state.trackSLPrice);
+
+        let trackSLPrice = localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || []; 
+
+
         AdminService.retrieveOrderBook()
         .then((res) => {
             let data = resolveResponse(res, "noPop");
@@ -43,24 +50,32 @@ class OrderBook extends React.Component{
                     return new Date(b.updatetime) - new Date(a.updatetime);
                   });
 
+                  
+                  orderlist.forEach(element => {
+                        let trakingRecord = trackSLPrice.filter((item)=> item.tradingsymbol == element.tradingsymbol); 
+                        
+                        if(trakingRecord.length > 0 && element.tradingsymbol == trakingRecord[0].tradingsymbol){
+                           this.setState({ ['priceTarget_' + element.tradingsymbol] :  trakingRecord[0].priceTarget })  
+                           this.setState({ ['priceStopLoss_' + element.tradingsymbol] :  trakingRecord[0].priceStopLoss })  
+                        }
+                  });
+                  
+
                 this.setState({oderbookData: orderlist});
                 localStorage.setItem('oderbookData', JSON.stringify( orderlist ));
 
-                // var pendingOrder = orderlist.filter(function(row){
-                //     return row.status == "trigger pending";
-                // }); 
-                // this.setState({pendingOrder: pendingOrder});
-                                    
+                orderlist.sort((a, b) => a.status - b.status); 
             }
         });
     }
 
     componentDidMount() {
         
-        setInterval(() => {
-            this.getTodayOrder();
-        }, 10000);
+        // setInterval(() => {
+        //     this.getTodayOrder();
+        // }, 10000);
        
+        this.getTodayOrder();
     }
 
    
@@ -86,7 +101,6 @@ class OrderBook extends React.Component{
 
     modifyOrder = (row, trailingstoploss) => {
 
-        console.log(this.state.triggerprice);
 
         var data = {
             "variety" :row.variety,  // "STOPLOSS",
@@ -116,9 +130,59 @@ class OrderBook extends React.Component{
         this.setState({ [e.target.name]: e.target.value.trim() });
     }
 
+    onChangePriceStopLoss = (e) => {
+        this.setState({ [e.target.name]: e.target.value.trim() });
+        let tradingsymbol = e.target.name.split('_')[1]; 
+        let trackSLPrice = localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || []; 
+        let isfound = false; 
+        for (let index = 0; index < trackSLPrice.length; index++) {
+            const element = trackSLPrice[index];
+            if(element.tradingsymbol === tradingsymbol){
+                element.priceStopLoss = e.target.value.trim(); 
+                isfound = true; 
+                break;
+            }
+        }
+        if(!isfound){
+              trackSLPrice.push({
+                priceStopLoss :  e.target.value.trim(), 
+                tradingsymbol : tradingsymbol, 
+                optiontype : tradingsymbol.substr(tradingsymbol.length-2,tradingsymbol.length-1) 
+              }); 
+        }
+        
+        console.log("slprice tradingsymbol", trackSLPrice , tradingsymbol, isfound)
+        localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPrice));
+    }
+
+    onChangePriceTarget = (e) => {
+        this.setState({ [e.target.name]: e.target.value.trim() });
+        let tradingsymbol = e.target.name.split('_')[1]; 
+        let trackSLPrice = localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || []; 
+        let isfound = false; 
+        for (let index = 0; index < trackSLPrice.length; index++) {
+            const element = trackSLPrice[index];
+            if(element.tradingsymbol === tradingsymbol){
+                element.priceTarget = e.target.value.trim(); 
+                isfound = true; 
+                break;
+            }
+        }
+        if(!isfound){
+            trackSLPrice.push({
+              priceStopLoss :  e.target.value.trim(), 
+              tradingsymbol : tradingsymbol, 
+              optiontype : tradingsymbol.substr(tradingsymbol.length-2,tradingsymbol.length-1) 
+            }); 
+      }
+        console.log("trarget price update", trackSLPrice)
+        localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPrice));
+    }
+
 
     render(){
-        
+        console.log(this.state.oderbookData);
+
       return(
         <React.Fragment>
 
@@ -161,17 +225,20 @@ class OrderBook extends React.Component{
 
                                 
 
-                                <TableCell align="center"><b>CNC/Intraday</b></TableCell>
-                                <TableCell align="center"><b>Qty </b></TableCell>
+                                <TableCell align="center"><b>Ordertype</b>&nbsp;</TableCell>
+                                <TableCell align="center"><b>Qty </b>&nbsp;</TableCell>
                         
-                                <TableCell align="center"><b>AvgPrice</b></TableCell>
+                                <TableCell align="center"><b>AvgPrice</b>&nbsp;</TableCell>
                                 
-                                <TableCell align="center"><b>Price</b></TableCell>
-                                <TableCell align="center"><b>TriggerPrice</b></TableCell>
+                                <TableCell align="center"><b>Price</b>&nbsp;</TableCell>
+                                <TableCell align="center"><b>TriggerPrice</b>&nbsp;</TableCell>
 
-                                <TableCell align="center">Action</TableCell>
-                                <TableCell align="center"><b>Status</b></TableCell>
-                                <TableCell align="center"><b>Details</b></TableCell>
+                                <TableCell align="center">Action&nbsp;</TableCell>
+                                <TableCell align="center"><b>Status</b>&nbsp;</TableCell>
+                                <TableCell align="center"><b>SLPrice</b>&nbsp;</TableCell>
+                                <TableCell align="center"><b>TargetPrice</b></TableCell>
+
+                                <TableCell align="center"><b>Details </b></TableCell>
                 
 
                             </TableRow>
@@ -233,11 +300,22 @@ class OrderBook extends React.Component{
                                     <Button  size={'small'} type="number" variant="contained" color="" style={{marginLeft: '20px'}} onClick={() => this.cancelOrderOfSame(row.orderid, row.variety)}>Cancel</Button>    
                                        </>
                                      : ''}
-
                                     </TableCell>
 
-                                    <TableCell style={{fontSize: "11px"}} align="center">{row.text}</TableCell>
 
+                                    <TableCell align="center">
+                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
+                                         <TextField  type="number" style={{textAlign:'center', width:'50px'}}  value={this.state['priceStopLoss_'+row.tradingsymbol]}  name={'priceStopLoss_'+row.tradingsymbol} onChange={this.onChangePriceStopLoss}/>
+                                                : ''}
+                                    </TableCell>
+
+                                    <TableCell align="center">
+                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
+                                        <TextField  type="number" style={{textAlign:'center', width:'50px'}} value={this.state['priceTarget_'+row.tradingsymbol]}  name={'priceTarget_'+row.tradingsymbol}  onChange={this.onChangePriceTarget}/>
+                                        : ''}
+                                    </TableCell>
+
+                                    <TableCell style={{fontSize: "11px", width:"15%"}} align="center">{row.text}</TableCell>
                                     
                                 </TableRow>
                             )):<Spinner/>}

@@ -86,7 +86,8 @@ class OrderBook extends React.Component{
                 sellAt: this.state.sellAtPending,  
                 pattenName: this.state.pattenNamePending,
                 exch_seg:  this.state.exch_seg,
-                priceStopLoss: this.state.priceStopLoss
+                priceStopLoss: this.state.priceStopLoss,
+                priceTarget : this.state.priceTarget
             }
 
             this.setState({orderPenidngOptionList : [...this.state.orderPenidngOptionList, data]}, function(){
@@ -157,7 +158,10 @@ class OrderBook extends React.Component{
             }else {
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
             }
-            this.props.buyOption("CE", indexData.symbol, strikePrice, nextExp, 1 , indexData.priceStopLoss);  
+
+            strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
+
+            this.props.buyOption("CE", indexData.symbol, strikePrice, nextExp, 1 , indexData);  
         }else if(indexData.sellAt){
             if(today == 5 || today == 1){
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 400
@@ -180,9 +184,11 @@ class OrderBook extends React.Component{
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
             }
 
+            strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
+
             console.log(strikePrice, today);
 
-            this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1, indexData.priceStopLoss);  
+            this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1, indexData);  
         }
 
     }
@@ -504,6 +510,10 @@ class OrderBook extends React.Component{
                                 <br /> 
                             </Grid>
                             <Grid item  >
+                                <TextField label="Price Target" name="priceTarget" value={this.state.priceTarget} onChange={this.updateInput} />
+                                <br /> 
+                            </Grid>
+                            <Grid item  >
                                 <Button variant="contained" style={{ marginLeft: '20px', marginTop: '10px' }} onClick={() => this.addInOrderPenidngList()}> Add </Button>
                                 <br /> P.Close: {this.state.lastTradedData.close}
                             </Grid>
@@ -519,12 +529,16 @@ class OrderBook extends React.Component{
                                 <TableCell className="TableHeadFormat" align="left">Symbol</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">CreatetAt</TableCell>
 
-                                <TableCell className="TableHeadFormat" align="left">Exch_seg</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">Token</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">Patten Name</TableCell>
+                                {/* <TableCell className="TableHeadFormat" align="left">Segm</TableCell> */}
+                                {/* <TableCell className="TableHeadFormat" align="left">Token</TableCell> */}
+                                <TableCell className="TableHeadFormat" align="left">Patten</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">BuyAt</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">SellAt</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">PriceSL</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">PriceTarget</TableCell>
+
+                                
                                 <TableCell className="TableHeadFormat" align="left">Delete</TableCell>
 
                             </TableRow>
@@ -546,13 +560,15 @@ class OrderBook extends React.Component{
                                     <TableCell align="left">{row.createdAt}</TableCell>
 
 
-                                    <TableCell align="left">{row.exch_seg}</TableCell>
-                                    <TableCell align="left">{row.token}</TableCell>
+                                    {/* <TableCell align="left">{row.exch_seg}</TableCell> */}
+                                    {/* <TableCell align="left">{row.token}</TableCell> */}
 
                                     <TableCell align="left">{row.pattenName}</TableCell>
                                     <TableCell align="left">{row.buyAt}</TableCell>
                                     <TableCell align="left">{row.sellAt}</TableCell>
                                     <TableCell align="left" style={{color: row.perChange == 0.00 ? "none" :  row.perChange > 0 ? "green" :"red"}}><b>{row.ltp} ({row.perChange}%) </b></TableCell>
+                                    <TableCell align="left">{row.priceStopLoss}</TableCell>
+                                    <TableCell align="left">{row.priceTarget}</TableCell>
 
                                     <TableCell align="left">
                                      <DeleteIcon style={{cursor:"pointer"}} onClick={() => this.deleteInOrderPenidngList(row)} />

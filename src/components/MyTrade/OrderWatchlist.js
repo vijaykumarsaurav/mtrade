@@ -323,7 +323,7 @@ class OrderBook extends React.Component{
         }
     }
 
-    buyOption =(optiontype ,symbol, strikePrice, expiryDate, noOfLot , priceStopLoss)=>{
+    buyOption =(optiontype ,symbol, strikePrice, expiryDate, noOfLot , priceInfo)=>{
       console.log(optiontype ,symbol, strikePrice, expiryDate); 
       let exp = expiryDate.toUpperCase().split('-'); 
        exp = exp[0]+exp[1]+exp[2]%1000; 
@@ -360,17 +360,21 @@ class OrderBook extends React.Component{
     
                    let perStopTrigerLoss = LtpData.ltp - (LtpData.ltp * slpercentage/100); 
                    perStopTrigerLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopTrigerLoss); 
-
                    let stopLossPrice = perStopTrigerLoss - (perStopTrigerLoss * 1/100); 
-
                    stopLossPrice =  CommonOrderMethod.getMinPriceAllowTick(stopLossPrice); 
 
-                   if(priceStopLoss){
-                      stopLossPrice = '';  
-                      perStopTrigerLoss = ''; 
+                   if(priceInfo && priceInfo.priceStopLoss){
+
+                      slpercentage = 50
+                      perStopTrigerLoss = LtpData.ltp - (LtpData.ltp * slpercentage/100); 
+                      perStopTrigerLoss =  CommonOrderMethod.getMinPriceAllowTick(perStopTrigerLoss); 
+                      stopLossPrice = perStopTrigerLoss - (perStopTrigerLoss * 1/100); 
+                      stopLossPrice =  CommonOrderMethod.getMinPriceAllowTick(stopLossPrice); 
+                    
                       let trackSLPrice = {
                         name :  symbol, 
-                        priceStopLoss :  priceStopLoss, 
+                        priceStopLoss :  priceInfo.priceStopLoss, 
+                        priceTarget : priceInfo.priceTarget, 
                         tradingsymbol : optionData.symbol, 
                         symboltoken : optionData.token, 
                         optiontype : optiontype
@@ -379,8 +383,8 @@ class OrderBook extends React.Component{
                         localStorage.setItem('trackSLPrice', JSON.stringify(this.state.trackSLPrice));
                       }) 
                     }
-    
-
+                    
+                
                     let element = {
                         tradingsymbol : optionData.symbol, 
                         symboltoken : optionData.token, 
