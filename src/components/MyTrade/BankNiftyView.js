@@ -436,14 +436,14 @@ class MyView extends React.Component {
                         }
 
 
-                        oldproducts.data.unshift(newdata);
+                    //    oldproducts.data.unshift(newdata);
 
                         if (data.records) {
                             oldproducts.timestamp = data.records.timestamp;
                             oldproducts.underlyingValue = data.records.underlyingValue;
                         }
 
-                        oldproducts.data.reverse();
+                    //    oldproducts.data.reverse();
 
                         localStorage.setItem("optionDiffdata" + this.state.selectOptionStock, JSON.stringify(oldproducts));
 
