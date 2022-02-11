@@ -424,6 +424,46 @@ app.get('/search/:query', function (req, res) {
   return;
 
 });
+
+app.get('/stockOptionSearch/:query', function (req, res) {
+
+  const query = JSON.parse( req.params.query) 
+
+  var obj, fillertedData = [];
+  console.log("query", query)
+
+  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    obj = JSON.parse(data);
+
+    for (let index = 0; index < obj.length; index++) {
+      //BANKNIFTY16SEP2137700CE
+      if(obj[index].name  == query.name && obj[index].exch_seg === "NFO") {
+        fillertedData.push(obj[index])
+      }
+    }
+
+    let otmOption = []; 
+    for (let index1 = 0; index1 < fillertedData.length; index1++) {
+      const element = fillertedData[index1];
+      if( parseFloat(element.strike)/100 > query.ltp){
+        console.log(parseFloat(element.strike)/100, query.ltp), 
+        element.expiry = moment(element.expiry);
+        otmOption.push(element);
+      } 
+    }
+    otmOption.sort(function (a, b) {
+      return a.expiry - b.expiry || parseFloat(a.strike)/100 - parseFloat(b.strike)/100 
+    })
+
+    console.log("syboll",query.name, otmOption.slice(0, 2) )
+    res.status(200).send(JSON.stringify(otmOption.slice(0, 2)));
+
+  });
+  return;
+
+});
+
 // On localhost:8081/welcome
 app.get('/getScannedStocks/', function (req, res) {
 

@@ -75,7 +75,13 @@ class Home extends React.Component {
             isSameDayDuplcate: true,
             stockWiseListOverall: [],
             filename: "",
-            overallMonthWise: []
+            overallMonthWise: [],
+            entryCandlePoint:5,
+            totalWinTrade:0, 
+            maxDrowDown:0, 
+            maxProfit:0
+            
+
         };
 
     }
@@ -248,47 +254,20 @@ class Home extends React.Component {
 
     getPerChangeOfStock = (histdata, stockInfo) => {
 
-        // let foundtime = false;  let stockinfo = {}; let priceChangeList = []; 
-
-        // for (let histIndex = 0; histIndex < histdata.data.length; histIndex++) {
-        //     const candle = histdata.data[histIndex];
-        //     var candleData = histdata.data;
-
-        //     let foundat = this.convertDateFormat(stock.startTime); 
-        //     console.log("time", moment(candle[0]).format("YYYY-MM-DD HH:mm"),stock,  moment(foundat).format("YYYY-MM-DD HH:mm"));
-
-        //     if(moment(candle[0]).format("YYYY-MM-DD HH:mm")  ==  moment(foundat).format("YYYY-MM-DD HH:mm")){
-        //         stockinfo = {
-        //             symbol: stock.name, 
-        //             token: stock.token, 
-        //             entryPrice : candle[4], 
-        //             foundAt: moment(candleData[0]).format('YYYY-MM-DD HH:mm')
-        //         } 
-        //         foundtime = true; 
-        //     }
-        //     if(foundtime && moment(stockinfo.foundAt).isBetween(moment(stockinfo.foundAt).set("3:30pm", "h:mma")) ){
-        //         let perChange =  (candleData[4] - stockinfo.entryPrice) * 100 / stockinfo.entryPrice; 
-        //         let datetime = moment(candleData[0]).format('h:mma')
-        //         if(this.state.timeFrame == 'ONE_DAY' ){
-        //             datetime = moment(candleData[0]).format('DD/MM/YYYY h:mma')
-        //         }
-        //         priceChangeList.push({perChange : perChange.toFixed(2),close: candleData[4],  datetime :  datetime}); 
-        //         stockinfo.candleData = priceChangeList; 
-        //         this.setState({ backTestResult: [...this.state.backTestResult, stockinfo] }, ()=>{
-        //             this.updateOverall();   
-        //         });
-        //     }
-
-        // }
-
         if (histdata.length > 0) {
 
             var candleData = histdata;
+            let entryCandlePoint = this.state.entryCandlePoint; 
+            let entryPrice = candleData[0][entryCandlePoint]
+            if(entryCandlePoint == 5){
+                entryPrice =  (candleData[0][2] + candleData[0][3]) / 2; 
+            }
+            
             let stock = {
                 name: stockInfo.name,
                 symbol: stockInfo.symbol,
                 token: stockInfo.token,
-                entryPrice: candleData[0][4],
+                entryPrice: entryPrice.toFixed(2),
                 foundAt: moment(candleData[0][0]).format('YYYY-MM-DD HH:mm')
             }
 
@@ -299,11 +278,23 @@ class Home extends React.Component {
                 if (this.state.timeFrame == 'ONE_DAY') {
                     datetime = moment(candleData[index2][0]).format('DD/MM/YYYY h:mma')
                 }
+                if(perChange < this.state.maxDrowDown){
+                    this.setState({maxDrowDown : perChange.toFixed(2)}); 
+                }
+                if(perChange > this.state.maxProfit){
+                    this.setState({maxProfit : perChange.toFixed(2)}); 
+                }
+                
                 priceChangeList.push({ perChange: perChange.toFixed(2), close: candleData[index2][4], datetime: datetime });
             }
             stock.candleData = priceChangeList;
+            let isWinOnClosing = priceChangeList[priceChangeList.length-1].perChange > 0 ? true : false;
+            stock.isWinOnClosing = isWinOnClosing; 
+            if(isWinOnClosing){
+                this.setState({ totalWinTrade: this.state.totalWinTrade+1 })
+            }
+            
             this.setState({ backTestResult: [...this.state.backTestResult, stock] }, () => {
-                //   this.updateOverall();   
             });
         } else {
             console.log(" candle data emply");
@@ -314,134 +305,143 @@ class Home extends React.Component {
 
 
     backTestAnyPatternStockWise = () => {
-        this.setState({ backTestResult: [], overAllResult: [],stockWiseListOverall:[], backTestFlag: false, filename: '', searchFailed: 0, pertradePandL: 0, pertradePandLNet: 0 });
-        this.setState({ totalgross: 0, totalAvg: 0, totTrade: 0, totalNet: 0, totalExp: 0 });
+       
+        if(this.state.csvFormatInput){
 
-        this.getAlltokenOfList(async (newJsonList, listofstockfound, searchResdata) => {
+            this.setState({ backTestResult: [], overAllResult: [],stockWiseListOverall:[], backTestFlag: false, filename: '', searchFailed: 0, pertradePandL: 0, pertradePandLNet: 0 });
+            this.setState({ totalgross: 0, totalAvg: 0, totTrade: 0, totalNet: 0, totalExp: 0,totalWinTrade:0,   maxDrowDown:0, maxProfit:0 });
+    
+            this.getAlltokenOfList(async (newJsonList, listofstockfound, searchResdata) => {
 
-            //    newJsonList.sort((a, b) => a.startTime.localeCompare(b.startTime));
-            // console.log("newJsonList",newJsonList[0].startTime, newJsonList[newJsonList.length-1 ].startTime);
-
-            for (let index = 0; index < listofstockfound.length; index++) {
-
-                if (this.state.stopScaningFlag) {
-                    this.setState({ stopScaningFlag: false })
-                    break;
-                }
-
-                const element = listofstockfound[index];
-                 console.log("unique loop", element, new Date().toLocaleTimeString())
-
-                let filerdata = searchResdata.filter((item => item.name == element.name));
-                let stocktoken = filerdata.length > 0 ? filerdata[0].token : "";
-                if (stocktoken) {
-
-                    
-                    let sameAllStock = newJsonList.filter((item => item.name == element.name));
-                  //  console.log("sameAllStock",sameAllStock); 
-
-                    if(this.state.isSameDayDuplcate){
-                        let singleDatewiseSamestock = [];
-                        sameAllStock.forEach(elementstock => {
-                            let uniquestock = singleDatewiseSamestock.filter((item => moment(item.startTime).format('YYYY-MM-DD') == moment(elementstock.startTime).format('YYYY-MM-DD')));
-                            if(!uniquestock.length)
-                            singleDatewiseSamestock.push(elementstock); 
-                        });
-                        sameAllStock = singleDatewiseSamestock;
+                //    newJsonList.sort((a, b) => a.startTime.localeCompare(b.startTime));
+                // console.log("newJsonList",newJsonList[0].startTime, newJsonList[newJsonList.length-1 ].startTime);
+    
+                for (let index = 0; index < listofstockfound.length; index++) {
+    
+                    if (this.state.stopScaningFlag) {
+                        this.setState({ stopScaningFlag: false })
+                        break;
                     }
-             
-                    let datelist = [];
-                    sameAllStock.forEach(elementsame => {
-                        datelist.push(this.convertDateFormat(elementsame.startTime))
-                    });
-
-                    let momentsDates = datelist.map(d => moment(d));
-                    let startDate = moment.min(momentsDates);
-                    let endDate = moment.max(momentsDates);
-
-                     
-                    
-
-                    var data = {
-                        "exchange": "NSE",
-                        "symboltoken": stocktoken,
-                        "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
-                        "fromdate": moment(startDate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
-                        "todate": moment(endDate.format("YYYY-MM-DD")+ ' ' + '15:30').format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
-                    }
-
-                    AdminService.getHistoryData(data).then(res => {
-                        let histdata = resolveResponse(res, 'noPop');
-                        if (histdata && histdata.data && histdata.data.length) {
-
-                            console.log("history", element, new Date().toLocaleTimeString())
-
-
-                            for (let index = 0; index < sameAllStock.length; index++) {
-                                const samestock = sameAllStock[index];
-
-                                let foundat = this.convertDateFormat(samestock.startTime);
-                                let endtime = moment(foundat.format('YYYY-MM-DD') + ' ' + '15:30');
-                                // console.log("startime",foundat, endtime)
-
-                                let chunkCandleData = histdata.data.filter((candleInfo => moment(candleInfo[0]).isSameOrAfter(foundat) && moment(candleInfo[0]).isSameOrBefore(endtime)))  //isBetween(foundat, endtime);
-
-                              //    console.log("chunkdata", stock,chunkCandleData )
-                         //     console.log("inside for loop start", samestock, new Date().toLocaleTimeString())
-
-                                this.getPerChangeOfStock(chunkCandleData, samestock);
-                            //    console.log("inside", samestock, new Date().toLocaleTimeString())
-                            }
-                            // sameAllStock.forEach((stock, i) => {
-
-                            //     console.log("inside foreach loop", stock, new Date().toLocaleTimeString())
-
-                            //     let foundat = this.convertDateFormat(stock.startTime);
-                            //     let endtime = moment(foundat.format('YYYY-MM-DD') + ' ' + '15:30');
-                            //     // console.log("startime",foundat, endtime)
-
-                            //     let chunkCandleData = histdata.data.filter((candleInfo => moment(candleInfo[0]).isSameOrAfter(foundat) && moment(candleInfo[0]).isSameOrBefore(endtime)))  //isBetween(foundat, endtime);
-
-                            //   //    console.log("chunkdata", stock,chunkCandleData )
-                            //     this.getPerChangeOfStock(chunkCandleData, stock);
-
-                            // //    this.state.myWorker.postMessage({chunkCandleData: chunkCandleData, stock: stock});
-
-                            // });
-
-                            // this.state.myWorker.onmessage = (m) => {
-                            //     console.log("msg from worker: ", m.data);
-                            // };
-
-
-                             this.updateOverall();
-                             
-                           this.updateStockWiseOverall();
-                           this.updateMonthWise();
-                        } else {
-                            console.log(" candle data emply");
-                            this.setState({ searchFailed: this.state.searchFailed + 1 })
+    
+                    const element = listofstockfound[index];
+                     console.log("unique loop", element, new Date().toLocaleTimeString())
+    
+                    let filerdata = searchResdata.filter((item => item.name == element.name));
+                    let stocktoken = filerdata.length > 0 ? filerdata[0].token : "";
+                    if (stocktoken) {
+    
+                        
+                        let sameAllStock = newJsonList.filter((item => item.name == element.name));
+                      //  console.log("sameAllStock",sameAllStock); 
+    
+                        if(this.state.isSameDayDuplcate){
+                            let singleDatewiseSamestock = [];
+                            sameAllStock.forEach(elementstock => {
+                                let uniquestock = singleDatewiseSamestock.filter((item => moment(item.startTime).format('YYYY-MM-DD') == moment(elementstock.startTime).format('YYYY-MM-DD')));
+                                if(!uniquestock.length)
+                                singleDatewiseSamestock.push(elementstock); 
+                            });
+                            sameAllStock = singleDatewiseSamestock;
                         }
-                    }).catch((error) => {
-                        console.log(element.symbol, error)
-                        this.setState({ searchFailed: this.state.searchFailed + 1 })
-                    })
-
-                } else {
-                    continue;
+                 
+                        let datelist = [];
+                        sameAllStock.forEach(elementsame => {
+                            datelist.push(this.convertDateFormat(elementsame.startTime))
+                        });
+    
+                        let momentsDates = datelist.map(d => moment(d));
+                        let startDate = moment.min(momentsDates);
+                        let endDate = moment.max(momentsDates);
+    
+                        if(this.state.entryTimeAt){
+                            startDate =  startDate.format("YYYY-MM-DD")+ ' ' + this.state.entryTimeAt; 
+                        }
+    
+    
+                        var data = {
+                            "exchange": "NSE",
+                            "symboltoken": stocktoken,
+                            "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                            "fromdate": moment(startDate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                            "todate": moment(endDate.format("YYYY-MM-DD")+ ' ' + '15:30').format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+                        }
+    
+                        AdminService.getHistoryData(data).then(res => {
+                            let histdata = resolveResponse(res, 'noPop');
+                            if (histdata && histdata.data && histdata.data.length) {
+    
+                                console.log("history", element, new Date().toLocaleTimeString())
+    
+    
+                                for (let index = 0; index < sameAllStock.length; index++) {
+                                    const samestock = sameAllStock[index];
+    
+                                    let foundat = this.convertDateFormat(samestock.startTime);
+                                    let endtime = moment(foundat.format('YYYY-MM-DD') + ' ' + '15:30');
+                                    // console.log("startime",foundat, endtime)
+    
+                                    let chunkCandleData = histdata.data.filter((candleInfo => moment(candleInfo[0]).isSameOrAfter(foundat) && moment(candleInfo[0]).isSameOrBefore(endtime)))  //isBetween(foundat, endtime);
+    
+                                  //    console.log("chunkdata", stock,chunkCandleData )
+                             //     console.log("inside for loop start", samestock, new Date().toLocaleTimeString())
+    
+                                    this.getPerChangeOfStock(chunkCandleData, samestock);
+                                //    console.log("inside", samestock, new Date().toLocaleTimeString())
+                                }
+                                // sameAllStock.forEach((stock, i) => {
+    
+                                //     console.log("inside foreach loop", stock, new Date().toLocaleTimeString())
+    
+                                //     let foundat = this.convertDateFormat(stock.startTime);
+                                //     let endtime = moment(foundat.format('YYYY-MM-DD') + ' ' + '15:30');
+                                //     // console.log("startime",foundat, endtime)
+    
+                                //     let chunkCandleData = histdata.data.filter((candleInfo => moment(candleInfo[0]).isSameOrAfter(foundat) && moment(candleInfo[0]).isSameOrBefore(endtime)))  //isBetween(foundat, endtime);
+    
+                                //   //    console.log("chunkdata", stock,chunkCandleData )
+                                //     this.getPerChangeOfStock(chunkCandleData, stock);
+    
+                                // //    this.state.myWorker.postMessage({chunkCandleData: chunkCandleData, stock: stock});
+    
+                                // });
+    
+                                // this.state.myWorker.onmessage = (m) => {
+                                //     console.log("msg from worker: ", m.data);
+                                // };
+    
+    
+                               //  this.updateOverall();
+                                 
+                               this.updateStockWiseOverall();
+                            //   this.updateMonthWise();
+                            } else {
+                                console.log(" candle data emply");
+                                this.setState({ searchFailed: this.state.searchFailed + 1 })
+                            }
+                        }).catch((error) => {
+                            console.log(element.symbol, error)
+                            this.setState({ searchFailed: this.state.searchFailed + 1 })
+                        })
+    
+                    } else {
+                        continue;
+                    }
+    
+    
+    
+    
+    
+                    await new Promise(r => setTimeout(r, 350));
+                    this.setState({ stockTesting: index + 1 + ". " + element.name })
                 }
-
-
-
-
-
-                await new Promise(r => setTimeout(r, 350));
-                this.setState({ stockTesting: index + 1 + ". " + element.name })
-            }
-
-            this.setState({ backTestFlag: true });
-
-        });
+    
+                this.setState({ backTestFlag: true });
+    
+            });
+        }else{
+            Notify.showError("Paste stocklist datetime  symbol format, tab format")
+        }
+      
     }
 
     backTestAnyPattern = () => {
@@ -924,9 +924,6 @@ class Home extends React.Component {
         //    console.log("stockWiseListOverall", this.state.stockWiseListOverall)
 
 
-
-        var sumPerChange = 0, sumBrokeragePer = 0, netSumPerChange = 0, sumPerChangeHighLow = 0, sumPnlValue = 0, sumPnlValueOnHighLow = 0, totalInvestedValue = 0, totalLongTrade = 0, totalShortTrade = 0;
-        var tradetotal = 0, totalWin = 0, totalLoss = 0, totalMarketEnd = 0, totalSlHit = 0;
         return (
             <React.Fragment>
                 <PostLoginNavBar />
@@ -960,6 +957,16 @@ class Home extends React.Component {
                                             <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
                                         </Select>
 
+                                        <Select title='Entry candle point , mid means high+low/2' value={this.state.entryCandlePoint} name="entryCandlePoint" onChange={this.onInputChange}>
+                                            <MenuItem value={1}>{'Open'}</MenuItem>
+                                            <MenuItem value={2}>{'High'}</MenuItem>
+                                            <MenuItem value={3}>{'Low'}</MenuItem>
+                                            <MenuItem value={4}>{'Close'}</MenuItem>
+                                            <MenuItem value={5}>{'Mid'}</MenuItem>
+                                        </Select>
+                                        <input placeholder='9:20' fullwidth style={{ width: '90%', height: '50%' }} label="entryTimeAt" value={this.state.entryTimeAt} name="entryTimeAt" onChange={this.onChange} />
+
+
                                         <FormGroup>
                                             <FormControlLabel
                                                 control={<Switch checked={this.state.isSameDayDuplcate} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
@@ -970,13 +977,13 @@ class Home extends React.Component {
                                       
                                    
 
-                                         <TextField variant="outlined" id="textarea" multiline fullwidth style={{ width: '90%', height: '50%' }} label="Filename" value={this.state.filename} name="filename" onChange={this.onChange} />
+                                         <input placeholder='filename' id="textarea" fullwidth style={{ width: '90%', height: '50%' }} label="Filename" value={this.state.filename} name="filename" onChange={this.onChange} />
 
                                          Failed:{this.state.searchFailed} 
                                      <br /> 
                                     {this.state.totaluniqueStocks ? this.state.totaluniqueStocks + " unique stocks found" : ""}
                                     <br />
-                                    &nbsp;{this.state.stockTesting}
+                                    {this.state.stockTesting}
                                     </FormControl>
 
                                 </Grid>
@@ -984,85 +991,84 @@ class Home extends React.Component {
 
                                 <Grid item xs={12} sm={4} style={{ marginTop: '5px' }}>
                                     {/* {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>} */}
-                                    {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPatternStockWise()}>Search Stock Wise</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button>  </>}
+                                    {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPatternStockWise()}>Test Stock Wise</Button> : <>  <Spinner />  &nbsp; <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button>  </>}
                                    
 
-                                    <Table size="small" aria-label="sticky table" >
-                                        <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                            <TableRow variant="head" style={{ fontWeight: 'bold' }} >
+                                        <Table size="small" aria-label="sticky table" >
+                                            <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
+                                                <TableRow variant="head" style={{ fontWeight: 'bold' }} >
 
-                                                <TableCell className="TableHeadFormat" >Month
-                                                {/* <CsvDownload filename={'Overall_'+this.state.filename+'.csv'} data={this.state.overallMonthWise} /> */}
-                                                </TableCell>
-                                                <TableCell className="TableHeadFormat" >Trades
-                                                </TableCell>
-                                                <TableCell className="TableHeadFormat" >Gross P/L
-                                                </TableCell>
-                                                <TableCell className="TableHeadFormat" >Expence</TableCell>
-                                                <TableCell className="TableHeadFormat" > Net P/L
-                                                </TableCell>
+                                                    <TableCell className="TableHeadFormat" >
+                                                    <Button size='small' variant='outlined' onClick={this.updateMonthWise}>Month</Button>                                                </TableCell>
+                                                    <TableCell className="TableHeadFormat" >Trades
+                                                    </TableCell>
+                                                    <TableCell className="TableHeadFormat" >Gross P/L
+                                                    </TableCell>
+                                                    <TableCell className="TableHeadFormat" >Expence</TableCell>
+                                                    <TableCell className="TableHeadFormat" > Net P/L
+                                                    </TableCell>
 
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-                                            {this.state.overallMonthWise ? this.state.overallMonthWise.map((item, i) => (
-                                                item.totalSameTrade > 0 ?  <TableRow key={i}>
-                                                <TableCell>{item.name}</TableCell>
-                                                <TableCell>{item.totalSameTrade}</TableCell>
-                                                <TableCell>{item.sumofall > 0 ? <span style={{ color: 'green' }}> {item.sumofall}</span> : <span style={{ color: 'red' }}> {item.sumofall}</span>}% </TableCell>
-                                                <TableCell>{item.expence}%</TableCell>
-                                                <TableCell>{item.netPnL > 0 ? <span style={{ color: 'green' }}> {item.netPnL}</span> : <span style={{ color: 'red' }}> {item.netPnL}</span>}% </TableCell>
-
-                                            </TableRow>:""
-                                            )) : ''}
-
-                                        </TableBody>
-                                    </Table>
-                                   
-                                </Grid>
-
-                                <Grid item xs={12} sm={12} >
-
-                                <Table size="small" aria-label="sticky table" >
-                                        <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
-                                            <TableRow variant="head" style={{ fontWeight: 'bold' }} >
-                                            <TableCell>Sr.&nbsp;</TableCell>
-
-                                                <TableCell className="TableHeadFormat" >Stock
-                                                &nbsp; <CsvDownload filename={'Overall_'+this.state.filename+'.csv'} data={this.state.stockWiseListOverall} />
-
-                                                </TableCell>
-                                                <TableCell className="TableHeadFormat" >T.T ({this.state.totTrade})  Avg:
-                                                ({this.state.totalAvg > 0 ? <span style={{ color: 'green' }}> {this.state.totalAvg}</span> : <span style={{ color: 'red' }}> {this.state.totalAvg}</span>})%
-                                                </TableCell>
-                                                <TableCell className="TableHeadFormat" >Gross P/L
-                                                    ({this.state.totalgross > 0 ? <span style={{ color: 'green' }}> {this.state.totalgross}</span> : <span style={{ color: 'red' }}> {this.state.totalgross}</span>})%
-                                                </TableCell>
-                                                <TableCell className="TableHeadFormat" >Expence ({this.state.totalExp})%</TableCell>
-                                                <TableCell className="TableHeadFormat" > Net P/L
-                                                    ({this.state.totalNet > 0 ? <span style={{ color: 'green' }}> {this.state.totalNet}</span> : <span style={{ color: 'red' }}> {this.state.totalNet}</span>})%
-
-                                                    &nbsp;  W:{this.state.winCount}  &nbsp; L:{this.state.lossCount}
-                                                </TableCell>
-
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-                                            {this.state.stockWiseListOverall ? this.state.stockWiseListOverall.map((item, i) => (
-                                                <TableRow key={i}>
-                                                    <TableCell>{i+1}</TableCell>
-
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
+                                                {this.state.overallMonthWise ? this.state.overallMonthWise.map((item, i) => (
+                                                    item.totalSameTrade > 0 ?  <TableRow key={i}>
                                                     <TableCell>{item.name}</TableCell>
                                                     <TableCell>{item.totalSameTrade}</TableCell>
                                                     <TableCell>{item.sumofall > 0 ? <span style={{ color: 'green' }}> {item.sumofall}</span> : <span style={{ color: 'red' }}> {item.sumofall}</span>}% </TableCell>
                                                     <TableCell>{item.expence}%</TableCell>
                                                     <TableCell>{item.netPnL > 0 ? <span style={{ color: 'green' }}> {item.netPnL}</span> : <span style={{ color: 'red' }}> {item.netPnL}</span>}% </TableCell>
 
-                                                </TableRow>
-                                            )) : ''}
+                                                </TableRow>:""
+                                                )) : ''}
 
-                                        </TableBody>
-                                    </Table>
+                                            </TableBody>
+                                        </Table>
+                                   
+                                </Grid>
+
+                                <Grid item xs={12} sm={12} >
+
+                                    <div style={{ overflow: "auto", maxHeight: "200px" }}>
+
+                                        <Table size="small" aria-label="sticky table" >
+                                            <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
+                                                <TableRow variant="head" style={{ fontWeight: 'bold' }} >
+                                                <TableCell>Sr.&nbsp;</TableCell>
+
+                                                    <TableCell className="TableHeadFormat" >Stock ({this.state.stockWiseListOverall.length}) <CsvDownload filename={'Overall_'+this.state.filename+'.csv'} data={this.state.stockWiseListOverall} />                                                    </TableCell>
+                                                    <TableCell className="TableHeadFormat" >T.T ({this.state.totTrade})  Avg:
+                                                    ({this.state.totalAvg > 0 ? <span style={{ color: 'green' }}> {this.state.totalAvg}</span> : <span style={{ color: 'red' }}> {this.state.totalAvg}</span>})%
+                                                    </TableCell>
+                                                    <TableCell className="TableHeadFormat" >Gross P/L
+                                                        ({this.state.totalgross > 0 ? <span style={{ color: 'green' }}> {this.state.totalgross}</span> : <span style={{ color: 'red' }}> {this.state.totalgross}</span>})%
+                                                    </TableCell>
+                                                    <TableCell className="TableHeadFormat" >Expence ({this.state.totalExp})%</TableCell>
+                                                    <TableCell className="TableHeadFormat" > Net P/L
+                                                        ({this.state.totalNet > 0 ? <span style={{ color: 'green' }}> {this.state.totalNet}</span> : <span style={{ color: 'red' }}> {this.state.totalNet}</span>})%
+
+                                                        &nbsp;  W:{this.state.winCount}  &nbsp; L:{this.state.lossCount}
+                                                    </TableCell>
+
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
+                                                {this.state.stockWiseListOverall ? this.state.stockWiseListOverall.map((item, i) => (
+                                                    <TableRow key={i}>
+                                                        <TableCell>{i+1}</TableCell>
+
+                                                        <TableCell>{item.name}</TableCell>
+                                                        <TableCell>{item.totalSameTrade}</TableCell>
+                                                        <TableCell>{item.sumofall > 0 ? <span style={{ color: 'green' }}> {item.sumofall}</span> : <span style={{ color: 'red' }}> {item.sumofall}</span>}% </TableCell>
+                                                        <TableCell>{item.expence}%</TableCell>
+                                                        <TableCell>{item.netPnL > 0 ? <span style={{ color: 'green' }}> {item.netPnL}</span> : <span style={{ color: 'red' }}> {item.netPnL}</span>}% </TableCell>
+
+                                                    </TableRow>
+                                                )) : ''}
+
+                                            </TableBody>
+                                        </Table>
+                                    </div>
                                 </Grid>
 
 
@@ -1081,32 +1087,26 @@ class Home extends React.Component {
                                                 <TableRow variant="head" style={{ fontWeight: 'bold' }}>
                                                     <TableCell className="TableHeadFormat" >Sr.</TableCell>
 
-                                                    <TableCell className="TableHeadFormat" >FoundAt
-                                                    &nbsp; <CsvDownload filename={'Trade_'+this.state.filename+'.csv'} data={this.state.backTestResult} />
-                                                    </TableCell>
-                                                    <TableCell className="TableHeadFormat" >Symbol({this.state.backTestResult.length})</TableCell>
-                                                    <TableCell className="TableHeadFormat" >EntryAt</TableCell>
-                                                    <TableCell className="TableHeadFormat" >NextCandles
-                                                    
-                                                  
-
+                                                    <TableCell className="TableHeadFormat" >Datetime <CsvDownload filename={'Trade_'+this.state.filename+'.csv'} data={this.state.backTestResult} /></TableCell>
+                                                    <TableCell className="TableHeadFormat" >Symbol &nbsp;</TableCell>
+                                                    <TableCell className="TableHeadFormat" >EntryPrice &nbsp;</TableCell>
+                                                    <TableCell className="TableHeadFormat" >ExitPrice &nbsp;</TableCell>
+                                                    <TableCell className="TableHeadFormat" >T.T:({this.state.backTestResult.length}) &nbsp;W:{this.state.totalWinTrade} &nbsp;L:{this.state.backTestResult.length - this.state.totalWinTrade}  &nbsp;MaxLoss:{this.state.maxDrowDown}%  &nbsp;MaxProfit:{this.state.maxProfit}%
                                                      </TableCell>
                                                 </TableRow>
                                             </TableHead>
 
                                             <TableBody style={{ width: "", whiteSpace: "nowrap" }}>
-
-
                                                 {this.state.backTestResult ? this.state.backTestResult.map((row, i) => (
-
                                                     //    style={{display: row.orderActivated ? 'visible' : 'none'}} "darkmagenta" : "#00cbcb"
-                                                    <TableRow hover key={i}  >
+                                                    <TableRow hover key={i}  style={{ background: !row.isWinOnClosing ? 'bisque' : ""}}>
 
-                                                        <TableCell>{i + 1}</TableCell>
+                                                        <TableCell>{i + 1}&nbsp;</TableCell>
 
                                                         <TableCell >{row.foundAt} &nbsp;</TableCell>
                                                         <TableCell><Button size='small' variant='contained' onClick={() => this.showStaticChart(row.token, row.symbol, row.foundAt, row.foundAt)}>{row.symbol} </Button> </TableCell>
-                                                        <TableCell><span style={{ fontStyle: 'italic' }}> {row.entryPrice}</span></TableCell>
+                                                        <TableCell><span style={{ fontStyle: 'italic' }}> {row.entryPrice}</span> &nbsp;</TableCell>
+                                                        <TableCell><span style={{ fontStyle: 'italic', color: row.candleData[row.candleData.length-1].close > row.entryPrice ? 'green' : "red"}}> {row.candleData[row.candleData.length-1].close} ({row.candleData[row.candleData.length-1].perChange}%) </span> &nbsp;</TableCell>
 
                                                         <TableCell >
                                                             {row.candleData.map((item, j) => (<>
@@ -1115,38 +1115,21 @@ class Home extends React.Component {
                                                             ))}
 
                                                         </TableCell>
-
-
-
                                                     </TableRow>
-
-
-
                                                 )) : ''}
-
-
-
                                             </TableBody>
-
-
                                         </Table>
                                     </div>
-
-
                                 </Grid>
-
-
                             </Grid>
                         </Paper>
                     </Grid>
 
                     <Grid item xs={12} sm={4}>
 
-                        <Paper style={{ padding: "10px" }}>
+                        <Paper style={{ padding: "10px", position:"fixed" }}>
 
                             <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
-
-
                                 <Grid item xs={12} sm={12}  >
                                     <Grid spacing={1} direction="row" alignItems="center" container>
                                         <Grid item xs={12} sm={2} >
@@ -1161,8 +1144,6 @@ class Home extends React.Component {
                                                     <MenuItem value={'ONE_DAY'}>{'1D'}</MenuItem>
                                                 </Select>
                                             </FormControl>
-
-
                                         </Grid>
                                         <Grid item xs={12} sm={10} >
                                             <Typography>Same Day Chart:  {this.state.lightChartSymbol}</Typography>
@@ -1170,16 +1151,12 @@ class Home extends React.Component {
                                         </Grid>
 
                                     </Grid>
-
-
-
-
                                     <div id="showChartTitle"></div>
                                     <div id="tvchart"></div>
                                 </Grid>
 
                                 <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "40vh" }} >
-                                    <Typography> <Button variant='outlined' onClick={this.updateOverall}> Overall </Button>
+                                    <Typography> <Button size='small' variant='outlined' onClick={this.updateOverall}> Overall </Button>
                                         {this.state.pertradePandL > 0 ? <span style={{ color: 'green' }}> {this.state.pertradePandL}</span> : <span style={{ color: 'red' }}> {this.state.pertradePandL}</span>}% Gross/Trade   |
                                         {this.state.pertradePandLNet > 0 ? <span style={{ color: 'green' }}> {this.state.pertradePandLNet}</span> : <span style={{ color: 'red' }}> {this.state.pertradePandLNet}</span>}% Net/Trade  </Typography>
 

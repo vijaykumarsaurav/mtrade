@@ -47,10 +47,14 @@ class Home extends React.Component {
             stockTesting: "",
             perHighLowTotal: 0,
             netPnLAmountOnHighlowTotal: 0,
-            firstTimeMove : 0.7, 
-            firstTimeSLMove: 0.3, 
-            nextTimeMove : 0.7, 
-            nextTimeSLMove: 0.3, 
+            firstTimeMove : 0.6, 
+            firstTimeSLMove: 0.5, 
+            nextTimeMove : 0.6, 
+            nextTimeSLMove: 0.3,
+            firstTimeMoveOption : 6, 
+            firstTimeSLMoveOption: 3, 
+            nextTimeMoveOption : 5, 
+            nextTimeSLMoveOption: 1,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
             enableSLMOrderUi:false,
@@ -123,9 +127,24 @@ class Home extends React.Component {
             // setInterval(() => {
             //     this.refreshLtpOnFoundPattern();
             // }, foundPatternsFromStored.length * 100 + 300000);
-        }
 
+           
+           
+        }     
+        
+        var oequaltolowOrder = setInterval(() => {
+            var time = new Date(); 
+            console.log("Open = low/high sanning & orderplace in at 9:20", time.toLocaleTimeString())
+            if(time.getHours() === 9 && time.getMinutes()  >= 15 &&  time.getMinutes()  <= 30){
+                this.checkOpenEqualToLow(); 
+              //  clearInterval(oequaltolowOrder); 
+            }
+            if(time.getMinutes() > 30){
+                clearInterval(oequaltolowOrder); 
+            } 
+        }, 30000);
       
+ 
 
         // var tostartInteral = setInterval(() => {
         //     var time = new Date(); 
@@ -146,6 +165,169 @@ class Home extends React.Component {
         var backTestResult = localStorage.getItem("FoundPatternList") ? JSON.parse(localStorage.getItem("FoundPatternList")) : [];
 
         this.setState({ foundPatternList: backTestResult }); 
+    }
+
+    checkOpenEqualToLow = async () => {
+
+        // if(window.confirm("Are you sure? searching and ordering in NIFTY 100")){
+       
+        // }
+
+        var watchList = this.state.staticData['NIFTY 100']; //NIFTY 100 Securities in F&O
+
+        this.setState({
+            openEqualHighList: [], openEqualLowList: [], openEqualLowList: [], advanceShareCount: 0,
+            declineShareCount: 0, UnchangeShareCount: 0, volumeCrossedList: [], closeingEqualHighList: []
+        });
+
+        for (let index = 0; index < watchList.length; index++) { //watchList.length
+            const element = watchList[index];
+
+
+            var isFound = false;
+            for (let j = 0; j < this.state.positionList.length; j++) {
+                if (this.state.positionList[j].tradingsymbol === element.symbol) {
+                    isFound = true;
+                }
+            }
+            if (!isFound) {
+                var data = {
+                    "exchange": element.exch_seg,
+                    "tradingsymbol": element.symbol,
+                    "symboltoken": element.token,
+                }
+                AdminService.getLTP(data).then(res => {
+                    let resdata = resolveResponse(res, 'noPop');
+                    var LtpData = resdata && resdata.data;
+                    if (LtpData) {
+
+                        let change = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
+                        LtpData.nc = change;
+                        LtpData.symbol = element.symbol;
+
+                        if (LtpData && LtpData.open === LtpData.low) { //buy
+                            console.log("Open=Low", element.symbol, LtpData);
+                            //var stopLossPrice = LtpData.low - (LtpData.low * TradeConfig.perTradeStopLossPer / 100);
+
+                            const format1 = "YYYY-MM-DD HH:mm";
+                            let enddate = moment(new Date());
+                            let startDate = moment(enddate, "DD-MM-YYYY").subtract(7, 'days');
+
+                            var data = {
+                                "exchange": "NSE",
+                                "symboltoken": element.token,
+                                "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
+                                "fromdate": moment(startDate).format(format1),
+                                "todate": moment(enddate).format(format1) //moment(this.state.endDate).format(format1) /
+                            }
+
+                            AdminService.getHistoryData(data).then(res => {
+                                let histdata = resolveResponse(res, 'noPop');
+                                //console.log("candle history", histdata); 
+                                if (histdata && histdata.data && histdata.data.length) {
+
+                                    var candleData = histdata.data;
+                                    candleData.reverse();
+                                    //    console.log("candleData",element, candleData);
+                                    console.log("lastday", element, candleData[1]);
+                                    let lastdayinfo = candleData[1];
+
+                                    // console.log("Open=High", element.symbol, LtpData);                     
+                                    //var stopLossPrice = LtpData.low - (LtpData.low * TradeConfig.perTradeStopLossPer / 100);
+
+                                    if (LtpData.ltp > lastdayinfo[2]) {
+                                        let stopLossPrice = LtpData.low - (LtpData.low / 10) / 100;
+                                        stopLossPrice = this.getMinPriceAllowTick(stopLossPrice);
+                                        let perTradeExposureAmt = TradeConfig.totalCapital * TradeConfig.perTradeExposurePer / 100;
+                                        let quantity = 1// Math.floor(perTradeExposureAmt / LtpData.ltp);
+                                        console.log(element.symbol + 'ltp ' + LtpData.ltp, "quantity", quantity, "stopLossPrice", stopLossPrice, "perTradeExposureAmt", perTradeExposureAmt);
+                                        var orderOption = {
+                                            transactiontype: 'BUY',
+                                            tradingsymbol: element.symbol,
+                                            symboltoken: element.token,
+                                            buyPrice: 0,
+                                            quantity: quantity,
+                                            stopLossPrice: stopLossPrice
+                                        }
+                                        let mySL = 3.5;
+                                        if (LtpData.ltp >= 200 && LtpData.ltp <= 10000 && stopLossPrice && quantity) {
+                                            this.placeOrderMethod(orderOption);
+                                        }
+                                    }
+
+                                } else {
+                                    //localStorage.setItem('NseStock_' + symbol, "");
+                                    console.log(" candle data emply");
+                                }
+                            })
+                        }
+
+
+                        if (LtpData && LtpData.open === LtpData.high) { //sell
+
+                            const format1 = "YYYY-MM-DD HH:mm";
+                            let enddate = moment(new Date());
+                            let startDate = moment(enddate, "DD-MM-YYYY").subtract(7, 'days');
+
+                            var data = {
+                                "exchange": "NSE",
+                                "symboltoken": element.token,
+                                "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
+                                "fromdate": moment(startDate).format(format1),
+                                "todate": moment(enddate).format(format1) //moment(this.state.endDate).format(format1) /
+                            }
+
+                            AdminService.getHistoryData(data).then(res => {
+                                let histdata = resolveResponse(res, 'noPop');
+                                //console.log("candle history", histdata); 
+                                if (histdata && histdata.data && histdata.data.length) {
+
+                                    var candleData = histdata.data;
+                                    candleData.reverse();
+                                    //    console.log("candleData",element, candleData);
+                                    console.log("lastday", element, candleData[1]);
+                                    let lastdayinfo = candleData[1];
+
+                                    // console.log("Open=High", element.symbol, LtpData);                     
+                                    //var stopLossPrice = LtpData.low - (LtpData.low * TradeConfig.perTradeStopLossPer / 100);
+
+                                    if (LtpData.ltp < lastdayinfo[3]) {
+                                        let stopLossPrice = LtpData.high + (LtpData.high / 10) / 100;
+                                        stopLossPrice = this.getMinPriceAllowTick(stopLossPrice);
+                                        let perTradeExposureAmt = TradeConfig.totalCapital * TradeConfig.perTradeExposurePer / 100;
+                                        let quantity = 1// Math.floor(perTradeExposureAmt / LtpData.ltp);
+                                        console.log(element.symbol + 'ltp ' + LtpData.ltp, "quantity", quantity, "stopLossPrice", stopLossPrice, "perTradeExposureAmt", perTradeExposureAmt);
+                                        var orderOption = {
+                                            transactiontype: 'SELL',
+                                            tradingsymbol: element.symbol,
+                                            symboltoken: element.token,
+                                            buyPrice: 0,
+                                            quantity: quantity,
+                                            stopLossPrice: stopLossPrice
+                                        }
+                                        let mySL = 3.5;
+                                        if (LtpData.ltp >= 200 && LtpData.ltp <= 10000 && stopLossPrice && quantity) {
+                                             this.placeOrderMethod(orderOption);
+                                        }
+                                    }
+
+                                } else {
+                                    //localStorage.setItem('NseStock_' + symbol, "");
+                                    console.log(" candle data emply");
+                                }
+                            })
+
+
+                        }
+
+                    }
+                })
+            }
+
+            
+            await new Promise(r => setTimeout(r, 210));
+        }
+      
 
     }
 
@@ -751,7 +933,7 @@ class Home extends React.Component {
         var data = {
             "exchange": "NSE",
             "symboltoken": row.symboltoken,
-            "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+            "interval": "FIVE_MINUTE", //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
             "fromdate": moment(beginningTime).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
             "todate": moment(new Date()).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
         }
@@ -1046,6 +1228,29 @@ class Home extends React.Component {
         }
         return chargeInfo; 
     }
+    refreshBasedAmount =()=> {
+        let totCheckAmount = 0, checkTotalNet = 0, totCheckExp = 0 ; 
+        this.state.positionList.forEach((item)=> {
+
+            let perchange =  this.state.checkAmountPer ? this.state.checkAmountPer : item.percentPnL; 
+            item.checkAmount = (this.state.checkAmount * perchange/100).toFixed(2) 
+            totCheckAmount = totCheckAmount + parseFloat(item.checkAmount);
+
+            let quantity = Math.floor(this.state.checkAmount / item.buyavgprice);
+            item.checkQty = quantity; 
+            item.totalbuyvalue = quantity * item.buyavgprice; 
+            item.totalsellvalue = quantity * item.sellavgprice; 
+            item.checkExpence = this.calculateTradeExpence(item); 
+            if(item.checkExpence){
+                item.checkNet =  (item.checkAmount - item.checkExpence.tradeExpence)
+                totCheckExp = totCheckExp + item.checkExpence.tradeExpence;
+                checkTotalNet = checkTotalNet +  parseFloat(item.checkNet); 
+            }
+            console.log(item)
+ 
+        })
+        this.setState({totCheckAmount : totCheckAmount.toFixed(2), checkTotalNet : checkTotalNet.toFixed(2),totCheckExp : totCheckExp.toFixed(2),  positionList : this.state.positionList }); 
+    }
     getPositionData = async () => {
         //   document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click(); 
         var maxPnL = 0, totalMaxPnL = 0;
@@ -1062,9 +1267,9 @@ class Home extends React.Component {
                 let tradingPositionlist = []; 
                 for (let index = 0; index < positionList.length; index++) {
                     const element = positionList[index];
-                    if (element.netqty < 0) {
-                        continue;
-                    }
+                    // if (element.netqty < 0) {
+                    //     continue;
+                    // }
                     tradingPositionlist.push(element); 
 
                     todayProfitPnL += parseFloat(element.pnl);
@@ -1075,7 +1280,7 @@ class Home extends React.Component {
                     allsellavgprice += parseFloat(element.sellavgprice);
                     if(element.netqty == 0){
                         let percentPnL = ((parseFloat(element.sellavgprice) - parseFloat(element.buyavgprice)) * 100 / parseFloat(element.buyavgprice));
-                        element.percentPnL = percentPnL.toFixed(2) + "%";
+                        element.percentPnL = percentPnL.toFixed(2) ;
                         totalPercentage += parseFloat(percentPnL);
 
                         localStorage.removeItem('firstTimeModify' + element.tradingsymbol)
@@ -1096,7 +1301,7 @@ class Home extends React.Component {
                         totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;
                     }
 
-                   
+                   // element.perChange = this.getPercentage(element); 
                 }
                
                 this.setState({ todayProfitPnL: todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue: totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded });
@@ -1108,9 +1313,10 @@ class Home extends React.Component {
 
                 this.setState({ totalTornOver: (totalbuyvalue + totalsellvalue).toFixed(2), totalMaxPnL: totalMaxPnL.toFixed(2) });
 
+                tradingPositionlist.sort((a,b) => b.netqty - a.netqty);
+
                 this.setState({ positionList: tradingPositionlist });
 
-                positionList.sort((a,b) => a.netqty - b.netqty);
 
             }
         })
@@ -1418,6 +1624,7 @@ class Home extends React.Component {
 
     onTrailChange=(e)=>{
         this.setState({ [e.target.name]: e.target.value });
+      //  console.log([e.target.name],  e.target.value)
     }
 
     onAddSLChange=(e)=>{
@@ -1434,12 +1641,15 @@ class Home extends React.Component {
             if(position.tradingsymbol == element.tradingsymbol && position.buyqty > 0){
 
                 var trackSLPriceList = localStorage.getItem('trackSLPrice') && JSON.parse( localStorage.getItem('trackSLPrice')); 
-                trackSLPriceList.splice(deleteindex, 1); 
-                localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPriceList)); 
-                this.setState({trackSLPrice : trackSLPriceList},  ()=> {
-                    this.squareOff(position);
-                }); 
-                break; 
+                if(trackSLPriceList.length > 0){
+                    trackSLPriceList.splice(deleteindex, 1); 
+                    localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPriceList)); 
+                    this.setState({trackSLPrice : trackSLPriceList},  ()=> {
+                        this.squareOff(position);
+                    }); 
+                    break; 
+                }
+              
             }
         }
     }
@@ -1456,21 +1666,19 @@ class Home extends React.Component {
             //console.log(LtpData);
             if (LtpData && LtpData.ltp) {
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close; 
-                if(per && per > 0)
-                document.getElementById('niftySpid').innerHTML = "<span style='color:green'> Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
-                else
-                document.getElementById('niftySpid').innerHTML = "<span style='color:red'> Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
-            }
+                if(document.getElementById('niftySpid')){
+                    document.getElementById('niftySpid').innerHTML = "<span style='color:red'> Nifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+                }
+              }
             
             let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse( localStorage.getItem('trackSLPrice')) : []; 
             if(trackSLPrice.length>0){
-                console.log("this.state.trackSLPrice", this.state.trackSLPrice)
                 for (let index = 0; index < trackSLPrice.length; index++) {
                     const element = trackSLPrice[index];
+                    console.log("this.state.trackSLPrice", element)
 
                     if(element.name == 'NIFTY' && element.optiontype == 'CE' && (LtpData.ltp < element.priceStopLoss || LtpData.ltp >= element.priceTarget)){
                         //delete sloption &  trigeer squireoff  
-            let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse( localStorage.getItem('trackSLPrice')) : []; 
                         console.log("deleteOptionPriceSL call sl ", element, index)
 
                         this.deleteOptionPriceSL(element, index); 
@@ -1501,10 +1709,12 @@ class Home extends React.Component {
             //console.log(LtpData);
             if (LtpData && LtpData.ltp) {
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close; 
-                if(per && per > 0)
-                document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
-                else
-                document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+                if(document.getElementById('bankniftySpid')) {
+                    if (per > 0)
+                    document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>'; 
+                    else
+                    document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.ltp + ' (' + (per).toFixed(2) + '%)</span>';    
+                }
             }
             let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse( localStorage.getItem('trackSLPrice')) : []; 
             if(trackSLPrice.length>0){
@@ -1744,8 +1954,10 @@ class Home extends React.Component {
         this.setState({ addSLInfo : row, enableSLMOrderUi : true }); 
     }
     placeSLMOrderManually =()=> {
-        this.placeSLMOrder(this.state.addSLInfo); 
-       // CommonMethods.placeOptionSLMOrder(this.state.addSLInfo)
+       // this.placeSLMOrder(this.state.addSLInfo); 
+
+       console.log("addSLInfo", this.state.addSLInfo)
+        CommonMethods.placeOptionSLMOrder(this.state.addSLInfo)
     }
     placeSLMOrder = (slmOption) => {
 
@@ -1818,7 +2030,7 @@ class Home extends React.Component {
 
             if (data.status && data.message === 'SUCCESS') {
                 //  this.setState({ ['lastTriggerprice_' + row.tradingsymbol]:  parseFloat(minPrice)})
-                msg.text = row.symbolname + ' modified '; //+ data.message;
+                msg.text = row.symbolname + ' trailed '.toLocaleLowerCase(); //+ data.message;
                 window.speechSynthesis.speak(msg);
                 localStorage.setItem('firstTimeModify' + row.tradingsymbol, 'No');
                 localStorage.setItem('lastTriggerprice_' + row.tradingsymbol, parseFloat(minTriggerPrice));
@@ -1868,9 +2080,9 @@ class Home extends React.Component {
 
         row.buyavgprice = parseFloat(row.buyavgprice);
         percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= 5) {
+        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= this.state.firstTimeMoveOption) {
 
-            var minTriggerPrice = row.buyavgprice + (row.buyavgprice * 3 / 100);
+            var minTriggerPrice = row.buyavgprice + (row.buyavgprice * this.state.firstTimeSLMoveOption / 100);
             let slPriceData =  this.getSLAndTriggerPrice(minTriggerPrice); 
 
             if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice){
@@ -1881,8 +2093,8 @@ class Home extends React.Component {
             var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
             var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
             trailPerChange = perchngfromTriggerPrice; 
-            if (perchngfromTriggerPrice >= 5) {
-                minTriggerPrice = lastTriggerprice + (lastTriggerprice * 3 / 100);
+            if (perchngfromTriggerPrice >= this.state.nextTimeMoveOption) {
+                minTriggerPrice = lastTriggerprice + (lastTriggerprice * this.state.nextTimeSLMoveOption / 100);
                 let slPriceData =  this.getSLAndTriggerPrice(minTriggerPrice); 
 
                 if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice){
@@ -1932,20 +2144,22 @@ class Home extends React.Component {
             if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange <= -Math.abs(this.state.firstTimeMove)) {
                 var minPrice = row.sellavgprice - (row.sellavgprice * this.state.firstTimeSLMove / 100);
                 minPrice = this.getMinPriceAllowTick(minPrice);
-                if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
-                    this.modifyOrderMethod(row, minPrice, (row.sellavgprice * 0.3 / 100));
-                }
+                // if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
+                //     this.modifyOrderMethod(row, minPrice);
+                // }
+                this.modifyOrderMethod(row, minPrice);
             } else {
                 var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
                 var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
                 trailPerChange = perchngfromTriggerPrice; 
-                console.log("perchngfromTriggerPrice", perchngfromTriggerPrice);
+                console.log("perchngfromTriggerPrice", row.tradingsymbol , perchngfromTriggerPrice);
                 if (perchngfromTriggerPrice <= -Math.abs(this.state.nextTimeMove)  ) {
                     minPrice = lastTriggerprice - (lastTriggerprice * this.state.nextTimeSLMove / 100);
                     minPrice = this.getMinPriceAllowTick(minPrice);
-                    if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
-                        this.modifyOrderMethod(row, minPrice);
-                    }
+                    // if(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != minPrice){
+                    //     this.modifyOrderMethod(row, minPrice);
+                    // }
+                    this.modifyOrderMethod(row, minPrice);
                 }
             }
 
@@ -1974,23 +2188,13 @@ class Home extends React.Component {
                 <ChartDialog /> <ChartMultiple />
                 <Grid style={{ padding: '5px' }} justify="space-between" direction="row" container>
                     <Grid item >
+
                        <Typography color="primary" gutterBottom>
-                            Positions ({this.state.positionList && this.state.positionList.length})    <span id="niftySpid"  > Nifty </span>  &nbsp;&nbsp;  <span id="bankniftySpid" >Banknifty </span>
+                       Positions ({this.state.positionList && this.state.positionList.length})    <span id="niftySpid"  > Nifty </span>  &nbsp;&nbsp;  <span id="bankniftySpid" >Banknifty </span>
                         </Typography>
 
                      
                     </Grid>
-                    {/* <Grid item xs={12} sm={3} > 
-
-                   
-                       S.Trail%: F.Move<input name="firstTimeMove"  type={'number'}  step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
-                        SL Move<input name="firstTimeSLMove" step="0.1"  type={'number'}  onChange={this.onTrailChange}  value={this.state.firstTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
-
-                        &nbsp;Next <input name="nextTimeMove" step="0.1"  type={'number'}  onChange={this.onTrailChange} value={this.state.nextTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
-                        SL Move<input name="nextTimeSLMove"  step="0.1" type={'number'}  onChange={this.onTrailChange}  value={this.state.nextTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
-                    
-
-                    </Grid> */}
 
                     
                     <Grid item  >
@@ -2035,14 +2239,13 @@ class Home extends React.Component {
                     </Grid>
                     
 
-                    
-
-
+                
                     <Grid item  >
                         <Button type="number" variant="contained" style={{ float: "right" }} onClick={() => this.getPositionData()}>Refresh</Button>
                     </Grid>
                     <Grid item  >
                         <Button type="number" variant="contained" style={{ float: "right" }} onClick={() => this.getHighLowPercentage()}><RefreshIcon /> H/L</Button>
+
                     </Grid>
                 </Grid>
 
@@ -2057,23 +2260,28 @@ class Home extends React.Component {
                                     <TableRow key="1" variant="head" style={{ fontWeight: 'bold' }}>
 
                                         {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
-                                        <TableCell style={{ paddingLeft: "3px" }} className="TableHeadFormat" align="left">&nbsp;Symbol</TableCell>
+                                        <TableCell style={{ paddingLeft: "3px" }} className="TableHeadFormat" align="left">&nbsp;Symbol
+                                        <Button type="number" onClick={() => this.checkOpenEqualToLow()}>O=H/L</Button>
+                                        <input style={{width: "50px"}} type='number'step={10000} placeholder='25000' name="checkAmount" onChange={this.onTrailChange} onBlur={()=> this.refreshBasedAmount()}/>
+                                        <input style={{width: "30px"}} type='number' step={0.1} placeholder='0.5' name="checkAmountPer" onChange={this.onTrailChange} onBlur={()=> this.refreshBasedAmount()}/>
+
+                                        </TableCell>
                                         {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left">Product type</TableCell> */}
                                         <TableCell className="TableHeadFormat" align="left">Order Type</TableCell>
 
-                                        <TableCell className="TableHeadFormat" align="left">Avg Buy</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">BuyAvg</TableCell>
                                         {/* <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell> */}
 
-                                        <TableCell className="TableHeadFormat" align="left">Avg Sell </TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">SellAvg</TableCell>
                                         {/* <TableCell  className="TableHeadFormat" align="left">Total Sell value</TableCell> */}
-                                        <TableCell className="TableHeadFormat" align="left">Qty Taken</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">QtyTaken</TableCell>
 
-                                        <TableCell className="TableHeadFormat" align="left">Net Qty</TableCell>
-                                        <TableCell className="TableHeadFormat" align="left">Expense</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">NetQty</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">Exp</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">SL</TableCell>
-                                        <TableCell className="TableHeadFormat" align="left">Max P/L</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">MaxD</TableCell>
 
 
                                         <TableCell className="TableHeadFormat" align="left">P/L </TableCell>
@@ -2081,7 +2289,13 @@ class Home extends React.Component {
                                         <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">Action</TableCell>
-
+                                       
+                                        {this.state.checkAmount ? 
+                                        <>
+                                        <TableCell className="TableHeadFormat" align="left">Qty Cpl</TableCell>
+                                         <TableCell  className="TableHeadFormat" align="left">CExp</TableCell>
+                                         <TableCell  className="TableHeadFormat" align="left">CNet</TableCell>
+                                          </> : ""}
 
                                         {this.state.showHighLowWisePer ? 
                                         <>
@@ -2112,7 +2326,7 @@ class Home extends React.Component {
                                             {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                             {/* <TableCell align="left">{row.producttype}</TableCell> */}
 
-                                            <TableCell align="left"><Button onClick={() => this.addSLOrderInfo(row)}> {row.totalbuyavgprice} Add SL</Button>  </TableCell>
+                                            <TableCell align="left"><Button onClick={() => this.addSLOrderInfo(row)}> {row.totalbuyavgprice} </Button>  </TableCell>
                                             {/* <TableCell align="left">{row.totalbuyvalue}</TableCell> */}
 
                                             <TableCell align="left">{row.totalsellavgprice}</TableCell>
@@ -2130,7 +2344,7 @@ class Home extends React.Component {
                                             <TableCell align="left">
                                                 {row.netqty !== '0' && row.optiontype  == '' ? this.getPercentage(row) : ""}
                                                 {(row.optiontype  == 'CE' || row.optiontype  == 'PE') && row.netqty > 0 ? this.getOptionPercentage(row) : ""}  
-                                                {row.percentPnL}
+                                                {row.percentPnL}%
                                                 {/* new Date().toLocaleTimeString() > "15:15:00" ? */}
                                             </TableCell>
                                             <TableCell align="left">{row.ltp}</TableCell>
@@ -2140,6 +2354,14 @@ class Home extends React.Component {
                                              <TableCell align="left">
                                                 {row.netqty !== "0" ? <Button size={'small'} type="number" variant="contained" color="Secondary" onClick={() => this.squareOff(row)}>Square Off</Button> : ""}
                                             </TableCell>
+                                        
+                                        {this.state.checkAmount ? <>
+                                            <TableCell   align="left"><i title={ "Buy value:" + row.totalbuyvalue + " | Sell value:"+ row.totalsellvalue}>  {row.checkQty}</i> &nbsp; {row.checkAmount} </TableCell>
+                                            {/* <TableCell   align="left"></TableCell> */}
+                                            <TableCell   align="left" title={row.checkExpence && row.checkExpence.expenceInfo}>  {row.checkExpence && row.checkExpence.tradeExpence && row.checkExpence.tradeExpence.toFixed(2)}</TableCell>
+                                            <TableCell   align="left">{row.checkNet && row.checkNet.toFixed(2)}</TableCell>
+                                          </> : ""}
+
 
                                         {this.state.showHighLowWisePer ? <>
                                             <TableCell   align="left">{row.high}</TableCell>
@@ -2158,14 +2380,14 @@ class Home extends React.Component {
                                         {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
-                                        <TableCell className="TableHeadFormat" align="left">&nbsp;
+                                        <TableCell  align="left">
 
                    
-                                        Stock Trail%: F.Move<input name="firstTimeMove"  type={'number'}  step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
-                                        SL Move<input name="firstTimeSLMove" step="0.1"  type={'number'}  onChange={this.onTrailChange}  value={this.state.firstTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
+                                        Stock Trail%: &nbsp; F.Move<input name="firstTimeMove"  type={'number'}  step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
+                                        &nbsp;SL Move<input name="firstTimeSLMove" step="0.1"  type={'number'}  onChange={this.onTrailChange}  value={this.state.firstTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
 
                                         &nbsp;Next <input name="nextTimeMove" step="0.1"  type={'number'}  onChange={this.onTrailChange} value={this.state.nextTimeMove}  style={{width:'30px',textAlign:'center'}} /> 
-                                        SL Move<input name="nextTimeSLMove"  step="0.1" type={'number'}  onChange={this.onTrailChange}  value={this.state.nextTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
+                                        &nbsp;SL Move<input name="nextTimeSLMove"  step="0.1" type={'number'}  onChange={this.onTrailChange}  value={this.state.nextTimeSLMove} style={{width:'30px',textAlign:'center'}} /> 
 
 
                                         </TableCell>
@@ -2199,12 +2421,29 @@ class Home extends React.Component {
                                         <TableCell className="TableHeadFormat" align="left"></TableCell>
 
 
+                                        {this.state.checkAmount ? <>
+                                        <TableCell className="TableHeadFormat" align="left">{this.state.totCheckAmount}</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">{this.state.totCheckExp}</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">{this.state.checkTotalNet}</TableCell>
+                                        </>
+                                        : "" }
+
                                         <TableCell className="TableHeadFormat" align="left"></TableCell>
 
 
-                                        <TableCell className="TableHeadFormat" align="left"></TableCell>
+                                    </TableRow>
 
+                                    <TableRow variant="head">
+                                        <TableCell  colSpan={15} align="left">
 
+                                        Option Trail%: F.Move<input name="firstTimeMoveOption"  type={'number'}  step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMoveOption}  style={{width:'30px',textAlign:'center'}} /> 
+                                        &nbsp;SL Move<input name="firstTimeSLMoveOption" step="0.1"  type={'number'}  onChange={this.onTrailChange}  value={this.state.firstTimeSLMoveOption} style={{width:'30px',textAlign:'center'}} /> 
+
+                                        &nbsp;Next <input name="nextTimeMoveOption" step="0.1"  type={'number'}  onChange={this.onTrailChange} value={this.state.nextTimeMoveOption}  style={{width:'30px',textAlign:'center'}} /> 
+                                        &nbsp;SL Move<input name="nextTimeSLMoveOption"  step="0.1" type={'number'}  onChange={this.onTrailChange}  value={this.state.nextTimeSLMoveOption} style={{width:'30px',textAlign:'center'}} /> 
+ 
+                                        </TableCell>
+                                    
                                     </TableRow>
 
                                     {this.state.enableSLMOrderUi ? 
@@ -2214,12 +2453,12 @@ class Home extends React.Component {
                                         Stoploss
                                         &nbsp;<input placeholder='Symbol' name="tradingsymbol"  onChange={this.onAddSLChange} value={this.state.addSLInfo && this.state.addSLInfo.tradingsymbol}  style={{ width:'200px',  textAlign:'center'}} /> 
                                         &nbsp;<input placeholder='Price' name="stopLossPrice"  type={'number'}  step="0.1" onChange={this.onAddSLChange} value={this.state.addSLInfo && this.state.addSLInfo.stopLossPrice}  style={{width:'100px',textAlign:'center'}} /> 
-                                        &nbsp;<input placeholder='Trigger Price' name="price" step="0.1"  type={'number'}  onChange={this.onAddSLChange}  value={this.state.addSLInfo && this.state.addSLInfo.price} style={{width:'100px',textAlign:'center'}} /> 
+                                        &nbsp;<input placeholder='Trigger Price' name="stopLossTriggerPrice" step="0.1"  type={'number'}  onChange={this.onAddSLChange}  value={this.state.addSLInfo && this.state.addSLInfo.price} style={{width:'100px',textAlign:'center'}} /> 
                                         &nbsp; <Button size={'small'} type="number" variant="contained"  onClick={() => this.placeSLMOrderManually()}>Place SL</Button> 
                                     
                                         </TableCell>
                                     
-                                        </TableRow>
+                                    </TableRow>
 
                                      : ""}
                                     

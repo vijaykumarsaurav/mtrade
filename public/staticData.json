@@ -987,17 +987,7 @@
             "exch_seg": "NSE",
             "tick_size": "5.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "19924",
             "symbol": "RECLTD-NI",
@@ -2044,17 +2034,7 @@
             "exch_seg": "NSE",
             "tick_size": "5.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "19924",
             "symbol": "RECLTD-NI",
@@ -4150,17 +4130,7 @@
             "exch_seg": "NSE",
             "tick_size": "5.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "4717",
             "symbol": "GAIL-EQ",
@@ -5682,17 +5652,7 @@
             "exch_seg": "NSE",
             "tick_size": "5.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "676",
             "symbol": "EXIDEIND-EQ",
@@ -6663,17 +6623,7 @@
             "exch_seg": "NSE",
             "tick_size": "1.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "3426",
             "symbol": "TATAPOWER-EQ",
@@ -8383,17 +8333,7 @@
             "exch_seg": "NSE",
             "tick_size": "5.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "10604",
             "symbol": "BHARTIARTL-EQ",
@@ -14870,17 +14810,7 @@
             "exch_seg": "NSE",
             "tick_size": "5.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "5385",
             "symbol": "AAVAS-EQ",
@@ -17276,17 +17206,7 @@
             "exch_seg": "NSE",
             "tick_size": "5.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "6149",
             "symbol": "SRTRANSFIN-YP",
@@ -19205,17 +19125,7 @@
             "exch_seg": "NSE",
             "tick_size": "5.000000"
         },
-        {
-            "token": "20024",
-            "symbol": "PFC-N6",
-            "name": "PFC",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "1.000000"
-        },
+        
         {
             "token": "5701",
             "symbol": "CUB-EQ",

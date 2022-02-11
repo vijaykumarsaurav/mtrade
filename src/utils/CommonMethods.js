@@ -356,7 +356,7 @@ class CommonOrderMethod {
             "triggerprice": slmOption.stopLossTriggerPrice,
             "tradingsymbol": slmOption.tradingsymbol,
             "symboltoken": slmOption.symboltoken,
-            "quantity": slmOption.quantity,
+            "quantity": slmOption.netqty,
             "transactiontype": "SELL", 
             "exchange": slmOption.exchange,
             "producttype": slmOption.producttype, 

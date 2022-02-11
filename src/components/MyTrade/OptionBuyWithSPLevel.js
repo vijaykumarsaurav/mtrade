@@ -36,15 +36,17 @@ class OrderBook extends React.Component{
             searchSymbolPending : "",
             autoSearchList:[{"token":"26009","symbol":"BANKNIFTY","name":"BANKNIFTY","expiry":"","strike":"-1.000000","lotsize":"-1","instrumenttype":"","exch_seg":"NSE","tick_size":"-1.000000"},{"token":"26000","symbol":"NIFTY","name":"NIFTY","expiry":"","strike":"-1.000000","lotsize":"-1","instrumenttype":"","exch_seg":"NSE","tick_size":"-1.000000"}], 
             lastTradedData : {},
-            buyOptionFlag : false 
-        
+            buyOptionFlag : false ,
+            staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
+            selectedWatchlist: "Securities in F&O",
+
         }
     }
 
     searchSymbolPendingOrder = (e) => {
         this.setState({[e.target.name] : e.target.value})
 
-        AdminService.autoCompleteSearch(e.target.value).then(searchRes => {
+        AdminService.stockOptionSearch(e.target.value).then(searchRes => {
             let searchResdata = searchRes.data;
             if (e.target.value) {
                 var uppercaseName = e.target.value.toUpperCase() + "-EQ";
@@ -331,16 +333,34 @@ class OrderBook extends React.Component{
         var data = e.target.value;
 
         this.setState({lastTradedData : {}, buyAtPending: "", sellAtPending: "", pattenNamePending: "",searchSymbolPending : ""}); 
+        var watchList = this.state.staticData[this.state.selectedWatchlist];
 
+        var isfound = watchList.filter(element => (element.name == e.target.value.toUpperCase()));
+        console.log( "stock", isfound);
         
-        AdminService.autoCompleteSearch(data).then(res => {
-            let data = res.data;
-            console.log(data);
-            localStorage.setItem('autoSearchTemp', JSON.stringify(data));
-            this.setState({ autoSearchList: data });
 
-          
-        })
+        if(isfound.length > 0){
+            var  ltpparam = { "exchange":isfound[0].exch_seg, "tradingsymbol": isfound[0].symbol , "symboltoken": isfound[0].token}; 
+            AdminService.getLTP(ltpparam).then(res => {
+                let data = resolveResponse(res, 'noPop');
+                var LtpData = data && data.data;
+                if(LtpData && LtpData.ltp) {
+                    console.log( "LtpData",LtpData);
+
+                    AdminService.stockOptionSearch(JSON.stringify({name : isfound[0].name, ltp : LtpData.ltp})).then(res => {
+                        let data = res.data;
+                        console.log(data);
+                        localStorage.setItem('autoSearchTemp', JSON.stringify(data));
+                        this.setState({ autoSearchList: data });
+                    })
+
+                }
+            });
+        }
+            
+                    
+
+       
 
     }
 

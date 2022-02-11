@@ -61,10 +61,11 @@ class OrderBook extends React.Component{
                   });
                   
 
+           //     orderlist.sort((a, b) => a.status - b.status); 
                 this.setState({oderbookData: orderlist});
                 localStorage.setItem('oderbookData', JSON.stringify( orderlist ));
 
-                orderlist.sort((a, b) => a.status - b.status); 
+          
             }
         });
     }
@@ -147,7 +148,8 @@ class OrderBook extends React.Component{
               trackSLPrice.push({
                 priceStopLoss :  e.target.value.trim(), 
                 tradingsymbol : tradingsymbol, 
-                optiontype : tradingsymbol.substr(tradingsymbol.length-2,tradingsymbol.length-1) 
+                optiontype : tradingsymbol.substr(tradingsymbol.length-2,tradingsymbol.length-1),
+                name : tradingsymbol.includes('BANKNIFTY') ? 'BANKNIFTY' : "NIFTY"
               }); 
         }
         
@@ -172,7 +174,9 @@ class OrderBook extends React.Component{
             trackSLPrice.push({
               priceStopLoss :  e.target.value.trim(), 
               tradingsymbol : tradingsymbol, 
-              optiontype : tradingsymbol.substr(tradingsymbol.length-2,tradingsymbol.length-1) 
+              optiontype : tradingsymbol.substr(tradingsymbol.length-2,tradingsymbol.length-1),
+              name : tradingsymbol.includes('BANKNIFTY') ? 'BANKNIFTY' : "NIFTY"
+ 
             }); 
       }
         console.log("trarget price update", trackSLPrice)
