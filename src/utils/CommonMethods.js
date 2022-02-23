@@ -212,7 +212,7 @@ class CommonOrderMethod {
 
                             var stoploss = 0, stoplossPer = 0;
 
-                            if (orderType == "BUY") {
+                            if (orderType == "BUY" && lastRsiValue[lastRsiValue.length - 1] > 60) {
                                 stoploss = bblowerValue - (highestHigh - lowestLow) * 3 / 100;
                                 stoploss = this.getMinPriceAllowTick(stoploss);
                                 stoplossPer = (LtpData.ltp - stoploss) * 100 / LtpData.ltp;
@@ -234,7 +234,7 @@ class CommonOrderMethod {
                     
                             }
 
-                            if (orderType == "SELL") {
+                            if (orderType == "SELL"  && lastRsiValue[lastRsiValue.length - 1] < 40) {
                                 stoploss = bbhigerValue + (highestHigh - lowestLow) * 3 / 100;
                                 stoploss = this.getMinPriceAllowTick(stoploss);
                                 stoplossPer = (stoploss - LtpData.ltp) * 100 / LtpData.ltp;

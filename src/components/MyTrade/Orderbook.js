@@ -36,7 +36,7 @@ class OrderBook extends React.Component{
 
     getTodayOrder = () => {
 
-        console.log('this.state.trackSLPrice', this.state.trackSLPrice);
+      //  console.log('this.state.trackSLPrice', this.state.trackSLPrice);
 
         let trackSLPrice = localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || []; 
 
@@ -89,7 +89,7 @@ class OrderBook extends React.Component{
         AdminService.cancelOrder(data).then(res => {
             let data = resolveResponse(res);
             if(data.status  && data.message === 'SUCCESS'){
-                console.log("cancel order", data);   
+              //  console.log("cancel order", data);   
                 this.getTodayOrder();
                // this.setState({ orderid : data.data && data.data.orderid });
             }
@@ -118,7 +118,7 @@ class OrderBook extends React.Component{
             }
         AdminService.modifyOrder(data).then(res => {
             let data = resolveResponse(res);
-            console.log(data);   
+           // console.log(data);   
             if(data.status  && data.message === 'SUCCESS'){
                // localStorage.setItem('ifNotBought' ,  'false')
                this.setState({triggerprice : 0}); 
@@ -153,7 +153,7 @@ class OrderBook extends React.Component{
               }); 
         }
         
-        console.log("slprice tradingsymbol", trackSLPrice , tradingsymbol, isfound)
+    //    console.log("slprice tradingsymbol", trackSLPrice , tradingsymbol, isfound)
         localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPrice));
     }
 
@@ -179,13 +179,13 @@ class OrderBook extends React.Component{
  
             }); 
       }
-        console.log("trarget price update", trackSLPrice)
+     //   console.log("trarget price update", trackSLPrice)
         localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPrice));
     }
 
 
     render(){
-        console.log(this.state.oderbookData);
+     //   console.log(this.state.oderbookData);
 
       return(
         <React.Fragment>
@@ -308,13 +308,13 @@ class OrderBook extends React.Component{
 
 
                                     <TableCell align="center">
-                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
+                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' || row.orderstatus ==='complete' ? 
                                          <TextField  type="number" style={{textAlign:'center', width:'50px'}}  value={this.state['priceStopLoss_'+row.tradingsymbol]}  name={'priceStopLoss_'+row.tradingsymbol} onChange={this.onChangePriceStopLoss}/>
                                                 : ''}
                                     </TableCell>
 
                                     <TableCell align="center">
-                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' ? 
+                                        {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' || row.orderstatus ==='complete'? 
                                         <TextField  type="number" style={{textAlign:'center', width:'50px'}} value={this.state['priceTarget_'+row.tradingsymbol]}  name={'priceTarget_'+row.tradingsymbol}  onChange={this.onChangePriceTarget}/>
                                         : ''}
                                     </TableCell>

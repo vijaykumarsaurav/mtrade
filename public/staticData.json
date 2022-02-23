@@ -8024,17 +8024,6 @@
             "tick_size": "5.000000"
         },
         {
-            "token": "10221",
-            "symbol": "ADANITRANS-BE",
-            "name": "ADANITRANS",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
             "token": "10440",
             "symbol": "LUPIN-EQ",
             "name": "LUPIN",
@@ -8238,17 +8227,6 @@
             "token": "100",
             "symbol": "AMARAJABAT-EQ",
             "name": "AMARAJABAT",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
-            "token": "10221",
-            "symbol": "ADANITRANS-BE",
-            "name": "ADANITRANS",
             "expiry": "",
             "strike": "-1.000000",
             "lotsize": "1",
@@ -16324,17 +16302,6 @@
             "token": "10666",
             "symbol": "PNB-EQ",
             "name": "PNB",
-            "expiry": "",
-            "strike": "-1.000000",
-            "lotsize": "1",
-            "instrumenttype": "",
-            "exch_seg": "NSE",
-            "tick_size": "5.000000"
-        },
-        {
-            "token": "10221",
-            "symbol": "ADANITRANS-BE",
-            "name": "ADANITRANS",
             "expiry": "",
             "strike": "-1.000000",
             "lotsize": "1",

@@ -30,6 +30,8 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import "./ViewStyle.css";
 import Hidden from '@material-ui/core/Hidden';
+import CommonOrderMethod from "../../utils/CommonMethods";
+
 
 // import vwap from 'vwap';
 // import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
@@ -46,11 +48,12 @@ class LiveBid extends React.Component {
         this.state = {
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
-            selectedWatchlist: 'NIFTY BANK', //'Securities in F&O', 'NIFTY BANK'
+            selectedWatchlist: 'NIFTY 100', //'Securities in F&O', 'NIFTY BANK'
             symbolList: [],
             actionList: localStorage.getItem('actionList') && JSON.parse(localStorage.getItem('actionList')) || [],
             timeFrame: "FIFTEEN_MINUTE",
             softedIndexList: [],
+            listofHighLow: localStorage.getItem('listofHighLow') && JSON.parse(localStorage.getItem('listofHighLow')) || [], 
             gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
             looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
             cursor: '',
@@ -121,6 +124,7 @@ class LiveBid extends React.Component {
 
 
     updateSocketWatch = (wsClint) => {
+
         var channel = this.state.symbolList.map(element => {
             return 'nse_cm|' + element.token;
         });
@@ -206,7 +210,45 @@ class LiveBid extends React.Component {
                     if (this.state.token == element.token) {
                         this.setState({ livePrice: foundLive[0].ltp, livePChange: foundLive[0].nc })
                     }
+
+
+                    let found = []; //this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
+
+                    if(found.length > 0 && foundLive[0].ltp >= 200 && foundLive[0].ltp <= 10000 && new Date().getHours() < 9 && new Date().getMinutes() <= 30){
+
+                        if(!localStorage.getItem(symbolListArray[index].symbol)){
+                            if(symbolListArray[index].symbol == found[0].symbol && foundLive[0].ltp > found[0].high){
+                                localStorage.setItem(symbolListArray[index].symbol, "ok")
+                                this.speckIt((symbolListArray[index].symbol +' previous day high broken ').toLocaleLowerCase())
+                                console.log(symbolListArray[index].name, foundLive[0].ltp, "previous day high broken BUY")
+                                var symbolInfo = {
+                                    token: symbolListArray[index].token,
+                                    symbol: symbolListArray[index].symbol,
+                                    qtyToTake: 1,
+                                    producttype: 'INTRADAY'
+                                }
+                                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
+                            }
+                            if(symbolListArray[index].symbol == found[0].symbol && foundLive[0].ltp < found[0].low){
+                                localStorage.setItem(symbolListArray[index].symbol, "ok")
+                                this.speckIt((symbolListArray[index].symbol +' previous day low broken ').toLocaleLowerCase())
+                                console.log(symbolListArray[index].name, foundLive[0].ltp, "previous day high broken SELL")
+                                var symbolInfo = {
+                                    token: symbolListArray[index].token,
+                                    symbol: symbolListArray[index].symbol,
+                                    qtyToTake: 1,
+                                    producttype: 'INTRADAY'
+                                }
+                                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
+                            }
+                            
+                        }
+                    }
+                    
+                    
+               
                     //console.log("ws onmessage: ", foundLive[0]);
+
 
                 }
             });
@@ -226,11 +268,17 @@ class LiveBid extends React.Component {
         }
 
         setInterval(() => {
-            //  this.makeConnection();
+            console.log("this.wsClint", this.wsClint)
+            this.makeConnection(this.wsClint);
+
             var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
             console.log("Request :- " + _req);
             wsClint.send(_req);
         }, 59000);
+    }
+
+    callbackAfterOrderDone = (order) => {
+        console.log("order executed", order);
     }
 
 
@@ -306,6 +354,7 @@ class LiveBid extends React.Component {
 
         },1000);
 
+       // this.updateDayChartHighLow(); 
     }
 
     
@@ -313,7 +362,7 @@ class LiveBid extends React.Component {
 
         let data = {
             dtime : moment( new Date(),'YYYY-MM-DD HH:mm:ss').toString(),
-            symbolList : this.state.symbolList,
+            symbolList : [this.state.symbolList[0]] ,
             analysis: true
         }
 
@@ -385,7 +434,129 @@ class LiveBid extends React.Component {
             }
 
             this.setState({ symbolList: watchList }, () => this.updateSocketWatch(this.wsClint));
+
+          //  this.updateDayChartHighLow(); 
         });
+    }
+    updateDayChartHighLow= async()=> {
+
+    //    var watchList = this.state.staticData['NIFTY 100']; //NIFTY 100 Securities in F&O
+        var watchList = this.state.staticData[this.state.selectedWatchlist];
+
+        for (let index = 0; index < watchList.length; index++) { //watchList.length
+            const element = watchList[index];
+
+            const format1 = "YYYY-MM-DD HH:mm";
+            let enddate = moment(new Date());
+            let startDate = moment(enddate, "DD-MM-YYYY").subtract(7, 'days');
+
+            let found =  this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
+
+            if(found.length == 0){
+
+                var data = {
+                    "exchange": "NSE",
+                    "symboltoken": element.token,
+                    "interval": "ONE_DAY", //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
+                    "fromdate": moment(startDate).format(format1),
+                    "todate": moment(enddate).format(format1) //moment(this.state.endDate).format(format1) /
+                }
+        
+                AdminService.getHistoryData(data).then(res => {
+                    let histdata = resolveResponse(res, 'noPop');
+                    //console.log("candle history", histdata); 
+                    if (histdata && histdata.data && histdata.data.length) {
+        
+                        var candleData = histdata.data;
+                        candleData.reverse();
+                        //    console.log("candleData",element, candleData);
+                        console.log("lastday", element, candleData[1]);
+                        let lastdayinfo = candleData[1];
+                        
+                      
+                        let high = candleData[0][2]; 
+                        let low = candleData[0][3]; 
+
+                        if(candleData[1][2] > high){
+                            high = candleData[1][2];  
+                        }
+                        if(candleData[1][3] < low){
+                            low = candleData[1][3];  
+                        }
+
+                        var beginningTime = moment('9:15am', 'h:mma');
+                        var endTime = moment('3:30pm', 'h:mma');
+                        const friday = 5; // for friday
+                        var currentTime = moment(new Date(), "h:mma");
+                        const today = moment().isoWeekday();
+                        //market hours
+                        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+                             high = candleData[1][2]; 
+                             low = candleData[1][3]; 
+
+                            if(candleData[2][2] > high){
+                                high = candleData[2][2];  
+                            }
+                            if(candleData[2][3] < low){
+                                low = candleData[2][3];  
+                            }
+                            // if(candleData[1]){
+                            //     high = candleData[1][2];  
+                            //     low = candleData[1][3]; 
+                            // }
+                          
+                        }
+                      
+    
+                        let data = {
+                            symbol : element.symbol, 
+                            high: high, 
+                            low: low, 
+                        }
+                        
+                        this.setState({ listofHighLow: [...this.state.listofHighLow, data] }, function(){
+                            console.log("highlow", this.state.listofHighLow)
+                            localStorage.setItem("listofHighLow", JSON.stringify(this.state.listofHighLow))
+                        });
+    
+                        // console.log("Open=High", element.symbol, LtpData);                     
+                        //var stopLossPrice = LtpData.low - (LtpData.low * TradeConfig.perTradeStopLossPer / 100);
+        
+                        // if (LtpData.ltp > lastdayinfo[2]) {
+                        //    // let stopLossPrice = LtpData.low - (LtpData.low / 10) / 100;
+        
+                        //     let stopLossPrice = lastdayinfo[3] - (lastdayinfo[3] / 10) / 100;
+                        //     stopLossPrice = this.getMinPriceAllowTick(stopLossPrice); //stopLossPrice
+                        //     let perTradeExposureAmt = TradeConfig.totalCapital * TradeConfig.perTradeExposurePer / 100;
+                        //     let quantity = 1// Math.floor(perTradeExposureAmt / LtpData.ltp);
+                        //     console.log(element.symbol + 'ltp ' + LtpData.ltp, "quantity", quantity, "stopLossPrice", stopLossPrice, "perTradeExposureAmt", perTradeExposureAmt);
+                        //     var orderOption = {
+                        //         transactiontype: 'BUY',
+                        //         tradingsymbol: element.symbol,
+                        //         symboltoken: element.token,
+                        //         buyPrice: 0,
+                        //         quantity: quantity,
+                        //         stopLossPrice: stopLossPrice
+                        //     }
+                        //     let mySL = 3.5;
+                        //     if (LtpData.ltp >= 200 && LtpData.ltp <= 10000 && stopLossPrice && quantity) {
+                        //         this.placeOrderMethod(orderOption);
+                        //     }
+                        // }
+        
+                    } else {
+                        //localStorage.setItem('NseStock_' + symbol, "");
+                        console.log(" candle data emply");
+                    }
+                })
+            }
+    
+          
+
+            await new Promise(r => setTimeout(r, 310));
+        }
+
+       
     }
     sortByColumn = (type) => {
         this.state.symbolList.sort(function (a, b) {
@@ -548,7 +719,7 @@ class LiveBid extends React.Component {
                 var inputRSI = { values: closeingData, period: 14 };
                 var rsiValues = RSI.calculate(inputRSI);
 
-                console.log(token, "Rsi", inputRSI, rsiValues);
+              //  console.log(token, "Rsi", inputRSI, rsiValues);
                 // console.log(token, "vwap", vwapdata, vwap(vwapdata));
 
 

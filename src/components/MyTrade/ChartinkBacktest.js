@@ -79,7 +79,9 @@ class Home extends React.Component {
             entryCandlePoint:5,
             totalWinTrade:0, 
             maxDrowDown:0, 
-            maxProfit:0
+            maxProfit:0, 
+            crossedTargetCount: 0, 
+            orderType:"buy"
             
 
         };
@@ -113,7 +115,7 @@ class Home extends React.Component {
 
         const domElement = document.getElementById('tvchart');
         document.getElementById('tvchart').innerHTML = '';
-        const chart = createChart(domElement, { width: 550, height: 250, timeVisible: true, secondsVisible: true, });
+        const chart = createChart(domElement, { width: 500, height: 250, timeVisible: true, secondsVisible: true, });
         const candleSeries = chart.addCandlestickSeries();
         var smaLineSeries = chart.addLineSeries({
             color: 'rgba(4, 111, 232, 1)',
@@ -262,6 +264,23 @@ class Home extends React.Component {
             if(entryCandlePoint == 5){
                 entryPrice =  (candleData[0][2] + candleData[0][3]) / 2; 
             }
+
+            if(entryCandlePoint == 6){
+                candleData.forEach(element => {
+                    if(element[2] > candleData[0][2]){
+                        entryPrice = candleData[0][2]; 
+                        return;
+                    }
+                });
+            }
+            if(entryCandlePoint == 7){
+                candleData.forEach(element => {
+                    if(element[3] < candleData[0][3]){
+                        entryPrice = candleData[0][3]; 
+                        return;
+                    }
+                });
+            }
             
             let stock = {
                 name: stockInfo.name,
@@ -271,7 +290,7 @@ class Home extends React.Component {
                 foundAt: moment(candleData[0][0]).format('YYYY-MM-DD HH:mm')
             }
 
-            let priceChangeList = [];
+            let priceChangeList = [];  
             for (let index2 = 1; index2 < candleData.length; index2++) {
                 let perChange = (candleData[index2][4] - stock.entryPrice) * 100 / stock.entryPrice;
                 let datetime = moment(candleData[index2][0]).format('h:mma')
@@ -284,9 +303,26 @@ class Home extends React.Component {
                 if(perChange > this.state.maxProfit){
                     this.setState({maxProfit : perChange.toFixed(2)}); 
                 }
-                
                 priceChangeList.push({ perChange: perChange.toFixed(2), close: candleData[index2][4], datetime: datetime });
             }
+
+            for (let index3 = 1; index3 < candleData.length; index3++) {
+                if(this.state.orderType == "buy") {
+                    let perChange = (candleData[index3][2] - stock.entryPrice) * 100 / stock.entryPrice;
+                    if(perChange > 0.5){
+                        this.setState({crossedTargetCount : this.state.crossedTargetCount+1 }); 
+                        break; 
+                    }
+                }
+                if(this.state.orderType == "sell"){
+                    let perChange = (candleData[index3][3] - stock.entryPrice) * 100 / stock.entryPrice;
+                    if(perChange < -0.5){
+                        this.setState({crossedTargetCount : this.state.crossedTargetCount+1 }); 
+                        break; 
+                    }
+                }
+            }
+
             stock.candleData = priceChangeList;
             let isWinOnClosing = priceChangeList[priceChangeList.length-1].perChange > 0 ? true : false;
             stock.isWinOnClosing = isWinOnClosing; 
@@ -294,8 +330,9 @@ class Home extends React.Component {
                 this.setState({ totalWinTrade: this.state.totalWinTrade+1 })
             }
             
-            this.setState({ backTestResult: [...this.state.backTestResult, stock] }, () => {
-            });
+            if(stock.entryPrice > 0){
+                this.setState({ backTestResult: [...this.state.backTestResult, stock] }, () => {});
+            }
         } else {
             console.log(" candle data emply");
             this.setState({ searchFailed: this.state.searchFailed + 1 })
@@ -309,7 +346,7 @@ class Home extends React.Component {
         if(this.state.csvFormatInput){
 
             this.setState({ backTestResult: [], overAllResult: [],stockWiseListOverall:[], backTestFlag: false, filename: '', searchFailed: 0, pertradePandL: 0, pertradePandLNet: 0 });
-            this.setState({ totalgross: 0, totalAvg: 0, totTrade: 0, totalNet: 0, totalExp: 0,totalWinTrade:0,   maxDrowDown:0, maxProfit:0 });
+            this.setState({ totalgross: 0, totalAvg: 0, totTrade: 0, totalNet: 0, totalExp: 0,totalWinTrade:0,   maxDrowDown:0, maxProfit:0, crossedTargetCount: 0 });
     
             this.getAlltokenOfList(async (newJsonList, listofstockfound, searchResdata) => {
 
@@ -963,6 +1000,15 @@ class Home extends React.Component {
                                             <MenuItem value={3}>{'Low'}</MenuItem>
                                             <MenuItem value={4}>{'Close'}</MenuItem>
                                             <MenuItem value={5}>{'Mid'}</MenuItem>
+                                            <MenuItem value={6}>{'Above High'}</MenuItem>
+                                            <MenuItem value={7}>{'Below Low'}</MenuItem>
+
+                                        </Select>
+
+                                        <Select title='checking for buy or sell' value={this.state.orderType} name="orderType" onChange={this.onInputChange}>
+                                            <MenuItem value={'buy'}>{'Buy'}</MenuItem>
+                                            <MenuItem value={'sell'}>{'Sell'}</MenuItem>
+                                         
                                         </Select>
                                         <input placeholder='9:20' fullwidth style={{ width: '90%', height: '50%' }} label="entryTimeAt" value={this.state.entryTimeAt} name="entryTimeAt" onChange={this.onChange} />
 
@@ -993,6 +1039,7 @@ class Home extends React.Component {
                                     {/* {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPattern()}>Search</Button> : <>  <Spinner />  &nbsp;&nbsp;   <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop Scaning &nbsp; </Button>   </>} */}
                                     {this.state.backTestFlag ? <Button variant="contained" onClick={() => this.backTestAnyPatternStockWise()}>Test Stock Wise</Button> : <>  <Spinner />  &nbsp; <Button variant="contained" onClick={() => this.stopBacktesting()}>Stop</Button>  </>}
                                    
+                                    <span title='Success Ratio'>Success Ratio: {(this.state.crossedTargetCount * 100/this.state.backTestResult.length).toFixed(2)}%</span> 
 
                                         <Table size="small" aria-label="sticky table" >
                                             <TableHead style={{ width: "", whiteSpace: "nowrap" }} variant="head">
@@ -1091,7 +1138,8 @@ class Home extends React.Component {
                                                     <TableCell className="TableHeadFormat" >Symbol &nbsp;</TableCell>
                                                     <TableCell className="TableHeadFormat" >EntryPrice &nbsp;</TableCell>
                                                     <TableCell className="TableHeadFormat" >ExitPrice &nbsp;</TableCell>
-                                                    <TableCell className="TableHeadFormat" >T.T:({this.state.backTestResult.length}) &nbsp;W:{this.state.totalWinTrade} &nbsp;L:{this.state.backTestResult.length - this.state.totalWinTrade}  &nbsp;MaxLoss:{this.state.maxDrowDown}%  &nbsp;MaxProfit:{this.state.maxProfit}%
+                                                    <TableCell className="TableHeadFormat" >T.T:({this.state.backTestResult.length}) &nbsp;W:{this.state.totalWinTrade} &nbsp;L:{this.state.backTestResult.length - this.state.totalWinTrade}&nbsp;<span title='Max Loss'>ML:{this.state.maxDrowDown}%</span>&nbsp;<span title='Max Profit'>MP:{this.state.maxProfit}%</span>&nbsp;<span title='target crossed'> C.T:{this.state.crossedTargetCount}</span>&nbsp;<span title='target not crossed'>N.C:{this.state.backTestResult.length - this.state.crossedTargetCount} </span> &nbsp;
+                                                     <span title='Success Ratio'>S.R.{(this.state.crossedTargetCount * 100/this.state.backTestResult.length).toFixed(2)}%</span> 
                                                      </TableCell>
                                                 </TableRow>
                                             </TableHead>

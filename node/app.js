@@ -803,14 +803,14 @@ app.post('/saveCandleHistory', function (req, res) {
 
       
 
-      data.forEach((element1, i) => {
+      data.length >0 && data.forEach((element1, i) => {
 
         var selectedSql = "select * from intraday where symbol='"+ element1.symbol +"' order by dtime desc limit 100;";
         console.log( selectedSql);
         con.query(selectedSql, function (err, result) {
           if (err) throw err;
           if (result.length > 0) {
-            let data =  form5minCandle(result, 15); 
+            let data =  formCandleData(result, 15); 
             let formedShare = {
               symbol : element1.symbol, 
               data : data
@@ -850,7 +850,7 @@ app.post('/saveCandleHistory', function (req, res) {
 function formACandel(chunkdata){
   let candle = {};     
   candle.open =  chunkdata[0].ltp; 
-  candle.dtime =  new Date(chunkdata[0].dtime) ; 
+  candle.dtime =  chunkdata[0].dtime ; 
   candle.symbol =  chunkdata[0].symbol; 
    
  // console.log('chnkdata open',  chunkdata[0].ltp )
@@ -873,12 +873,12 @@ function formACandel(chunkdata){
 }
 
 
-function form5minCandle(data, timeframe){
+function formCandleData(data, timeframe){
 
   let candlelist= []; 
   for (let index = 0; index < data.length; index+=timeframe) {
      let chunkdata = data.slice(index, index+timeframe);
-     // console.log('chunkdata',chunkdata); 
+      console.log('chunkdata',chunkdata); 
 
       candlelist.push(formACandel(chunkdata));  
   }
@@ -930,7 +930,7 @@ app.post('/backupHistoryData', function (req, res) {
       con.query(selectedSql, function (err, result) {
         if (err) throw err;
         if (result.length > 0) {
-       //  let data =  form5minCandle(result)
+       //  let data =  formCandleData(result)
       //   console.log("analysisResult", symbol,   data);
           let hugeVol = findHugeVolume(result); 
           res.status(200).send({ status: 200, result: values.length, hugeVol : hugeVol });
