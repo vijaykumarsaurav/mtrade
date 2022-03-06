@@ -199,7 +199,7 @@ class OrderBook extends React.Component{
         const today = moment().isoWeekday();
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            var intervaltime = 5000; 
+            var intervaltime = 1000; 
             if(this.state.orderPenidngList.length > 10){
                 intervaltime = this.state.orderPenidngList.length * 110; 
             }
