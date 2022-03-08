@@ -56,6 +56,8 @@ class LiveBid extends React.Component {
             listofHighLow: localStorage.getItem('listofHighLow') && JSON.parse(localStorage.getItem('listofHighLow')) || [], 
             gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
             looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
+            liveCandleHistory: localStorage.getItem('liveCandleHistory') && JSON.parse(localStorage.getItem('liveCandleHistory')) || [],
+
             cursor: '',
             candleHistoryFlag: false,
             lightChartSymbol: "Select Symbol for Chart",
@@ -136,6 +138,7 @@ class LiveBid extends React.Component {
             "user": this.state.clientcode,
             "acctid": this.state.clientcode
         }
+        console.log("wsClint", wsClint)
 
         wsClint.send(JSON.stringify(updateSocket));
     }
@@ -179,6 +182,7 @@ class LiveBid extends React.Component {
                     symbolListArray[index].lowPrice = foundLive[0].lo;
                     symbolListArray[index].highPrice = foundLive[0].h;
                     symbolListArray[index].openPrice = foundLive[0].op;
+                    symbolListArray[index].volume = foundLive[0].v;
 
                     symbolListArray[index].bestbuyquantity = foundLive[0].bq;
                     symbolListArray[index].bestbuyprice = foundLive[0].bp;
@@ -213,9 +217,7 @@ class LiveBid extends React.Component {
 
 
                     let found = []; //this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
-
                     if(found.length > 0 && foundLive[0].ltp >= 200 && foundLive[0].ltp <= 10000 && new Date().getHours() < 9 && new Date().getMinutes() <= 30){
-
                         if(!localStorage.getItem(symbolListArray[index].symbol)){
                             if(symbolListArray[index].symbol == found[0].symbol && foundLive[0].ltp > found[0].high){
                                 localStorage.setItem(symbolListArray[index].symbol, "ok")
@@ -243,11 +245,10 @@ class LiveBid extends React.Component {
                             }
                             
                         }
-                    }
-                    
-                    
-               
-                    //console.log("ws onmessage: ", foundLive[0]);
+                    } 
+               //     console.log("ws onmessage: ", foundLive[0]);
+
+                  
 
 
                 }
@@ -265,16 +266,77 @@ class LiveBid extends React.Component {
 
         wsClint.onerror = (e) => {
             console.log("socket error", e);
+            this.makeConnection(this.wsClint);
         }
 
         setInterval(() => {
             console.log("this.wsClint", this.wsClint)
-            this.makeConnection(this.wsClint);
+
+            if(this.wsClint.readyState != 1){
+                this.makeConnection(this.wsClint);
+            }
 
             var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
             console.log("Request :- " + _req);
             wsClint.send(_req);
         }, 59000);
+    }
+
+
+
+    comparePreviousVolume = (symbol, volume, ltp) => {   
+        let candle =  this.state.liveCandleHistory.filter((item) => item.s == symbol); 
+        if(candle.length>0){
+            let currentCandleVol = volume - candle[candle.length-1].v;  let brokenCount=0, priceVolBreakout = 0;
+            if(currentCandleVol > candle[candle.length-1].cv){
+                for (let index = candle.length-1; index > 0; index--) {
+                    if(currentCandleVol > candle[index].cv){
+                        brokenCount++;
+                    }else{
+                        break; 
+                    }
+                }
+                let lastCandleChange = (ltp - candle[candle.length-1].p) * 100/candle[candle.length-1].p; 
+                let log = symbol + ' '+ brokenCount +" candles volume broken with " + lastCandleChange.toFixed(2) +'%'; 
+                console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
+              //  this.speckIt(log);
+                if(brokenCount >= 10 && (lastCandleChange >= 0.5 || lastCandleChange <= -0.5)){
+                    let log = "Strong Breakout in " + symbol + ' '+ brokenCount +" candles volume broken with " + lastCandleChange.toFixed(2) +'%'; 
+                    console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
+                    this.speckIt(log);
+                    priceVolBreakout = 1; 
+                }
+            }
+            return {cv : currentCandleVol,  brokenCount:  brokenCount,  priceVolBreakout : priceVolBreakout}; 
+        }else{
+            return {cv : volume,  brokenCount:  0, priceVolBreakout : 0}; 
+        }
+    }
+
+    calculateCandleVolume = () => {
+        console.log("calculateCandleVolume called", new Date().toLocaleTimeString())
+
+        this.state.symbolList.forEach(element => {
+
+            let voldata = this.comparePreviousVolume(element.symbol, element.volume,element.ltp); 
+            var data = {
+                s: element.symbol, 
+                t: new Date().toLocaleTimeString("en-GB", { hour: "2-digit",minute: "2-digit"}), 
+                v: element.volume, 
+                cv: voldata.cv, 
+                p: element.ltp, 
+                ch:element.pChange 
+            }
+            element.volBreakoutCount = voldata.brokenCount; 
+            element.priceVolBreakout = voldata.priceVolBreakout; 
+
+          //  console.log("candle live data",data); 
+            this.setState({symbolList : this.state.symbolList })
+
+            this.setState({ liveCandleHistory: [...this.state.liveCandleHistory, data] }, () => {
+                localStorage.setItem('liveCandleHistory', JSON.stringify(this.state.liveCandleHistory) )
+            });
+        });
     }
 
     callbackAfterOrderDone = (order) => {
@@ -285,7 +347,26 @@ class LiveBid extends React.Component {
     componentDidMount() {
 
         window.document.title = "WS Bid Live";
-        this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] });
+        this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] }, ()=> {
+
+           const FIVE_MIN = (1000 * 60 * 5);
+        //   this.waitAndDoSomething(FIVE_MIN); 
+
+            var msToNextRounded5Min = FIVE_MIN - (Date.now() % FIVE_MIN);
+             msToNextRounded5Min = msToNextRounded5Min - 1000 ;
+
+            var date = new Date();
+            let nextExec = (59 - date.getSeconds()) * 1000; 
+            console.log("nextExec", nextExec, 'msToNextRounded5Min', msToNextRounded5Min,  new Date().toLocaleTimeString()); 
+            setTimeout(() => {
+                setInterval(this.calculateCandleVolume, 60000 * 5);
+                console.log("nextExeced",new Date().toLocaleTimeString() ); 
+
+                this.calculateCandleVolume(); 
+
+            }, msToNextRounded5Min);
+
+        });
 
         var tokens = JSON.parse(localStorage.getItem("userTokens"));
         var feedToken = tokens && tokens.feedToken;
@@ -338,26 +419,31 @@ class LiveBid extends React.Component {
                     this.showStaticChart();
                 }
             }, 1000);
-
-            setInterval(() => {
-                console.log('Save in :', new Date().getSeconds())
-                if (new Date().getSeconds() == 0) {
-                    this.storeChartData();
-                }
-            },1000);
         }
 
 
-        setTimeout(() => {
+        // setTimeout(() => {
     
-            this.storeChartData();
+        //     this.storeChartData();
 
-        },1000);
+        // },1000);
 
        // this.updateDayChartHighLow(); 
+       
     }
 
+
+    // waitAndDoSomething =(FIVE_MIN) => {
+    // const msToNextRounded5Min = FIVE_MIN - (Date.now() % FIVE_MIN);
+    // console.log(`Waiting ${msToNextRounded5Min/60000} min. to next rounded ${FIVE_MIN}.`,new Date().toLocaleTimeString());
     
+    //     setTimeout(() => {
+    //         console.log('It is now rounded 5 min', new Date().toLocaleTimeString());
+    //         this.calculateCandleVolume(); 
+    //         this.waitAndDoSomething(FIVE_MIN);
+    //     }, msToNextRounded5Min);
+    // }
+
     storeChartData =()=>{
 
         let data = {
@@ -1036,6 +1122,14 @@ class LiveBid extends React.Component {
                                         {/* <TableCell >VWAP Price</TableCell> */}
 
                                         <TableCell ><Button onClick={() => this.sortByColumn("selltobuyTime")}> T S Q</Button>  </TableCell>
+                                        <TableCell ><Button onClick={() => this.sortByColumn("volume")}> Volume</Button>  </TableCell>
+                              
+                                        <TableCell ><Button onClick={() => this.sortByColumn("volBreakoutCount")}> Volome BC</Button>  </TableCell>
+                                        <TableCell ><Button onClick={() => this.sortByColumn("priceVolBreakout")}> Pice+Volue</Button>  </TableCell>
+
+
+                                    
+                                        
                                         {/* <TableCell >Other Details </TableCell>
                                         <TableCell >High Price</TableCell>
                                         <TableCell >Low Price</TableCell> */}
@@ -1116,6 +1210,11 @@ class LiveBid extends React.Component {
                                                 <TableCell title="Open Price">O:{row.openPrice}</TableCell>
                                                 <TableCell title="High Price">H:{row.highPrice}</TableCell>
                                                 <TableCell title="Low Price" >L:{row.lowPrice}</TableCell>
+                                                <TableCell title="volume" >{row.volume}</TableCell>
+
+                                                <TableCell title="vbc" >{row.volBreakoutCount}</TableCell>
+                                                <TableCell title="v+P breakout" >{row.priceVolBreakout}</TableCell>
+
 
                                                 {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
                                                 {/* <TableCell >{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>

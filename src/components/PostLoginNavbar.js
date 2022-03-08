@@ -220,6 +220,7 @@ export default function PostLoginNavBar(props) {
                                 <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
 
                             </Button> */}
+                            {new Date().toLocaleTimeString()}
 
                         </Grid>
 

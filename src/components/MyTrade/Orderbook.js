@@ -309,13 +309,13 @@ class OrderBook extends React.Component{
 
                                     <TableCell align="center">
                                         {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' || row.orderstatus ==='complete' ? 
-                                         <TextField  type="number" style={{textAlign:'center', width:'50px'}}  value={this.state['priceStopLoss_'+row.tradingsymbol]}  name={'priceStopLoss_'+row.tradingsymbol} onChange={this.onChangePriceStopLoss}/>
+                                         <TextField  type="number" style={{textAlign:'center', width:'50px'}}  value={this.state['priceStopLoss_'+row.tradingsymbol]}  name={'priceStopLoss_'+row.tradingsymbol} onBlur={this.onChangePriceStopLoss}/>
                                                 : ''}
                                     </TableCell>
 
                                     <TableCell align="center">
                                         {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' || row.orderstatus ==='complete'? 
-                                        <TextField  type="number" style={{textAlign:'center', width:'50px'}} value={this.state['priceTarget_'+row.tradingsymbol]}  name={'priceTarget_'+row.tradingsymbol}  onChange={this.onChangePriceTarget}/>
+                                        <TextField  type="number" style={{textAlign:'center', width:'50px'}} value={this.state['priceTarget_'+row.tradingsymbol]}  name={'priceTarget_'+row.tradingsymbol}  onBlur={this.onChangePriceTarget}/>
                                         : ''}
                                     </TableCell>
 

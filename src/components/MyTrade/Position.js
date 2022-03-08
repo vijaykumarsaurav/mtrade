@@ -58,7 +58,9 @@ class Home extends React.Component {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
             enableSLMOrderUi:false,
-            addSLInfo : {}
+            addSLInfo : {}, 
+            niftyLtpSec: [],
+            bnniftyLtpSec:[]
         };
     }
     componentDidMount() {
@@ -100,10 +102,10 @@ class Home extends React.Component {
 
         var scanendTime = moment('3:30pm', 'h:mma');
         if (today <= friday && currentTime.isBetween(beginningTime, scanendTime)) {
-            setInterval(() => {
-                this.getNSETopStock(); 
-              //  console.log('chartink scan call 2 sec:', new Date()) 
-            }, 2000)
+            // setInterval(() => {
+            //     this.getNSETopStock(); 
+            //   //  console.log('chartink scan call 2 sec:', new Date()) 
+            // }, 2000)
 
             //this.setState({selectedStockInteval :  setInterval(() => {this.getMySelectedStock(); }, 5000)}) 
 
@@ -1693,6 +1695,8 @@ class Home extends React.Component {
             if (LtpData && LtpData.ltp) {
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close; 
                 if(document.getElementById('niftySpid')){
+                    this.state.niftyLtpSec.push({ltp: LtpData.ltp.toFixed(2), time: new Date().toLocaleTimeString()}); 
+                    localStorage.setItem("niftyLtpSec", JSON.stringify(this.state.niftyLtpSec));
                     document.getElementById('niftySpid').innerHTML = "<span style='color:red'> Nifty " + LtpData.ltp.toFixed(2) + ' (' + (per).toFixed(2) + '%)</span>'; 
                 }
               }
@@ -1741,6 +1745,8 @@ class Home extends React.Component {
                     document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.ltp.toFixed(2) + ' (' + (per).toFixed(2) + '%)</span>'; 
                     else
                     document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.ltp.toFixed(2) + ' (' + (per).toFixed(2) + '%)</span>';    
+                    this.state.bnniftyLtpSec.push({ltp: LtpData.ltp.toFixed(2), time: new Date().toLocaleTimeString()}); 
+                    localStorage.setItem("bnniftyLtpSec", JSON.stringify(this.state.bnniftyLtpSec));
                 }
             }
             let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse( localStorage.getItem('trackSLPrice')) : []; 
@@ -1996,7 +2002,7 @@ class Home extends React.Component {
             "symboltoken": slmOption.symboltoken,
             "quantity": slmOption.quantity,
             "transactiontype": slmOption.transactiontype === "BUY" ? "SELL" : "BUY",
-            "exchange": 'NSE',
+            "exchange": slmOption.exchange ? slmOption.exchange :  'NSE',
             "producttype": slmOption.producttype ? slmOption.producttype : "INTRADAY",//"DELIVERY",
             "duration": "DAY",
             "price": slmOption.price ? slmOption.price : 0 ,
@@ -2307,20 +2313,20 @@ class Home extends React.Component {
                                         </TableCell>
                                         {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left">Product type</TableCell> */}
-                                        <TableCell className="TableHeadFormat" align="left">Order Type</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">Type</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">BuyAvg</TableCell>
                                         {/* <TableCell  className="TableHeadFormat" align="left">Total buy value</TableCell> */}
 
                                         <TableCell className="TableHeadFormat" align="left">SellAvg</TableCell>
                                         {/* <TableCell  className="TableHeadFormat" align="left">Total Sell value</TableCell> */}
-                                        <TableCell className="TableHeadFormat" align="left">QtyTaken</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">QT</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">NetQty</TableCell>
                                         <TableCell className="TableHeadFormat" align="left">Exp</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">SL</TableCell>
-                                        <TableCell className="TableHeadFormat" align="left">MaxD</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">MD</TableCell>
 
 
                                         <TableCell className="TableHeadFormat" align="left">P/L </TableCell>
@@ -2328,8 +2334,8 @@ class Home extends React.Component {
                                         <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
 
                                         <TableCell className="TableHeadFormat" align="left">Action</TableCell>
-                                        <TableCell className="TableHeadFormat" align="left">SP.SL</TableCell>
-                                        <TableCell className="TableHeadFormat" align="left">SP.Target</TableCell>
+                                        {/* <TableCell className="TableHeadFormat" align="left">SP.SL</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">SP.Target</TableCell> */}
                                        
                                         {this.state.checkAmount ? 
                                         <>
@@ -2357,7 +2363,7 @@ class Home extends React.Component {
 
                                         row.producttype !== 'DELIVERY1' ? <TableRow hover key={row.symboltoken} style={{ background: row.netqty !== '0' ? 'lightgray' : "" }} >
 
-                                            <TableCell align="left">
+                                            <TableCell align="left" style={{width:'250px'}}>
                                                 <Button style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
                                                     {row.tradingsymbol} {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon />
                                                 </Button>
