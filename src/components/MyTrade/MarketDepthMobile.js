@@ -107,6 +107,93 @@ class LiveBid extends React.Component {
         this.updateSocketWatch = this.updateSocketWatch.bind(this);
 
     }
+    componentDidMount() {
+
+        window.document.title = "WS Bid Live";
+        this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] }, ()=> {
+
+           const FIVE_MIN = (1000 * 60 * 15);
+        //   this.waitAndDoSomething(FIVE_MIN); 
+
+            var msToNextRounded5Min = FIVE_MIN - (Date.now() % FIVE_MIN);
+             msToNextRounded5Min = msToNextRounded5Min - 1000 ;
+
+            var date = new Date();
+            let nextExec = (59 - date.getSeconds()) * 1000; 
+            console.log("next59Exec", nextExec, 'msToNextRounded5Min', msToNextRounded5Min,  new Date().toLocaleTimeString()); 
+            setTimeout(() => {
+                setInterval(this.calculateCandleVolume, 60000 * 15);
+                console.log("nextExeced",new Date().toLocaleTimeString() ); 
+
+                this.calculateCandleVolume(); 
+
+            }, msToNextRounded5Min);
+
+        });
+
+        var tokens = JSON.parse(localStorage.getItem("userTokens"));
+        var feedToken = tokens && tokens.feedToken;
+        var userProfile = JSON.parse(localStorage.getItem("userProfile"));
+        var clientcode = userProfile && userProfile.clientcode;
+        this.setState({ feedToken: feedToken, clientcode: clientcode }, function () {
+            this.wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+            this.updateSocketDetails(this.wsClint);
+        });
+
+        const domElement = document.getElementById('tvchart');
+        document.getElementById('tvchart').innerHTML = '';
+
+        let width = window.screen.width / 3.1, height = window.screen.height / 2;
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            width = window.screen.width ;
+        }
+
+
+        const chart = createChart(domElement, { width: width, height: height, timeVisible: true, secondsVisible: true, });
+        const candleSeries = chart.addCandlestickSeries();
+        var smaLineSeries = chart.addLineSeries({
+            color: 'rgba(4, 111, 232, 1)',
+            lineWidth: 2,
+        });
+        var volumeSeries = chart.addHistogramSeries({
+            color: '#26a69a',
+            priceFormat: {
+                type: 'volume',
+            },
+            priceScaleId: '',
+            scaleMargins: {
+                top: 0.8,
+                bottom: 0,
+            },
+        });
+        this.setState({ chart: chart, candleSeries: candleSeries, smaLineSeries: smaLineSeries, volumeSeries: volumeSeries });
+
+        this.getUpdateIndexData()
+
+        var beginningTime = moment('9:15am', 'h:mma');
+        var endTime = moment('3:30pm', 'h:mma');
+        const friday = 5; // for friday
+        var currentTime = moment(new Date(), "h:mma");
+        const today = moment().isoWeekday();
+        //market hours
+        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
+            setInterval(() => {
+                if (this.state.token) {
+                    this.showStaticChart();
+                }
+            }, 5000);
+        }
+
+
+        // setTimeout(() => {
+    
+        //     this.storeChartData();
+
+        // },1000);
+
+       // this.updateDayChartHighLow(); 
+       
+    }
     makeConnection = (wsClint) => {
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
         wsClint.send(firstTime_req);
@@ -138,7 +225,7 @@ class LiveBid extends React.Component {
             "user": this.state.clientcode,
             "acctid": this.state.clientcode
         }
-        console.log("wsClint", wsClint)
+      //  console.log("wsClint", wsClint)
 
         wsClint.send(JSON.stringify(updateSocket));
     }
@@ -243,7 +330,6 @@ class LiveBid extends React.Component {
                                 }
                                 CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
                             }
-                            
                         }
                     } 
                //     console.log("ws onmessage: ", foundLive[0]);
@@ -286,8 +372,9 @@ class LiveBid extends React.Component {
 
     comparePreviousVolume = (symbol, volume, ltp) => {   
         let candle =  this.state.liveCandleHistory.filter((item) => item.s == symbol); 
+        console.log("previous candle", symbol, candle)
         if(candle.length>0){
-            let currentCandleVol = volume - candle[candle.length-1].v;  let brokenCount=0, priceVolBreakout = 0;
+            let currentCandleVol = volume - candle[candle.length-1].v;  let brokenCount=0, priceVolBreakout = 0, dayPriceVolBreakout = 0;
             if(currentCandleVol > candle[candle.length-1].cv){
                 for (let index = candle.length-1; index > 0; index--) {
                     if(currentCandleVol > candle[index].cv){
@@ -300,16 +387,22 @@ class LiveBid extends React.Component {
                 let log = symbol + ' '+ brokenCount +" candles volume broken with " + lastCandleChange.toFixed(2) +'%'; 
                 console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
               //  this.speckIt(log);
-                if(brokenCount >= 10 && (lastCandleChange >= 0.5 || lastCandleChange <= -0.5)){
-                    let log = "Strong Breakout in " + symbol + ' '+ brokenCount +" candles volume broken with " + lastCandleChange.toFixed(2) +'%'; 
+                if(brokenCount >= 8 && (lastCandleChange >= 0.5 || lastCandleChange <= -0.5)){
+                    let log = "price and volume breakout in " + symbol + ' with '+ brokenCount +" candles with " + lastCandleChange.toFixed(2) +'%'; 
                     console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
                     this.speckIt(log);
                     priceVolBreakout = 1; 
                 }
+                if( brokenCount == candle.length-1 && (lastCandleChange >= 0.5 || lastCandleChange <= -0.5)){
+                    dayPriceVolBreakout = 1; 
+                    let log = "Day price and volume breakout in " + symbol + ' with '+ brokenCount +" candles with " + lastCandleChange.toFixed(2) +'%'; 
+                    console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
+                    this.speckIt(log);
+                }
             }
-            return {cv : currentCandleVol,  brokenCount:  brokenCount,  priceVolBreakout : priceVolBreakout}; 
+            return {cv : currentCandleVol,  brokenCount:  brokenCount,  priceVolBreakout: priceVolBreakout, dayPriceVolBreakout: dayPriceVolBreakout}; 
         }else{
-            return {cv : volume,  brokenCount:  0, priceVolBreakout : 0}; 
+            return {cv : volume,  brokenCount:  0, priceVolBreakout: 0,  dayPriceVolBreakout: 0}; 
         }
     }
 
@@ -342,96 +435,6 @@ class LiveBid extends React.Component {
     callbackAfterOrderDone = (order) => {
         console.log("order executed", order);
     }
-
-
-    componentDidMount() {
-
-        window.document.title = "WS Bid Live";
-        this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] }, ()=> {
-
-           const FIVE_MIN = (1000 * 60 * 5);
-        //   this.waitAndDoSomething(FIVE_MIN); 
-
-            var msToNextRounded5Min = FIVE_MIN - (Date.now() % FIVE_MIN);
-             msToNextRounded5Min = msToNextRounded5Min - 1000 ;
-
-            var date = new Date();
-            let nextExec = (59 - date.getSeconds()) * 1000; 
-            console.log("nextExec", nextExec, 'msToNextRounded5Min', msToNextRounded5Min,  new Date().toLocaleTimeString()); 
-            setTimeout(() => {
-                setInterval(this.calculateCandleVolume, 60000 * 5);
-                console.log("nextExeced",new Date().toLocaleTimeString() ); 
-
-                this.calculateCandleVolume(); 
-
-            }, msToNextRounded5Min);
-
-        });
-
-        var tokens = JSON.parse(localStorage.getItem("userTokens"));
-        var feedToken = tokens && tokens.feedToken;
-        var userProfile = JSON.parse(localStorage.getItem("userProfile"));
-        var clientcode = userProfile && userProfile.clientcode;
-        this.setState({ feedToken: feedToken, clientcode: clientcode }, function () {
-            this.wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
-            this.updateSocketDetails(this.wsClint);
-        });
-
-        const domElement = document.getElementById('tvchart');
-        document.getElementById('tvchart').innerHTML = '';
-
-        let width = window.screen.width / 2.1, height = window.screen.height / 2;
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            width = window.screen.width ;
-        }
-
-
-        const chart = createChart(domElement, { width: width, height: height, timeVisible: true, secondsVisible: true, });
-        const candleSeries = chart.addCandlestickSeries();
-        var smaLineSeries = chart.addLineSeries({
-            color: 'rgba(4, 111, 232, 1)',
-            lineWidth: 2,
-        });
-        var volumeSeries = chart.addHistogramSeries({
-            color: '#26a69a',
-            priceFormat: {
-                type: 'volume',
-            },
-            priceScaleId: '',
-            scaleMargins: {
-                top: 0.8,
-                bottom: 0,
-            },
-        });
-        this.setState({ chart: chart, candleSeries: candleSeries, smaLineSeries: smaLineSeries, volumeSeries: volumeSeries });
-
-        this.getUpdateIndexData()
-
-        var beginningTime = moment('9:15am', 'h:mma');
-        var endTime = moment('3:30pm', 'h:mma');
-        const friday = 5; // for friday
-        var currentTime = moment(new Date(), "h:mma");
-        const today = moment().isoWeekday();
-        //market hours
-        if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
-            setInterval(() => {
-                if (this.state.token) {
-                    this.showStaticChart();
-                }
-            }, 1000);
-        }
-
-
-        // setTimeout(() => {
-    
-        //     this.storeChartData();
-
-        // },1000);
-
-       // this.updateDayChartHighLow(); 
-       
-    }
-
 
     // waitAndDoSomething =(FIVE_MIN) => {
     // const msToNextRounded5Min = FIVE_MIN - (Date.now() % FIVE_MIN);
@@ -522,6 +525,8 @@ class LiveBid extends React.Component {
             this.setState({ symbolList: watchList }, () => this.updateSocketWatch(this.wsClint));
 
           //  this.updateDayChartHighLow(); 
+
+          this.updatePreviousVolume(); 
         });
     }
     updateDayChartHighLow= async()=> {
@@ -644,6 +649,80 @@ class LiveBid extends React.Component {
 
        
     }
+
+    updatePreviousVolume= async()=> {
+
+        //    var watchList = this.state.staticData['NIFTY 100']; //NIFTY 100 Securities in F&O
+            var watchList = this.state.staticData[this.state.selectedWatchlist];
+    
+            for (let index = 0; index < watchList.length; index++) { //watchList.length
+                const element = watchList[index];
+    
+                const format1 = "YYYY-MM-DD HH:mm";
+                let enddate = moment(new Date());
+                let startDate = moment(enddate, "DD-MM-YYYY").subtract(1, 'days');
+    
+                let found =  this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
+    
+                if(found.length == 0){
+    
+                    var data = {
+                        "exchange": "NSE",
+                        "symboltoken": element.token,
+                        "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
+                        "fromdate": moment(startDate).format(format1),
+                        "todate": moment(enddate).format(format1) //moment(this.state.endDate).format(format1) /
+                    }
+
+            
+                    AdminService.getHistoryData(data).then(res => {
+                        let histdata = resolveResponse(res, 'noPop');
+                        //console.log("candle history", histdata); 
+                        if (histdata && histdata.data && histdata.data.length) {
+            
+                            var candleData = histdata.data;
+                            //    console.log("candleData",element, candleData);
+                            console.log("history",element.symbol, candleData);
+
+                            let intradayVol = 0; 
+                            for (let index = 0; index < candleData.length-1; index++) {
+                                const histElement = candleData[index];
+                               
+                                if(new Date(histElement[0]).getDate() == new Date().getDate()){
+                                    intradayVol += histElement[5]; 
+                                }
+                                
+                                var data = {
+                                    s: element.symbol, 
+                                    t: new Date(histElement[0]).toLocaleTimeString("en-GB", { hour: "2-digit",minute: "2-digit"}), 
+                                    v: intradayVol, 
+                                    cv: histElement[5], 
+                                    p: histElement[4], 
+                                    ch:0
+                                }
+                                                    
+                                this.setState({ liveCandleHistory: [...this.state.liveCandleHistory, data] }, () => {
+                                    localStorage.setItem('liveCandleHistory', JSON.stringify(this.state.liveCandleHistory) )
+                                });
+                                
+                            }
+
+                          
+
+                        } else {
+                            //localStorage.setItem('NseStock_' + symbol, "");
+                            console.log(" candle data emply");
+                        }
+                    })
+                }
+        
+              
+    
+                await new Promise(r => setTimeout(r, 310));
+            }
+    
+           
+        }
     sortByColumn = (type) => {
         this.state.symbolList.sort(function (a, b) {
             return b[type] - a[type];
@@ -903,6 +982,277 @@ class LiveBid extends React.Component {
                 {/* <ChartDialog /> */}
                 <Grid direction="row" container>
 
+                
+
+                    <Grid item xs={12} sm={6} >
+
+                        <Paper style={{ padding: "10px" }} >
+
+                            <Grid justify="space-between"
+                                container spacing={1}>
+
+
+
+
+                                <Grid item xs={8} sm={6} >
+                                    <FormControl style={styles.selectStyle} >
+                                        <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
+                                        <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
+                                            {/* <MenuItem value={"selectall"}>{"Select All"}</MenuItem> */}
+                                            <MenuItem value={"gainerList"}>{"Gainer List (" + this.state.gainerList.length + ")"}</MenuItem>
+                                             <MenuItem value={"looserList"}>{"Looser List (" + this.state.looserList.length + ")"}</MenuItem>
+                                            {this.state.softedIndexList && this.state.softedIndexList.map(element => (
+                                                <MenuItem style={{ color: element.percChange > 0 ? "green" : "red" }} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
+                                            ))
+                                            }
+                                            {/* {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                                                <MenuItem value={element}>{element}</MenuItem>
+                                            ))
+                                            } */}
+                                            <MenuItem value={"Securities in F&O"}>{"Securities in F&O"}</MenuItem>
+
+
+                                        </Select>
+                                    </FormControl>
+
+                                </Grid>
+                                <Grid item xs={4} sm={3} >
+                                    <Button variant="" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button>
+
+                                </Grid>
+
+
+                                <Grid item xs={4} sm={3} >
+                                    <FormControl style={styles.selectStyle} >
+                                        <InputLabel htmlFor="candleHistoryFlag">Candle History</InputLabel>
+                                        <Select value={this.state.candleHistoryFlag} name="candleHistoryFlag" onChange={this.onChangeWatchlist}>
+
+                                            <MenuItem value={true}>{"Yes"}</MenuItem>
+                                            <MenuItem value={false}>{"No"}</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+
+
+
+                                {/* <Grid item xs={12} sm={3} >
+                                    <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button>
+                                    
+                                       <FormGroup>
+                                        <FormControlLabel
+                                        control={<Switch checked={this.state.isSpeek} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
+                                        label={this.state.isSpeek ? 'Speak Yes'  : 'Speak No'}
+                                        />
+                                    </FormGroup>
+                                </Grid> */}
+
+                                {/* <Grid item xs={12} sm={1} >
+                                    <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.backupData()}>BackUp</Button>
+                                </Grid>
+
+
+                                <Grid item xs={12} sm={1} >
+                                    <FormControl style={styles.selectStyle} >
+                                        <InputLabel htmlFor="gender">Select Back Date</InputLabel>
+                                        <Select value={this.state.backDate} name="backDate" onChange={this.onChangeBackDate}>
+                                            <MenuItem value={""}>{"Select Date"}</MenuItem>
+                                            {this.state.backupDateList && this.state.backupDateList.map(element => (
+                                                <MenuItem value={element}>{element}</MenuItem>
+                                            ))
+                                            }
+                                        </Select>
+                                    </FormControl>
+                                </Grid> */}
+
+
+
+                            </Grid>
+
+
+                            <Table size="small" style={{ width: "100%" }} aria-label="sticky table" >
+
+                                <TableHead style={{ whiteSpace: "nowrap" }} variant="head">
+                                    <TableRow variant="head" >
+
+                                        {/* <TableCell >US Limit</TableCell>
+                                        <TableCell >LS Limit</TableCell> */}
+
+                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell(x)</Button>  </TableCell>
+                                        <TableCell  ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy(x)</Button>  </TableCell> */}
+
+                                        <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}> T B Q</Button>  </TableCell>
+                                        <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol</Button> </TableCell>
+                                        {/* <TableCell >VWAP Price</TableCell> */}
+
+                                        <TableCell ><Button onClick={() => this.sortByColumn("selltobuyTime")}> T S Q</Button>  </TableCell>
+                                        {/* <TableCell ><Button onClick={() => this.sortByColumn("volume")}> Volume</Button>  </TableCell> */}
+                              
+                                        <TableCell ><Button onClick={() => this.sortByColumn("volBreakoutCount")}> Volume BC</Button>  </TableCell>
+                                        <TableCell ><Button onClick={() => this.sortByColumn("priceVolBreakout")}> Pice+Volue</Button>  </TableCell>
+
+
+                                    
+                                        
+                                        {/* <TableCell >Other Details </TableCell>
+                                        <TableCell >High Price</TableCell>
+                                        <TableCell >Low Price</TableCell> */}
+
+                                        {/* <TableCell ><Button onClick={() => this.sortByColumn("quantityTraded")}> Quantity Traded</Button>  </TableCell> */}
+                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("deliveryQuantity")}> Delivery Quantity</Button>  </TableCell>
+                                        <TableCell  ><Button title={"Delivery To Traded Quantity"} onClick={() => this.sortByColumn("deliveryToTradedQuantity")}> Del To Traded Qty%</Button>  </TableCell> */}
+
+                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("totalTradedVolume")}> Total Traded Volume</Button>  </TableCell> */}
+                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("totalTradedValue")}> Total Traded Value(L)</Button>  </TableCell> */}
+
+                                        {/* <TableCell  >Day Open</TableCell>
+                                        <TableCell  >Day High</TableCell>
+                                        <TableCell  >Day Low</TableCell>
+                                        <TableCell  >Previous Close</TableCell> */}
+
+
+                                        {/* <TableCell  ><Button onClick={() => this.getDeliveryHistory()}>Delivery History</Button>  </TableCell> */}
+
+                                        {/* 
+                                        <TableCell >Best Buy Qty</TableCell>
+                                        <TableCell >Best Buy Price</TableCell>
+                                        <TableCell >Best Sell Qty</TableCell>
+                                        <TableCell >Best Sell Price</TableCell> */}
+
+
+                                    </TableRow>
+                                </TableHead>
+
+                            </Table>
+                            <div style={{ overflow: "auto", maxHeight: "350px" }}>
+                                <Table size="small" style={{ width: "100%" }} aria-label="sticky table" >
+                                    <TableBody>
+
+                                        {this.state.symbolList ? this.state.symbolList.map((row, i) => (
+                                            <TableRow selected={this.state.cursor === i ? 'active' : null}
+                                                // onKeyDown={(e) => this.handleKeyDown(e)}
+                                                style={{ cursor: "pointer" }} hover key={i} onClick={() => this.showStaticChart(row.token, row.name)}>
+
+                                                {/* <TableCell >{row.upperCircuitLimit}</TableCell>
+                                            <TableCell >{row.lowerCircuitLimit}</TableCell> */}
+
+                                                {/* <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} >
+                                                {row.buytosellTime ? row.buytosellTime +" time buy" : ""}
+                                            </TableCell>
+                                            <TableCell style={{ background: row.highlightsell ? "lightgray" : "" }} >
+                                                {row.selltobuyTime ? row.selltobuyTime+" time sell" : ""} 
+                                            </TableCell> */}
+
+                                                <TableCell title="total buying bids qty" style={{ background: row.highlightbuy ? "#FFFF00" : "" }}  >
+                                                    {/* {row.buybidHistory &&  row.buybidHistory.map(item => (
+                                                        <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
+                                                    ))} */}
+                                                    {row.buytosellTime ? `${row.buytosellTime}` : ""}x
+
+                                                    {/* &nbsp; {row.totalBuyQuantity}  */}
+                                                    <br />
+                                                    {this.convertToFloat(row.totalBuyQuantity)}
+
+                                                </TableCell>
+                                                <TableCell align="left" style={{ background: this.getPercentageColor(row.pChange) }} >   {i+1}.  {row.name} <br /> {row.ltp} {row.pChange ? `(${row.pChange}%)` : ""} </TableCell>
+                                                <TableCell title="Average Price" style={{ height: '25px', background: row.ltp ? row.ltp >= row.averagePrice ? "green" : "red" : "white" }}>AP<br />{row.averagePrice}</TableCell>
+
+
+                                                <TableCell title="total selling bid qty" style={{ background: row.highlightsell ? "#FFFF00" : "" }}>
+                                                    {/* {row.sellbidHistory &&  row.sellbidHistory.map(item => (
+                                                        <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
+                                                    ))} */}
+                                                    {row.selltobuyTime ? `${row.selltobuyTime}` : ""}x
+
+                                                    {/* &nbsp; {row.totalSellQuantity}  */}
+                                                    <br />
+                                                    {this.convertToFloat(row.totalSellQuantity)}
+
+                                                </TableCell>
+                                                {/* <TableCell title="Open Price">O:{row.openPrice}</TableCell>
+                                                <TableCell title="High Price">H:{row.highPrice}</TableCell>
+                                                <TableCell title="Low Price" >L:{row.lowPrice}</TableCell>
+                                                <TableCell title="volume" >{row.volume}</TableCell> */}
+
+                                                <TableCell title="vbc" > {row.volBreakoutCount ? 'V: '+row.volBreakoutCount : '-'}</TableCell>
+                                                <TableCell title="v+P breakout" style={{ background: row.priceVolBreakout ? "#FFFF00" : "" }} > {row.priceVolBreakout ? "VP: Yes": "-"}
+                                                {row.dayPriceVolBreakout ? "Day VP" : ''}
+                                                </TableCell>
+
+
+                                                {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
+                                                {/* <TableCell >{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
+                                            <TableCell >{row.deliveryToTradedQuantity}%</TableCell> */}
+
+                                                {/* <TableCell >{row.totalTradedVolume} {this.convertToFloat(row.totalTradedVolume)}</TableCell> */}
+                                                {/* <TableCell >{row.totalTradedValue}L</TableCell> */}
+
+                                                {/* <TableCell  >{row.open}</TableCell>
+                                                <TableCell  >{row.dayHigh}</TableCell>
+                                                <TableCell  >{row.dayLow}</TableCell>
+                                                <TableCell  >{row.previousClose}</TableCell> */}
+
+                                                {/* <TableCell style={{ background: "#eceff1" }} >
+
+                                                {row.delHistory && row.delHistory.map(item => (
+                                                    <span> {new Date(item.datetime).toLocaleDateString()}  &nbsp;
+                                                        <span title={"quantityTraded " + item.quantityTraded}> {(item.quantityTraded / 100000)}L  </span>  &nbsp;
+                                                        <span title={"deliveryToTradedQuantity"}> {item.deliveryToTradedQuantity}%  </span>  &nbsp;
+                                                        <span title={"deliveryQuantity " + item.deliveryQuantity}> {(item.deliveryQuantity / 100000)}L  </span>  &nbsp;
+                                                        <span style={{ color: item.todayChange > 0 ? "green" : "red" }}> ({item.todayChange}%)   </span>
+                                                        &nbsp;  <br /></span>
+                                                ))}
+
+                                            </TableCell> */}
+
+                                                {/* <TableCell >{row.bestbuyquantity}</TableCell>
+                                            <TableCell >{row.bestbuyprice}</TableCell>
+                                            <TableCell >{row.bestsellquantity}</TableCell>
+                                            <TableCell >{row.bestsellprice}</TableCell> */}
+
+
+
+                                            </TableRow>
+                                        )) : <Spinner />}
+
+                                    </TableBody>
+
+
+                                </Table>
+                            </div>
+
+                            <hr />
+                            <Grid item xs={12} sm={12} >
+                                {/* <Typography color="primary" gutterBottom>
+                                      {this.state.selectedWatchlist} ({this.state.symbolList.length})  
+                                      
+                                      
+                                    </Typography> */}
+
+                                <span>Sorted By:  {this.state.sortedType} </span> <br />
+                                <span>Update: {this.state.lastUpdateAction} </span>
+
+
+
+                                {/* <input onKeyDown={this.handleKeyDown} /> */}
+                            </Grid>
+
+                            <Grid item xs={6} sm={6} >
+
+                                <FormGroup>
+                                    <FormControlLabel
+                                        control={<Switch checked={this.state.isSpeek} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
+                                        label={this.state.isSpeek ? 'Speak Yes' : 'Speak No'}
+                                    />
+                                </FormGroup>
+                            </Grid>
+
+
+
+                        </Paper>
+
+
+
+                    </Grid>
                     <Grid item xs={12} sm={6}>
 
                         <Paper style={{ padding: "10px" }}>
@@ -1019,278 +1369,7 @@ class LiveBid extends React.Component {
 
                             </Grid>
                         </Paper>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} >
-
-                        <Paper style={{ padding: "10px" }} >
-
-                            <Grid justify="space-between"
-                                container spacing={1}>
-
-
-
-
-                                <Grid item xs={8} sm={6} >
-                                    <FormControl style={styles.selectStyle} >
-                                        <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
-                                        <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
-                                            {/* <MenuItem value={"selectall"}>{"Select All"}</MenuItem> */}
-                                            <MenuItem value={"gainerList"}>{"Gainer List (" + this.state.gainerList.length + ")"}</MenuItem>
-                                             <MenuItem value={"looserList"}>{"Looser List (" + this.state.looserList.length + ")"}</MenuItem>
-                                            {this.state.softedIndexList && this.state.softedIndexList.map(element => (
-                                                <MenuItem style={{ color: element.percChange > 0 ? "green" : "red" }} value={element.indexName}>{element.indexName} ({element.percChange}%)</MenuItem>
-                                            ))
-                                            }
-                                            {/* {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
-                                                <MenuItem value={element}>{element}</MenuItem>
-                                            ))
-                                            } */}
-                                            <MenuItem value={"Securities in F&O"}>{"Securities in F&O"}</MenuItem>
-
-
-                                        </Select>
-                                    </FormControl>
-
-                                </Grid>
-                                <Grid item xs={4} sm={3} >
-                                    <Button variant="" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button>
-
-                                </Grid>
-
-
-                                <Grid item xs={4} sm={3} >
-                                    <FormControl style={styles.selectStyle} >
-                                        <InputLabel htmlFor="candleHistoryFlag">Candle History</InputLabel>
-                                        <Select value={this.state.candleHistoryFlag} name="candleHistoryFlag" onChange={this.onChangeWatchlist}>
-
-                                            <MenuItem value={true}>{"Yes"}</MenuItem>
-                                            <MenuItem value={false}>{"No"}</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-
-
-
-                                {/* <Grid item xs={12} sm={3} >
-                                    <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button>
-                                    
-                                       <FormGroup>
-                                        <FormControlLabel
-                                        control={<Switch checked={this.state.isSpeek} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
-                                        label={this.state.isSpeek ? 'Speak Yes'  : 'Speak No'}
-                                        />
-                                    </FormGroup>
-                                </Grid> */}
-
-                                {/* <Grid item xs={12} sm={1} >
-                                    <Button variant="contained" style={{ marginRight: '20px' }} onClick={() => this.backupData()}>BackUp</Button>
-                                </Grid>
-
-
-                                <Grid item xs={12} sm={1} >
-                                    <FormControl style={styles.selectStyle} >
-                                        <InputLabel htmlFor="gender">Select Back Date</InputLabel>
-                                        <Select value={this.state.backDate} name="backDate" onChange={this.onChangeBackDate}>
-                                            <MenuItem value={""}>{"Select Date"}</MenuItem>
-                                            {this.state.backupDateList && this.state.backupDateList.map(element => (
-                                                <MenuItem value={element}>{element}</MenuItem>
-                                            ))
-                                            }
-                                        </Select>
-                                    </FormControl>
-                                </Grid> */}
-
-
-
-                            </Grid>
-
-
-                            <Table size="small" style={{ width: "100%" }} aria-label="sticky table" >
-
-                                <TableHead style={{ whiteSpace: "nowrap" }} variant="head">
-                                    <TableRow variant="head" >
-
-                                        {/* <TableCell >US Limit</TableCell>
-                                        <TableCell >LS Limit</TableCell> */}
-
-                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell(x)</Button>  </TableCell>
-                                        <TableCell  ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy(x)</Button>  </TableCell> */}
-
-                                        <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}> T B Q</Button>  </TableCell>
-                                        <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol</Button> </TableCell>
-                                        {/* <TableCell >VWAP Price</TableCell> */}
-
-                                        <TableCell ><Button onClick={() => this.sortByColumn("selltobuyTime")}> T S Q</Button>  </TableCell>
-                                        <TableCell ><Button onClick={() => this.sortByColumn("volume")}> Volume</Button>  </TableCell>
-                              
-                                        <TableCell ><Button onClick={() => this.sortByColumn("volBreakoutCount")}> Volome BC</Button>  </TableCell>
-                                        <TableCell ><Button onClick={() => this.sortByColumn("priceVolBreakout")}> Pice+Volue</Button>  </TableCell>
-
-
-                                    
-                                        
-                                        {/* <TableCell >Other Details </TableCell>
-                                        <TableCell >High Price</TableCell>
-                                        <TableCell >Low Price</TableCell> */}
-
-                                        {/* <TableCell ><Button onClick={() => this.sortByColumn("quantityTraded")}> Quantity Traded</Button>  </TableCell> */}
-                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("deliveryQuantity")}> Delivery Quantity</Button>  </TableCell>
-                                        <TableCell  ><Button title={"Delivery To Traded Quantity"} onClick={() => this.sortByColumn("deliveryToTradedQuantity")}> Del To Traded Qty%</Button>  </TableCell> */}
-
-                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("totalTradedVolume")}> Total Traded Volume</Button>  </TableCell> */}
-                                        {/* <TableCell  ><Button onClick={() => this.sortByColumn("totalTradedValue")}> Total Traded Value(L)</Button>  </TableCell> */}
-
-                                        {/* <TableCell  >Day Open</TableCell>
-                                        <TableCell  >Day High</TableCell>
-                                        <TableCell  >Day Low</TableCell>
-                                        <TableCell  >Previous Close</TableCell> */}
-
-
-                                        {/* <TableCell  ><Button onClick={() => this.getDeliveryHistory()}>Delivery History</Button>  </TableCell> */}
-
-                                        {/* 
-                                        <TableCell >Best Buy Qty</TableCell>
-                                        <TableCell >Best Buy Price</TableCell>
-                                        <TableCell >Best Sell Qty</TableCell>
-                                        <TableCell >Best Sell Price</TableCell> */}
-
-
-                                    </TableRow>
-                                </TableHead>
-
-                            </Table>
-                            <div style={{ overflow: "auto", maxHeight: "350px" }}>
-                                <Table size="small" style={{ width: "100%" }} aria-label="sticky table" >
-                                    <TableBody>
-
-
-
-
-
-                                        {this.state.symbolList ? this.state.symbolList.map((row, i) => (
-                                            <TableRow selected={this.state.cursor === i ? 'active' : null}
-                                                // onKeyDown={(e) => this.handleKeyDown(e)}
-                                                style={{ cursor: "pointer" }} hover key={i} onClick={() => this.showStaticChart(row.token, row.name)}>
-
-                                                {/* <TableCell >{row.upperCircuitLimit}</TableCell>
-                                            <TableCell >{row.lowerCircuitLimit}</TableCell> */}
-
-                                                {/* <TableCell style={{ background: row.highlightbuy ? "lightgray" : "" }} >
-                                                {row.buytosellTime ? row.buytosellTime +" time buy" : ""}
-                                            </TableCell>
-                                            <TableCell style={{ background: row.highlightsell ? "lightgray" : "" }} >
-                                                {row.selltobuyTime ? row.selltobuyTime+" time sell" : ""} 
-                                            </TableCell> */}
-
-                                                <TableCell title="total buying bids qty" style={{ background: row.highlightbuy ? "#FFFF00" : "" }}  >
-                                                    {/* {row.buybidHistory &&  row.buybidHistory.map(item => (
-                                                        <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
-                                                    ))} */}
-                                                    {row.buytosellTime ? `B: ${row.buytosellTime}` : ""}
-
-                                                    {/* &nbsp; {row.totalBuyQuantity}  */}
-                                                    {this.convertToFloat(row.totalBuyQuantity)}
-
-                                                </TableCell>
-                                                <TableCell align="left" style={{ background: this.getPercentageColor(row.pChange) }} >    {row.name} {row.ltp} {row.pChange ? `(${row.pChange}%)` : ""} </TableCell>
-                                                <TableCell title="Average Price" style={{ height: '25px', background: row.ltp ? row.ltp >= row.averagePrice ? "green" : "red" : "white" }}>AP:{row.averagePrice}</TableCell>
-
-
-                                                <TableCell title="total selling bid qty" style={{ background: row.highlightsell ? "#FFFF00" : "" }}>
-                                                    {/* {row.sellbidHistory &&  row.sellbidHistory.map(item => (
-                                                        <span style={{color: item>0 ? "green" : "red"}}> {item}% </span>
-                                                    ))} */}
-                                                    {row.selltobuyTime ? `S: ${row.selltobuyTime}` : ""}
-
-                                                    {/* &nbsp; {row.totalSellQuantity}  */}
-                                                    {this.convertToFloat(row.totalSellQuantity)}
-
-                                                </TableCell>
-                                                <TableCell title="Open Price">O:{row.openPrice}</TableCell>
-                                                <TableCell title="High Price">H:{row.highPrice}</TableCell>
-                                                <TableCell title="Low Price" >L:{row.lowPrice}</TableCell>
-                                                <TableCell title="volume" >{row.volume}</TableCell>
-
-                                                <TableCell title="vbc" >{row.volBreakoutCount}</TableCell>
-                                                <TableCell title="v+P breakout" >{row.priceVolBreakout}</TableCell>
-
-
-                                                {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
-                                                {/* <TableCell >{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
-                                            <TableCell >{row.deliveryToTradedQuantity}%</TableCell> */}
-
-                                                {/* <TableCell >{row.totalTradedVolume} {this.convertToFloat(row.totalTradedVolume)}</TableCell> */}
-                                                {/* <TableCell >{row.totalTradedValue}L</TableCell> */}
-
-                                                {/* <TableCell  >{row.open}</TableCell>
-                                                <TableCell  >{row.dayHigh}</TableCell>
-                                                <TableCell  >{row.dayLow}</TableCell>
-                                                <TableCell  >{row.previousClose}</TableCell> */}
-
-                                                {/* <TableCell style={{ background: "#eceff1" }} >
-
-                                                {row.delHistory && row.delHistory.map(item => (
-                                                    <span> {new Date(item.datetime).toLocaleDateString()}  &nbsp;
-                                                        <span title={"quantityTraded " + item.quantityTraded}> {(item.quantityTraded / 100000)}L  </span>  &nbsp;
-                                                        <span title={"deliveryToTradedQuantity"}> {item.deliveryToTradedQuantity}%  </span>  &nbsp;
-                                                        <span title={"deliveryQuantity " + item.deliveryQuantity}> {(item.deliveryQuantity / 100000)}L  </span>  &nbsp;
-                                                        <span style={{ color: item.todayChange > 0 ? "green" : "red" }}> ({item.todayChange}%)   </span>
-                                                        &nbsp;  <br /></span>
-                                                ))}
-
-                                            </TableCell> */}
-
-                                                {/* <TableCell >{row.bestbuyquantity}</TableCell>
-                                            <TableCell >{row.bestbuyprice}</TableCell>
-                                            <TableCell >{row.bestsellquantity}</TableCell>
-                                            <TableCell >{row.bestsellprice}</TableCell> */}
-
-
-
-                                            </TableRow>
-                                        )) : <Spinner />}
-
-                                    </TableBody>
-
-
-                                </Table>
-                            </div>
-
-                            <hr />
-                            <Grid item xs={12} sm={12} >
-                                {/* <Typography color="primary" gutterBottom>
-                                      {this.state.selectedWatchlist} ({this.state.symbolList.length})  
-                                      
-                                      
-                                    </Typography> */}
-
-                                <span>Sorted By:  {this.state.sortedType} </span> <br />
-                                <span>Update: {this.state.lastUpdateAction} </span>
-
-
-
-                                {/* <input onKeyDown={this.handleKeyDown} /> */}
-                            </Grid>
-
-                            <Grid item xs={6} sm={6} >
-
-                                <FormGroup>
-                                    <FormControlLabel
-                                        control={<Switch checked={this.state.isSpeek} onChange={this.handleChange} aria-label="Speek ON/OFF" />}
-                                        label={this.state.isSpeek ? 'Speak Yes' : 'Speak No'}
-                                    />
-                                </FormGroup>
-                            </Grid>
-
-
-
-                        </Paper>
-
-
-
-                    </Grid>
-
+                        </Grid>
 
 
 
