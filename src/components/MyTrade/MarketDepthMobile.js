@@ -22,7 +22,7 @@ import Notify from "../../utils/Notify";
 import { createChart } from 'lightweight-charts';
 import * as moment from 'moment';
 import { resolveResponse } from "../../utils/ResponseHandler";
-import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
+import { SMA, RSI, VWAP, BollingerBands, rsi } from 'technicalindicators';
 import vwap from 'vwap';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import Switch from '@material-ui/core/Switch';
@@ -114,15 +114,25 @@ class LiveBid extends React.Component {
 
            const FIVE_MIN = (1000 * 60 * 15);
         //   this.waitAndDoSomething(FIVE_MIN); 
-
+        this.calculateCandleVolume(); 
             var msToNextRounded5Min = FIVE_MIN - (Date.now() % FIVE_MIN);
              msToNextRounded5Min = msToNextRounded5Min - 1000 ;
+
+             let interval = 5; 
+             if(this.state.timeFrame == 'FIFTEEN_MINUTE')
+             interval = 15; 
+             if(this.state.timeFrame == 'TEN_MINUTE')
+             interval = 10; 
+             else if(this.state.timeFrame == 'FIVE_MINUTE') 
+             interval = 5; 
+             else if(this.state.timeFrame == 'ONE_MINUTE') 
+             interval = 1; 
 
             var date = new Date();
             let nextExec = (59 - date.getSeconds()) * 1000; 
             console.log("next59Exec", nextExec, 'msToNextRounded5Min', msToNextRounded5Min,  new Date().toLocaleTimeString()); 
             setTimeout(() => {
-                setInterval(this.calculateCandleVolume, 60000 * 15);
+                setInterval(this.calculateCandleVolume, 60000 * interval);
                 console.log("nextExeced",new Date().toLocaleTimeString() ); 
 
                 this.calculateCandleVolume(); 
@@ -283,6 +293,12 @@ class LiveBid extends React.Component {
                     symbolListArray[index].buytosellTime = (foundLive[0].tbq / foundLive[0].tsq).toFixed(2);
                     symbolListArray[index].selltobuyTime = (foundLive[0].tsq / foundLive[0].tbq).toFixed(2);
 
+                    let voldata = this.comparePreviousVolume(element.symbol, foundLive[0].v, foundLive[0].ltp); 
+
+                    symbolListArray[index].volBreakoutCount = voldata.brokenCount; 
+                    symbolListArray[index].priceVolBreakout = voldata.priceVolBreakout; 
+                    symbolListArray[index].rsi = voldata.rsi; 
+
                     if (foundLive[0].tbq / foundLive[0].tsq > 2) {
                         symbolListArray[index].highlightbuy = true;
                         this.takeAction(element.symbol, ' buying')
@@ -301,6 +317,11 @@ class LiveBid extends React.Component {
                     if (this.state.token == element.token) {
                         this.setState({ livePrice: foundLive[0].ltp, livePChange: foundLive[0].nc })
                     }
+
+                    
+                    
+          
+                    
 
 
                     let found = []; //this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
@@ -368,13 +389,33 @@ class LiveBid extends React.Component {
         }, 59000);
     }
 
+    calculateRSI = (candles) => {
 
+        let closePrice = []; 
+        candles.forEach(element => {
+            closePrice.push(element.p); 
+        });
+
+    //    closePrice.slice(Math.max(closePrice.length - 14, closePrice.length))
+
+        var inputRSI = { values: closePrice, period: 14 };
+        var rsiValues = RSI.calculate(inputRSI);
+
+        console.log('calculateRSI',  candles[candles.length-1], rsiValues)
+
+        return rsiValues;  
+        
+    }
 
     comparePreviousVolume = (symbol, volume, ltp) => {   
-        let candle =  this.state.liveCandleHistory.filter((item) => item.s == symbol); 
+         let  liveCandleHistory = localStorage.getItem('liveCandleHistory') && JSON.parse(localStorage.getItem('liveCandleHistory')) || [];
+        let candle =  liveCandleHistory.filter((item) => item.s == symbol); 
+
         console.log("previous candle", symbol, candle)
         if(candle.length>0){
-            let currentCandleVol = volume - candle[candle.length-1].v;  let brokenCount=0, priceVolBreakout = 0, dayPriceVolBreakout = 0;
+            let currentCandleVol = volume - candle[candle.length-1].v;  let brokenCount=0, priceVolBreakout = 0, dayPriceVolBreakout = 0, rsi=0;
+            rsi = this.calculateRSI(candle); 
+
             if(currentCandleVol > candle[candle.length-1].cv){
                 for (let index = candle.length-1; index > 0; index--) {
                     if(currentCandleVol > candle[index].cv){
@@ -400,21 +441,20 @@ class LiveBid extends React.Component {
                     this.speckIt(log);
                 }
             }
-            return {cv : currentCandleVol,  brokenCount:  brokenCount,  priceVolBreakout: priceVolBreakout, dayPriceVolBreakout: dayPriceVolBreakout}; 
+            return {cv : currentCandleVol,  brokenCount:  brokenCount,  priceVolBreakout: priceVolBreakout, dayPriceVolBreakout: dayPriceVolBreakout,  rsi: rsi[rsi.length-1]}; 
         }else{
-            return {cv : volume,  brokenCount:  0, priceVolBreakout: 0,  dayPriceVolBreakout: 0}; 
+            return {cv : volume,  brokenCount:  0, priceVolBreakout: 0,  dayPriceVolBreakout: 0, rsi:0}; 
         }
     }
 
-    calculateCandleVolume = () => {
-        console.log("calculateCandleVolume called", new Date().toLocaleTimeString())
+    calculateCandleVolume = (noSyncVol) => {
 
         this.state.symbolList.forEach(element => {
 
             let voldata = this.comparePreviousVolume(element.symbol, element.volume,element.ltp); 
             var data = {
                 s: element.symbol, 
-                t: new Date().toLocaleTimeString("en-GB", { hour: "2-digit",minute: "2-digit"}), 
+                t: new Date(),     //new Date().toLocaleTimeString("en-GB", { hour: "2-digit",minute: "2-digit"}), 
                 v: element.volume, 
                 cv: voldata.cv, 
                 p: element.ltp, 
@@ -422,15 +462,19 @@ class LiveBid extends React.Component {
             }
             element.volBreakoutCount = voldata.brokenCount; 
             element.priceVolBreakout = voldata.priceVolBreakout; 
+            element.rsi = voldata.rsi; 
+            console.log(element.symbol , " RSI ", voldata.rsi, new Date().toLocaleTimeString())
 
           //  console.log("candle live data",data); 
             this.setState({symbolList : this.state.symbolList })
 
             this.setState({ liveCandleHistory: [...this.state.liveCandleHistory, data] }, () => {
+                if(noSyncVol != 'noSyncVol')
                 localStorage.setItem('liveCandleHistory', JSON.stringify(this.state.liveCandleHistory) )
             });
         });
     }
+
 
     callbackAfterOrderDone = (order) => {
         console.log("order executed", order);
@@ -526,7 +570,10 @@ class LiveBid extends React.Component {
 
           //  this.updateDayChartHighLow(); 
 
-          this.updatePreviousVolume(); 
+          if(e.target.name != 'candleHistoryFlag'){
+            this.updatePreviousVolume(); 
+
+          }
         });
     }
     updateDayChartHighLow= async()=> {
@@ -660,16 +707,16 @@ class LiveBid extends React.Component {
     
                 const format1 = "YYYY-MM-DD HH:mm";
                 let enddate = moment(new Date());
-                let startDate = moment(enddate, "DD-MM-YYYY").subtract(1, 'days');
+                let startDate = moment(enddate, "DD-MM-YYYY").subtract(2, 'days');
     
                 let found =  this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
-    
+
                 if(found.length == 0){
     
                     var data = {
                         "exchange": "NSE",
                         "symboltoken": element.token,
-                        "interval": "FIFTEEN_MINUTE", //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
+                        "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
                         "fromdate": moment(startDate).format(format1),
                         "todate": moment(enddate).format(format1) //moment(this.state.endDate).format(format1) /
                     }
@@ -678,14 +725,22 @@ class LiveBid extends React.Component {
                     AdminService.getHistoryData(data).then(res => {
                         let histdata = resolveResponse(res, 'noPop');
                         //console.log("candle history", histdata); 
+
+
+
                         if (histdata && histdata.data && histdata.data.length) {
             
-                            var candleData = histdata.data;
+                            var candleData = histdata.data.slice(histdata.data.length-20, histdata.data.length);;
+
                             //    console.log("candleData",element, candleData);
                             console.log("history",element.symbol, candleData);
 
+                            this.deletePrevVolume(element.symbol)
+
                             let intradayVol = 0; 
-                            for (let index = 0; index < candleData.length-1; index++) {
+                            let storedPrevVol = JSON.parse(localStorage.getItem('liveCandleHistory')) && JSON.parse(localStorage.getItem('liveCandleHistory')) || [];                     
+
+                            for (let index = 0; index < candleData.length; index++) {
                                 const histElement = candleData[index];
                                
                                 if(new Date(histElement[0]).getDate() == new Date().getDate()){
@@ -694,20 +749,16 @@ class LiveBid extends React.Component {
                                 
                                 var data = {
                                     s: element.symbol, 
-                                    t: new Date(histElement[0]).toLocaleTimeString("en-GB", { hour: "2-digit",minute: "2-digit"}), 
+                                    t: histElement[0],   //new Date(histElement[0]).toLocaleTimeString("en-GB", { hour: "2-digit",minute: "2-digit"}), 
                                     v: intradayVol, 
                                     cv: histElement[5], 
                                     p: histElement[4], 
                                     ch:0
                                 }
-                                                    
-                                this.setState({ liveCandleHistory: [...this.state.liveCandleHistory, data] }, () => {
-                                    localStorage.setItem('liveCandleHistory', JSON.stringify(this.state.liveCandleHistory) )
-                                });
-                                
+                                storedPrevVol.push(data); 
                             }
 
-                          
+                            localStorage.setItem('liveCandleHistory', JSON.stringify(storedPrevVol) )
 
                         } else {
                             //localStorage.setItem('NseStock_' + symbol, "");
@@ -723,6 +774,20 @@ class LiveBid extends React.Component {
     
            
         }
+
+    deletePrevVolume = (symbol) => {
+        let storedPrevVol = JSON.parse(localStorage.getItem('liveCandleHistory')) && JSON.parse(localStorage.getItem('liveCandleHistory')) || [];                     
+        let newData = [];                       
+        for (let index = 0; index < storedPrevVol.length; index++) {
+            const element = storedPrevVol[index];
+            if(symbol != element.s){
+                newData.push(element);
+            }
+        }
+        console.log("delete symbol data", symbol, newData  )
+        localStorage.setItem('liveCandleHistory', JSON.stringify(newData) )
+        return true; 
+    }
     sortByColumn = (type) => {
         this.state.symbolList.sort(function (a, b) {
             return b[type] - a[type];
@@ -881,11 +946,12 @@ class LiveBid extends React.Component {
                 var bb = BollingerBands.calculate(input);
                 //  console.log(token, "Bolinger band", input, bb);
 
+
                 var inputRSI = { values: closeingData, period: 14 };
                 var rsiValues = RSI.calculate(inputRSI);
 
-              //  console.log(token, "Rsi", inputRSI, rsiValues);
-                // console.log(token, "vwap", vwapdata, vwap(vwapdata));
+               console.log(symbol,data[data.length-1],  "Rsi", inputRSI, rsiValues);
+             //   console.log(token, "vwap", vwapdata, vwap(vwapdata));
 
 
                 this.setState({ chartStaticData: cdata, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
@@ -1016,8 +1082,9 @@ class LiveBid extends React.Component {
                                     </FormControl>
 
                                 </Grid>
-                                <Grid item xs={4} sm={3} >
-                                    <Button variant="" style={{ marginRight: '20px' }} onClick={() => this.getUpdateIndexData()}>Refresh</Button>
+                                <Grid item xs={4} sm={3} > 
+                                 {/* this.calculateCandleVolume(); this.getUpdateIndexData() */}
+                                    <Button variant="" style={{ marginRight: '20px' }} onClick={() => this.calculateCandleVolume('noSyncVol')}>Refresh</Button>
 
                                 </Grid>
 
@@ -1080,15 +1147,16 @@ class LiveBid extends React.Component {
                                         {/* <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell(x)</Button>  </TableCell>
                                         <TableCell  ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy(x)</Button>  </TableCell> */}
 
-                                        <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}> T B Q</Button>  </TableCell>
+                                        <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}>Buy Bids</Button>  </TableCell>
                                         <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol</Button> </TableCell>
                                         {/* <TableCell >VWAP Price</TableCell> */}
 
-                                        <TableCell ><Button onClick={() => this.sortByColumn("selltobuyTime")}> T S Q</Button>  </TableCell>
+                                        <TableCell ><Button onClick={() => this.sortByColumn("selltobuyTime")}>Sell Bids</Button>  </TableCell>
                                         {/* <TableCell ><Button onClick={() => this.sortByColumn("volume")}> Volume</Button>  </TableCell> */}
                               
-                                        <TableCell ><Button onClick={() => this.sortByColumn("volBreakoutCount")}> Volume BC</Button>  </TableCell>
-                                        <TableCell ><Button onClick={() => this.sortByColumn("priceVolBreakout")}> Pice+Volue</Button>  </TableCell>
+                                        <TableCell ><Button onClick={() => this.sortByColumn("volBreakoutCount")}>Volume</Button>  </TableCell>
+                                        <TableCell ><Button onClick={() => this.sortByColumn("priceVolBreakout")}>Vol+Price</Button>  </TableCell>
+                                        <TableCell ><Button onClick={() => this.sortByColumn("rsi")}>RSI</Button>  </TableCell>
 
 
                                     
@@ -1177,6 +1245,8 @@ class LiveBid extends React.Component {
                                                 <TableCell title="v+P breakout" style={{ background: row.priceVolBreakout ? "#FFFF00" : "" }} > {row.priceVolBreakout ? "VP: Yes": "-"}
                                                 {row.dayPriceVolBreakout ? "Day VP" : ''}
                                                 </TableCell>
+                                                <TableCell title="vbc" > {row.rsi ? 'RSI: '+row.rsi : '-'}</TableCell>
+
 
 
                                                 {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
