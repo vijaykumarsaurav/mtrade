@@ -32,7 +32,6 @@ import "./ViewStyle.css";
 import Hidden from '@material-ui/core/Hidden';
 import CommonOrderMethod from "../../utils/CommonMethods";
 
-
 // import vwap from 'vwap';
 // import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 // import SimpleExpansionPanel from "./SimpleExpansionPanel";
@@ -57,8 +56,7 @@ class LiveBid extends React.Component {
             gainerList: localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList')) || [],
             looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
             liveCandleHistory: localStorage.getItem('liveCandleHistory') && JSON.parse(localStorage.getItem('liveCandleHistory')) || [],
-
-            cursor: '',
+            cursor: 0,
             candleHistoryFlag: false,
             lightChartSymbol: "Select Symbol for Chart",
             isSpeek: localStorage.getItem('isSpeek') === 'true' ? true : false,
@@ -105,12 +103,14 @@ class LiveBid extends React.Component {
             },
         };
         this.updateSocketWatch = this.updateSocketWatch.bind(this);
+        this.nameInput = React.createRef();
 
     }
     componentDidMount() {
 
         window.document.title = "WS Bid Live";
-        this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] }, ()=> {
+        this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist],  originalList: this.state.staticData[this.state.selectedWatchlist] }, ()=> {
+          
 
            const FIVE_MIN = (1000 * 60 * 15);
         //   this.waitAndDoSomething(FIVE_MIN); 
@@ -438,7 +438,7 @@ class LiveBid extends React.Component {
                     dayPriceVolBreakout = 1; 
                     let log = "Day price and volume breakout in " + symbol + ' with '+ brokenCount +" candles with " + lastCandleChange.toFixed(2) +'%'; 
                     console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
-                    this.speckIt(log);
+                //    this.speckIt(log);
                 }
             }
             return {cv : currentCandleVol,  brokenCount:  brokenCount,  priceVolBreakout: priceVolBreakout, dayPriceVolBreakout: dayPriceVolBreakout,  rsi: rsi[rsi.length-1]}; 
@@ -556,9 +556,9 @@ class LiveBid extends React.Component {
     }
 
     onChangeWatchlist = (e) => {
-        this.setState({ [e.target.name]: e.target.value }, function () {
+        this.setState({ [e.target.name]: e.target.value, cursor:0 }, function () {
             var watchList = this.state.staticData[this.state.selectedWatchlist];
-
+            
             if (this.state.selectedWatchlist == "gainerList") {
                 watchList = localStorage.getItem('gainerList') && JSON.parse(localStorage.getItem('gainerList'));
             }
@@ -566,13 +566,12 @@ class LiveBid extends React.Component {
                 watchList = localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList'));
             }
 
-            this.setState({ symbolList: watchList }, () => this.updateSocketWatch(this.wsClint));
+            this.setState({ symbolList: watchList, originalList: watchList}, () => watchList && this.updateSocketWatch(this.wsClint));
 
           //  this.updateDayChartHighLow(); 
 
           if(e.target.name != 'candleHistoryFlag'){
-            this.updatePreviousVolume(); 
-
+            watchList &&  this.updatePreviousVolume(); 
           }
         });
     }
@@ -835,9 +834,8 @@ class LiveBid extends React.Component {
             this.showStaticChart();
         });
     }
-    handleKeyDown = (e, token) => {
+    handleKeyDown = (e) => {
 
-        console.log("key", e, token);
         //38 for down and 40 for up key
         if (e.keyCode === 38 && this.state.cursor > 0) {
             this.setState(prevState => ({ cursor: prevState.cursor - 1 }));
@@ -845,10 +843,27 @@ class LiveBid extends React.Component {
             this.setState(prevState => ({ cursor: prevState.cursor + 1 }))
         }
 
+        if(this.state.cursor === this.state.symbolList.length-1){
+            this.setState({ cursor: 0});
+        }
+      //  console.log("e", e, "cursor", this.state.cursor, "this.state.symbolList.length", this.state.symbolList.length);
+
         setTimeout(() => {
-            this.showStaticChart();
+            this.updateCandleOnkey();
         }, 100);
 
+    }
+
+
+    updateCandleOnkey = () => {
+        var selectedKeyRow = localStorage.getItem('selectedKeyRow') && JSON.parse(localStorage.getItem('selectedKeyRow'));
+        
+        if (selectedKeyRow && selectedKeyRow.token && selectedKeyRow.symbol) {
+            this.setState({ tradingsymbol: selectedKeyRow.symbol, symboltoken: selectedKeyRow.token }, function () {
+                this.showStaticChart(selectedKeyRow.token, selectedKeyRow.symbol, this.state.cursor);
+            });
+
+        }
     }
     handleChange = (event) => {
 
@@ -876,14 +891,17 @@ class LiveBid extends React.Component {
         }
         return result;
     }
-    showStaticChart = (token, symbol) => {
+    showStaticChart = (token, symbol, index) => {
 
-        //console.log('token, symbol', token, symbol)
+        console.log('token, symbol', token, symbol)
 
         if (token)
             this.setState({ chartStaticData: '', lightChartSymbol: symbol, token: token }, function () {
                 console.log('reset done', token);
             });
+
+        console.log("cursor", this.state.cursor, "this.state.symbolList.length", this.state.symbolList.length);
+
 
         const format1 = "YYYY-MM-DD HH:mm";
         let beginningTime = moment('9:15am', 'h:mma');
@@ -1027,12 +1045,27 @@ class LiveBid extends React.Component {
                         totalSum += per;
 
                     });
-                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount });
+                    this.setState({ downMoveCount: downMoveCount, upsideMoveCount: upsideMoveCount,cursor: index });
                 }
             }
         })
 
 
+    }
+    findSymbol = (e) => {
+
+
+        let input = e.target.value; 
+
+        let found =  this.state.originalList.filter(item => item.name.includes(input.toUpperCase())); 
+        
+        this.setState({ symbolList : found}); 
+
+        console.log(input, found);
+
+        if(!input){
+            this.setState({ symbolList : this.state.originalList}); 
+        }
     }
 
     render() {
@@ -1081,17 +1114,30 @@ class LiveBid extends React.Component {
                                         </Select>
                                     </FormControl>
 
+                                    
+
                                 </Grid>
                                 <Grid item xs={4} sm={3} > 
+                                <form name='keyForm' >
+                                    <input id='keyid' name='keyid'
+                                        placeholder='Search: tcs, infy, reliance'
+                                        onKeyDown={this.handleKeyDown} 
+                                        onChange={this.findSymbol}
+                                        autofocus="true"
+                                        type='text'
+                                        />
                                  {/* this.calculateCandleVolume(); this.getUpdateIndexData() */}
                                     <Button variant="" style={{ marginRight: '20px' }} onClick={() => this.calculateCandleVolume('noSyncVol')}>Refresh</Button>
 
+
+                                </form>
+                              
                                 </Grid>
 
 
                                 <Grid item xs={4} sm={3} >
                                     <FormControl style={styles.selectStyle} >
-                                        <InputLabel htmlFor="candleHistoryFlag">Candle History</InputLabel>
+                                        <InputLabel htmlFor="candleHistoryFlag">History</InputLabel>
                                         <Select value={this.state.candleHistoryFlag} name="candleHistoryFlag" onChange={this.onChangeWatchlist}>
 
                                             <MenuItem value={true}>{"Yes"}</MenuItem>
@@ -1196,9 +1242,11 @@ class LiveBid extends React.Component {
                                     <TableBody>
 
                                         {this.state.symbolList ? this.state.symbolList.map((row, i) => (
-                                            <TableRow selected={this.state.cursor === i ? 'active' : null}
-                                                // onKeyDown={(e) => this.handleKeyDown(e)}
-                                                style={{ cursor: "pointer" }} hover key={i} onClick={() => this.showStaticChart(row.token, row.name)}>
+                                            <TableRow onKeyDown={this.handleKeyDown}  selected={this.state.cursor === i ? 'active' : null}
+                                                
+
+                                                style={{ cursor: "pointer" }} hover key={i} onClick={() => this.showStaticChart(row.token, row.name, i)}>
+                                                 {this.state.cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
                                                 {/* <TableCell >{row.upperCircuitLimit}</TableCell>
                                             <TableCell >{row.lowerCircuitLimit}</TableCell> */}
@@ -1303,7 +1351,7 @@ class LiveBid extends React.Component {
 
 
 
-                                {/* <input onKeyDown={this.handleKeyDown} /> */}
+                               
                             </Grid>
 
                             <Grid item xs={6} sm={6} >
