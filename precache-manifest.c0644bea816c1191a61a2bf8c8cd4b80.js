@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "8b15afd741fad356871b1a48823e4f85",
+    "revision": "81bdcc0e125d1d147f6a871432c5ca0c",
     "url": "/mtrade/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/mtrade/static/css/2.39017165.chunk.css"
   },
   {
-    "revision": "c9c06ca189838e75732d",
+    "revision": "8606ca36e92c25d1d3f3",
     "url": "/mtrade/static/css/main.7c840ea3.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/mtrade/static/js/2.0bf17ff1.chunk.js"
   },
   {
-    "revision": "c9c06ca189838e75732d",
-    "url": "/mtrade/static/js/main.c9065caf.chunk.js"
+    "revision": "8606ca36e92c25d1d3f3",
+    "url": "/mtrade/static/js/main.26067ebc.chunk.js"
   },
   {
     "revision": "e8b8ba76f00acf92c648",
