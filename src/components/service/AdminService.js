@@ -78,6 +78,9 @@ class AdminService {
      getWatchListJSON() {
         return axios.get('/myJsonWatchList.json', '');
      } 
+     updateStockList() {
+      return axios.get('/stockList.json', '');
+     } 
      getStaticData() {
         if(window.location.hostname == "vijaykumarsaurav.github.io")
         return axios.get('/mtrade/staticData.json', '');

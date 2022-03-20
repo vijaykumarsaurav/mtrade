@@ -425,6 +425,34 @@ app.get('/search/:query', function (req, res) {
 
 });
 
+app.get('/updateStockList', function (req, res) {
+
+  var obj, fillertedData = [];
+
+  var path = __dirname.split('\\')
+  path.pop();
+  path = path && path.join('/');
+  path =  path + "/public/stockList.json";
+  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+    if (err) throw err
+    obj = JSON.parse(data);
+
+    for (let index = 0; index < obj.length; index++) {
+      if(obj[index].lotsize == "1" && obj[index].symbol.endsWith("-EQ")) {
+        fillertedData.push(obj[index])
+      }
+    }
+
+    fs.writeFile(path, JSON.stringify(fillertedData), 'utf8', function callback() {
+      console.log(fillertedData.length, " Stocks updated to ", path);
+      res.status(200).send(fillertedData.length + " Stocks updated to "+  path);
+      return;
+    }); // write it back 
+  });
+
+
+});
+
 app.get('/stockOptionSearch/:query', function (req, res) {
 
   const query = JSON.parse( req.params.query) 

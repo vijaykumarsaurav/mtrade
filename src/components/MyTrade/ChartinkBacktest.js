@@ -32,7 +32,6 @@ import TextField from '@material-ui/core/TextField';
 import worker_script from './worker';
 import Switch from '@material-ui/core/Switch';
 
-
 class Home extends React.Component {
     constructor(props) {
         super(props);
@@ -67,7 +66,7 @@ class Home extends React.Component {
             FoundPatternList: localStorage.getItem('FoundPatternList') && JSON.parse(localStorage.getItem('FoundPatternList')) || [],
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
             newJsonList: [],
-            timeFrame: "FIVE_MINUTE",
+            timeFrame: "FIFTEEN_MINUTE",
             overAllResult: [],
             pertradePandL: 0,
             pertradePandLNet: 0,
@@ -81,9 +80,9 @@ class Home extends React.Component {
             maxDrowDown:0, 
             maxProfit:0, 
             crossedTargetCount: 0, 
-            orderType:"buy"
-            
-
+            orderType:"buy",
+            targetPer: 0.5
+        
         };
 
     }
@@ -107,6 +106,8 @@ class Home extends React.Component {
 
     };
     componentDidMount() {
+
+
 
         window.document.title = "Backtest";
         this.setState({ symbolList: this.state.staticData[this.state.selectedWatchlist] });
@@ -134,6 +135,14 @@ class Home extends React.Component {
         });
 
         this.setState({ chart: chart, candleSeries: candleSeries, smaLineSeries: smaLineSeries, volumeSeries: volumeSeries });
+        
+        AdminService.updateStockList().then(res => {
+            this.setState({stockList:  res.data}); 
+        })
+        
+
+
+
     }
 
     stopBacktesting = () => {
@@ -194,45 +203,42 @@ class Home extends React.Component {
         }
         this.setState({ totaluniqueStocks: listofstockfound.length, allQniqueStockList: listofstockfound })
 
-        AdminService.getAllListTokens(listofstockfound).then(searchRes => {
-            let searchResdata = searchRes.data;
-            if (searchResdata.length > 0) {
-                for (let index = 0; index < allStockWithTime.length; index++) {
-                    const element = allStockWithTime[index];
-
-                    let filerdata = searchResdata.filter((item => item.name == element.name));
-                    if (filerdata.length > 0) {
-                        let data = {
-                            symbol: filerdata[0].symbol,
-                            name: filerdata[0].name,
-                            startTime: element.startTime,
-                            token: filerdata[0].token,
-                        }
-                        updateList.push(data);
+        if (this.state.stockList.length > 0) {
+            for (let index = 0; index < allStockWithTime.length; index++) {
+                const element = allStockWithTime[index];
+                let filerdata = this.state.stockList.filter((item => item.name == element.name));
+                if (filerdata.length > 0) {
+                    let data = {
+                        symbol: filerdata[0].symbol,
+                        name: filerdata[0].name,
+                        startTime: element.startTime,
+                        token: filerdata[0].token,
                     }
-
+                    updateList.push(data);
                 }
             }
-
-
-
-            //   var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === symbol);                                
-            //  console.log("uniquestockfound",  listofstockfound)
-            //  console.log("searchResdata",  searchResdata)
-            //  console.log("updateList",  updateList)
-
-            callback(updateList, listofstockfound, searchResdata);
-
-
-            // if(searchResdata.length > 0){ 
-            //     found[0].startTime = startTime;
-            //    this.setState({ newJsonList: [...this.state.newJsonList, found[0]] }, ()=> {
-            //        if(csvFormatInput.length-1 == index){
-            //         callback()
-            //         }
-            //    });
-            // }
-        })
+            callback(updateList, listofstockfound, this.state.stockList);
+        }else{
+            AdminService.getAllListTokens(listofstockfound).then(searchRes => {
+                let searchResdata = searchRes.data;
+                if (searchResdata.length > 0) {
+                    for (let index = 0; index < allStockWithTime.length; index++) {
+                        const element = allStockWithTime[index];
+                        let filerdata = searchResdata.filter((item => item.name == element.name));
+                        if (filerdata.length > 0) {
+                            let data = {
+                                symbol: filerdata[0].symbol,
+                                name: filerdata[0].name,
+                                startTime: element.startTime,
+                                token: filerdata[0].token,
+                            }
+                            updateList.push(data);
+                        }
+                    }
+                }
+                callback(updateList, listofstockfound, searchResdata);
+            })
+        }
 
     }
 
@@ -309,14 +315,14 @@ class Home extends React.Component {
             for (let index3 = 1; index3 < candleData.length; index3++) {
                 if(this.state.orderType == "buy") {
                     let perChange = (candleData[index3][2] - stock.entryPrice) * 100 / stock.entryPrice;
-                    if(perChange > 0.5){
+                    if(perChange > this.state.targetPer){
                         this.setState({crossedTargetCount : this.state.crossedTargetCount+1 }); 
                         break; 
                     }
                 }
                 if(this.state.orderType == "sell"){
                     let perChange = (candleData[index3][3] - stock.entryPrice) * 100 / stock.entryPrice;
-                    if(perChange < -0.5){
+                    if(perChange < -this.state.targetPer){
                         this.setState({crossedTargetCount : this.state.crossedTargetCount+1 }); 
                         break; 
                     }
@@ -1011,6 +1017,7 @@ class Home extends React.Component {
                                          
                                         </Select>
                                         <input placeholder='9:20' fullwidth style={{ width: '90%', height: '50%' }} label="entryTimeAt" value={this.state.entryTimeAt} name="entryTimeAt" onChange={this.onChange} />
+                                        <input placeholder='target %: 0.5' type='number' step={0.1} fullwidth style={{ width: '90%', height: '50%' }} label="Target" value={this.state.targetPer} name="targetPer" onChange={this.onChange} />
 
 
                                         <FormGroup>
@@ -1019,12 +1026,11 @@ class Home extends React.Component {
                                                 label={this.state.isSameDayDuplcate ? 'Same Day Duplcate: Yes' : 'Same Day Duplcate: No'}
                                             />
                                         </FormGroup>
-
-                                      
                                    
 
                                          <input placeholder='filename' id="textarea" fullwidth style={{ width: '90%', height: '50%' }} label="Filename" value={this.state.filename} name="filename" onChange={this.onChange} />
 
+                                         
                                          Failed:{this.state.searchFailed} 
                                      <br /> 
                                     {this.state.totaluniqueStocks ? this.state.totaluniqueStocks + " unique stocks found" : ""}
@@ -1175,7 +1181,7 @@ class Home extends React.Component {
 
                     <Grid item xs={12} sm={4}>
 
-                        <Paper style={{ padding: "10px", position:"fixed" }}>
+                        <Paper style={{ padding: "10px", position:  navigator.userAgentData.mobile ? "" :  "fixed"  }}>
 
                             <Grid style={{ display: "visible" }} spacing={1} direction="row" alignItems="center" container>
                                 <Grid item xs={12} sm={12}  >
@@ -1247,6 +1253,11 @@ class Home extends React.Component {
                     </Grid>
 
 
+                    <Grid item xs={12}>
+                        <div id="showChartTitle"></div>
+                        <div id="tvchart"></div>
+
+                     </Grid>
 
 
 
