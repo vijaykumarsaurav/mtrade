@@ -79,7 +79,10 @@ class AdminService {
         return axios.get('/myJsonWatchList.json', '');
      } 
      updateStockList() {
+      if(window.location.hostname == "vijaykumarsaurav.github.io")
       return axios.get('/mtrade/stockList.json', '');
+      else
+      return axios.get('/stockList.json', '');
      } 
      getStaticData() {
         if(window.location.hostname == "vijaykumarsaurav.github.io")
