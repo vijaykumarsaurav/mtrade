@@ -79,7 +79,7 @@ class AdminService {
         return axios.get('/myJsonWatchList.json', '');
      } 
      updateStockList() {
-      return axios.get('/stockList.json', '');
+      return axios.get('/mtrade/stockList.json', '');
      } 
      getStaticData() {
         if(window.location.hostname == "vijaykumarsaurav.github.io")
