@@ -319,11 +319,6 @@ class LiveBid extends React.Component {
                     }
 
                     
-                    
-          
-                    
-
-
                     let found = []; //this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
                     if(found.length > 0 && foundLive[0].ltp >= 200 && foundLive[0].ltp <= 10000 && new Date().getHours() < 9 && new Date().getMinutes() <= 30){
                         if(!localStorage.getItem(symbolListArray[index].symbol)){
@@ -993,12 +988,14 @@ class LiveBid extends React.Component {
                         for (var elem of getit) {
 
                             if (typeof elem[1] == 'object') {
+                                change = (elem[1].close - elem[1].open) * 100 / elem[1].open;
+                                string += " Chg%: <b>" + change.toFixed(2) + '%</b>';
+                                string += " Chg: <b>" + (elem[1].close - elem[1].open).toFixed(2) + '</b>';
                                 string += " O: <b>" + elem[1].open + "</b>";
                                 string += " H: <b>" + elem[1].high + "</b>";
                                 string += " L: <b>" + elem[1].low + "</b>";
                                 string += " C: <b>" + elem[1].close + "</b>";
-                                change = (elem[1].close - elem[1].open) * 100 / elem[1].open;
-                                string += " Chng: <b>" + change.toFixed(2) + '%</b>';
+                             
                             } else {
                                 string += " &nbsp; " + elem[1].toFixed(2) + " ";
                             }
@@ -1117,34 +1114,28 @@ class LiveBid extends React.Component {
                                     
 
                                 </Grid>
-                                <Grid item xs={4} sm={3} > 
+                                <Grid item xs={4} sm={4} > 
                                 <form name='keyForm' >
+                                    {/* <InputLabel htmlFor="gender">Search</InputLabel> */}
+
                                     <input id='keyid' name='keyid'
-                                        placeholder='Search: tcs, infy, reliance'
+                                        placeholder='Search: tcs'
                                         onKeyDown={this.handleKeyDown} 
                                         onChange={this.findSymbol}
                                         autofocus="true"
                                         type='text'
                                         />
-                                 {/* this.calculateCandleVolume(); this.getUpdateIndexData() */}
-                                    <Button variant="" style={{ marginRight: '20px' }} onClick={() => this.calculateCandleVolume('noSyncVol')}>Refresh</Button>
-
-
                                 </form>
                               
                                 </Grid>
 
-
-                                <Grid item xs={4} sm={3} >
-                                    <FormControl style={styles.selectStyle} >
-                                        <InputLabel htmlFor="candleHistoryFlag">History</InputLabel>
-                                        <Select value={this.state.candleHistoryFlag} name="candleHistoryFlag" onChange={this.onChangeWatchlist}>
-
-                                            <MenuItem value={true}>{"Yes"}</MenuItem>
-                                            <MenuItem value={false}>{"No"}</MenuItem>
-                                        </Select>
-                                    </FormControl>
+                                <Grid item xs={4} sm={2} > 
+                                 {/* this.calculateCandleVolume(); this.getUpdateIndexData() */}
+                                    <Button variant="" style={{ marginRight: '20px' }} onClick={() => this.calculateCandleVolume('noSyncVol')}>Refresh</Button>                              
                                 </Grid>
+
+
+                                
 
 
 
@@ -1381,14 +1372,16 @@ class LiveBid extends React.Component {
                                 <Grid item xs={12} sm={12}  >
 
                                     <Grid spacing={1} direction="row" alignItems="center" container>
-                                        <Grid item xs={10} sm={10} >
-                                            <Typography> {this.state.lightChartSymbol} {this.state.livePrice} {this.state.livePChange ? `(${this.state.livePChange})` : ""}  </Typography>
+                                        <Grid item xs={10} sm={8} >
+                                            <Typography> {this.state.lightChartSymbol} {this.state.livePrice} {this.state.livePChange ? `(${this.state.livePChange}%)` : ""}  </Typography>
 
                                         </Grid>
 
 
                                         <Grid item xs={2} sm={2} >
                                             <FormControl style={styles.selectStyle} style={{ marginTop: '10px' }} >
+                                            <InputLabel htmlFor="candleHistoryFlag">Time</InputLabel>
+
                                                 <Select value={this.state.timeFrame} name="timeFrame" onChange={this.onInputChange}>
                                                     <MenuItem value={'ONE_MINUTE'}>{'1M'}</MenuItem>
                                                     <MenuItem value={'FIVE_MINUTE'}>{'5M'}</MenuItem>
@@ -1402,6 +1395,17 @@ class LiveBid extends React.Component {
 
 
                                         </Grid>
+
+                                        <Grid item xs={2} sm={2} >
+                                                <FormControl style={styles.selectStyle} >
+                                                    <InputLabel htmlFor="candleHistoryFlag">History</InputLabel>
+                                                    <Select title='History' value={this.state.candleHistoryFlag} name="candleHistoryFlag" onChange={this.onChangeWatchlist}>
+
+                                                        <MenuItem value={true}>{"Yes"}</MenuItem>
+                                                        <MenuItem value={false}>{"No"}</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
                                     </Grid>
 
 

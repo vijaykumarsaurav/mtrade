@@ -289,6 +289,10 @@ class Home extends React.Component {
             return;
         }
         
+        if (this.state.patternType === 'VolumePrice') {
+            this.backtestVolumePrice();
+            return;
+        }
 
 
         if (this.state.patternType === 'NR4_Daywide_daterage') {
@@ -1231,6 +1235,100 @@ class Home extends React.Component {
         console.log("sumPercentage", sumPercentage)
     }
     
+    
+   
+    backtestVolumePrice = async () => {
+
+        this.setState({ backTestResult: [], backTestFlag: false });
+
+        var watchList = this.state.symbolList //localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')); 
+        var runningTest = 1, sumPercentage = 0;
+        for (let index = 0; index < watchList.length; index++) {
+            const element = watchList[index];
+
+            if (this.state.stopScaningFlag) {
+                this.setState({stopScaningFlag : false})
+                break;
+            }
+            var data = {
+                "exchange": "NSE",
+                "symboltoken": element.token,
+                "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE FIFTEEN_MINUTE THIRTY_MINUTE
+                "fromdate": moment(this.state.startDate).format("YYYY-MM-DD HH:mm"), //moment("2021-07-20 09:15").format("YYYY-MM-DD HH:mm") , 
+                "todate": moment(this.state.endDate).format("YYYY-MM-DD HH:mm") // moment("2020-06-30 14:00").format("YYYY-MM-DD HH:mm") 
+            }
+
+            AdminService.getHistoryData(data).then(res => {
+                let histdata = resolveResponse(res, 'noPop');
+                //console.log("candle history", histdata); 
+                if (histdata && histdata.data && histdata.data.length) {
+
+                    var candleData = histdata.data;
+                    //  candleData.reverse(); 
+                    for (let index2 = 0; index2 < candleData.length - 7; index2++) {
+                        // var startindex = index2 * 10; 
+                        var backtestCandle = candleData.slice(index2, index2 + 7);
+                        // var next10Candle = candleData.slice(index2+5 , index2+35 );    
+
+
+                        if(new Date(candleData[index2][0]).toLocaleTimeString()  > "09:30:00" && new Date(candleData[index2][0]).toLocaleTimeString() < "14:15:00") {
+                            var candleChartData = [];
+
+                            let currentCandle = backtestCandle[backtestCandle.length - 1]; 
+
+
+                            let volBreakcount =0, curVol = currentCandle[5]; 
+                            backtestCandle.forEach(elementback => {
+                                  if(curVol > elementback[5]){
+                                    volBreakcount++
+                                  } 
+                            });
+
+                            let candleDistance = currentCandle[2] - currentCandle[3]; //high - low
+                            let strongPer = ((currentCandle[4] - currentCandle[3]) * 100) / candleDistance; 
+
+                            if(volBreakcount >= 6 && strongPer > 90) {  //(currentCandle[4] == currentCandle[2])
+                                console.log(element.symbol, 'backtestCandle',  backtestCandle, "volBreakcount",  volBreakcount);
+                               
+                                var foundStock = {
+                                    foundAt: moment(currentCandle[0]).format("DD-MM-YYYY HH:mm"),
+                                    symbol: element.name,
+                                    token: element.token
+                                }
+
+                                
+                                this.setState({ backTestResult: [...this.state.backTestResult, foundStock] }, function(){
+                                   
+                                    let data = ''; 
+                                    this.state.backTestResult.forEach((item)=> data+= item.foundAt + "\t"+ item.symbol + "\n")
+                                    
+                                    this.setState({ copydata: data});
+
+                                } );        
+                                
+                            }
+
+
+
+                            
+                        }
+
+                      
+                       
+                       
+                        runningTest = runningTest + candleData.length - 35;
+                    }
+                } else {
+                    //localStorage.setItem('NseStock_' + symbol, "");
+                    console.log(element.symbol, " candle data emply");
+                }
+            })
+            await new Promise(r => setTimeout(r, 300));
+            this.setState({ stockTesting: index + 1 + ". " + element.symbol, runningTest: runningTest })
+        }
+        this.setState({ backTestFlag: true });
+       
+    }
     
     backtestStrongCandle = async () => {
 
@@ -2476,6 +2574,10 @@ class Home extends React.Component {
 
     }
 
+    copyAll =()=> {
+        navigator.clipboard.writeText(this.state.copydata);
+        Notify.showSuccess("Copied to clickboard")
+    }
     checkLiveBids = async () => {
 
         for (let index = 0; index < this.state.symbolList.length; index++) {
@@ -2759,6 +2861,7 @@ class Home extends React.Component {
                                             <MenuItem value={"NR4_SameDay"}>NR4 ByDate</MenuItem>
                                             <MenuItem value={"NR4_Daywide_daterage"}>NR4 Daywise Range</MenuItem>
                                             <MenuItem value={"StrongCandle"}>5min Strong Candle</MenuItem>
+                                            <MenuItem value={"VolumePrice"}>Volume Price Breakout</MenuItem>
 
                                         </Select>
                                     </FormControl>
@@ -2829,6 +2932,7 @@ class Home extends React.Component {
                                         <TableCell title=" Average gross/trade PnL: "  colSpan={4}> A.g/t PnL:  <b style={{ color: (localStorage.getItem('sumPerChange') / this.state.backTestResult.length) > 0 ? "#20d020" : "#e66e6e" }} >{(localStorage.getItem('sumPerChange') / this.state.backTestResult.length).toFixed(2)}%</b>
                                         
                                         &nbsp; <CsvDownload filename={this.state.filename} data={this.state.backTestResult} />
+                                        <button onClick={()=> this.copyAll()} >Copy</button>
                                         </TableCell>
 
 
@@ -2865,7 +2969,7 @@ class Home extends React.Component {
                                 </TableHead>
                                 </Table>
 
-                                    {this.state.patternType == 'NR4' || this.state.patternType == 'TweezerTop' || this.state.patternType == 'TweezerBottom' || this.state.patternType == 'NR4_SameDay' || this.state.patternType == 'StrongCandle'  ? 
+                                    {this.state.patternType == 'NR4' || this.state.patternType == 'TweezerTop' || this.state.patternType == 'TweezerBottom' || this.state.patternType == 'NR4_SameDay' || this.state.patternType == 'VolumePrice'  ? 
                                         <div style={{overflow:"auto", maxHeight:"550px"}}> 
 
                                         <Table size="small" aria-label="sticky table" >

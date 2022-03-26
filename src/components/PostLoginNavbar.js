@@ -268,7 +268,7 @@ export default function PostLoginNavBar(props) {
 
                         </Hidden>
 
-                        <Hidden xsDown>
+                        <Hidden xsDown smDown>
 
 
 
