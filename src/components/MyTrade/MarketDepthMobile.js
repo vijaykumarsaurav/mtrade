@@ -47,8 +47,9 @@ class LiveBid extends React.Component {
         this.state = {
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
-            selectedWatchlist: 'NIFTY 100', //'Securities in F&O', 'NIFTY BANK'
+            selectedWatchlist: 'NIFTY BANK', //'Securities in F&O', 'NIFTY BANK'
             symbolList: [],
+            dayhighLow: [],
             actionList: localStorage.getItem('actionList') && JSON.parse(localStorage.getItem('actionList')) || [],
             timeFrame: "FIFTEEN_MINUTE",
             softedIndexList: [],
@@ -57,6 +58,7 @@ class LiveBid extends React.Component {
             looserList: localStorage.getItem('looserList') && JSON.parse(localStorage.getItem('looserList')) || [],
             liveCandleHistory: localStorage.getItem('liveCandleHistory') && JSON.parse(localStorage.getItem('liveCandleHistory')) || [],
             cursor: 0,
+            volumePriceBONames:'', 
             candleHistoryFlag: false,
             lightChartSymbol: "Select Symbol for Chart",
             isSpeek: localStorage.getItem('isSpeek') === 'true' ? true : false,
@@ -99,6 +101,8 @@ class LiveBid extends React.Component {
                 'NIFTY HEALTHCARE': "notfound",
                 'NIFTY OIL AND GAS': "notfound",
                 'NIFTY 100': "notfound",
+                'HIGH BETA STOCK': "notfound",
+
                 'NIFTY CONSR DURBL': 'notfond'
             },
         };
@@ -189,12 +193,12 @@ class LiveBid extends React.Component {
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             setInterval(() => {
                 if (this.state.token) {
-                    this.showStaticChart();
+                    this.showStaticChart(this.state.token, this.state.lightChartSymbol,0);
                 }
             }, 5000);
         }
 
-
+        this.updatePreviousVolume(); 
         // setTimeout(() => {
     
         //     this.storeChartData();
@@ -246,7 +250,7 @@ class LiveBid extends React.Component {
             let data = { symbol: symbol, action: action, updateTime: new Date().toLocaleTimeString() };
             this.setState({ actionList: [...this.state.actionList, data] }, function () {
                 localStorage.setItem('actionList', JSON.stringify(this.state.actionList));
-                this.speckIt(symbol + " " + action);
+            //    this.speckIt(symbol + " " + action);
 
                 console.log(data.symbol + " " + data.action + " " + data.updateTime);
                 this.setState({ lastUpdateAction: data.symbol + " " + data.action + " " + data.updateTime });
@@ -293,7 +297,16 @@ class LiveBid extends React.Component {
                     symbolListArray[index].buytosellTime = (foundLive[0].tbq / foundLive[0].tsq).toFixed(2);
                     symbolListArray[index].selltobuyTime = (foundLive[0].tsq / foundLive[0].tbq).toFixed(2);
 
-                    let voldata = this.comparePreviousVolume(element.symbol, foundLive[0].v, foundLive[0].ltp); 
+                    let voldata = this.comparePreviousVolume(element.symbol, foundLive[0].v, foundLive[0].ltp, element.token,element.name ); 
+
+                    let highlow =  this.updateHighLow(element.name, foundLive[0].ltp, foundLive[0].v, element.token); 
+                    symbolListArray[index].high = highlow &&  highlow.high; 
+                    symbolListArray[index].low = highlow &&  highlow.low; 
+
+                    symbolListArray[index].highupdated = highlow &&  highlow.highupdated; 
+                    symbolListArray[index].lowupdated = highlow &&  highlow.lowupdated; 
+
+                    
 
                     symbolListArray[index].volBreakoutCount = voldata.brokenCount; 
                     symbolListArray[index].priceVolBreakout = voldata.priceVolBreakout; 
@@ -319,35 +332,63 @@ class LiveBid extends React.Component {
                     }
 
                     
-                    let found = []; //this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
-                    if(found.length > 0 && foundLive[0].ltp >= 200 && foundLive[0].ltp <= 10000 && new Date().getHours() < 9 && new Date().getMinutes() <= 30){
+                    // let found = []; //this.state.listofHighLow.filter(item => item.symbol == element.symbol); 
+                    // if(found.length > 0 && foundLive[0].ltp >= 200 && foundLive[0].ltp <= 10000 && new Date().getHours() < 9 && new Date().getMinutes() <= 30){
+                    //     if(!localStorage.getItem(symbolListArray[index].symbol)){
+                    //         if(symbolListArray[index].symbol == found[0].symbol && foundLive[0].ltp > found[0].high){
+                    //             localStorage.setItem(symbolListArray[index].symbol, "ok")
+                    //             this.speckIt((symbolListArray[index].symbol +' previous day high broken ').toLocaleLowerCase())
+                    //             console.log(symbolListArray[index].name, foundLive[0].ltp, "previous day high broken BUY")
+                    //             var symbolInfo = {
+                    //                 token: symbolListArray[index].token,
+                    //                 symbol: symbolListArray[index].symbol,
+                    //                 qtyToTake: 1,
+                    //                 producttype: 'INTRADAY'
+                    //             }
+                    //             CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
+                    //         }
+                    //         if(symbolListArray[index].symbol == found[0].symbol && foundLive[0].ltp < found[0].low){
+                    //             localStorage.setItem(symbolListArray[index].symbol, "ok")
+                    //             this.speckIt((symbolListArray[index].symbol +' previous day low broken ').toLocaleLowerCase())
+                    //             console.log(symbolListArray[index].name, foundLive[0].ltp, "previous day high broken SELL")
+                    //             var symbolInfo = {
+                    //                 token: symbolListArray[index].token,
+                    //                 symbol: symbolListArray[index].symbol,
+                    //                 qtyToTake: 1,
+                    //                 producttype: 'INTRADAY'
+                    //             }
+                    //             CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
+                    //         }
+                    //     }
+                    // } 
+
+                    if(voldata.priceVolBreakout && foundLive[0].ltp >= 200 && foundLive[0].ltp <= 10000 && new Date().getHours() > 10 && new Date().getHours() < 15){
                         if(!localStorage.getItem(symbolListArray[index].symbol)){
-                            if(symbolListArray[index].symbol == found[0].symbol && foundLive[0].ltp > found[0].high){
-                                localStorage.setItem(symbolListArray[index].symbol, "ok")
-                                this.speckIt((symbolListArray[index].symbol +' previous day high broken ').toLocaleLowerCase())
-                                console.log(symbolListArray[index].name, foundLive[0].ltp, "previous day high broken BUY")
-                                var symbolInfo = {
-                                    token: symbolListArray[index].token,
-                                    symbol: symbolListArray[index].symbol,
-                                    qtyToTake: 1,
-                                    producttype: 'INTRADAY'
-                                }
-                                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
+                            localStorage.setItem(symbolListArray[index].symbol, "found at " + new Date().toLocaleTimeString())
+                            this.speckIt((symbolListArray[index].symbol +' price volume Breakout ').toLocaleLowerCase())
+                            console.log(symbolListArray[index].name, foundLive[0].ltp," price volume Breakout")
+                            var symbolInfo = {
+                                token: symbolListArray[index].token,
+                                symbol: symbolListArray[index].symbol,
+                                qtyToTake: 1,
+                                producttype: 'INTRADAY'
                             }
-                            if(symbolListArray[index].symbol == found[0].symbol && foundLive[0].ltp < found[0].low){
-                                localStorage.setItem(symbolListArray[index].symbol, "ok")
-                                this.speckIt((symbolListArray[index].symbol +' previous day low broken ').toLocaleLowerCase())
-                                console.log(symbolListArray[index].name, foundLive[0].ltp, "previous day high broken SELL")
-                                var symbolInfo = {
-                                    token: symbolListArray[index].token,
-                                    symbol: symbolListArray[index].symbol,
-                                    qtyToTake: 1,
-                                    producttype: 'INTRADAY'
-                                }
-                                CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
-                            }
+                            CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'BUY', "no", this.callbackAfterOrderDone);
+                            // if(symbolListArray[index].symbol == found[0].symbol && foundLive[0].ltp < found[0].low){
+                            //     localStorage.setItem(symbolListArray[index].symbol, "ok")
+                            //     this.speckIt((symbolListArray[index].symbol +' previous day low broken ').toLocaleLowerCase())
+                            //     console.log(symbolListArray[index].name, foundLive[0].ltp, "previous day high broken SELL")
+                            //     var symbolInfo = {
+                            //         token: symbolListArray[index].token,
+                            //         symbol: symbolListArray[index].symbol,
+                            //         qtyToTake: 1,
+                            //         producttype: 'INTRADAY'
+                            //     }
+                            //     CommonOrderMethod.historyWiseOrderPlace(symbolInfo, 'SELL', "no", this.callbackAfterOrderDone);
+                            // }
                         }
-                    } 
+                    }
+                    localStorage.setItem(symbolListArray[index].symbol, "ok") 
                //     console.log("ws onmessage: ", foundLive[0]);
 
                   
@@ -396,17 +437,15 @@ class LiveBid extends React.Component {
         var inputRSI = { values: closePrice, period: 14 };
         var rsiValues = RSI.calculate(inputRSI);
 
-        console.log('calculateRSI',  candles[candles.length-1], rsiValues)
+      //  console.log('calculateRSI',  candles[candles.length-1], rsiValues)
 
         return rsiValues;  
         
     }
 
-    comparePreviousVolume = (symbol, volume, ltp) => {   
-         let  liveCandleHistory = localStorage.getItem('liveCandleHistory') && JSON.parse(localStorage.getItem('liveCandleHistory')) || [];
+    comparePreviousVolume = (symbol, volume, ltp, token, name) => {   
+         let liveCandleHistory = localStorage.getItem('liveCandleHistory') && JSON.parse(localStorage.getItem('liveCandleHistory')) || [];
         let candle =  liveCandleHistory.filter((item) => item.s == symbol); 
-
-        console.log("previous candle", symbol, candle)
         if(candle.length>0){
             let currentCandleVol = volume - candle[candle.length-1].v;  let brokenCount=0, priceVolBreakout = 0, dayPriceVolBreakout = 0, rsi=0;
             rsi = this.calculateRSI(candle); 
@@ -421,20 +460,26 @@ class LiveBid extends React.Component {
                 }
                 let lastCandleChange = (ltp - candle[candle.length-1].p) * 100/candle[candle.length-1].p; 
                 let log = symbol + ' '+ brokenCount +" candles volume broken with " + lastCandleChange.toFixed(2) +'%'; 
-                console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
+               // console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
               //  this.speckIt(log);
-                if(brokenCount >= 8 && (lastCandleChange >= 0.5 || lastCandleChange <= -0.5)){
-                    let log = "price and volume breakout in " + symbol + ' with '+ brokenCount +" candles with " + lastCandleChange.toFixed(2) +'%'; 
-                    console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
-                    this.speckIt(log);
-                    priceVolBreakout = 1; 
+                if(brokenCount >= 5 && (lastCandleChange >= 0.45)){ // || lastCandleChange <= -0.5
+                  
+                    if(!localStorage.getItem(symbol)){
+                        this.speckIt(log);
+                        let log = "price and volume breakout in " + symbol + ' with '+ brokenCount +" candles with " + lastCandleChange.toFixed(2) +'%'; 
+                        console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
+                        this.setState({ volumePriceBONames : this.state.volumePriceBONames+ " VP Buy"+name + "at" + new Date().toLocaleTimeString() + '\n' });
+                        this.showStaticChart(token, name, 0);
+                    }
+                    priceVolBreakout = 1;   
                 }
-                if( brokenCount == candle.length-1 && (lastCandleChange >= 0.5 || lastCandleChange <= -0.5)){
-                    dayPriceVolBreakout = 1; 
-                    let log = "Day price and volume breakout in " + symbol + ' with '+ brokenCount +" candles with " + lastCandleChange.toFixed(2) +'%'; 
-                    console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
-                //    this.speckIt(log);
-                }
+                
+                // if( brokenCount == candle.length-1 && (lastCandleChange >= 0.5 || lastCandleChange <= -0.5)){
+                //     dayPriceVolBreakout = 1; 
+                //     let log = "Day price and volume breakout in " + symbol + ' with '+ brokenCount +" candles with " + lastCandleChange.toFixed(2) +'%'; 
+                //     console.log(log, candle[candle.length-1],  currentCandleVol, new Date().toLocaleTimeString() );
+                // //    this.speckIt(log);
+                // }
             }
             return {cv : currentCandleVol,  brokenCount:  brokenCount,  priceVolBreakout: priceVolBreakout, dayPriceVolBreakout: dayPriceVolBreakout,  rsi: rsi[rsi.length-1]}; 
         }else{
@@ -442,11 +487,88 @@ class LiveBid extends React.Component {
         }
     }
 
+    updateHighLow =(name, ltp, volume, token)=> {
+
+        let OriginalHist = localStorage.getItem('OriginalHist') && JSON.parse(localStorage.getItem('OriginalHist')) || [];
+        let stockcandle =  OriginalHist.filter((item) => item.s == name); 
+
+        let candle = stockcandle.length ? stockcandle[0].d : []; 
+
+        let lastCandleInfo = candle[candle.length-1]; 
+         
+      //  console.log("previous candle before", name, lastCandleInfo)
+
+        //['2022-03-14T12:45:00+05:30', 41.65, 41.7, 41.55, 41.7, 213369]
+        const timeFrameMs = (1000 * 60 * 15);
+        var roundOffMin = (timeFrameMs - (Date.now() % timeFrameMs))-1000;
+    //    console.log("roundOffMin", name, roundOffMin)
+        
+
+        let highupdated = false, lowupdated = false; 
+        if(roundOffMin == 0){
+            candle.push([moment(new Date()).format('YYYY-MM-DDTHH:mm:ss+05:30'), ltp, ltp, ltp, ltp, 0])
+        }else{
+
+            if(lastCandleInfo){
+                if(ltp > lastCandleInfo[2]){
+                    lastCandleInfo[2] = ltp; 
+                }
+                
+                if(ltp < lastCandleInfo[3]){
+                    lastCandleInfo[3] = ltp; 
+                }
+    
+                let intradayVol = 0, higerhigh=0, lowerlow=candle[0][3]; 
+                for (let index = 0; index < candle.length; index++) {
+                    const histElement = candle[index];
+                    if(new Date(histElement[0]).getDate() == new Date().getDate()){
+                        intradayVol += histElement[5]; 
+
+                        if(histElement[2] > higerhigh){
+                            higerhigh = histElement[2]; 
+                        }
+
+                        if(histElement[3] < lowerlow){
+                            lowerlow = histElement[3]; 
+                        }
+                    }
+                }
+
+                if(ltp > higerhigh){
+                    highupdated = true;
+                    console.log("higher high updated", name, ltp, higerhigh);
+                    this.setState({ dayhighLow: [...this.state.dayhighLow, {name : name,token:token, type:"dayhigh", time: new Date().toLocaleTimeString()}]})
+                    this.showStaticChart(token, name, 0);
+                    this.speckIt(name + ' at day high'); 
+                }
+                if(ltp < lowerlow){
+                    lowupdated = true;
+                    this.setState({ dayhighLow: [...this.state.dayhighLow, {name : name,token:token, type:"daylow", time: new Date().toLocaleTimeString()}]})
+                    console.log("lower low updated", name, ltp, lowerlow);
+                    this.showStaticChart(token, name, 0);
+                    this.speckIt(name + ' at day low'); 
+                }
+
+
+                lastCandleInfo[5] = volume -  intradayVol; 
+            }
+
+            localStorage.setItem('OriginalHist', JSON.stringify(OriginalHist) );
+            return { high: lastCandleInfo && lastCandleInfo[2], low: lastCandleInfo && lastCandleInfo[3],  lowupdated: lowupdated, highupdated: highupdated };
+        }
+
+      //  console.log("previous candle after", name, lastCandleInfo)
+
+    }
+
+    
+
+
     calculateCandleVolume = (noSyncVol) => {
 
         this.state.symbolList.forEach(element => {
 
-            let voldata = this.comparePreviousVolume(element.symbol, element.volume,element.ltp); 
+            let voldata = this.comparePreviousVolume(element.symbol, element.volume,element.ltp, element.token, element.name); 
             var data = {
                 s: element.symbol, 
                 t: new Date(),     //new Date().toLocaleTimeString("en-GB", { hour: "2-digit",minute: "2-digit"}), 
@@ -566,10 +688,63 @@ class LiveBid extends React.Component {
           //  this.updateDayChartHighLow(); 
 
           if(e.target.name != 'candleHistoryFlag'){
-            watchList &&  this.updatePreviousVolume(); 
+         //   watchList &&  this.updatePreviousVolume(); 
+            this.updateOriginalHist(); 
           }
         });
     }
+  
+    updateOriginalHist= async()=> {
+
+           let OriginalHist = localStorage.getItem('OriginalHist') && JSON.parse(localStorage.getItem('OriginalHist')) || [];                                          
+
+        //    var watchList = this.state.staticData['NIFTY 100']; //NIFTY 100 Securities in F&O
+            var watchList = this.state.staticData[this.state.selectedWatchlist];
+    
+            for (let index = 0; index < watchList.length; index++) { //watchList.length
+                const element = watchList[index];
+    
+                const format1 = "YYYY-MM-DD HH:mm";
+                let enddate = moment(new Date());
+                let startDate = moment(enddate, "DD-MM-YYYY").subtract(4, 'days');
+    
+                var data = {
+                    "exchange": "NSE",
+                    "symboltoken": element.token,
+                    "interval": this.state.timeFrame, //ONE_DAY FIVE_MINUTE    FIFTEEN_MINUTE
+                    "fromdate": moment(startDate).format(format1),
+                    "todate": moment(enddate).format(format1) //moment(this.state.endDate).format(format1) /
+                }
+
+                AdminService.getHistoryData(data).then(res => {
+                    let histdata = resolveResponse(res, 'noPop');
+                    if (histdata && histdata.data && histdata.data.length) {
+                        var candleData = histdata.data.slice(histdata.data.length-20, histdata.data.length);;
+                        let found =  OriginalHist.filter((item) => item.s == element.name); 
+                        if(found.length > 0){
+                            for (let index = 0; index < OriginalHist.length; index++) {
+                                console.log("OriginalHist", OriginalHist[index].s,  element.name); 
+                                if(OriginalHist[index].s == element.name){
+                                    OriginalHist[index].d = candleData; 
+                                }                                
+                            }
+                        }else{
+                            OriginalHist.push({ s:  element.name, d:  candleData })
+                        }
+
+                        localStorage.setItem('OriginalHist', JSON.stringify(OriginalHist) );
+                    } else {
+                        console.log("candle data emply");
+                    }
+                })
+        
+              
+    
+                await new Promise(r => setTimeout(r, 310));
+            }
+    
+           
+        }
     updateDayChartHighLow= async()=> {
 
     //    var watchList = this.state.staticData['NIFTY 100']; //NIFTY 100 Securities in F&O
@@ -889,9 +1064,11 @@ class LiveBid extends React.Component {
     showStaticChart = (token, symbol, index) => {
 
         console.log('token, symbol', token, symbol)
+        
+
 
         if (token)
-            this.setState({ chartStaticData: '', lightChartSymbol: symbol, token: token }, function () {
+            this.setState({ chartStaticData: '', token: token }, function () {
                 console.log('reset done', token);
             });
 
@@ -929,6 +1106,7 @@ class LiveBid extends React.Component {
 
                 var data = historyData.data;
 
+
                 const cdata = data.map(d => {
                     return { time: new Date(d[0]).getTime(), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }
                 });
@@ -965,9 +1143,9 @@ class LiveBid extends React.Component {
 
                console.log(symbol,data[data.length-1],  "Rsi", inputRSI, rsiValues);
              //   console.log(token, "vwap", vwapdata, vwap(vwapdata));
+            
 
-
-                this.setState({ chartStaticData: cdata, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
+                this.setState({  lightChartSymbol: symbol, chartStaticData: cdata, bblastValue: bb[bb.length - 1], vwapvalue: vwap(vwapdata), rsiValues: rsiValues.slice(Math.max(valumeData.length - 19, 1)), valumeData: valumeData.slice(Math.max(valumeData.length - 5, 1)) }, function () {
                     // candleSeries.setData(this.state.chartStaticData); 
                     this.state.candleSeries.setData(this.state.chartStaticData);
 
@@ -1064,14 +1242,22 @@ class LiveBid extends React.Component {
             this.setState({ symbolList : this.state.originalList}); 
         }
     }
+    copyName =(name)=> {
+        navigator.clipboard
+        .writeText(name)
+        .then(() => {
+          Notify.showSuccess(name + " copied");
+        })
+        .catch(() => {
+          alert("something went wrong");
+        });
+    }
 
     render() {
 
         // if(this.state.softedIndexList.length == 0)  {
         //     this.setState({softedIndexList  : this.state.totalWatchlist})
         // }
-        //console.log("symbolList",this.state.symbolList)
-
         return (
             <React.Fragment>
                 <PostLoginNavBar LoadSymbolDetails={this.LoadSymbolDetails} />
@@ -1107,7 +1293,9 @@ class LiveBid extends React.Component {
                                             } */}
                                             <MenuItem value={"Securities in F&O"}>{"Securities in F&O"}</MenuItem>
 
+                                            <MenuItem value={"High Beta Stock"}>{"High Beta Stock"}</MenuItem>
 
+                                            
                                         </Select>
                                     </FormControl>
 
@@ -1184,16 +1372,18 @@ class LiveBid extends React.Component {
                                         {/* <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}>buyTosell(x)</Button>  </TableCell>
                                         <TableCell  ><Button onClick={() => this.sortByColumn("selltobuyTime")}>sellTobuy(x)</Button>  </TableCell> */}
 
-                                        <TableCell  ><Button onClick={() => this.sortByColumn("buytosellTime")}>Buy Bids</Button>  </TableCell>
-                                        <TableCell align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol</Button> </TableCell>
+                                        <TableCell  style={{background: this.state.sortedType == 'buytosellTime'?'lightgray': ""}}><Button onClick={() => this.sortByColumn("buytosellTime")}>Buy Bids</Button>  </TableCell>
+                                        <TableCell  style={{background: this.state.sortedType == 'pChange'?'lightgray': ""}} align="left"><Button onClick={() => this.sortByColumn("pChange")}> Symbol</Button> </TableCell>
                                         {/* <TableCell >VWAP Price</TableCell> */}
 
-                                        <TableCell ><Button onClick={() => this.sortByColumn("selltobuyTime")}>Sell Bids</Button>  </TableCell>
+                                        <TableCell style={{background: this.state.sortedType == 'selltobuyTime'?'lightgray': ""}}  ><Button onClick={() => this.sortByColumn("selltobuyTime")}>Sell Bids</Button>  </TableCell>
                                         {/* <TableCell ><Button onClick={() => this.sortByColumn("volume")}> Volume</Button>  </TableCell> */}
                               
-                                        <TableCell ><Button onClick={() => this.sortByColumn("volBreakoutCount")}>Volume</Button>  </TableCell>
-                                        <TableCell ><Button onClick={() => this.sortByColumn("priceVolBreakout")}>Vol+Price</Button>  </TableCell>
-                                        <TableCell ><Button onClick={() => this.sortByColumn("rsi")}>RSI</Button>  </TableCell>
+                                        <TableCell style={{background: this.state.sortedType == 'volBreakoutCount'?'lightgray': ""}}  ><Button onClick={() => this.sortByColumn("volBreakoutCount")}>Volume</Button>  </TableCell>
+                                        <TableCell style={{background: this.state.sortedType == 'priceVolBreakout'?'lightgray': ""}}  ><Button onClick={() => this.sortByColumn("priceVolBreakout")}>Vol+Price</Button>  </TableCell>
+                                        <TableCell  style={{background: this.state.sortedType == 'rsi'?'lightgray': ""}} ><Button onClick={() => this.sortByColumn("rsi")}>RSI</Button>  </TableCell>
+                                        <TableCell  style={{background: this.state.sortedType == 'highupdated'?'lightgray': ""}} ><Button onClick={() => this.sortByColumn("highupdated")}>High</Button>  </TableCell>
+                                        <TableCell style={{background: this.state.sortedType == 'lowupdated'?'lightgray': ""}} ><Button onClick={() => this.sortByColumn("lowupdated")}>Low</Button>  </TableCell>
 
 
                                     
@@ -1228,15 +1418,15 @@ class LiveBid extends React.Component {
                                 </TableHead>
 
                             </Table>
-                            <div style={{ overflow: "auto", maxHeight: "350px" }}>
+                            <div style={{ overflow: "auto", maxHeight: "650px" }}>
                                 <Table size="small" style={{ width: "100%" }} aria-label="sticky table" >
                                     <TableBody>
 
                                         {this.state.symbolList ? this.state.symbolList.map((row, i) => (
-                                            <TableRow onKeyDown={this.handleKeyDown}  selected={this.state.cursor === i ? 'active' : null}
+                                            <TableRow  onKeyDown={this.handleKeyDown}  selected={this.state.cursor === i ? 'active' : null}
                                                 
 
-                                                style={{ cursor: "pointer" }} hover key={i} onClick={() => this.showStaticChart(row.token, row.name, i)}>
+                                                style={{ cursor: "pointer" }} hover key={i} >
                                                  {this.state.cursor === i ? localStorage.setItem("selectedKeyRow", JSON.stringify(row)) : ""}
 
                                                 {/* <TableCell >{row.upperCircuitLimit}</TableCell>
@@ -1260,7 +1450,15 @@ class LiveBid extends React.Component {
                                                     {this.convertToFloat(row.totalBuyQuantity)}
 
                                                 </TableCell>
-                                                <TableCell align="left" style={{ background: this.getPercentageColor(row.pChange) }} >   {i+1}.  {row.name} <br /> {row.ltp} {row.pChange ? `(${row.pChange}%)` : ""} </TableCell>
+                                                <TableCell align="left"  > 
+                                                    <Button style={{ background: this.getPercentageColor(row.pChange) }} variant='contained'  onClick={() => this.showStaticChart(row.token, row.name, i)}> 
+                                                    {i+1}.  {row.name} <br /> {row.ltp} {row.pChange ? `(${row.pChange}%)` : ""} 
+
+                                                    </Button>
+
+
+                                                    <Button onClick={() => this.copyName(row.name)}> copy </Button> 
+                                                </TableCell>
                                                 <TableCell title="Average Price" style={{ height: '25px', background: row.ltp ? row.ltp >= row.averagePrice ? "green" : "red" : "white" }}>AP<br />{row.averagePrice}</TableCell>
 
 
@@ -1280,11 +1478,13 @@ class LiveBid extends React.Component {
                                                 <TableCell title="Low Price" >L:{row.lowPrice}</TableCell>
                                                 <TableCell title="volume" >{row.volume}</TableCell> */}
 
-                                                <TableCell title="vbc" > {row.volBreakoutCount ? 'V: '+row.volBreakoutCount : '-'}</TableCell>
+                                                <TableCell title="vbc" > {row.volBreakoutCount ? 'V: '+row.volBreakoutCount : '-'}  </TableCell>
                                                 <TableCell title="v+P breakout" style={{ background: row.priceVolBreakout ? "#FFFF00" : "" }} > {row.priceVolBreakout ? "VP: Yes": "-"}
                                                 {row.dayPriceVolBreakout ? "Day VP" : ''}
                                                 </TableCell>
                                                 <TableCell title="vbc" > {row.rsi ? 'RSI: '+row.rsi : '-'}</TableCell>
+                                                <TableCell style={{ background: row.highupdated ? "green" : "" }}  title={this.state.timeFrame + '\s high'} > {row.high ? row.high : '-'}</TableCell>
+                                                <TableCell style={{ background: row.lowupdated ? "red" : "" }}  title={this.state.timeFrame + '\s low'} > {row.high ? row.low : '-'}</TableCell>
 
 
 
@@ -1418,7 +1618,10 @@ class LiveBid extends React.Component {
                                 <Hidden xsDown>
                                     <Paper style={{ padding: "10px" }} >
 
-                                        <b> Indicator Details </b> <br />
+                                        <b> {this.state.lightChartSymbol}</b> <br />
+
+                                        
+
 
                                         <b> RSI: </b>{this.state.rsiValues && this.state.rsiValues.map((item, j) => (
                                             item >= 60 ? <span style={{ color: 'green', fontWeight: "bold" }}> {item} &nbsp;</span> : <span style={{ color: item <= 40 ? 'red' : "", fontWeight: "bold" }}> {item} &nbsp;</span>
@@ -1447,6 +1650,28 @@ class LiveBid extends React.Component {
 
 
                                     </Paper>
+
+                                    <Paper style={{ padding: "1" }} >
+                                        <Typography> Vol+Price Breakout</Typography>
+                                        {this.state.volumePriceBONames}
+                                    </Paper>
+
+                                    <Paper style={{ padding: "1" }} >
+
+                                       <Typography> Day high Low</Typography>
+                                       {
+                                       this.state.dayhighLow && this.state.dayhighLow.map((item, j) => (
+                                            <span style={{ color: item.type == 'dayhigh' ? 'green' : "red" }}>{j+1}{item.name} <br /></span>
+                                        ))
+                                       }
+
+                                       
+
+                                    </Paper>
+                                   
+                                    
+
+                                    
                                 </Hidden>
 
                                 {/* <Grid item xs={12} sm={12} style={{ overflowY: 'scroll', height: "40vh" }} >

@@ -273,16 +273,16 @@ class Home extends React.Component {
 
             if(entryCandlePoint == 6){
                 candleData.forEach(element => {
-                    if(element[2] > candleData[0][2]){
-                        entryPrice = candleData[0][2]; 
+                    if(element[2] >  (candleData[0][2] + (candleData[0][2] / 100 / 10))){
+                        entryPrice = (candleData[0][2] + (candleData[0][2] / 100 / 10)); //candleData[0][2]; 
                         return;
                     }
                 });
             }
             if(entryCandlePoint == 7){
                 candleData.forEach(element => {
-                    if(element[3] < candleData[0][3]){
-                        entryPrice = candleData[0][3]; 
+                    if(element[3] < (candleData[0][3] - (candleData[0][3] / 100 / 10))){
+                        entryPrice = (candleData[0][3] - (candleData[0][3] / 100 / 10)) //candleData[0][3]; 
                         return;
                     }
                 });
@@ -1089,7 +1089,7 @@ class Home extends React.Component {
                                                 <TableRow variant="head" style={{ fontWeight: 'bold' }} >
                                                 <TableCell>Sr.&nbsp;</TableCell>
 
-                                                    <TableCell className="TableHeadFormat" >Stock ({this.state.stockWiseListOverall.length}) <CsvDownload filename={'Overall_'+this.state.filename+'.csv'} data={this.state.stockWiseListOverall} />                                                    </TableCell>
+                                                    <TableCell className="TableHeadFormat" >Stock ({this.state.stockWiseListOverall.length}) <CsvDownload filename={'Overall_'+this.state.timeFrame+'_'+this.state.entryCandlePoint+'_'+this.state.orderType+'_'+this.state.filename+'.csv'} data={this.state.stockWiseListOverall} />                                                    </TableCell>
                                                     <TableCell className="TableHeadFormat" >T.T ({this.state.totTrade})  Avg:
                                                     ({this.state.totalAvg > 0 ? <span style={{ color: 'green' }}> {this.state.totalAvg}</span> : <span style={{ color: 'red' }}> {this.state.totalAvg}</span>})%
                                                     </TableCell>
@@ -1140,7 +1140,7 @@ class Home extends React.Component {
                                                 <TableRow variant="head" style={{ fontWeight: 'bold' }}>
                                                     <TableCell className="TableHeadFormat" >Sr.</TableCell>
 
-                                                    <TableCell className="TableHeadFormat" >Datetime <CsvDownload filename={'Trade_'+this.state.filename+'.csv'} data={this.state.backTestResult} /></TableCell>
+                                                    <TableCell className="TableHeadFormat" >Datetime <CsvDownload filename={'Trade_'+this.state.timeFrame+'_'+this.state.entryCandlePoint+'_'+this.state.orderType+'_'+this.state.filename+'.csv'} data={this.state.backTestResult} /></TableCell>
                                                     <TableCell className="TableHeadFormat" >Symbol &nbsp;</TableCell>
                                                     <TableCell className="TableHeadFormat" >EntryPrice &nbsp;</TableCell>
                                                     <TableCell className="TableHeadFormat" >ExitPrice &nbsp;</TableCell>

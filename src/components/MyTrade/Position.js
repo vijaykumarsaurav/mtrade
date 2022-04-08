@@ -1669,7 +1669,7 @@ class Home extends React.Component {
             if(position.tradingsymbol == element.tradingsymbol && position.buyqty > 0){
 
                 var trackSLPriceList = localStorage.getItem('trackSLPrice') && JSON.parse( localStorage.getItem('trackSLPrice')); 
-                if(trackSLPriceList.length > 0){
+                if(trackSLPriceList && trackSLPriceList.length > 0){
                     trackSLPriceList.splice(deleteindex, 1); 
                     localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPriceList)); 
                     this.setState({trackSLPrice : trackSLPriceList},  ()=> {

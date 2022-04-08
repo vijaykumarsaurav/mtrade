@@ -155,7 +155,7 @@ export const AdminMenuList = (
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="Backtest - Research" />
+      <ListItemText primary="Backtest" />
     </ListItem>
 
     <ListItem button component='a' href={"/mtrade/#/chartink-backtest"} >  
