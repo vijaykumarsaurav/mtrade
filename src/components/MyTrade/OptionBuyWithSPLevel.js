@@ -347,7 +347,7 @@ class OrderBook extends React.Component{
                 if(LtpData && LtpData.ltp) {
                     console.log( "LtpData",LtpData);
 
-                    AdminService.stockOptionSearch(JSON.stringify({name : isfound[0].name, ltp : LtpData.ltp})).then(res => {
+                    AdminService.stockOptionSearch({name : isfound[0].name, ltp : LtpData.ltp}).then(res => {
                         let data = res.data;
                         console.log(data);
                         localStorage.setItem('autoSearchTemp', JSON.stringify(data));
@@ -356,11 +356,7 @@ class OrderBook extends React.Component{
 
                 }
             });
-        }
-            
-                    
-
-       
+        }       
 
     }
 

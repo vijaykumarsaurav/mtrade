@@ -59,7 +59,11 @@ class AdminService {
      } 
 
      stockOptionSearch(query) {
-      return axios.get('http://localhost:8081/stockOptionSearch/'+query, '');
+      return axios.post('http://localhost:8081/stockOptionSearch/',query, '');
+      } 
+
+      getStockOptions(data) {
+         return axios.post('http://localhost:8081/getStockOptions',data, '');
       } 
 
    

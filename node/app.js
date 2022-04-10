@@ -83,9 +83,8 @@ var con = mysql.createConnection({
 
 con.connect(function(err) {
   if (err) throw err;
-  console.log("DB Connected 11!");
+  console.log("Mysql Connected with mtrade :) ");
 });
-
 
 
 app.listen(8081, () => {
@@ -455,7 +454,7 @@ app.get('/updateStockList', function (req, res) {
 
 app.get('/stockOptionSearch/:query', function (req, res) {
 
-  const query = JSON.parse( req.params.query) 
+  const query =  JSON.parse(req.params.query); 
 
   var obj, fillertedData = [];
   console.log("query", query)
@@ -491,6 +490,64 @@ app.get('/stockOptionSearch/:query', function (req, res) {
   return;
 
 });
+
+
+app.post('/getStockOptions', function (req, res) {
+
+  const query =  req.body.query; 
+  var name = req.body.name.replace("-EQ","");
+  var ltp = req.body.ltp;
+  var optionType = req.body.optionType;
+
+  var obj, fillertedData = [];
+  let minStrike = (ltp - ltp*2/100), 
+  maxStrike =  (ltp + ltp*2/100), 
+  currentMonth = moment().format('MMM').toUpperCase(), 
+  nextMonth = moment().add(1, 'M').format('MMM').toUpperCase(); 
+
+  console.log(name, ltp,optionType)
+
+  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    obj = JSON.parse(data);
+
+     
+    // obj.sort(function (a, b) {
+    //   return b.name === name && a.exch_seg === "NFO" && parseFloat(a.strike) - parseFloat(b.strike)
+    // })
+
+    for (let index = 0; index < obj.length; index++) {
+      //BANKNIFTY16SEP2137700CE
+      if(obj[index].name === name && obj[index].exch_seg === "NFO" && 
+        obj[index].symbol.endsWith(optionType.toUpperCase()) && 
+        parseFloat(obj[index].strike)/100 >= minStrike && 
+        parseFloat(obj[index].strike)/100 <= maxStrike && 
+        (obj[index].expiry.includes(currentMonth) || obj[index].expiry.includes(nextMonth)) ) {
+          obj[index].expiryMonth =  moment(obj[index].expiry).format('MMM').toUpperCase();
+          obj[index].optionType =  optionType; 
+          fillertedData.push(obj[index])
+      }
+    }
+  
+    fillertedData.sort(function (a, b) {
+      return parseFloat(a.strike) - parseFloat(b.strike)
+    })
+
+    fillertedData.sort(function (a, b) {
+      return parseFloat(a.strike)- parseFloat(b.strike)
+    })
+
+    console.log("fillertedData", minStrike, maxStrike, moment().format('MMM'), moment().add(1, 'M'), fillertedData.length, fillertedData);
+
+    res.status(200).send(JSON.stringify(fillertedData));
+
+  });
+  return;
+
+});
+
+
+
 
 // On localhost:8081/welcome
 app.get('/getScannedStocks/', function (req, res) {
