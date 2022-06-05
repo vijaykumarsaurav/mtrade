@@ -41,15 +41,13 @@ class Home extends React.Component {
         this.state = {
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             totalWatchlist: localStorage.getItem('totalWatchlist') && JSON.parse(localStorage.getItem('totalWatchlist')) || [],
-            selectedWatchlist: "NIFTY 50",
+            selectedWatchlist: "NIFTY BANK",
             totalStockToWatch: 0,
             timeFrame: "FIFTEEN_MINUTE",
             chartStaticData: [],
             BBBlastType: "BBStrongBreakout",
             qtyToTake: '',
             fastMovementList: localStorage.getItem('fastMovementList') && JSON.parse(localStorage.getItem('fastMovementList')) || [],
-
-
         };
         this.findlast5minMovement = this.findlast5minMovement.bind(this);
         this.startSearching = this.startSearching.bind(this);
@@ -437,32 +435,74 @@ class Home extends React.Component {
                                 }
                             }
 
+                            if(this.state.BBBlastType == 'findRange'){
+                                let lower=candleData[0][3], higher=candleData[0][2]; 
+                                let rangehighlow = 0, lowdate = candleData[0][0], highdate = candleData[0][0]; 
 
+                                console.log("candleData", watchList[index].symbol, candleData)
+                                for (let indexR = 0; indexR < candleData.length-1; indexR++) {
+                                    const element = candleData[indexR];
+                                    let high = element[2]; 
+                                    let low = element[3]; 
+                    
+                                    if(rangehighlow <= 1){
+                                        if(low < lower) {
+                                            lower = low;
+                                            lowdate = element[0];
+                                        }         
+                                        if(higher <  high) {
+                                            higher = high
+                                            highdate = element[0];
+                                        } 
+                                        rangehighlow++;        
+                                    }
+                    
+                                }
 
-
+                                if(rangehighlow == 1){
+                                    var nextCandles = candleData.slice(0, 25);
+                                    let buffer = (higher - lower) * 20 /100; 
+                                    lower =  lower - buffer; 
+                                    higher =  higher + buffer;
+                                    this.findRange(nextCandles, lower,  higher, watchList[index].symbol); 
+                                    // console.log("lower", lower,  "lowdate", new Date(lowdate).toLocaleString()  )
+                                    // console.log("higher", higher, "highdate", new Date(highdate).toLocaleString(),  "\n")
+                                    rangehighlow = 0; 
+                                    lower=candleData[1][3];
+                                    higher=candleData[1][2]; 
+                                }
+                            }
                         }
 
                     })
-
-
-
-
-
-
-
-
 
                 } else {
                     //localStorage.setItem('NseStock_' + symbol, "");
                     console.log(watchList[index].symbol, "  emply candle found");
                 }
             })
-
             await new Promise(r => setTimeout(r, 600));
         }
+    }
 
+    findRange( nextCandles, lower, higher, symbol) { 
+        let count = 0, range = higher - lower;
+        // if(range >= 30 && range <= 60 ){  
+        // }
+        for (let index = 0; index < nextCandles.length; index++) {
+            const element = nextCandles[index];
+            if(element[2] <= higher && element[3] >= lower){
+                //console.log(element);
+                count++;  
+            }else{
+                break; 
+            }
+        }
+        if(count >= 3){
 
+            console.log( count , symbol, lower, higher, range, new Date(nextCandles[0][0]).toLocaleString() );
 
+        }
     }
 
 
@@ -676,6 +716,7 @@ class Home extends React.Component {
                                 <MenuItem value={'BBBlastOnly'}>{'BB Blast'}</MenuItem>
                                 <MenuItem value={'BBBlastDaily'}>{'BB Blast Daily'}</MenuItem>
                                 <MenuItem value={'BBStrongBreakout'}>{'BB Strong Breakout'}</MenuItem>
+                                <MenuItem value={'findRange'}>{'Find Range'}</MenuItem>
 
 
 

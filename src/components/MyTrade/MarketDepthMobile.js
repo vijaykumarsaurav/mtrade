@@ -306,11 +306,20 @@ class LiveBid extends React.Component {
                     symbolListArray[index].highupdated = highlow &&  highlow.highupdated; 
                     symbolListArray[index].lowupdated = highlow &&  highlow.lowupdated; 
 
-                    
-
                     symbolListArray[index].volBreakoutCount = voldata.brokenCount; 
                     symbolListArray[index].priceVolBreakout = voldata.priceVolBreakout; 
                     symbolListArray[index].rsi = voldata.rsi; 
+
+                    console.log('high', element.high20Candle, 'ltp', foundLive[0].ltp, new Date().toLocaleTimeString());
+
+                   if(foundLive[0].ltp >  element.high20Candle){
+                    element.high20Candle = foundLive[0].ltp; 
+                    element.high20CandleFlag = true;  
+                    this.speckIt(element.symbol + ' higher '); 
+                    document.title = element.symbol + ' higher ';
+                   }else{
+                    element.high20CandleFlag = false;
+                   }
 
                     if (foundLive[0].tbq / foundLive[0].tsq > 2) {
                         symbolListArray[index].highlightbuy = true;
@@ -688,7 +697,7 @@ class LiveBid extends React.Component {
           //  this.updateDayChartHighLow(); 
 
           if(e.target.name != 'candleHistoryFlag'){
-         //   watchList &&  this.updatePreviousVolume(); 
+            this.updatePreviousVolume(); 
             this.updateOriginalHist(); 
           }
         });
@@ -902,18 +911,22 @@ class LiveBid extends React.Component {
                             var candleData = histdata.data.slice(histdata.data.length-20, histdata.data.length);;
 
                             //    console.log("candleData",element, candleData);
-                            console.log("history",element.symbol, candleData);
 
                             this.deletePrevVolume(element.symbol)
 
                             let intradayVol = 0; 
                             let storedPrevVol = JSON.parse(localStorage.getItem('liveCandleHistory')) && JSON.parse(localStorage.getItem('liveCandleHistory')) || [];                     
-
+                            let higher = candleData[0][2]; 
                             for (let index = 0; index < candleData.length; index++) {
                                 const histElement = candleData[index];
                                
                                 if(new Date(histElement[0]).getDate() == new Date().getDate()){
                                     intradayVol += histElement[5]; 
+                                }
+
+                                  
+                                if(histElement[2] > higher){
+                                    higher = histElement[2];
                                 }
                                 
                                 var data = {
@@ -926,7 +939,10 @@ class LiveBid extends React.Component {
                                 }
                                 storedPrevVol.push(data); 
                             }
+                            element.high20Candle = higher; 
+                            console.log("high20Candle",element.symbol, higher);
 
+                            
                             localStorage.setItem('liveCandleHistory', JSON.stringify(storedPrevVol) )
 
                         } else {
@@ -1386,7 +1402,8 @@ class LiveBid extends React.Component {
                                         <TableCell style={{background: this.state.sortedType == 'lowupdated'?'lightgray': ""}} ><Button onClick={() => this.sortByColumn("lowupdated")}>Low</Button>  </TableCell>
 
 
-                                    
+                                        <TableCell title='20 candle high'>Higher</TableCell>
+
                                         
                                         {/* <TableCell >Other Details </TableCell>
                                         <TableCell >High Price</TableCell>
@@ -1491,6 +1508,7 @@ class LiveBid extends React.Component {
                                                 {/* <TableCell >{row.quantityTraded} {this.convertToFloat(row.quantityTraded)}</TableCell> */}
                                                 {/* <TableCell >{row.deliveryQuantity} {this.convertToFloat(row.deliveryQuantity)}</TableCell>
                                             <TableCell >{row.deliveryToTradedQuantity}%</TableCell> */}
+                                                <TableCell style={{ background: row.high20CandleFlag ? "#FFFF00" : "" }} title='20 candle high'  >{row.high20Candle}</TableCell>
 
                                                 {/* <TableCell >{row.totalTradedVolume} {this.convertToFloat(row.totalTradedVolume)}</TableCell> */}
                                                 {/* <TableCell >{row.totalTradedValue}L</TableCell> */}

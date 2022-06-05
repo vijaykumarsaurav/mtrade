@@ -30,7 +30,6 @@ class OrderBook extends React.Component{
             lotsize:0,
             firstTimeFlag: true,
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
-
         }
     }
 

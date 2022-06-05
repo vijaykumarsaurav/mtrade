@@ -373,7 +373,7 @@ app.post('/getAllListTokens', function (req, res) {
   const sybollist = req.body
   var obj, fillertedData = [];
 
-  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
     if (err) throw err;
     obj = JSON.parse(data);
 
@@ -394,13 +394,131 @@ app.post('/getAllListTokens', function (req, res) {
   return;
 
 });
+
+//get all cash stocks 
+app.get('/getAllCashStocks', function (req, res) {
+
+  const sybollist = req.body
+  var obj, fillertedData = [];
+
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    obj = JSON.parse(data);
+
+    for (let index = 0; index < obj.length; index++) {
+      // if(obj[index].name.startsWith(symbolName) && obj[index].lotsize == "1" && obj[index].exch_seg == "NSE"  && !obj[index].symbol.endsWith("-BL")) {
+      //   fillertedData.push(obj[index])
+      // }
+      if(obj[index].symbol.endsWith('-EQ') && obj[index].lotsize == "1") {
+        fillertedData.push(obj[index])
+      }
+    }
+
+    
+  var path = __dirname.split('\\')
+  path.pop();
+  console.log(__dirname, path);
+  path = path && path.join('/');
+  path = path + "/public/staticData.json";
+  res.setHeader('Content-Type', 'application/json');
+
+
+  //    var path = 'C:/Users/AkashWay/mtrade/LearnNew/public/staticData.json';
+  fs.readFile(path, 'utf8', function readFileCallback(err, data) {
+    if (err) {
+      console.log(err);
+    } else {
+
+      var watchlist = JSON.parse(data) ? JSON.parse(data) : {};
+      // var found = watchlist.filter(row => row.token  == stock.token);
+      // console.log('found',found);
+      // if(!found.length ){
+      // }
+
+      watchlist['CashStocks'] = fillertedData;
+
+      fs.writeFile(path, JSON.stringify(watchlist), 'utf8', function callback() {
+
+        console.log(req.body.listName, " added/updated ", req.body.listItem.length);
+
+        var response = { status: 'Added', listName: req.body.listName, count: req.body.listItem.length };
+
+        res.status(200).send(response);
+      }); // write it back 
+
+
+    }
+  });
+    res.status(200).send({totalCashStock: fillertedData.length});
+
+  });
+  return;
+
+});
+
+
+app.get('/getAllOptionData', function (req, res) {
+
+  const sybollist = req.body
+  var obj, fillertedData = [];
+
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    obj = JSON.parse(data);
+
+    for (let index = 0; index < obj.length; index++) {
+      // if(obj[index].name.startsWith(symbolName) && obj[index].lotsize == "1" && obj[index].exch_seg == "NSE"  && !obj[index].symbol.endsWith("-BL")) {
+      //   fillertedData.push(obj[index])
+      // }  "instrumenttype": "OPTSTK",
+      if(obj[index].instrumenttype == "OPTSTK" && (obj[index].expiry.includes('JUN') || obj[index].expiry.includes('JUL'))) {
+        fillertedData.push(obj[index])
+      }
+    }
+
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).send({totalStockOptions: fillertedData.length, OptionsData: fillertedData});
+
+  });
+  return;
+
+});
+
+// On localhost:8081/welcome
+app.post('/getAll145Tokens', function (req, res) {
+
+  const strikeList = req.body
+  var obj, fillertedData = [];
+
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    obj = JSON.parse(data);
+
+    strikeList.forEach(element => {
+      for (let index = 0; index < obj.length; index++) {
+        const item = obj[index];
+        let nextDate = moment(new Date()).add(8, 'days');
+        let expireAt = moment(item.expiry);
+
+        if(parseFloat(item.strike)/100  == element && item.name === 'NIFTY' && expireAt <= nextDate) {
+          fillertedData.push(item); 
+        }
+      }
+    });
+
+    res.status(200).send(JSON.stringify(fillertedData));
+
+  });
+  return;
+
+});
 // On localhost:8081/welcome
 app.get('/search/:query', function (req, res) {
 
   const symbolName = req.params.query.toUpperCase();
   var obj, fillertedData = [];
 
-  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
     if (err) throw err;
     obj = JSON.parse(data);
 
@@ -432,7 +550,7 @@ app.get('/updateStockList', function (req, res) {
   path.pop();
   path = path && path.join('/');
   path =  path + "/public/stockList.json";
-  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
     if (err) throw err
     obj = JSON.parse(data);
 
@@ -455,11 +573,11 @@ app.get('/updateStockList', function (req, res) {
 app.get('/stockOptionSearch/:query', function (req, res) {
 
   const query =  JSON.parse(req.params.query); 
-
+      bv                                                         
   var obj, fillertedData = [];
   console.log("query", query)
 
-  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
     if (err) throw err;
     obj = JSON.parse(data);
 
@@ -507,7 +625,7 @@ app.post('/getStockOptions', function (req, res) {
 
   console.log(name, ltp,optionType)
 
-  fs.readFile('OpenAPIScripMaster.json', 'utf8', function (err, data) {
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
     if (err) throw err;
     obj = JSON.parse(data);
 

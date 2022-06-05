@@ -108,6 +108,8 @@ export default function PostLoginNavBar(props) {
 
     });
 
+    const CashStocks = localStorage.getItem('staticData') ? JSON.parse(localStorage.getItem('staticData')).CashStocks : []; 
+   
     const classes = useStyles();
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
@@ -121,21 +123,25 @@ export default function PostLoginNavBar(props) {
         setOpen(false);
     }
 
-
     function handleInput(e) {
         setValues({ ...values, ['searchSymbol']: e.target.value });
-        AdminService.autoCompleteSearch(e.target.value).then(searchRes => {
-            let searchResdata = searchRes.data;
-            if (e.target.value) {
-                var uppercaseName = e.target.value.toUpperCase() + "-EQ";
-                var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.symbol === uppercaseName);
-                //  console.log("found", found[0] && found[0].symbol); 
-                if (found.length) {
+        // AdminService.autoCompleteSearch(e.target.value).then(searchRes => {
+        //     let searchResdata = searchRes.data;
+        //     if (e.target.value) {
+        //         var uppercaseName = e.target.value.toUpperCase() + "-EQ";
+        //         var found = searchResdata.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.symbol === uppercaseName);
+        //         //  console.log("found", found[0] && found[0].symbol); 
+        //         if (found.length) {
 
-                    setValues({ ...values, ['searchSymbol']: found[0].symbol, ['token']: found[0].token });
-                }
-            }
-        })
+        //             setValues({ ...values, ['searchSymbol']: found[0].symbol, ['token']: found[0].token });
+        //         }
+        //     }
+        // })
+        var uppercaseName = e.target.value.toUpperCase() + "-EQ";
+        var found = CashStocks.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.symbol === uppercaseName);
+        if (found.length) {
+            setValues({ ...values, ['searchSymbol']: found[0].symbol, ['token']: found[0].token });
+        }        
     }
 
     function handleInputQty(e) {
@@ -304,10 +310,15 @@ export default function PostLoginNavBar(props) {
                                             Pattern <OpenInNewIcon />
                                         </Button>
                                     </Grid>
+                                    <Grid item>
+                                        <Button variant="contained"  autoFocus href={"/mtrade/#/track145"}>
+                                            145
+                                        </Button>
+                                    </Grid>
 
                                     <Grid item>
                                         <Button variant="contained" autoFocus href={"/mtrade/#/order-watchlist"} color="primary">
-                                            Order Watchlist
+                                            Order WL
                                         </Button>
                                     </Grid>
 

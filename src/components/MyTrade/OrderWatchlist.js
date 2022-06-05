@@ -27,7 +27,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 
 import BankNiftyView from './BankNiftyView'
 import OptionBuyWithSPLevel from './OptionBuyWithSPLevel'
-
+import ChartDialog from './ChartDialog'
 
 
 class OrderBook extends React.Component {
@@ -154,7 +154,7 @@ class OrderBook extends React.Component {
                     element.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
                     localStorage.setItem('orderPenidngList', JSON.stringify(this.state.orderPenidngList));
                     this.setState({ orderPenidngList: this.state.orderPenidngList });
-                    console.log("ltp update", element.symbol, element)
+                 //   console.log("ltp update", element.symbol, element)
 
                     if (element.buyAt && LtpData.ltp >= parseFloat(element.buyAt)) {
                         var isDelete = this.deleteInOrderPenidngList(element);
@@ -230,6 +230,15 @@ class OrderBook extends React.Component {
             }
             this.setState({ findlast5minMovementInterval: setInterval(() => { this.updateLTP(); }, intervaltime) });
         }
+
+        AdminService.getFunds().then(fundsRes => {
+            // console.log('profiledata', profileRes); 
+               let fundsResData = resolveResponse(fundsRes);
+             //  var fundsResData =  fundsRes && fundsRes.data; 
+               if(fundsResData.status & fundsResData.message === 'SUCCESS'){
+                this.setState({  fundData :fundsResData.data }); 
+               }
+        })
 
     }
 
@@ -495,7 +504,6 @@ class OrderBook extends React.Component {
                             stopLossPrice: stopLossPrice,
                             quantity: quantity
                         }
-                        console.log("option buy element", element);
                         CommonOrderMethod.placeOptionOrder(element);
                     }
                 })
@@ -549,14 +557,18 @@ class OrderBook extends React.Component {
                     quantity: quantity,
                     netqty:quantity
                 }
-                console.log("option buy element", element);
                 CommonOrderMethod.placeOptionOrder(element);
             }
         })
 
     }
 
+    toFixedAmount =(value) => {
 
+        if(value){
+          return  parseFloat(value).toFixed(2);
+        }
+       }
     render() {
 
         return (
@@ -564,12 +576,24 @@ class OrderBook extends React.Component {
 
 
                 {window.location.hash == "#/order-watchlist" ? <PostLoginNavBar /> : ""}
+                <ChartDialog />
 
+                
 
                 <Grid justify="space-between" container>
+
+                <Typography variant="h6" style={{color:'green'}}>
+                 Net Balance:   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.net)}
+                </Typography>
+                <Typography variant="h6" style={{color:'green'}}>
+                   Available Cash :   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.availablecash)}
+                </Typography>
+                
                     <Grid item xs={12} sm={12}>
                         {window.location.hash == "#/order-watchlist" ? <OptionBuyWithSPLevel buyOption={this.buyOption} /> : ""}
                     </Grid>
+
+                   
 
 
                     <Grid item xs={12} sm={12}>

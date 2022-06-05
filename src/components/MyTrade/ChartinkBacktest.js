@@ -315,14 +315,14 @@ class Home extends React.Component {
             for (let index3 = 1; index3 < candleData.length; index3++) {
                 if(this.state.orderType == "buy") {
                     let perChange = (candleData[index3][2] - stock.entryPrice) * 100 / stock.entryPrice;
-                    if(perChange > this.state.targetPer){
+                    if(perChange >= this.state.targetPer){
                         this.setState({crossedTargetCount : this.state.crossedTargetCount+1 }); 
                         break; 
                     }
                 }
                 if(this.state.orderType == "sell"){
                     let perChange = (candleData[index3][3] - stock.entryPrice) * 100 / stock.entryPrice;
-                    if(perChange < -this.state.targetPer){
+                    if(perChange <= -this.state.targetPer){
                         this.setState({crossedTargetCount : this.state.crossedTargetCount+1 }); 
                         break; 
                     }

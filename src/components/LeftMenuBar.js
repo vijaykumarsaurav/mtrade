@@ -15,37 +15,37 @@ export const AdminMenuList = (
 
   <div>
     {/* <ListSubheader inset>Upload & Create</ListSubheader> */}
-   
 
-    <ListItem button component='a' href={"/mtrade/#/home"} >  
+
+    <ListItem button component='a' href={"/mtrade/#/home"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
       <ListItemText primary="Home" />
     </ListItem>
-    
-    <ListItem button component='a' href={"/mtrade/#/position"} >  
+
+    <ListItem button component='a' href={"/mtrade/#/position"} >
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
       <ListItemText primary="Positions" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/sector-heat-map2"} >  
+    <ListItem button component='a' href={"/mtrade/#/sector-heat-map2"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
       <ListItemText primary="Heat Map2" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/strong-charts"} >  
+    <ListItem button component='a' href={"/mtrade/#/strong-charts"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
       <ListItemText primary="Strong Charts" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/delivery"} >  
+    <ListItem button component='a' href={"/mtrade/#/delivery"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
@@ -53,7 +53,7 @@ export const AdminMenuList = (
     </ListItem>
 
 
-    <ListItem button component='a' href={"/mtrade/#/slow-motion"} >  
+    <ListItem button component='a' href={"/mtrade/#/slow-motion"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
@@ -61,74 +61,74 @@ export const AdminMenuList = (
     </ListItem>
 
 
-   
-    <ListItem button component='a' target={'_blank'} href={"/mtrade/#/find-fast-movement"} >  
+
+    <ListItem button component='a' target={'_blank'} href={"/mtrade/#/find-fast-movement"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
       <ListItemText primary="Fast Movement" />
     </ListItem>
 
-    <ListItem button component='a' target={'_blank'} href={"/mtrade/#/index-charts"} >  
+    <ListItem button component='a' target={'_blank'} href={"/mtrade/#/index-charts"} >
       <ListItemIcon>
         <EqualizerIcon />
       </ListItemIcon>
       <ListItemText primary="Index Charts" />
     </ListItem>
-    
 
 
-  
 
-    <ListItem button component='a' href={"/mtrade/#/order-watchlist"} >  
+
+
+    <ListItem button component='a' href={"/mtrade/#/order-watchlist"} >
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>
       <ListItemText primary="Order Watchlist" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/funds"} >  
+    <ListItem button component='a' href={"/mtrade/#/funds"} >
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Funds" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/order"} >  
+    <ListItem button component='a' href={"/mtrade/#/order"} >
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Order Book" />
     </ListItem>
-    <ListItem button component='a' href={"/mtrade/#/trade"} >  
+    <ListItem button component='a' href={"/mtrade/#/trade"} >
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Trade Book" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/sector-heat-map"} >  
+    <ListItem button component='a' href={"/mtrade/#/sector-heat-map"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
       <ListItemText primary="Heat Map" />
     </ListItem>
-  
 
-    <ListItem button component='a' href={"/mtrade/#/market-depth"} >  
+
+    <ListItem button component='a' href={"/mtrade/#/market-depth"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
       <ListItemText primary="Depth Live" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/market-depth-mobile"} >  
+    <ListItem button component='a' href={"/mtrade/#/market-depth-mobile"} >
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
       <ListItemText primary="Depth Live Mobile" />
     </ListItem>
-    
+
     {/* <ListItem button component='a' href={"/mtrade/#/bn-view"} >  
       <ListItemIcon>
         <EmojiEmotionsIcon />
@@ -151,36 +151,52 @@ export const AdminMenuList = (
       <ListItemText primary="Sector Top" />
     </ListItem> */}
 
-    <ListItem button component='a' href={"/mtrade/#/backtest"} >  
+    <ListItem button component='a' href={"/mtrade/#/backtest"} >
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Backtest" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/chartink-backtest"} >  
+    <ListItem button component='a' href={"/mtrade/#/chartink-backtest"} >
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
-      <ListItemText primary="Chartink Backtest"/>
-    </ListItem>    
+      <ListItemText primary="Chartink Backtest" />
+    </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/backup-history"} >  
+
+    <ListItem button component='a' href={"/mtrade/#/custom-backtest"} >
+      <ListItemIcon>
+        <FileCopyIcon />
+      </ListItemIcon>
+      <ListItemText primary="Custom Backtest" />
+    </ListItem>
+
+    <ListItem button component='a' href={"/mtrade/#/track145"} >
+      <ListItemIcon>
+        <FileCopyIcon />
+      </ListItemIcon>
+      <ListItemText primary="Track 145" />
+    </ListItem>
+
+
+    <ListItem button component='a' href={"/mtrade/#/backup-history"} >
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary="Backup History" />
     </ListItem>
-  
 
 
-    <ListItem button component='a' href={"/mtrade/#/addtowatchlist"} >  
+
+    <ListItem button component='a' href={"/mtrade/#/addtowatchlist"} >
       <ListItemIcon>
         <FileCopyIcon />
       </ListItemIcon>
       <ListItemText primary={"Watchlist (" + (localStorage.getItem('watchList') && JSON.parse(localStorage.getItem('watchList')).length) + ")"} />
     </ListItem>
-  
+
 
 
   </div>
@@ -189,52 +205,53 @@ export const AdminMenuList = (
 function deleteAllCookies() {
   var cookies = document.cookie.split(";");
   for (var i = 0; i < cookies.length; i++) {
-      var cookie = cookies[i];
-      var eqPos = cookie.indexOf("=");
-      var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    var cookie = cookies[i];
+    var eqPos = cookie.indexOf("=");
+    var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
   }
 }
 
-function logoutPortal(){
+function logoutPortal() {
   //console.log("yo_man")
 
-  if(window.confirm("Are you sure to logout?")){
+  //if (window.confirm("Are you sure to logout?")) {
 
-  var userProfile = localStorage.getItem("userProfile")
-  userProfile = userProfile && JSON.parse(userProfile);
+    var userProfile = localStorage.getItem("userProfile")
+    userProfile = userProfile && JSON.parse(userProfile);
 
-  var data = {
-    clientcode : userProfile && userProfile.clientcode
+    var data = {
+      clientcode: userProfile && userProfile.clientcode
     }
 
     AdminService.logout(data)
-    .then(res => {
-    
-    localStorage.clear();
-    //localStorage.setItem('userTokens', '');
-    //localStorage.setItem('userProfile', '');
-    deleteAllCookies();
-    
-    window.location.replace("#/login");
-    return;
+      .then(res => {
 
-    });
+        localStorage.clear();
+        //localStorage.setItem('userTokens', '');
+        //localStorage.setItem('userProfile', '');
+        deleteAllCookies();
 
-  }
+       window.location.replace("#/login?logout=1");
+      //  window.location.href = '#/login';
+        return;
+
+      });
+
+ // }
 }
 
 var userProfile = localStorage.getItem("userProfile")
 userProfile = userProfile && JSON.parse(userProfile);
 
 export const LogoutMenu = (
-  
+
   <div>
-    <Link to={''} style={{textDecoration: "none"}} onClick={logoutPortal}>
+    <Link to={''} style={{ textDecoration: "none" }} onClick={logoutPortal}>
       <ListItem button>
-          <ListItemIcon title="Logout">
-            <PowerSettingsNewIcon />
-          </ListItemIcon><ListItemText primary={<span title={userProfile && userProfile.clientcode ? userProfile.clientcode : ''}> {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : ''} </span> } />
+        <ListItemIcon title="Logout">
+          <PowerSettingsNewIcon />
+        </ListItemIcon><ListItemText primary={<span title={userProfile && userProfile.clientcode ? userProfile.clientcode : ''}> {userProfile && userProfile.name ? userProfile.name.split(' ')[0] : ''} </span>} />
       </ListItem>
     </Link>
 

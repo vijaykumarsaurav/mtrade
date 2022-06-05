@@ -102,6 +102,10 @@ class AdminService {
       return axios.post('http://localhost:8081/backupHistoryData', data,  '');
    } 
 
+   getAll145Tokens(data) {
+      return axios.post('http://localhost:8081/getAll145Tokens', data,  '');
+   } 
+
 
    saveDeliveryData(data) {
       return axios.post('http://localhost:8081/store_delivery_data', data,  '');

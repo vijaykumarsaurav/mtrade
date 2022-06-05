@@ -66,6 +66,13 @@ class LoginComponent extends React.Component{
       //  const lastUrl = localStorage.getItem("lastUrl"); 
         this.props.history.push('home');
       }
+
+      if(document.location.href.includes('logout')){
+        document.location.href = '#/login';
+        window.location.reload(true);
+      }else{
+      }
+
     }
 
     onChange = (e) => {

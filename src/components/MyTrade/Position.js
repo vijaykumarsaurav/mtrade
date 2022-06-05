@@ -51,9 +51,9 @@ class Home extends React.Component {
             firstTimeSLMove: 0.5, 
             nextTimeMove : 0.6, 
             nextTimeSLMove: 0.3,
-            firstTimeMoveOption : 10, 
+            firstTimeMoveOption : 6, 
             firstTimeSLMoveOption: 3, 
-            nextTimeMoveOption : 10, 
+            nextTimeMoveOption : 6, 
             nextTimeSLMoveOption: 3,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
@@ -1673,7 +1673,7 @@ class Home extends React.Component {
                     trackSLPriceList.splice(deleteindex, 1); 
                     localStorage.setItem('trackSLPrice', JSON.stringify(trackSLPriceList)); 
                     this.setState({trackSLPrice : trackSLPriceList},  ()=> {
-                        this.squareOff(position);
+                        this.squareOff(position, true);
                     }); 
                     break; 
                 }
@@ -1937,8 +1937,9 @@ class Home extends React.Component {
 
     }
 
-    squareOff = (row) => {
+    squareOff = (row, marketOrder) => {
 
+        let price = 0; 
         var data = {
             "variety": "NORMAL",
             "tradingsymbol": row.tradingsymbol,
@@ -1948,15 +1949,26 @@ class Home extends React.Component {
             "ordertype": "MARKET",
             "producttype": row.producttype, //"DELIVERY",//"DELIVERY",
             "duration": "DAY",
-            "price": 0,
+            "price": price,
             "squareoff": "0",
             "stoploss": "0",
             "quantity": Math.abs(row.netqty),
         }
 
-        // if(window.confirm("Squire Off!!! Sure?")){
+        console.log('sql', row)
+      
+      
+        if(marketOrder){
+            data.price = 0;
+        }
+  
+        if(row.instrumenttype == "OPTSTK" &&  (row.optiontype == "PE" || row.optiontype == "CE")){
+            let stopLossPrice = row.ltp - (row.ltp * 0.5 / 100);
+            stopLossPrice = CommonOrderMethod.getMinPriceAllowTick(stopLossPrice);
+            data.price = stopLossPrice;
+            data.triggerprice = row.ltp-0.05; 
+         }
 
-        // }
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
           //  console.log("squireoff", data);
@@ -2122,7 +2134,6 @@ class Home extends React.Component {
     }
     getOptionPercentage =(row)=> {
 
-        console.log("option per calling"); 
         var percentChange = 0, trailPerChange = 0; 
 
         row.buyavgprice = parseFloat(row.buyavgprice);
