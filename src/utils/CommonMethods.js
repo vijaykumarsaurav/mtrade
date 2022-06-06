@@ -62,19 +62,15 @@ class CommonOrderMethod {
     }
 
 
-    // getStockTokenDetails = (SYMBOL) => {
-    //     AdminService.autoCompleteSearch(SYMBOL).then(searchRes => {   
-    //         let searchResdata =  searchRes.data; 
-    //         if(SYMBOL){
-    //             var uppercaseName =  SYMBOL.toUpperCase() + "-EQ"; 
-    //             var found = searchResdata.filter(row => row.name  === SYMBOL && row.symbol === uppercaseName);      
-    //             console.log("found", found); 
-    //             if(found.length){ 
-    //                return found[0]; 
-    //             }
-    //         }
-    //      })
-    // }
+    getStockTokenDetails = (name) => {
+        const CashStocks = localStorage.getItem('staticData') ? JSON.parse(localStorage.getItem('staticData')).CashStocks : []; 
+        var uppercaseName = name.toUpperCase() + "-EQ";
+        var found = CashStocks.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.symbol === uppercaseName);
+        if (found.length) {
+            return found[0]; 
+        }  
+        return null;       
+    }
 
     updateOrderList = () => {
         AdminService.retrieveOrderBook()

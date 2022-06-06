@@ -323,7 +323,7 @@ export default function PostLoginNavBar(props) {
                                     </Grid>
 
                                     <Grid item>
-                                        <Button variant="contained" autoFocus href={"/mtrade/#/position"} color="primary">
+                                        <Button variant="contained" autoFocus href={"/mtrade/#/position-new"} color="primary">
                                             Position
                                         </Button>
                                     </Grid>
