@@ -79,9 +79,48 @@ class AdminService {
         return axios.post('http://localhost:8081/saveCandleHistory', data,  '');
      } 
 
+<<<<<<< Updated upstream
      getPosition(data){
         return axios.get(apiConstant.getPosition, AuthService.getHeader());
      }
+=======
+     saveCurrentSassion(data) {
+      return axios.post('http://localhost:8081/saveCurrentSassion', data,  '');
+     } 
+     
+
+     backupHistoryData(data) {
+      return axios.post('http://localhost:8081/backupHistoryData', data,  '');
+   } 
+
+   getAll145Tokens(data) {
+      return axios.post('http://localhost:8081/getAll145Tokens', data,  '');
+   } 
+
+
+   saveDeliveryData(data) {
+      return axios.post('http://localhost:8081/store_delivery_data', data,  '');
+   } 
+
+   saveBidData(data) {
+      return axios.post('http://localhost:8081/store_bid_data', data,  '');
+   } 
+
+   getDeliveryDataFromDb(symbol) {
+      return axios.get('http://localhost:8081/get_delivery_data?symbol='+symbol, '');
+   } 
+   getBidDataFromDb(backDate,allSymbol,count) {
+      return axios.get('http://localhost:8081/get_bid_data?backDate='+backDate +"&allSymbol="+allSymbol+"&count="+count, '');
+   } 
+
+   getBackUpdateList() {
+      return axios.get('http://localhost:8081/get_backup_date_list', '');
+   } 
+
+   getPosition(data){
+      return axios.get(apiConstant.getPosition, AuthService.getHeader());
+   }
+>>>>>>> Stashed changes
 
      getAutoScanStock(){
         return axios.get(apiConstant.getScannedStocks, '');

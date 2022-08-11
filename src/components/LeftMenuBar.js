@@ -19,7 +19,27 @@ export const AdminMenuList = (
       <ListItemIcon>
         <ShowChartIcon />
       </ListItemIcon>
+<<<<<<< Updated upstream
       <ListItemText primary="Sector Heat Map" />
+=======
+      <ListItemText primary="Home" />
+    </ListItem>
+    <ListItem button component='a' href={"/mtrade/#/Index-option-watchlist"} >
+      <ListItemIcon>
+        <ShowChartIcon />
+      </ListItemIcon>
+      <ListItemText primary="Index Option" />
+    </ListItem>
+
+    
+
+
+    <ListItem button component='a' href={"/mtrade/#/position"} >
+      <ListItemIcon>
+        <EmojiEmotionsIcon />
+      </ListItemIcon>
+      <ListItemText primary="Positions" />
+>>>>>>> Stashed changes
     </ListItem>
 
     <ListItem button component='a' target={'_blank'} href={"/mtrade/#/find-fast-movement"} >  

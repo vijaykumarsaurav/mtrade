@@ -84,6 +84,18 @@ export default function placeSLMOrder(slmOption) {
 
 export default function historyWiseOrderPlace(sectorItem, orderType, isAutomatic, spinnerIndex) {
 
+<<<<<<< Updated upstream
+=======
+    getStockTokenDetails = (name) => {
+        const CashStocks = localStorage.getItem('staticData') ? JSON.parse(localStorage.getItem('staticData')).CashStocks : []; 
+        var uppercaseName = name.toUpperCase() + "-EQ";
+        var found = CashStocks.filter(row => row.name === name && row.exch_seg === "NSE");
+        if (found.length) {
+            return found[0]; 
+        }  
+        return null;       
+    }
+>>>>>>> Stashed changes
 
     this.setState({ [spinnerIndex]: true })
 

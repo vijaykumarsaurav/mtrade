@@ -23,6 +23,28 @@ import Position from "./MyTrade/Position";
 import AddToWatchlist from "./MyTrade/AddToWatchlist";
 import SectorHeatMap from "./MyTrade/SectorHeatMap";
 import FindFastMovement from "./MyTrade/FindFastMovement";
+<<<<<<< Updated upstream
+=======
+import FindFastMovement2 from "./MyTrade/FindFastMovement2";
+import FindFastMovement3 from "./MyTrade/FindFastMovement3";
+
+import OrderWatchlist from "./MyTrade/OrderWatchlist";
+import DeliveryData from "./MyTrade/DeliveryData";
+import SlowMotion from "./MyTrade/SlowMotion";
+import IndexCharts from "./MyTrade/IndexCharts";
+import MarketDepth from "./MyTrade/MarketDepth";
+import MarketDepthMobile from "./MyTrade/MarketDepthMobile";
+import Backtest from "./MyTrade/Backtest";
+import ChartinkBacktest from "./MyTrade/ChartinkBacktest";
+import CustomBacktest from "./MyTrade/CustomBacktest";
+import Track145Strategy from "./MyTrade/Track145Strategy";
+
+import StrongCharts from "./MyTrade/StrongCharts";
+
+import BackupHistory from "./MyTrade/BackupHistory";
+import IndexOptionWatchlist from "./MyTrade/IndexOptionWatchlist";
+
+>>>>>>> Stashed changes
 
 
 const AppRouter = () => {
@@ -50,6 +72,20 @@ const AppRouter = () => {
                     <Route path="/sector-heat-map" component={SectorHeatMap}/>
                     <Route path="/find-fast-movement" component={FindFastMovement}/>
 
+<<<<<<< Updated upstream
+=======
+                    <Route path="/backtest" component={Backtest}/>
+                    <Route path="/chartink-backtest" component={ChartinkBacktest}/>
+
+                    <Route path="/backup-history" component={BackupHistory}/>
+
+                    <Route path="/custom-backtest" component={CustomBacktest}/>
+                    <Route path="/track145" component={Track145Strategy}/>
+
+                    <Route path="/test" component={Test}/>
+                    <Route path="/Index-option-watchlist" component={IndexOptionWatchlist}/>
+                    
+>>>>>>> Stashed changes
            
                     <Route path="*" component={LoginComponent} />
                     

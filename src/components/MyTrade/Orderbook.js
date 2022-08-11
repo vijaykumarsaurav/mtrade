@@ -134,9 +134,20 @@ class OrderBook extends React.Component{
                                 <TableCell align="center"><b>Instrument</b></TableCell>
                                 {/* <TableCell align="center"><b>Token</b></TableCell> */}
 
+<<<<<<< Updated upstream
                                 <TableCell align="center"><b>Order Type</b></TableCell>
                                 <TableCell align="center"><b>CNC/Intraday</b></TableCell>
                                 <TableCell align="center"><b>Qty </b></TableCell>
+=======
+                                <TableCell align="center"><b>Transaction Type</b></TableCell>
+                                {/* <TableCell align="center"><b>Variety</b></TableCell> */}
+                                <TableCell align="center"><b>Order type</b>&nbsp;</TableCell>
+
+                                
+
+                                {/* <TableCell align="center"><b>Ordertype</b>&nbsp;</TableCell> */}
+                                <TableCell align="center"><b>Qty </b>&nbsp;</TableCell>
+>>>>>>> Stashed changes
                         
                                 <TableCell align="center"><b>Average Price</b></TableCell>
                                 
@@ -162,7 +173,15 @@ class OrderBook extends React.Component{
                                     {/* <TableCell align="center">{row.symboltoken  }</TableCell> */}
 
                                     <TableCell align="center">{row.transactiontype}</TableCell>
+<<<<<<< Updated upstream
                                     <TableCell align="center">{row.producttype}</TableCell>
+=======
+                                    <TableCell align="center">{row.ordertype}</TableCell>
+
+                                    {/* <TableCell align="center">{row.variety}</TableCell> */}
+
+                                    {/* <TableCell align="center">{row.producttype}</TableCell> */}
+>>>>>>> Stashed changes
 
                                     <TableCell align="center">
                                         {row.orderstatus === 'trigger pending' ? 

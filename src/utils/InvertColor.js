@@ -25,7 +25,6 @@ export default function MenuAppBar() {
   const handleChange = (event) => {
     localStorage.setItem('invertColorFlag', event.target.checked);
     setAuth(event.target.checked);
-   
   };
 
   // const handleMenu = (event) => {
