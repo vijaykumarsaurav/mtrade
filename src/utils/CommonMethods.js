@@ -5,6 +5,7 @@ import * as moment from 'moment';
 import Notify from './Notify';
 import { SMA, RSI, VWAP, BollingerBands } from 'technicalindicators';
 import vwap from 'vwap';
+import e from "cors";
 
 
 class CommonOrderMethod {
@@ -63,13 +64,22 @@ class CommonOrderMethod {
 
 
     getStockTokenDetails = (name) => {
-        const CashStocks = localStorage.getItem('staticData') ? JSON.parse(localStorage.getItem('staticData')).CashStocks : []; 
-        var uppercaseName = name.toUpperCase() + "-EQ";
-        var found = CashStocks.filter(row => row.exch_seg === "NSE" && row.lotsize === "1" && row.symbol === uppercaseName);
-        if (found.length) {
-            return found[0]; 
-        }  
-        return null;       
+        let foundSymbol = ''; 
+        if(name === "BANKNIFTY" || name === "NIFTY"){
+            const NSE_OPTION_INDEX = localStorage.getItem('staticData') ? JSON.parse(localStorage.getItem('staticData')).NSE_OPTION_INDEX : []; 
+            let found = NSE_OPTION_INDEX.filter(row => row.exch_seg === "NSE" && row.symbol === name.toUpperCase());
+            if (found.length) {
+                foundSymbol = found[0]; 
+            }  
+        }else{
+            const CashStocks = localStorage.getItem('staticData') ? JSON.parse(localStorage.getItem('staticData')).CashStocks : []; 
+            var uppercaseName = name.toUpperCase() + "-EQ";
+            let found = CashStocks.filter(row => row.exch_seg === "NSE" && row.symbol === uppercaseName);
+            if (found.length) {
+                foundSymbol = found[0]; 
+            }  
+        }
+        return foundSymbol;   
     }
 
     updateOrderList = () => {
@@ -329,19 +339,19 @@ class CommonOrderMethod {
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
             //  console.log(data);   
-            if (data.status && data.message === 'SUCCESS') {
-                if (orderOption.stopLossPrice) {
-                    setTimeout(() => {
-                        this.placeOptionSLMOrder(orderOption);
-                    }, 10000);
-                }
-                this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
+            // if (data.status && data.message === 'SUCCESS') {
+            //     if (orderOption.stopLossPrice) {
+            //         setTimeout(() => {
+            //             this.placeOptionSLMOrder(orderOption);
+            //         }, 10000);
+            //     }
+            //     this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
              
-                var callData = {
-                    "token": orderOption.symboltoken,
-                    "status": true
-                }
-            }
+            //     var callData = {
+            //         "token": orderOption.symboltoken,
+            //         "status": true
+            //     }
+            // }
 
         })
     }
@@ -404,19 +414,19 @@ class CommonOrderMethod {
         AdminService.placeOrder(data).then(res => {
             let data = resolveResponse(res);
             //  console.log(data);   
-            if (data.status && data.message === 'SUCCESS') {
-                if (orderOption.stopLossPrice) {
-                    this.placeSLMOrder(orderOption);
-                }
-                this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
+            // if (data.status && data.message === 'SUCCESS') {
+            //     if (orderOption.stopLossPrice) {
+            //         this.placeSLMOrder(orderOption);
+            //     }
+            //     this.speckIt('hey Vijay, ' + orderOption.tradingsymbol + " " +orderOption.transactiontype +" order placed");
              
-                var callData = {
-                    "token": orderOption.symboltoken,
-                    "status": true
-                }
-                callback(callData);
-                return;  
-            }
+            //     var callData = {
+            //         "token": orderOption.symboltoken,
+            //         "status": true
+            //     }
+            //     callback(callData);
+            //     return;  
+            // }
 
         })
     }

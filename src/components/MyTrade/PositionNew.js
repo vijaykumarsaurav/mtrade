@@ -51,9 +51,9 @@ class Home extends React.Component {
             firstTimeSLMove: 0.5,
             nextTimeMove: 0.6,
             nextTimeSLMove: 0.3,
-            firstTimeMoveOption: 6,
+            firstTimeMoveOption: 10,
             firstTimeSLMoveOption: 3,
-            nextTimeMoveOption: 6,
+            nextTimeMoveOption: 5,
             nextTimeSLMoveOption: 3,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [],
@@ -61,7 +61,7 @@ class Home extends React.Component {
             addSLInfo: {},
             niftyLtpSec: [],
             bnniftyLtpSec: [],
-            activeStockOptions:[]
+            activeStockOptions: []
         };
     }
     componentDidMount() {
@@ -76,13 +76,13 @@ class Home extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1000) })
-            this.setState({ bankNiftyInterval: setInterval(() => { this.getNiftyLTP(); this.getBankNiftyLTP(); }, 1000) })
+            this.setState({ bankNiftyInterval: setInterval(() => {  this.getBankNiftyLTP(); }, 1000) })
 
             var intervaltime = 1000;
             if (this.state.activeStockOptions.length > 10) {
                 intervaltime = this.state.activeStockOptions.length * 110;
             }
-            this.setState({ updateStockInterval: setInterval(() => { this.getOptionStockLiveLtp(); }, intervaltime) });
+            //this.setState({ updateStockInterval: setInterval(() => { this.getOptionStockLiveLtp(); }, intervaltime) });
 
             var squireInterval = setInterval(() => {
                 let sqrOffbeginningTime = moment('3:14pm', 'h:mma');
@@ -118,41 +118,47 @@ class Home extends React.Component {
             AdminService.getLTP(data).then(res => {
                 let data = resolveResponse(res, 'noPop');
                 var LtpData = data && data.data;
-                //console.log(LtpData);
                 if (LtpData && LtpData.ltp) {
                     element.ltp = LtpData.ltp;
                     element.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
-                    this.setState({ activeStockOptions: this.state.activeStockOptions });
-                    
-                    var elementP = ''; 
-                    for (let indexP = 0; indexP < this.state.positionList.length; indexP++) {
-                        elementP = this.state.positionList[indexP];
-                        if(elementP.symbolname === element.name){
-                            elementP.optionStockLtp = LtpData.ltp; 
-                            elementP.optionStockName = element.name; 
-                            elementP.optionStockChange = element.perChange; 
-                            break; 
-                        }
-                    }
-              
-                    this.setState({ positionList: this.state.positionList });
-            
-                    //ce quireoff 
-                    if (elementP.optiontype === 'CE' && (LtpData.ltp < element.optionStockStoploss || LtpData.ltp >= element.optionStockTarget)) {
-                        var isDelete = this.deleteActiveOptionStock(element);
-                        if (isDelete) { 
-                            this.squareOff(elementP, false);
-                        }
-                    }
-                    //pe squired off
-                    if (elementP.optiontype === 'PE' && (LtpData.ltp > element.optionStockStoploss || LtpData.ltp <= element.optionStockTarget)) {
-                        var isDelete = this.deleteActiveOptionStock(element);
-                        if (isDelete) { 
-                            this.squareOff(elementP, false);
-                        }
-                    }
 
+                     console.log('element', element)
+
+                    let elementP = this.state.positionList.filter(name => name.symbolname == element.symbol);
+                
+                    // for (let indexP = 0; indexP < this.state.positionList.length; indexP++) {
+                    //     elementP = this.state.positionList[indexP];
+                    //     if (elementP.symbolname === element.symbol) {
+                    //         elementP.optionStockLtp = LtpData.ltp;
+                    //         elementP.optionStockName = element.symbol;
+                    //         elementP.optionStockChange = element.perChange;
+
+                    //         break;
+                    //     }
+                    // }
+                    // this.setState({ positionList: this.state.positionList });
+
+                    if(elementP[0]){
+                        //ce quireoff 
+                        if (elementP.optiontype === 'CE' && (LtpData.ltp < element.optionStockStoploss || LtpData.ltp >= element.optionStockTarget)) {
+                            var isDelete = this.deleteActiveOptionStock(element);
+                            if (isDelete) {
+                                //   this.squareOff(elementP, false);
+                            }
+                        }
+                        //pe squired off
+                        if (elementP.optiontype === 'PE' && (LtpData.ltp > element.optionStockStoploss || LtpData.ltp <= element.optionStockTarget)) {
+                            var isDelete = this.deleteActiveOptionStock(element);
+                            if (isDelete) {
+                                //    this.squareOff(elementP, false);
+                            }
+                        }
+
+                    }
+                 
                 }
+                this.setState({ activeStockOptions: this.state.activeStockOptions });
+
             })
 
             await new Promise(r => setTimeout(r, 100));
@@ -167,12 +173,12 @@ class Home extends React.Component {
                 var delitem = this.state.activeStockOptions.splice(index, 1);
                 if (delitem[0].name == row.name) {
                     isDeleted = true;
-                } 
+                }
                 this.setState({ activeStockOptions: this.state.activeStockOptions });
                 break;
             }
         }
-        return isDeleted; 
+        return isDeleted;
     }
 
 
@@ -516,14 +522,11 @@ class Home extends React.Component {
             for (let index = 0; index < trackSLPrice.length; index++) {
                 const element = trackSLPrice[index];
 
-                if (element.optiontype == 'EQ') {
+                if (element.optiontype == 'EQ' || element.optiontype == '') {
                     if (element.tradingsymbol == row.tradingsymbol && (row.ltp < parseFloat(element.priceStopLoss) || row.ltp >= parseFloat(element.priceTarget))) {
-                        console.log("checkSLOrTarget", element, element.tradingsymbol == row.tradingsymbol, row.ltp, (row.ltp < parseFloat(element.priceStopLoss) || row.ltp >= parseFloat(element.priceTarget)))
                         this.squareOff(row);
                     }
                 }
-
-
             }
         }
     }
@@ -582,17 +585,17 @@ class Home extends React.Component {
 
                     this.checkSLOrTarget(element);
 
-                    if((element.optiontype == 'CE' || element.optiontype == 'PE') && element.instrumenttype == "OPTSTK" && element.netqty > 0){
-                     
-                      let symbolDetails =   CommonMethods.getStockTokenDetails(element.symbolname); 
-                      let found =  this.state.activeStockOptions.filter( name => name.name == element.symbolname);
-
-                       if(!found[0]){
-                             this.setState({ activeStockOptions : [ ...this.state.activeStockOptions, CommonMethods.getStockTokenDetails(element.symbolname) ]})  
-                       }  
-
+                    if ((element.optiontype == 'CE' || element.optiontype == 'PE') && element.netqty > 0) {
+                        let found = this.state.activeStockOptions.filter(name => name.name == element.symbolname);
+                        element.optionStockName = element.symbolname;
+                        if (found[0]) {
+                            element.optionStockLtp = found[0] && found[0].ltp;
+                            element.optionStockChange = found[0] && found[0].perChange;
+                            this.setState({ activeStockOptions: [...this.state.activeStockOptions, CommonMethods.getStockTokenDetails(element.symbolname)] })
+                        }else{
+                            this.setState({ activeStockOptions: [...this.state.activeStockOptions, CommonMethods.getStockTokenDetails(element.symbolname)] })
+                        }
                     }
-
                 }
 
                 this.setState({ todayProfitPnL: todayProfitPnL.toFixed(2), totalbuyvalue: totalbuyvalue.toFixed(2), totalsellvalue: totalsellvalue.toFixed(2), totalQtyTraded: totalQtyTraded });
@@ -608,9 +611,7 @@ class Home extends React.Component {
 
                 this.setState({ positionList: tradingPositionlist });
 
-
-
-
+               // this.getOptionStockLiveLtp();
             }
         })
 
@@ -628,21 +629,21 @@ class Home extends React.Component {
     }
 
     optionStockStoplossChange = (e) => {
-        this.setState({ [e.target.name]: e.target.value });   
+        this.setState({ [e.target.name]: e.target.value });
         for (let index = 0; index < this.state.activeStockOptions.length; index++) {
             const element = this.state.activeStockOptions[index];
-            if(e.target.name === element.name){
-                element.optionStockStoploss = e.target.value; 
+            if (e.target.name === element.name) {
+                element.optionStockStoploss = e.target.value;
                 break;
             }
         }
     }
     optionStockTargetChange = (e) => {
-        this.setState({ [e.target.name]: e.target.value });   
+        this.setState({ [e.target.name]: e.target.value });
         for (let index = 0; index < this.state.activeStockOptions.length; index++) {
             const element = this.state.activeStockOptions[index];
-            if(e.target.name === element.name){
-                element.optionStockTarget = e.target.value; 
+            if (e.target.name === element.name) {
+                element.optionStockTarget = e.target.value;
                 break;
             }
         }
@@ -1100,6 +1101,10 @@ class Home extends React.Component {
 
     render() {
 
+        if(this.state.positionList[0])
+        console.log("this.state.positionList", this.state.positionList[0].optionStockLtp);
+
+
         //var foundPatternList = localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')).reverse(); 
 
         return (
@@ -1158,6 +1163,8 @@ class Home extends React.Component {
                                 <TableHead style={{ whiteSpace: "nowrap", backgroundColor: "" }} variant="head">
                                     <TableRow key="1" variant="head" style={{ fontWeight: 'bold' }}>
 
+                                        <TableCell className="TableHeadFormat" align="left">Trading Symbol</TableCell>
+
                                         {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
                                         <TableCell style={{ paddingLeft: "3px" }} className="TableHeadFormat" align="left">&nbsp;Spot Name
                                             {/* <Button type="number" onClick={() => this.checkOpenEqualToLow()}>O=H/L</Button>
@@ -1169,7 +1176,6 @@ class Home extends React.Component {
                                         <TableCell className="TableHeadFormat" align="left">Spot Stoploss</TableCell>
                                         <TableCell className="TableHeadFormat" align="left">Spot Target</TableCell>
 
-                                        <TableCell className="TableHeadFormat" align="left">Trading Symbol</TableCell>
 
 
                                         {/* <TableCell className="TableHeadFormat" align="left">Trading Token</TableCell> */}
@@ -1218,9 +1224,9 @@ class Home extends React.Component {
                                         row.producttype !== 'DELIVERY1' ? <TableRow hover key={row.symboltoken} style={{ background: row.netqty !== '0' ? 'lightgray' : "" }} >
 
 
-                                            <TableCell align="left">
+                                            {/* <TableCell align="left">
                                                 <p style={{ color: row.optionStockChange > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
-                                                &nbsp;  {row.optionStockName ? `${row.optionStockName} ${row.optionStockLtp} (${row.optionStockChange} +'%')`: '-'}
+                                                &nbsp;  {row.optionStockName ? `${row.optionStockName} ${row.optionStockLtp} (${row.optionStockChange} '%')`: '-'}
                                                 </p>
                                             </TableCell>
 
@@ -1229,8 +1235,7 @@ class Home extends React.Component {
                                             </TableCell>
                                             <TableCell align="left">
                                                 {row.optionStockName ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockTarget} name={row.optionStockName} onChange={this.optionStockTargetChange} /> : "-"}
-                                            </TableCell>
-                                            
+                                            </TableCell> */}
 
                                             <TableCell align="left">
                                                 <Button style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
@@ -1238,9 +1243,25 @@ class Home extends React.Component {
                                                 </Button>
                                             </TableCell>
 
-                                       
+                                            <TableCell align="left">
+                                                <p style={{ color: row.optionStockChange > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
+                                                    &nbsp;  {row.netqty && row.optionStockName ? `${row.optionStockName} ${row.optionStockLtp} (${row.optionStockChange}%)` : ''}
+                                                </p>
+                                            </TableCell>
 
-                                      
+                                            <TableCell align="left">
+                                                {row.netqty ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockStoploss} name={row.optionStockName} onChange={this.optionStockStoplossChange} /> : "-"}
+                                            </TableCell>
+                                            <TableCell align="left">
+                                                {row.netqty ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockTarget} name={row.optionStockName} onChange={this.optionStockTargetChange} /> : "-"}
+                                            </TableCell>
+
+
+                                           
+
+
+
+
                                             {/* <TableCell align="left">{row.producttype}</TableCell> */}
 
                                             {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
@@ -1353,9 +1374,9 @@ class Home extends React.Component {
                             <hr />
 
                             <Grid style={{ padding: '5px', background: "lightgray" }} justify="space-between" direction="row" container>
-                               
+
                                 <Grid>
-                                Stoploss Trail Setting:
+                                    Stoploss Trail Setting:
 
                                     Stock &nbsp; F.Move<input name="firstTimeMove" type={'number'} step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMove} style={{ width: '30px', textAlign: 'center' }} />
                                     &nbsp;SL Move<input name="firstTimeSLMove" step="0.1" type={'number'} onChange={this.onTrailChange} value={this.state.firstTimeSLMove} style={{ width: '30px', textAlign: 'center' }} />
