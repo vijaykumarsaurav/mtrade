@@ -24,6 +24,7 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 import TextField from "@material-ui/core/TextField";
 import CommonOrderMethod from "../../utils/CommonMethods";
 import CommonMethods from '../../utils/CommonMethods';
+import OrderStatusLive from './OrderStatusLive';
 
 class Home extends React.Component {
     constructor(props) {
@@ -60,7 +61,6 @@ class Home extends React.Component {
             enableSLMOrderUi: false,
             addSLInfo: {},
             niftyLtpSec: [],
-            bnniftyLtpSec: [],
             activeStockOptions: []
         };
     }
@@ -76,7 +76,7 @@ class Home extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1000) })
-            this.setState({ bankNiftyInterval: setInterval(() => {  this.getBankNiftyLTP(); }, 1000) })
+           // this.setState({ bankNiftyInterval: setInterval(() => {  this.getBankNiftyLTP(); }, 1000) })
 
             var intervaltime = 1000;
             if (this.state.activeStockOptions.length > 10) {
@@ -588,12 +588,18 @@ class Home extends React.Component {
                     if ((element.optiontype == 'CE' || element.optiontype == 'PE') && element.netqty > 0) {
                         let found = this.state.activeStockOptions.filter(name => name.name == element.symbolname);
                         element.optionStockName = element.symbolname;
+                        element.optiontype = element.optiontype;
+
+                        let spotDetails = CommonMethods.getStockTokenDetails(element.symbolname);
+                        spotDetails.optiontype = element.optiontype;
+                        spotDetails.netqty = element.netqty;
+                        spotDetails.tradingsymbol = element.tradingsymbol;
+
                         if (found[0]) {
                             element.optionStockLtp = found[0] && found[0].ltp;
                             element.optionStockChange = found[0] && found[0].perChange;
-                            this.setState({ activeStockOptions: [...this.state.activeStockOptions, CommonMethods.getStockTokenDetails(element.symbolname)] })
                         }else{
-                            this.setState({ activeStockOptions: [...this.state.activeStockOptions, CommonMethods.getStockTokenDetails(element.symbolname)] })
+                            this.setState({ activeStockOptions: [...this.state.activeStockOptions, spotDetails] })
                         }
                     }
                 }
@@ -681,6 +687,25 @@ class Home extends React.Component {
         }
     }
 
+
+    deleteIndexOption = (element, deleteindex) => {
+        for (let indexP = 0; indexP < this.state.positionList.length; indexP++) {
+            const position = this.state.positionList[indexP];
+
+            if (position.tradingsymbol == element.tradingsymbol && position.netqty > 0) {
+                
+                if (this.state.activeStockOptions && this.state.activeStockOptions.length > 0) {
+                    this.state.activeStockOptions.splice(deleteindex, 1);
+                    this.setState({ activeStockOptions: this.state.activeStockOptions }, () => {
+                        this.squareOff(position, true);
+                    });
+                    break;
+                }
+
+            }
+        }
+    }
+
     getNiftyLTP = () => {
         var data = {
             "exchange": "NSE",
@@ -694,9 +719,7 @@ class Home extends React.Component {
             if (LtpData && LtpData.ltp) {
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                 if (document.getElementById('niftySpid')) {
-                    this.state.niftyLtpSec.push({ ltp: LtpData.ltp.toFixed(2), time: new Date().toLocaleTimeString() });
-                    localStorage.setItem("niftyLtpSec", JSON.stringify(this.state.niftyLtpSec));
-                    document.getElementById('niftySpid').innerHTML = "<span style='color:red'> Nifty " + LtpData.ltp.toFixed(2) + ' (' + (per).toFixed(2) + '%)</span>';
+                   document.getElementById('niftySpid').innerHTML = "<span style='color:red'> Nifty " + LtpData.ltp.toFixed(2) + ' (' + (per).toFixed(2) + '%)</span>';
                 }
             }
 
@@ -744,8 +767,6 @@ class Home extends React.Component {
                         document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.ltp.toFixed(2) + ' (' + (per).toFixed(2) + '%)</span>';
                     else
                         document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.ltp.toFixed(2) + ' (' + (per).toFixed(2) + '%)</span>';
-                    this.state.bnniftyLtpSec.push({ ltp: LtpData.ltp.toFixed(2), time: new Date().toLocaleTimeString() });
-                    localStorage.setItem("bnniftyLtpSec", JSON.stringify(this.state.bnniftyLtpSec));
                 }
             }
             let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse(localStorage.getItem('trackSLPrice')) : [];
@@ -763,6 +784,42 @@ class Home extends React.Component {
                 }
             }
         })
+    }
+
+    getBankNiftyLiveLtp = (LtpData) => {
+    
+        // symbolListArray[index].tvalue = foundLive[0].tvalue;
+        // symbolListArray[index].cng = foundLive[0].cng;
+        // symbolListArray[index].iv = foundLive[0].iv;
+        // symbolListArray[index].tk = foundLive[0].tk;
+        // symbolListArray[index].nc = foundLive[0].nc;   
+
+        if (LtpData && LtpData.iv) {
+            let per = LtpData.nc;
+
+            
+            if (document.getElementById('bankniftySpid')) {
+                if (per > 0)
+                    document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.iv+ ' (' + (per) + '%)</span> '+ '<span>  '+ LtpData.cng+ '</span> ' + moment(LtpData.tvalue).format('h:mm:ss A');
+                else
+                    document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.iv+ ' (' + (per) + '%)</span> ' + '<span> '+ LtpData.cng+ ' </span> ' + moment(LtpData.tvalue).format('h:mm:ss A');
+            }
+        }
+
+        console.log('this.state.activeStockOptions', this.state.activeStockOptions)
+        if (this.state.activeStockOptions.length > 0) {
+            for (let index = 0; index < this.state.activeStockOptions.length; index++) {
+                const element = this.state.activeStockOptions[index];
+                if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && element.netqty > 0 && ((LtpData.iv < element.optionStockStoploss) || (LtpData.iv >= element.optionStockTarget))) {
+                    //delete sloption &  trigeer sl    
+                    this.deleteIndexOption(element, index);
+                }
+                if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && element.netqty > 0 && ((LtpData.iv > element.optionStockStoploss) || (LtpData.iv <= element.optionStockTarget))) {
+                    //delete sloption &  trigeer sl    
+                    this.deleteIndexOption(element, index);
+                }
+            }
+        }
     }
 
 
@@ -807,7 +864,7 @@ class Home extends React.Component {
             let data = resolveResponse(res);
             if (data.status && data.message === 'SUCCESS') {
                 console.log("cancel order", data);
-                this.deleteOptionPriceSL(row);
+                //this.deleteOptionPriceSL(row);
                 // this.setState({ orderid : data.data && data.data.orderid });
             }
         })
@@ -815,6 +872,7 @@ class Home extends React.Component {
     }
 
     squareOff = (row, marketOrder) => {
+        this.cancelOrderOfSame(row);
 
         let price = 0;
         var data = {
@@ -846,7 +904,6 @@ class Home extends React.Component {
             //  console.log("squireoff", data);
             if (data.status && data.message === 'SUCCESS') {
                 this.setState({ orderid: data.data && data.data.orderid });
-                this.cancelOrderOfSame(row);
                 document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
             }
         })
@@ -1101,22 +1158,21 @@ class Home extends React.Component {
 
     render() {
 
-        if(this.state.positionList[0])
-        console.log("this.state.positionList", this.state.positionList[0].optionStockLtp);
-
-
         //var foundPatternList = localStorage.getItem('foundPatternList') && JSON.parse(localStorage.getItem('foundPatternList')).reverse(); 
 
         return (
             <React.Fragment>
                 <PostLoginNavBar />
                 <br />
+                <OrderStatusLive getBankNiftyLiveLtp={this.getBankNiftyLiveLtp} />
                 <ChartDialog /> <ChartMultiple />
                 <Grid style={{ padding: '5px' }} justify="space-between" direction="row" container>
                     <Grid item >
 
                         <Typography color="primary" gutterBottom>
-                            Positions ({this.state.positionList && this.state.positionList.length})    <span id="niftySpid"  > Nifty </span>  &nbsp;&nbsp;  <span id="bankniftySpid" >Banknifty </span>
+                              <span id="bankniftySpid" >Banknifty </span>
+                                {/* Positions ({this.state.positionList && this.state.positionList.length})   
+                               <span id="niftySpid"  > Nifty </span>  &nbsp;&nbsp; */}
                         </Typography>
 
 
@@ -1245,15 +1301,15 @@ class Home extends React.Component {
 
                                             <TableCell align="left">
                                                 <p style={{ color: row.optionStockChange > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
-                                                    &nbsp;  {row.netqty && row.optionStockName ? `${row.optionStockName} ${row.optionStockLtp} (${row.optionStockChange}%)` : ''}
+                                                    &nbsp;  {row.netqty && row.optionStockName ? `${row.optionStockName} ${row.optionStockLtp} (${row.optionStockChange}%)` : '-'}
                                                 </p>
                                             </TableCell>
 
                                             <TableCell align="left">
-                                                {row.netqty ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockStoploss} name={row.optionStockName} onChange={this.optionStockStoplossChange} /> : "-"}
+                                                {row.netqty  && row.optionStockName?  <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockStoploss} name={row.optionStockName} onChange={this.optionStockStoplossChange} /> : "-"}
                                             </TableCell>
                                             <TableCell align="left">
-                                                {row.netqty ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockTarget} name={row.optionStockName} onChange={this.optionStockTargetChange} /> : "-"}
+                                                {row.netqty  && row.optionStockName ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockTarget} name={row.optionStockName} onChange={this.optionStockTargetChange} /> : "-"}
                                             </TableCell>
 
 
@@ -1400,7 +1456,7 @@ class Home extends React.Component {
                     <Grid item xs={12} sm={12}>
                         <OrderBook />
                     </Grid>
-                    <Grid item xs={12} sm={12} style={{ height: '100%', overflow: "auto" }}>
+                    <Grid item xs={12} sm={12} style={{ width: '90%', height: '100%', overflow: "auto" }}>
                         {localStorage.getItem('isOpenInNewPage') == "no" ? <OrderWatchlist /> : ""}
                     </Grid>
 

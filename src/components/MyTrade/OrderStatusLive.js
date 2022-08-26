@@ -20,25 +20,40 @@ class Home extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            positionList : [],
-            userName: "",
-            password: "",
-            autoSearchList :[],
-            isDasable:false,
-            isError:false,
-            InstrumentLTP : {},
-            ifNotBought : true,
-            autoSearchTemp : [],
-            symboltoken: "", 
-            tradingsymbol : "" ,
-            buyPrice : 0,
-            quantity : 1,
-            producttype : "INTRADAY",
-            symbolList : JSON.parse(localStorage.getItem('watchList'))
+            symbolList :  [
+                {
+                    token: "26009",
+                    symbol: "Nifty 50",
+                    name: "Nifty 50",
+                },
+                {
+                    token: "26000",
+                    symbol: "Nifty Bank",
+                    name: "Nifty Bank",
+                }
+            ], 
+            
         
         };
         this.myCallback = this.myCallback.bind(this);
     }
+
+    makeConnection = (wsClint) => {
+        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
+        wsClint.send(firstTime_req);
+        this.updateSocketWatch(wsClint);
+    }
+    decodeWebsocketData = (array) => {
+        var newarray = [];
+        try {
+            for (var i = 0; i < array.length; i++) {
+                newarray.push(String.fromCharCode(array[i]));
+            }
+        } catch (e) { }
+        //  console.log(newarray.join(''))
+        return newarray.join('');
+    }
+
     onChange = (e) => {
         this.setState({ [e.target.name]: e.target.value});
         var data  = e.target.value; 
@@ -78,208 +93,23 @@ class Home extends React.Component{
             //  }
        })
     }
-    decodeWebsocketData =(array)  => {
-
-        console.log('atoms'); 
-        var newarray = [];
-        try {
-            for (var i = 0; i < array.length; i++) {
-                newarray.push(String.fromCharCode(array[i]));
-            }
-        } catch (e) { }
-    
-        return newarray.join('');
-    }
-
-    makeConnection = (feedToken ,clientcode ) => {
-
-
-
-        var firstTime_req =  {
-            "actiontype": "subscribe",
-            "feedtype": "order_feed",
-            "jwttoken": this.state.jwtToken,
-            "clientcode": this.state.clientcode ,
-            "apikey": API_KEY
-       }
-
-       
-        console.log("1st Request :- " + JSON.stringify( firstTime_req));
-        wsClint.send(JSON.stringify( firstTime_req));
-    }
-
-    updateSocketWatch = (feedToken,clientcode ) => {
-      
-        var channel = this.state.symbolList.map(element => {
-             return 'nse_cm|'+ element.token; 
-        });
-
-        channel = channel.join('&'); 
-        var sbin =  {
-            "task":"mw",
-            "channel": channel,
-            "token":this.state.feedToken,
-            "user":this.state.clientcode,
-            "acctid":this.state.clientcode
-        }
-        wsClint.send( JSON.stringify( sbin)); 
-    }
-
-    
+     
     componentDidMount() {
 
-        var tokens = JSON.parse(localStorage.getItem("userTokens")); 
-        var feedToken =   tokens &&  tokens.feedToken;
-        var jwtToken =   tokens &&  tokens.jwtToken;
-
-        var userProfile = JSON.parse(localStorage.getItem("userProfile")); 
-        var clientcode =   userProfile &&  userProfile.clientcode;
-        this.setState({ feedToken : feedToken,clientcode : clientcode , jwtToken: jwtToken });
-
-            
-        wsClint.onopen  = (res) => {
-
-
-            var firstTime_req =  {
-                "jwttoken": this.state.jwtToken,
-                "clientcode": this.state.clientcode ,
-                "apikey": API_KEY
-           }
-    
-           
-            console.log("1st Request :- " + JSON.stringify( firstTime_req));
-            wsClint.send(firstTime_req);
-
-            // this.makeConnection();
-            // console.log('connected');
-            // this.updateSocketWatch();
-                
-             setTimeout(function(){
-               this.makeConnection(feedToken ,clientcode);
-             }, 1000);
-        }
-
-        wsClint.onmessage = (message) => {
-            
-            
-            var decoded = window.atob(message.data);
-            var data = this.decodeWebsocketData(pako.inflate(decoded));
-
-            this.setState({ positionList : JSON.parse(data) });
-
-        //    this.state.symbolList.forEach(element => {
-
-        //         var foundLive = liveData.filter(row => row.tk  == element.token);
-        //     // console.log("foundLive", foundLive);
-        //         if(foundLive.length>0 &&  foundLive[0].ltp)
-        //             this.setState({ [element.symbol+'ltp'] : foundLive.length>0 &&  foundLive[0].ltp})
-        //         if(foundLive.length>0 &&  foundLive[0].cng)
-        //             this.setState({ [element.symbol+'nc'] : foundLive.length>0 &&  foundLive[0].nc})
-               
-               
-        //      });
-        
-        }
-
-        wsClint.onerror = (e) => {
-            console.log("socket error", e); 
-        }
-
-        setInterval(() => {
-
-            var heartbeatReq =  {
-                "actiontype": "heartbeat",
-                "feedtype": "order_feed",
-                "jwttoken": this.state.feedToken ,
-                "clientcode": this.state.clientcode ,
-                "apikey": API_KEY
-            }
-    
-            console.log("heartbeatReq : " + heartbeatReq);
-            wsClint.send(heartbeatReq);
-          //  this.makeConnection(feedToken ,clientcode );
-        }, 59000);
-
+        var tokens = JSON.parse(localStorage.getItem("userTokens"));
+        var feedToken = tokens && tokens.feedToken;
+        var userProfile = JSON.parse(localStorage.getItem("userProfile"));
+        var clientcode = userProfile && userProfile.clientcode;
+        this.setState({ feedToken: feedToken, clientcode: clientcode }, function () {
+            this.wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+            this.updateSocketDetails(this.wsClint);
+        });
 
         var list = localStorage.getItem('watchList');
         if(!list){
             localStorage.setItem('watchList', []);
         }
       
-    }
-
-    placeOrder = (transactiontype) => {
-
-        var data = {
-            "variety":"NORMAL",
-            "tradingsymbol": this.state.tradingsymbol,
-            "symboltoken":this.state.symboltoken,
-            "transactiontype":transactiontype, //BUY OR SELL
-            "exchange":"NSE",
-            "ordertype":   this.state.buyPrice  === 0 ? "MARKET" : "LIMIT", 
-            "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
-            "duration":"DAY",
-            "price": this.state.buyPrice,
-            "squareoff":"0",
-            "stoploss":"0",
-            "quantity":this.state.quantity,
-        }
-
-        AdminService.placeOrder(data).then(res => {
-            let data = resolveResponse(res);
-            console.log(data);   
-            if(data.status  && data.message === 'SUCCESS'){
-                localStorage.setItem('ifNotBought' ,  'false')
-                this.setState({ orderid : data.data && data.data.orderid });
-
-                if(this.state.stoploss){
-                    this.placeSLMOrder(this.state.stoploss);
-                }
-            }
-        })
-    }
-
-    LoadSymbolDetails =(name) => {
-       
-        var token= ''; 
-        for (let index = 0; index <  this.state.symbolList.length; index++) {
-            if(this.state.symbolList[index].symbol === name){
-                    token =  this.state.symbolList[index].token; 
-                   this.setState({ tradingsymbol : name, symboltoken : this.state.symbolList[index].token});
-                    break; 
-            }
-        }  
-        this.getHistory(token); 
-    }
-
-    placeSLMOrder = () => {
-
-        var data = {
-                "tradingsymbol": this.state.tradingsymbol,
-            "symboltoken":this.state.symboltoken,
-            "transactiontype":"SELL",
-            "exchange":"NSE",
-            "ordertype":"STOPLOSS_MARKET", //STOPLOSS_MARKET STOPLOSS_LIMIT
-            "producttype": this.state.producttype, //"INTRADAY",//"DELIVERY",
-            "duration":"DAY",
-            "price": 0,
-            "squareoff":"0",
-            "stoploss":"0",
-            "quantity": this.state.quantity, 
-            "triggerprice" : this.state.stoploss,
-            "variety" : "STOPLOSS"
-        }
-
-        AdminService.placeOrder(data).then(res => {
-            let data = resolveResponse(res);
-            console.log(data);   
-            if(data.status  && data.message === 'SUCCESS'){
-                localStorage.setItem('ifNotBought' ,  'false')
-                this.setState({ orderid : data.data && data.data.orderid });
-            }
-        })
-
-
     }
 
     getHistory = (token) => {
@@ -316,157 +146,116 @@ class Home extends React.Component{
         })
     }
 
-    onSelectItem = (event, values) =>{
-        
+    updateSocketWatch = (wsClint) => {
 
-        var autoSearchTemp = JSON.parse( localStorage.getItem('autoSearchTemp')); 
-        console.log("values", values); 
-        console.log("autoSearchTemp", autoSearchTemp); 
-        if(autoSearchTemp.length> 0){
-            var fdata = '';       
-             for (let index = 0; index < autoSearchTemp.length; index++) {
-                console.log("fdata", autoSearchTemp[index].symbol); 
-                if( autoSearchTemp[index].symbol === values){
-                 fdata = autoSearchTemp[index];
-                 break;
-                }  
-             }
-           
 
-             var list = localStorage.getItem('watchList');
-             if(!list){
-                var data = []; 
-                data.push(fdata); 
-                localStorage.setItem('watchList',  JSON.stringify(data)); 
-             }else{
-                list = JSON.parse( localStorage.getItem('watchList'));
-                var found = list.filter(row => row.symbol  === values);
-                if(found.length === 0){
-                    list.push(fdata); 
-                    localStorage.setItem('watchList',  JSON.stringify(list)); 
-                }
-               
-             }
-          
-             this.setState({ symbolList : JSON.parse(localStorage.getItem('watchList')), search : "" });
-            setTimeout(() => {
-                this.updateSocketWatch();
-            }, 100);
-            
+        // var channel = this.state.symbolList.map(element => {
+        //     return 'nse_cm|' + element.token;
+        // });
+
+        let channel = []; 
+       this.state.symbolList.forEach((element, index) => {
+            channel.push('nse_cm|' + element.token);
+        });
+
+        channel = channel.join('&');
+      //  "channel": "nse_cm|Nifty 50&nse_cm|Nifty Bank&nse_cm|Nifty Auto&nse_cm|Nifty FMCG&nse_cm|Nifty IT&nse_cm|Nifty Media&nse_cm|Nifty Metal&nse_cm|Nifty Pharma&nse_cm|Nifty PSU Bank&nse_cm|Nifty Reality&nse_cm&nse_cm|Nifty Private Bank",
+
+        var updateSocket = {
+            "task": "sfi",
+            "channel":   "nse_cm|Nifty 50&nse_cm|Nifty Bank",
+            "token": this.state.feedToken,
+            "user": this.state.clientcode,
+            "acctid": this.state.clientcode
         }
-     
+      //  console.log("wsClint", wsClint)
+
+        wsClint.send(JSON.stringify(updateSocket));
     }
 
-    deleteItemWatchlist = (symbol) => {
-        var list = JSON.parse( localStorage.getItem('watchList'));
-        var index = list.findIndex(data => data.symbol === symbol)
-        list.splice(index,1);
-        localStorage.setItem('watchList',  JSON.stringify(list)); 
-        this.setState({ symbolList : list });
-    }
+    updateSocketDetails = (wsClint) => {
+        wsClint.onopen = (res) => {
+            this.makeConnection(wsClint);
+            this.updateSocketWatch(wsClint);
+        }
+        wsClint.onmessage = (message) => {
+            var decoded = window.atob(message.data);
+            var data = this.decodeWebsocketData(pako.inflate(decoded));
+            var liveData = JSON.parse(data);
 
-    getAveragePrice =(orderId) => {
+            var symbolListArray = this.state.symbolList;
+            this.state.symbolList && this.state.symbolList.forEach((element, index) => {
+                var foundLive = liveData.filter(row => row.tk == element.name);
+             //   console.log("live", JSON.stringify(foundLive))
 
-       var  oderbookData = localStorage.getItem('oderbookData');
-       var averageprice = 0; 
-        for (let index = 0; index < oderbookData.length; index++) {
-           if(oderbookData[index].orderid ===  'orderId'){
-            averageprice =oderbookData[index].averageprice 
-            this.setState({ averageprice : averageprice });
-            break;
-           }
-        } 
-        return averageprice;
+                if (foundLive.length > 0 && foundLive[0].tvalue) {
+                    symbolListArray[index].tvalue = foundLive[0].tvalue;
+                    symbolListArray[index].cng = foundLive[0].cng;
+                    symbolListArray[index].iv = foundLive[0].iv;
+                    symbolListArray[index].tk = foundLive[0].tk;
+                    symbolListArray[index].nc = foundLive[0].nc;   
+                    if(foundLive[0].tk == 'Nifty Bank'){
+                        this.props.getBankNiftyLiveLtp(foundLive[0])
+                    }
+                }
+
+                
+            });
+          
+            this.setState({ symbolList: symbolListArray }, ()=> {
+              //  console.log('updated',  this.state.symbolList )
+            });
+        }
+
+        wsClint.onerror = (e) => {
+            console.log("socket error", e);
+            this.makeConnection(this.wsClint);
+        }
+
+        setInterval(() => {
+            console.log("this.wsClint", this.wsClint)
+
+            if(this.wsClint.readyState != 1){
+                this.makeConnection(this.wsClint);
+            }
+
+            var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
+            console.log("Request :- " + _req);
+            wsClint.send(_req);
+        }, 59000);
     }
 
 
     render() {
       
-
         return(
-            <React.Fragment>
-                 <PostLoginNavBar/>
-                
+            <React.Fragment>                
                
-                 <Grid spacing={1}  direction="row" alignItems="center" container>
+                 <Grid spacing={1}   alignItems="center" container>
 
                     <Grid item xs={10} sm={12}> 
-                    <Paper style={{padding:"10px", overflow:"auto"}} >
+                    <Paper style={{ overflow:"auto"}} >
 
 
                     <Table  size="small"   aria-label="sticky table" >
                         <TableHead  style={{width:"",whiteSpace: "nowrap"}} variant="head">
-                            <TableRow   variant="head" style={{fontWeight: 'bold'}}>
-
-                                {/* <TableCell className="TableHeadFormat" align="center">Instrument</TableCell> */}
-                                
-                                <TableCell className="TableHeadFormat" align="center">Trading symbol</TableCell>
-
-                                <TableCell className="TableHeadFormat" align="center">Order Type</TableCell>
-                                <TableCell className="TableHeadFormat" align="center">Product type</TableCell>
-                                <TableCell className="TableHeadFormat" align="center">Transaction type</TableCell>
-                              
-                                <TableCell  className="TableHeadFormat" align="center">Quantity</TableCell>
-                                <TableCell  className="TableHeadFormat" align="center">Average Price</TableCell>
-
-                                <TableCell className="TableHeadFormat" align="center">Status </TableCell>
-                                <TableCell  className="TableHeadFormat"   align="center">Order Status</TableCell>
-                                <TableCell  className="TableHeadFormat"   align="center">Exec Time</TableCell>
+                            <TableRow   variant="head" style={{fontWeight: 'bold'}}>                                
+                           
+                                <TableCell className="TableHeadFormat" align="center">Index </TableCell>
+                                <TableCell  className="TableHeadFormat"   align="center">Val</TableCell>
+                                <TableCell  className="TableHeadFormat"   align="center">Change</TableCell>
+                                <TableCell  className="TableHeadFormat"   align="center">Time</TableCell>
 
                             </TableRow>
                         </TableHead>
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
+                            {this.state.symbolList ? this.state.symbolList.map((row, i) => (
+                                <TableRow style={{background : row.nc > 0 ? "chartreuse" : "cora"}} key={i} >
 
-                            {/* {
-                                "variety": null,
-                                "ordertype": "LIMIT",
-                                "producttype": "INTRADAY",
-                                "duration": "DAY",
-                                "price": "194",
-                                "triggerprice": "0",
-                                "quantity": "1",
-                                "disclosedquantity": "0",
-                                "squareoff": "0",
-                                "stoploss": "0",
-                                "trailingstoploss": "0",
-                                "tradingsymbol": "SBIN-EQ",
-                                "transactiontype": "BUY",
-                                "exchange": "NSE",
-                                "symboltoken": null,
-                                "instrumenttype": "",
-                                "strikeprice": "-1",
-                                "optiontype": "",
-                                "expirydate": "",
-                                "lotsize": "1",
-                                "cancelsize": "1",
-                                "averageprice": "0",
-                                "filledshares": "0",
-                                "unfilledshares": "1",
-                                "orderid": "201020000000080",
-                                "text": "",
-                                "status": "cancelled",
-                                "orderstatus": "cancelled",
-                                "updatetime": "20-Oct-2020   13:10:59",
-                                "exchtime": "20-Oct-2020   13:10:59",
-                                "exchorderupdatetime": "20-Oct-2020   13:10:59",
-                                "fillid": null,
-                                "filltime": null
-                            } */}
-
-                            {this.state.positionList ? this.state.positionList.map((row, i) => (
-                                <TableRow key={i} >
-
-
-                                    <TableCell align="center">{row.tradingsymbol}</TableCell>
-                                    <TableCell align="center">{row.ordertype}</TableCell>
-                                    <TableCell align="center">{row.producttype}</TableCell>
-                                    <TableCell align="center">{row.transactiontype}</TableCell>
-                                    
-                                    <TableCell align="center">{row.quantity}</TableCell>
-                                    <TableCell align="center">{row.averageprice}</TableCell>
-                                    <TableCell align="center">{row.status}</TableCell>
-                                    <TableCell align="center">{row.orderstatus}</TableCell>
-                                    <TableCell align="center">{row.exchtime}</TableCell>
+                                    <TableCell align="center">{row.name}</TableCell>
+                                    <TableCell align="center">{row.iv}({row.nc}%)</TableCell>
+                                    <TableCell align="center">{row.cng}</TableCell>
+                                    <TableCell align="center">{row.tvalue}</TableCell>
                                 
                                 </TableRow>
                             )):''}
@@ -475,9 +264,6 @@ class Home extends React.Component{
 
                     </Paper>
                     </Grid>
-
-
-
 
                     </Grid>
             

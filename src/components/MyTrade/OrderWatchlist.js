@@ -582,26 +582,25 @@ class OrderBook extends React.Component {
 
                 <Grid justify="space-between" container>
 
-                <Typography variant="h6" style={{color:'green'}}>
-                 Net Balance:   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.net)}
-                </Typography>
-                <Typography variant="h6" style={{color:'green'}}>
-                   Available Cash :   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.availablecash)}
-                </Typography>
+                    <Typography style={{color:'green'}}>
+                    Net Balance:   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.net)}
+                    </Typography>
+                    <Typography  style={{color:'green'}}>
+                    Available Cash :   {this.state.fundData &&  this.toFixedAmount(this.state.fundData.availablecash)}
+                    </Typography>
                 
                     <Grid item xs={12} sm={12}>
-                        {window.location.hash == "#/order-watchlist" ? <OptionBuyWithSPLevel buyOption={this.buyOption} /> : ""}
+                        {window.location.hash == "#/position-new" || window.location.hash == "#/order-watchlist"  ? <OptionBuyWithSPLevel buyOption={this.buyOption} /> : ""}
                     </Grid>
 
-                   
-
+                    {window.location.hash == "#/order-watchlist" ?
 
                     <Grid item xs={12} sm={12}>
                         <Paper style={{ overflow: "auto", padding: '5px', background: "#d4ffe0" }} >
                             <Typography color="primary" gutterBottom>
                                 Stock  Order Watchlist ({this.state.orderPenidngList && this.state.orderPenidngList.length})
                                 {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon /> </Button> : ""}
-                                {window.location.hash != "#/position" ? <Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
+                                {window.location.hash != "#/position-new" ? <Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
                             </Typography>
 
                             <Grid justify="space-between"
@@ -761,7 +760,7 @@ class OrderBook extends React.Component {
 
                         </Paper>
 
-                    </Grid>
+                    </Grid> : ""}
 
 
                 </Grid>

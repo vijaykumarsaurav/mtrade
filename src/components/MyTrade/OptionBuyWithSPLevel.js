@@ -367,7 +367,7 @@ class OrderBook extends React.Component{
     }
 
     backToPositionPage = (e) => {
-        window.location.replace('/mtrade/#/position'); 
+        window.location.replace('/mtrade/#/position-new'); 
         localStorage.setItem('isOpenInNewPage', 'no');
     }
     
@@ -510,7 +510,7 @@ class OrderBook extends React.Component{
 
                             
                             <Grid item  >
-                                <TextField label="BuyAt(Above))" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
+                                <TextField label="BuyAt(Above)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
                               <br /> High: {this.state.lastTradedData.high}
                             </Grid>
                             <Grid item  >

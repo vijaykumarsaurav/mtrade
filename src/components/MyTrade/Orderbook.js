@@ -190,7 +190,7 @@ class OrderBook extends React.Component{
         <React.Fragment>
 
 
-            {window.location.hash !== "#/position" ?    <PostLoginNavBar/> : ""}
+            {window.location.hash !== "#/position-new" ?    <PostLoginNavBar/> : ""}
             
          
 

@@ -222,11 +222,9 @@ export default function PostLoginNavBar(props) {
                             {/* <Typography variant="h6" noWrap>
                           M-Trade
                          </Typography> */}
-                            {/* <Button href={"/mtrade/#/home"}>
+                            <Button href={"/mtrade/#/home"}>
                                 <img alt="logo" style={{ width: "125px" }} src={MyLogo} />
-
-                            </Button> */}
-                            {new Date().toLocaleTimeString()}
+                            </Button>
 
                         </Grid>
 

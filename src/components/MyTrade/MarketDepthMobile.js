@@ -110,6 +110,41 @@ class LiveBid extends React.Component {
         this.nameInput = React.createRef();
 
     }
+    makeConnection = (wsClint) => {
+        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
+        wsClint.send(firstTime_req);
+        this.updateSocketWatch(wsClint);
+    }
+    decodeWebsocketData = (array) => {
+        var newarray = [];
+        try {
+            for (var i = 0; i < array.length; i++) {
+                newarray.push(String.fromCharCode(array[i]));
+            }
+        } catch (e) { }
+        //  console.log(newarray.join(''))
+        return newarray.join('');
+    }
+
+
+
+    updateSocketWatch = (wsClint) => {
+
+        var channel = this.state.symbolList.map(element => {
+            return 'nse_cm|' + element.token;
+        });
+        channel = channel.join('&');
+        var updateSocket = {
+            "task": "mw",
+            "channel": channel,
+            "token": this.state.feedToken,
+            "user": this.state.clientcode,
+            "acctid": this.state.clientcode
+        }
+      //  console.log("wsClint", wsClint)
+
+        wsClint.send(JSON.stringify(updateSocket));
+    }
     componentDidMount() {
 
         window.document.title = "WS Bid Live";
@@ -208,41 +243,7 @@ class LiveBid extends React.Component {
        // this.updateDayChartHighLow(); 
        
     }
-    makeConnection = (wsClint) => {
-        var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-        wsClint.send(firstTime_req);
-        this.updateSocketWatch(wsClint);
-    }
-    decodeWebsocketData = (array) => {
-        var newarray = [];
-        try {
-            for (var i = 0; i < array.length; i++) {
-                newarray.push(String.fromCharCode(array[i]));
-            }
-        } catch (e) { }
-        //  console.log(newarray.join(''))
-        return newarray.join('');
-    }
-
-
-
-    updateSocketWatch = (wsClint) => {
-
-        var channel = this.state.symbolList.map(element => {
-            return 'nse_cm|' + element.token;
-        });
-        channel = channel.join('&');
-        var updateSocket = {
-            "task": "mw",
-            "channel": channel,
-            "token": this.state.feedToken,
-            "user": this.state.clientcode,
-            "acctid": this.state.clientcode
-        }
-      //  console.log("wsClint", wsClint)
-
-        wsClint.send(JSON.stringify(updateSocket));
-    }
+    
 
     takeAction = (symbol, action) => {
         let isfound = this.state.actionList.length && this.state.actionList.filter(item => item.symbol === symbol);
