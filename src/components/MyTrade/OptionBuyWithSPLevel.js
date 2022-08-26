@@ -458,8 +458,29 @@ class OrderBook extends React.Component{
     // })
     // }
 
+    orderValueChange = (e ) => {
+      //  console.log("name", e.target.name,  e.target.value)
+        this.setState({ [e.target.name]: e.target.value });
+
+        // let orderPenidngOptionList = localStorage.getItem('orderPenidngOptionList') ? JSON.parse(localStorage.getItem('orderPenidngOptionList')) : []; 
+
+        for (let index = 0; index < this.state.orderPenidngOptionList.length; index++) {
+            const element = this.state.orderPenidngOptionList[index];
+            const item =  e.target.name.split('-'); 
+            if(item[0] === element.symbol && item[2] === element[item[1]] ) {
+                element[item[1]] = e.target.value;
+            }
+        }
+
+        this.setState({orderPenidngOptionList : this.state.orderPenidngOptionList}, function(){
+            localStorage.setItem('orderPenidngOptionList', JSON.stringify(this.state.orderPenidngOptionList));
+        })
+
+    }
 
     render(){
+
+      console.log('this.state.orderPenidngOptionList', this.state.orderPenidngOptionList)
         
       return(
         <React.Fragment>
@@ -570,7 +591,7 @@ class OrderBook extends React.Component{
                         </TableHead>
                         <TableBody id="tableAdd" style={{ width: "", whiteSpace: "nowrap" }}>
 
-                            {this.state.orderPenidngOptionList ? this.state.orderPenidngOptionList.map(row => (
+                            {this.state.orderPenidngOptionList ? this.state.orderPenidngOptionList.map((row, i) => (
                                  <TableRow hover >
 
                                    
@@ -589,11 +610,19 @@ class OrderBook extends React.Component{
                                     {/* <TableCell align="left">{row.token}</TableCell> */}
 
                                     <TableCell align="left">{row.pattenName}</TableCell>
-                                    <TableCell align="left">{row.buyAt}</TableCell>
-                                    <TableCell align="left">{row.buyAtBelow}</TableCell>
+                                    <TableCell align="left">
+                                    {row.buyAt ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-buyAt-${row.buyAt}`] || row.buyAt} name={`${row.symbol}-buyAt-${row.buyAt}`} onChange={this.orderValueChange} /> : "-"}
+                                    </TableCell>
+                                    <TableCell align="left">
+                                    {row.buyAtBelow ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-buyAtBelow-${row.buyAtBelow}`] || row.buyAtBelow} name={`${row.symbol}-buyAtBelow-${row.buyAtBelow}`} onChange={this.orderValueChange} /> : "-"}
+                                    </TableCell>
 
-                                    <TableCell align="left">{row.sellAt}</TableCell>
-                                    <TableCell align="left">{row.sellAtAbove}</TableCell>
+                                    <TableCell align="left">
+                                    {row.sellAt ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-sellAt-${row.sellAt}`] || row.sellAt} name={`${row.symbol}-sellAt-${row.sellAt}`} onChange={this.orderValueChange} /> : "-"}
+                                    </TableCell>
+                                    <TableCell align="left">
+                                    {row.sellAtAbove ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-sellAtAbove-${row.sellAtAbove}`] || row.sellAtAbove} name={`${row.symbol}-sellAtAbove-${row.sellAtAbove}`} onChange={this.orderValueChange} /> : "-"}
+                                    </TableCell>
 
                                     <TableCell align="left" style={{color: row.perChange == 0.00 ? "none" :  row.perChange > 0 ? "green" :"red"}}><b>{row.ltp} ({row.perChange}%) </b></TableCell>
                                     <TableCell align="left">{row.priceStopLoss}</TableCell>
