@@ -806,7 +806,7 @@ class Home extends React.Component {
             }
         }
 
-        console.log('this.state.activeStockOptions', this.state.activeStockOptions)
+        //console.log('this.state.activeStockOptions', this.state.activeStockOptions)
         if (this.state.activeStockOptions.length > 0) {
             for (let index = 0; index < this.state.activeStockOptions.length; index++) {
                 const element = this.state.activeStockOptions[index];
@@ -872,7 +872,7 @@ class Home extends React.Component {
     }
 
     squareOff = (row, marketOrder) => {
-        this.cancelOrderOfSame(row);
+      //  this.cancelOrderOfSame(row);
 
         let price = 0;
         var data = {
@@ -1453,12 +1453,13 @@ class Home extends React.Component {
                         </Paper>
                     </Grid>
 
-                    <Grid item xs={12} sm={12}>
-                        <OrderBook />
-                    </Grid>
                     <Grid item xs={12} sm={12} style={{ width: '90%', height: '100%', overflow: "auto" }}>
                         {localStorage.getItem('isOpenInNewPage') == "no" ? <OrderWatchlist /> : ""}
                     </Grid>
+                    <Grid item xs={12} sm={12}>
+                        <OrderBook />
+                    </Grid>
+                 
 
                 </Grid>
             </React.Fragment>

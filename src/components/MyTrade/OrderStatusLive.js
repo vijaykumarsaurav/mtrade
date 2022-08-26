@@ -213,7 +213,7 @@ class Home extends React.Component{
         }
 
         setInterval(() => {
-            console.log("this.wsClint", this.wsClint)
+         //   console.log("this.wsClint", this.wsClint)
 
             if(this.wsClint.readyState != 1){
                 this.makeConnection(this.wsClint);
@@ -250,7 +250,7 @@ class Home extends React.Component{
                         </TableHead>
                         <TableBody style={{width:"",whiteSpace: "nowrap"}}>
                             {this.state.symbolList ? this.state.symbolList.map((row, i) => (
-                                <TableRow style={{background : row.nc > 0 ? "chartreuse" : "cora"}} key={i} >
+                                <TableRow style={{background : row.nc > 0 ? "chartreuse" : "coral"}} key={i} >
 
                                     <TableCell align="center">{row.name}</TableCell>
                                     <TableCell align="center">{row.iv}({row.nc}%)</TableCell>

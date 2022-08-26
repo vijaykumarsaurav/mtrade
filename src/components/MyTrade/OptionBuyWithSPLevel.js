@@ -31,7 +31,9 @@ class OrderBook extends React.Component{
         this.state = {
             orderPenidngOptionList: localStorage.getItem('orderPenidngOptionList') && JSON.parse(localStorage.getItem('orderPenidngOptionList')) || [], 
             buyAtPending: "", 
+            buyAtBelowPending: "",
             sellAtPending: "", 
+            sellAtAbovePending:"",
             pattenNamePending: "",
             searchSymbolPending : "",
             autoSearchList:[{"token":"26009","symbol":"BANKNIFTY","name":"BANKNIFTY","expiry":"","strike":"-1.000000","lotsize":"-1","instrumenttype":"","exch_seg":"NSE","tick_size":"-1.000000"},{"token":"26000","symbol":"NIFTY","name":"NIFTY","expiry":"","strike":"-1.000000","lotsize":"-1","instrumenttype":"","exch_seg":"NSE","tick_size":"-1.000000"}], 
@@ -39,6 +41,7 @@ class OrderBook extends React.Component{
             buyOptionFlag : false ,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             selectedWatchlist: "Securities in F&O",
+            strikeSelectionRate : 2
 
         }
     }
@@ -78,14 +81,16 @@ class OrderBook extends React.Component{
            }
         }
             
-        if(this.state.searchSymbolPending && this.state.buyAtPending || this.state.sellAtPending){
+        if(this.state.searchSymbolPending && this.state.buyAtPending || this.state.buyAtBelowPending || this.state.sellAtAbovePending || this.state.sellAtPending ){
         
             var data = {
                 createdAt : new Date().toLocaleTimeString(), 
                 token: this.state.searchTokenPending, 
                 symbol: this.state.searchSymbolPending, 
                 buyAt: this.state.buyAtPending,
+                buyAtBelow: this.state.buyAtBelowPending,
                 sellAt: this.state.sellAtPending,  
+                sellAtAbove: this.state.sellAtAbovePending,  
                 pattenName: this.state.pattenNamePending,
                 exch_seg:  this.state.exch_seg,
                 priceStopLoss: this.state.priceStopLoss,
@@ -93,7 +98,7 @@ class OrderBook extends React.Component{
             }
 
             this.setState({orderPenidngOptionList : [...this.state.orderPenidngOptionList, data]}, function(){
-                this.setState({searchSymbolPending: '' ,searchTokenPending:'',buyAtPending: "", sellAtPending: "",pattenNamePending:""  })
+                this.setState({searchSymbolPending: '' ,searchTokenPending:'',buyAtPending: "",buyAtBelowPending: "", sellAtPending: "", sellAtAbovePending: "",pattenNamePending:""  })
                 localStorage.setItem('orderPenidngOptionList', JSON.stringify(this.state.orderPenidngOptionList));
                 localStorage.setItem('orderTagToPosition', JSON.stringify(this.state.orderPenidngOptionList));
             })
@@ -135,60 +140,59 @@ class OrderBook extends React.Component{
     placeOptionSPLevelOver=(indexData, spotPrice)=>{
 
         let today = moment().isoWeekday();
-        let strikePrice = 0; 
         let allList = localStorage.getItem('optionChainDataBN') && JSON.parse(localStorage.getItem('optionChainDataBN')); 
         let nextExp = allList["records"]["expiryDates"][0]; 
 
-        if(indexData.buyAt){
+        let strikePrice = 0; 
+        console.log('indexData.symbol', indexData.symbol, spotPrice)
+        if(indexData.buyAt || indexData.buyAtBelow){
             if(today == 5 || today == 1){
-                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 400
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + (400 * this.state.strikeSelectionRate)
                 if(indexData.symbol == 'NIFTY'){
-                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 200
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  +  (200 * this.state.strikeSelectionRate) 
                 }
             }
             else  if(today == 2){
-                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 300
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  +  (300 * this.state.strikeSelectionRate) 
                 if(indexData.symbol == 'NIFTY'){
-                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 150
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  +  (150 * this.state.strikeSelectionRate) 
                 }
             }
             else  if(today == 3){
-                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 200
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + (200 * this.state.strikeSelectionRate) 
                 if(indexData.symbol == 'NIFTY'){
-                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + 100
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + (100 * this.state.strikeSelectionRate) 
                 }
             }else {
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
             }
 
-            strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
+            console.log("call buy strick", strikePrice, today, spotPrice);
 
             this.props.buyOption("CE", indexData.symbol, strikePrice, nextExp, 1 , indexData);  
-        }else if(indexData.sellAt){
+        }else if(indexData.sellAt || indexData.sellAtAbove){
             if(today == 5 || today == 1){
-                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 400
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (400 * this.state.strikeSelectionRate) 
                 if(indexData.symbol == 'NIFTY'){
-                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 200
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (200 * this.state.strikeSelectionRate)
                 }
             }
             else  if(today == 2){
-                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 300
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (300 * this.state.strikeSelectionRate)
                 if(indexData.symbol == 'NIFTY'){
-                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 150
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (150 * this.state.strikeSelectionRate)
                 }
             }
             else  if(today == 3){
-                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 200
+                strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (200 * this.state.strikeSelectionRate)
                 if(indexData.symbol == 'NIFTY'){
-                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  - 100
+                    strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (100 * this.state.strikeSelectionRate)
                 }
             }else {
                 strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
             }
 
-            strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
-
-            console.log(strikePrice, today);
+            console.log("put buy strick", strikePrice, today);
 
             this.props.buyOption("PE", indexData.symbol, strikePrice, nextExp, 1, indexData);  
         }
@@ -203,26 +207,27 @@ class OrderBook extends React.Component{
             AdminService.getLTP(data).then(res => {
                 let data = resolveResponse(res, 'noPop');
                 var LtpData = data && data.data;
-                //console.log(LtpData);
+                console.log(LtpData);
                 if(LtpData && LtpData.ltp) {
                     element.ltp = LtpData.ltp; 
                     element.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2); 
                     localStorage.setItem('orderPenidngOptionList', JSON.stringify(this.state.orderPenidngOptionList)); 
                     this.setState({orderPenidngOptionList : this.state.orderPenidngOptionList}); 
-                    console.log("ltp update",element.symbol,element)
+                   // console.log("ltp update",element.symbol,element)
 
-                    if(element.buyAt && LtpData.ltp >= parseFloat(element.buyAt)){
+                    if((element.buyAt && LtpData.ltp >= parseFloat(element.buyAt)) ||  (element.buyAtBelow && LtpData.ltp <= parseFloat(element.buyAtBelow))){
                         var isDelete = this.deleteInOrderPenidngList(element); 
                         if(isDelete){ // && !this.state.buyOptionFlag
-                            console.log("buyopiton",element.symbol,element)
 
                             this.setState({buyOptionFlag: true}, function(){
                                 this.placeOptionSPLevelOver(element, LtpData.ltp); 
                             })
                         }
-                    }else if(element.sellAt && LtpData.ltp <= parseFloat(element.sellAt)){
+                    }else if((element.sellAt && LtpData.ltp <= parseFloat(element.sellAt)) || (element.sellAtAbove && LtpData.ltp >= parseFloat(element.sellAtAbove)) ){
                         var isDelete = this.deleteInOrderPenidngList(element); 
                         if(isDelete){ // && !this.state.buyOptionFlag
+                           // console.log("sellopiton",element.symbol,element)
+
                             this.setState({buyOptionFlag: true}, function(){
                                 this.placeOptionSPLevelOver(element, LtpData.ltp); 
                             })
@@ -374,8 +379,8 @@ class OrderBook extends React.Component{
 
     onSelectItem = (event, values) => {
         var autoSearchTemp = JSON.parse(localStorage.getItem('autoSearchTemp'));
-          console.log("values", values); 
-           console.log("autoSearchTemp", autoSearchTemp); 
+         // console.log("values", values); 
+         //  console.log("autoSearchTemp", autoSearchTemp); 
         if (autoSearchTemp.length > 0) {
             var fdata = '';
             for (let index = 0; index < autoSearchTemp.length; index++) {
@@ -461,17 +466,15 @@ class OrderBook extends React.Component{
 
              <Paper style={{ overflow: "auto", padding: '5px',  background:"#f500570a"}} >
 
-                <Grid justify="space-between"
-                    container>
-                    <Grid item> 
-                        <Typography  color="primary" gutterBottom>
+             <Typography  color="primary" gutterBottom>
                         Option Buy With Level ({this.state.orderPenidngOptionList && this.state.orderPenidngOptionList.length}) 
                         {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
                         {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
                         </Typography> 
 
-
-                    </Grid>
+                <Grid justify="space-between"
+                    container>
+                
 
                    
 
@@ -511,13 +514,16 @@ class OrderBook extends React.Component{
                             
                             <Grid item  >
                                 <TextField label="BuyAt(Above)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
+                                <TextField label="BuyAt(Below)" type="number" name="buyAtBelowPending" value={this.state.buyAtBelowPending} onChange={this.updateInput} />
                               <br /> High: {this.state.lastTradedData.high}
                             </Grid>
                             <Grid item  >
                                 <TextField label="SellAt(Below)" type="number" name="sellAtPending" value={this.state.sellAtPending} onChange={this.updateInput} />
+                                <TextField label="SellAt(Above)" type="number" name="sellAtAbovePending" value={this.state.sellAtAbovePending} onChange={this.updateInput} />
+
                                 <br /> Low: {this.state.lastTradedData.low}
                             </Grid>
-                            <Grid item  >
+                            {/* <Grid item  >
                                 <TextField label="Which Pattern" name="pattenNamePending" value={this.state.pattenNamePending} onChange={this.updateInput} />
                                 <br /> Open: {this.state.lastTradedData.open}
                             </Grid>
@@ -528,7 +534,7 @@ class OrderBook extends React.Component{
                             <Grid item  >
                                 <TextField label="Price Target" name="priceTarget" value={this.state.priceTarget} onChange={this.updateInput} />
                                 <br /> 
-                            </Grid>
+                            </Grid> */}
                             <Grid item  >
                                 <Button variant="contained" style={{ marginLeft: '20px', marginTop: '10px' }} onClick={() => this.addInOrderPenidngList()}> Add </Button>
                                 <br /> P.Close: {this.state.lastTradedData.close}
@@ -548,8 +554,11 @@ class OrderBook extends React.Component{
                                 {/* <TableCell className="TableHeadFormat" align="left">Segm</TableCell> */}
                                 {/* <TableCell className="TableHeadFormat" align="left">Token</TableCell> */}
                                 <TableCell className="TableHeadFormat" align="left">Patten</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">BuyAt</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">SellAt</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">BuyAt(Above)</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">BuyAt(Below)</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">SellAt(Below)</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">SellAt(Above)</TableCell>
+
                                 <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">PriceSL</TableCell>
                                 <TableCell className="TableHeadFormat" align="left">PriceTarget</TableCell>
@@ -581,7 +590,11 @@ class OrderBook extends React.Component{
 
                                     <TableCell align="left">{row.pattenName}</TableCell>
                                     <TableCell align="left">{row.buyAt}</TableCell>
+                                    <TableCell align="left">{row.buyAtBelow}</TableCell>
+
                                     <TableCell align="left">{row.sellAt}</TableCell>
+                                    <TableCell align="left">{row.sellAtAbove}</TableCell>
+
                                     <TableCell align="left" style={{color: row.perChange == 0.00 ? "none" :  row.perChange > 0 ? "green" :"red"}}><b>{row.ltp} ({row.perChange}%) </b></TableCell>
                                     <TableCell align="left">{row.priceStopLoss}</TableCell>
                                     <TableCell align="left">{row.priceTarget}</TableCell>
