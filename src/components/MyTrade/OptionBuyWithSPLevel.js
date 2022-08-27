@@ -94,7 +94,8 @@ class OrderBook extends React.Component{
                 pattenName: this.state.pattenNamePending,
                 exch_seg:  this.state.exch_seg,
                 priceStopLoss: this.state.priceStopLoss,
-                priceTarget : this.state.priceTarget
+                priceTarget : this.state.priceTarget,
+                id: new Date().getTime()
             }
 
             this.setState({orderPenidngOptionList : [...this.state.orderPenidngOptionList, data]}, function(){
@@ -467,14 +468,16 @@ class OrderBook extends React.Component{
         for (let index = 0; index < this.state.orderPenidngOptionList.length; index++) {
             const element = this.state.orderPenidngOptionList[index];
             const item =  e.target.name.split('-'); 
-            if(item[0] === element.symbol && item[2] === element[item[1]] ) {
+            if(item[0] === element.symbol && element.id == item[2] ) {
                 element[item[1]] = e.target.value;
+                this.setState({orderPenidngOptionList : this.state.orderPenidngOptionList}, function(){
+                    localStorage.setItem('orderPenidngOptionList', JSON.stringify(this.state.orderPenidngOptionList));
+                })
+                break;
             }
         }
 
-        this.setState({orderPenidngOptionList : this.state.orderPenidngOptionList}, function(){
-            localStorage.setItem('orderPenidngOptionList', JSON.stringify(this.state.orderPenidngOptionList));
-        })
+       
 
     }
 
@@ -611,17 +614,17 @@ class OrderBook extends React.Component{
 
                                     <TableCell align="left">{row.pattenName}</TableCell>
                                     <TableCell align="left">
-                                    {row.buyAt ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-buyAt-${row.buyAt}`] || row.buyAt} name={`${row.symbol}-buyAt-${row.buyAt}`} onChange={this.orderValueChange} /> : "-"}
+                                    {row.buyAt ? <input step="1" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-buyAt-${row.id}`] || row.buyAt} name={`${row.symbol}-buyAt-${row.id}`} onChange={this.orderValueChange} /> : "-"}
                                     </TableCell>
                                     <TableCell align="left">
-                                    {row.buyAtBelow ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-buyAtBelow-${row.buyAtBelow}`] || row.buyAtBelow} name={`${row.symbol}-buyAtBelow-${row.buyAtBelow}`} onChange={this.orderValueChange} /> : "-"}
+                                    {row.buyAtBelow ? <input step="1" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-buyAtBelow-${row.id}`] || row.buyAtBelow} name={`${row.symbol}-buyAtBelow-${row.id}`} onChange={this.orderValueChange} /> : "-"}
                                     </TableCell>
 
                                     <TableCell align="left">
-                                    {row.sellAt ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-sellAt-${row.sellAt}`] || row.sellAt} name={`${row.symbol}-sellAt-${row.sellAt}`} onChange={this.orderValueChange} /> : "-"}
+                                    {row.sellAt ? <input step="1" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-sellAt-${row.id}`] || row.sellAt} name={`${row.symbol}-sellAt-${row.id}`} onChange={this.orderValueChange} /> : "-"}
                                     </TableCell>
                                     <TableCell align="left">
-                                    {row.sellAtAbove ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-sellAtAbove-${row.sellAtAbove}`] || row.sellAtAbove} name={`${row.symbol}-sellAtAbove-${row.sellAtAbove}`} onChange={this.orderValueChange} /> : "-"}
+                                    {row.sellAtAbove ? <input step="1" style={{ width: '40%', textAlign: 'center' }} type='number' value={this.state[`${row.symbol}-sellAtAbove-${row.id}`] || row.sellAtAbove} name={`${row.symbol}-sellAtAbove-${row.id}`} onChange={this.orderValueChange} /> : "-"}
                                     </TableCell>
 
                                     <TableCell align="left" style={{color: row.perChange == 0.00 ? "none" :  row.perChange > 0 ? "green" :"red"}}><b>{row.ltp} ({row.perChange}%) </b></TableCell>
