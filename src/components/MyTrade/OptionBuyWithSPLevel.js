@@ -287,6 +287,63 @@ class OrderBook extends React.Component{
         }
 
         localStorage.setItem('autoSearchTemp',JSON.stringify(this.state.autoSearchList))
+
+
+        this.updateLiveBankniftyLtdData(); 
+        
+
+    }
+
+
+    copyPrice =(name)=> {
+      this.setState({[name]  : this.state.lastTradedData.ltp});
+    }
+
+    updateLiveBankniftyLtdData =()=> {
+        let LtpData = this.props.liveBankniftyLtdData;
+
+        console.log("BN livedata", LtpData);
+             // symbolListArray[index].tvalue = foundLive[0].tvalue;
+        // symbolListArray[index].cng = foundLive[0].cng;
+        // symbolListArray[index].iv = foundLive[0].iv;
+        // symbolListArray[index].tk = foundLive[0].tk;
+        // symbolListArray[index].nc = foundLive[0].nc;
+    
+
+        this.setState({lastTradedData: {perChange:LtpData.nc,ltp: LtpData.iv }})
+
+
+        for (let index = 0; index < this.state.orderPenidngOptionList.length; index++) {
+            const element = this.state.orderPenidngOptionList[index];
+            if(LtpData && LtpData.iv && LtpData.tk === 'Nifty Bank') {
+                element.ltp = LtpData.iv; 
+                element.perChange = LtpData.nc; 
+                localStorage.setItem('orderPenidngOptionList', JSON.stringify(this.state.orderPenidngOptionList)); 
+                this.setState({orderPenidngOptionList : this.state.orderPenidngOptionList}); 
+               // console.log("ltp update",element.symbol,element)
+
+                if((element.buyAt && LtpData.iv >= parseFloat(element.buyAt)) ||  (element.buyAtBelow && LtpData.iv <= parseFloat(element.buyAtBelow))){
+                    var isDelete = this.deleteInOrderPenidngList(element); 
+                    if(isDelete){ // && !this.state.buyOptionFlag
+
+                        this.setState({buyOptionFlag: true}, function(){
+                            this.placeOptionSPLevelOver(element, LtpData.iv); 
+                        })
+                    }
+                }else if((element.sellAt && LtpData.iv <= parseFloat(element.sellAt)) || (element.sellAtAbove && LtpData.iv >= parseFloat(element.sellAtAbove)) ){
+                    var isDelete = this.deleteInOrderPenidngList(element); 
+                    if(isDelete){ // && !this.state.buyOptionFlag
+                       // console.log("sellopiton",element.symbol,element)
+
+                        this.setState({buyOptionFlag: true}, function(){
+                            this.placeOptionSPLevelOver(element, LtpData.iv); 
+                        })
+                    }
+                }
+
+            }
+        }
+
     }
 
   
@@ -532,21 +589,30 @@ class OrderBook extends React.Component{
                                             /> 
                                         )}
                                     />
-                              {this.state.lastTradedData.symbol}  Ltp: <b style={{ color:this.state.lastTradedData.perChange == 0 ? "none" : this.state.lastTradedData.perChange > 0 ? "green" : "red"}}> {this.state.lastTradedData.ltp} {this.state.lastTradedData.ltp ? "("+this.state.lastTradedData.perChange+"%)"  : ""}</b> 
+                              {this.state.lastTradedData.symbol} <b style={{ color:this.state.lastTradedData.perChange == 0 ? "none" : this.state.lastTradedData.perChange > 0 ? "green" : "red"}}> {this.state.lastTradedData.ltp} {this.state.lastTradedData.ltp ? "("+this.state.lastTradedData.perChange+"%)"  : ""}</b> 
                     </Grid>
 
                             
                             <Grid item  >
                                 <TextField label="BuyAt(Above)" type="number" name="buyAtPending" value={this.state.buyAtPending} onChange={this.updateInput} />
-                                <TextField label="BuyAt(Below)" type="number" name="buyAtBelowPending" value={this.state.buyAtBelowPending} onChange={this.updateInput} />
-                              <br /> High: {this.state.lastTradedData.high}
+                              <br />{this.state.lastTradedData.ltp} <button onClick={() => this.copyPrice('buyAtPending')}>Copy Ltp</button>
                             </Grid>
                             <Grid item  >
-                                <TextField label="SellAt(Below)" type="number" name="sellAtPending" value={this.state.sellAtPending} onChange={this.updateInput} />
-                                <TextField label="SellAt(Above)" type="number" name="sellAtAbovePending" value={this.state.sellAtAbovePending} onChange={this.updateInput} />
-
-                                <br /> Low: {this.state.lastTradedData.low}
+                                <TextField label="BuyAt(Below)" type="number" name="buyAtBelowPending" value={this.state.buyAtBelowPending} onChange={this.updateInput} />
+                              <br /> {this.state.lastTradedData.ltp} <button onClick={() => this.copyPrice('buyAtBelowPending')}>Copy Ltp</button>
                             </Grid>
+                            
+                            <Grid item  >
+                                <TextField label="SellAt(Below)" type="number" name="sellAtPending" value={this.state.sellAtPending} onChange={this.updateInput} />
+                                <br /> {this.state.lastTradedData.ltp} <button onClick={() => this.copyPrice('sellAtPending')}>Copy Ltp</button>
+                            </Grid>
+                               
+                            <Grid item  >
+                                <TextField label="SellAt(Above)" type="number" name="sellAtAbovePending" value={this.state.sellAtAbovePending} onChange={this.updateInput} />
+                                <br /> {this.state.lastTradedData.ltp} <button onClick={() => this.copyPrice('sellAtAbovePending')}>Copy Ltp</button>
+                            </Grid>
+
+
                             {/* <Grid item  >
                                 <TextField label="Which Pattern" name="pattenNamePending" value={this.state.pattenNamePending} onChange={this.updateInput} />
                                 <br /> Open: {this.state.lastTradedData.open}
@@ -567,7 +633,6 @@ class OrderBook extends React.Component{
 
                     </Grid>
 
-
                     <Table size="small" aria-label="sticky table" >
                         <TableHead style={{ whiteSpace: "nowrap", }} variant="head">
                             <TableRow key="1" variant="head" style={{ fontWeight: 'bold' }}>
@@ -584,8 +649,8 @@ class OrderBook extends React.Component{
                                 <TableCell className="TableHeadFormat" align="left">SellAt(Above)</TableCell>
 
                                 <TableCell className="TableHeadFormat" align="left">LTP</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">PriceSL</TableCell>
-                                <TableCell className="TableHeadFormat" align="left">PriceTarget</TableCell>
+                                {/* <TableCell className="TableHeadFormat" align="left">PriceSL</TableCell>
+                                <TableCell className="TableHeadFormat" align="left">PriceTarget</TableCell> */}
 
                                 
                                 <TableCell className="TableHeadFormat" align="left">Delete</TableCell>

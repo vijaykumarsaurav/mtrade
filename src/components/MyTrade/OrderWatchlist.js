@@ -590,7 +590,7 @@ class OrderBook extends React.Component {
                     </Typography>
                 
                     <Grid item xs={12} sm={12}>
-                        {window.location.hash == "#/position-new" || window.location.hash == "#/order-watchlist"  ? <OptionBuyWithSPLevel buyOption={this.buyOption} /> : ""}
+                        {window.location.hash == "#/position-new" || window.location.hash == "#/order-watchlist"  ? <OptionBuyWithSPLevel liveBankniftyLtdData={this.props.liveBankniftyLtdData} buyOption={this.buyOption} /> : ""}
                     </Grid>
 
                     {window.location.hash == "#/order-watchlist" ?

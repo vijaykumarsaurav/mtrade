@@ -60,8 +60,8 @@ class Home extends React.Component {
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [],
             enableSLMOrderUi: false,
             addSLInfo: {},
-            niftyLtpSec: [],
-            activeStockOptions: []
+            activeStockOptions: [], 
+            liveBankniftyLtdData: ''
         };
     }
     componentDidMount() {
@@ -796,8 +796,7 @@ class Home extends React.Component {
 
         if (LtpData && LtpData.iv) {
             let per = LtpData.nc;
-
-            
+            this.setState({ liveBankniftyLtdData: LtpData });
             if (document.getElementById('bankniftySpid')) {
                 if (per > 0)
                     document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.iv+ ' (' + (per) + '%)</span> '+ '<span>  '+ LtpData.cng+ '</span> ' + moment(LtpData.tvalue).format('h:mm:ss A');
@@ -1454,7 +1453,7 @@ class Home extends React.Component {
                     </Grid>
 
                     <Grid item xs={12} sm={12} style={{ width: '90%', height: '100%', overflow: "auto" }}>
-                        {localStorage.getItem('isOpenInNewPage') == "no" ? <OrderWatchlist /> : ""}
+                        {localStorage.getItem('isOpenInNewPage') == "no" ? <OrderWatchlist liveBankniftyLtdData={this.state.liveBankniftyLtdData} /> : ""}
                     </Grid>
                     <Grid item xs={12} sm={12}>
                         <OrderBook />
