@@ -36,6 +36,8 @@ const BNOptionBuyAtLevel = ({
   const [sellAtAbove, setSellAtAbove] = useState('');
   const [orderOptionList, setOrderOptionList ] = useState(localStorage.getItem('orderOptionList') && JSON.parse(localStorage.getItem('orderOptionList')) || []);
   const [deleteId, setDeleteId] = useState('');
+  const [edited, setEdited] = useState(false);
+
 
   const deleteInOrderList =(id)=> {
     let delitem =''; 
@@ -53,8 +55,6 @@ const BNOptionBuyAtLevel = ({
 }
 useEffect(() => {
   if(deleteId){
-    console.log('deleted ', deleteId)
-
     let foundIndex = orderOptionList.findIndex(x => x.id === deleteId);
     orderOptionList.splice(foundIndex, 1); 
     setDeleteId('');
@@ -65,20 +65,17 @@ useEffect(() => {
 }, [deleteId, orderOptionList, setDeleteId]);
 
 useEffect(() => {
-  console.log('orderOptionList updated ')
-  if(orderOptionList){
+  if(orderOptionList || edited){
     setOrderOptionList(orderOptionList)
     localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList)); 
+    setEdited(false);
   }
   
-}, [orderOptionList]);
+}, [orderOptionList, edited]);
 
 console.log(orderOptionList);
 
   const addInOrderPenidngList = () => {
-
-   // let tempOrderOptionList = localStorage.getItem('orderOptionList') && JSON.parse(localStorage.getItem('orderOptionList')) || []
-
       if(buyAt || buyAtBelow || sellAt || sellAtAbove ){
           const orderInput = {
               createdAt : new Date().toLocaleTimeString(), 
@@ -89,39 +86,24 @@ console.log(orderOptionList);
               id: new Date().getTime()
           }
           setOrderOptionList([...orderOptionList, orderInput]);
+          resetInput();
       }
   }
 
   const orderValueChange = (e ) => {
-      console.log("name", e.target.name,  e.target.value)
-
-    //   for (let index = 0; index < orderOptionList.length; index++) {
-    //       const element = orderOptionList[index];
-    //       const item =  e.target.name.split('-'); 
-    //       if(element.id === item[1] ) {
-    //           element[item[1]] = e.target.value;
-
-    //           setOrderOptionList({orderOptionList: orderOptionList});
-    //           localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList));
-    //           break;
-    //       }
-    //   }
-    //   const item =  e.target.name.split('-'); 
-    //   var foundIndex = orderOptionList.findIndex(x => x.id == item[1]);
-    //   orderOptionList[foundIndex].buyAt = e.target.value;
-    //   setOrderOptionList({orderOptionList: orderOptionList});
-    //   localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList));
-
-    orderOptionList.forEach((element, index) => {
-        const name =  e.target.name.split('-'); 
-        if(element.id === name[1]) {
-            orderOptionList[index][name[0]] = e.target.value;
-            setOrderOptionList({orderOptionList: orderOptionList});
-            return;
-        }
-    });
+    const nameId =  e.target.name.split('-'); 
+    var foundIndex = orderOptionList.findIndex(x => x.id === parseInt(nameId[1]));
+    orderOptionList[foundIndex][nameId[0]] = e.target.value;
+    setEdited(true)
   }
 
+
+  const resetInput = () => {
+    setBuyAt("")
+    setBuyAtBelow("")
+    setSellAt("")
+    setSellAtAbove(""); 
+  }
 
   return (
     <React.Fragment>
@@ -129,6 +111,7 @@ console.log(orderOptionList);
         style={{ overflow: "auto", padding: "5px", background: "#f500570a" }}
       >
         <Typography color="primary" gutterBottom>
+          <button onClick={() => resetInput()}>Reset all</button>
           Nifty Bank Option buy on Level {LiveLtp.iv}
         </Typography>
 
@@ -223,7 +206,6 @@ console.log(orderOptionList);
         <Table size="small" aria-label="sticky table">
           <TableHead style={{ whiteSpace: "nowrap" }} variant="head">
             <TableRow key="1" variant="head" style={{ fontWeight: "bold" }}>
-           
               <TableCell className="TableHeadFormat" align="left">
                 CreatetAt ({orderOptionList.length})
               </TableCell>
@@ -247,37 +229,80 @@ console.log(orderOptionList);
               </TableCell>
             </TableRow>
           </TableHead>
-          
 
           <TableBody id="tableAdd" style={{ width: "", whiteSpace: "nowrap" }}>
+            {orderOptionList.length &&
+              orderOptionList.map((row, i) => (
+                <TableRow hover>
+                  <TableCell align="left">{row.createdAt}</TableCell>
 
-            {orderOptionList.length && orderOptionList.map((row, i) => (
-                <TableRow hover >
+                  <TableCell align="left">
+                    {row.buyAt ? (
+                      <input
+                        step="1"
+                        style={{ width: "40%", textAlign: "center" }}
+                        type="number"
+                        value={row.buyAt}
+                        name={`buyAt-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell align="left">
+                    {row.buyAtBelow ? (
+                      <input
+                        step="1"
+                        value={row.buyAtBelow}
+                        style={{ width: "40%", textAlign: "center" }}
+                        type="number"
+                        name={`buyAtBelow-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
 
-                    <TableCell align="left">{row.createdAt}</TableCell>
+                  <TableCell align="left">
+                    {row.sellAt ? (
+                      <input
+                        step="1"
+                        value={row.sellAt}
+                        style={{ width: "40%", textAlign: "center" }}
+                        type="number"
+                        name={`sellAt-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell align="left">
+                    {row.sellAtAbove ? (
+                      <input
+                        value={row.sellAtAbove}
+                        step="1"
+                        style={{ width: "40%", textAlign: "center" }}
+                        type="number"
+                        name={`sellAtAbove-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
 
-                    <TableCell align="left">
-                    {row.buyAt ? <input step="1" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.buyAt}  name={`buyAt-${row.id}`} onChange={orderValueChange} /> : "-"}
-                    </TableCell>
-                    <TableCell align="left">
-                    {row.buyAtBelow ? <input step="1" value={row.buyAtBelow} style={{ width: '40%', textAlign: 'center' }} type='number'  name={`buyAtBelow-${row.id}`} onChange={orderValueChange} /> : "-"}  
-                    </TableCell>
-
-                    <TableCell align="left">
-                    {row.sellAt ? <input step="1" value={row.sellAt} style={{ width: '40%', textAlign: 'center' }} type='number' name={`sellAt-${row.id}`} onChange={orderValueChange} /> : "-"}
-                    </TableCell>
-                    <TableCell align="left">
-                    {row.sellAtAbove ? <input value={row.sellAtAbove} step="1" style={{ width: '40%', textAlign: 'center' }} type='number' name={`sellAtAbove-${row.id}`} onChange={orderValueChange} /> : "-"}
-                    </TableCell>
-
-                    <TableCell align="left">
-                    <DeleteIcon style={{cursor:"pointer"}} onClick={() => setDeleteId(row.id)} />
-                    </TableCell>
-
+                  <TableCell align="left">
+                    <DeleteIcon
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setDeleteId(row.id)}
+                    />
+                  </TableCell>
                 </TableRow>
-             ))}
-            </TableBody>
-
+              ))}
+          </TableBody>
         </Table>
       </Paper>
     </React.Fragment>
@@ -285,8 +310,7 @@ console.log(orderOptionList);
 };
 
 BNOptionBuyAtLevel.propTypes = {
-    liveBankniftyLtdData: PropTypes.string.isRequired,
-
+  LiveLtp: PropTypes.string.isRequired,
 };
 
 export default BNOptionBuyAtLevel;
