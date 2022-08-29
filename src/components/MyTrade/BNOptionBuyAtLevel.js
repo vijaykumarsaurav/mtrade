@@ -35,14 +35,49 @@ const BNOptionBuyAtLevel = ({
   const [sellAt, setSellAt] = useState('');
   const [sellAtAbove, setSellAtAbove] = useState('');
   const [orderOptionList, setOrderOptionList ] = useState(localStorage.getItem('orderOptionList') && JSON.parse(localStorage.getItem('orderOptionList')) || []);
+  const [deleteId, setDeleteId] = useState('');
 
+  const deleteInOrderList =(id)=> {
+    let delitem =''; 
+    let orderOptionList =  localStorage.getItem('orderOptionList') && JSON.parse( localStorage.getItem('orderOptionList')); 
+    let foundIndex = orderOptionList.findIndex(x => x.id === id);
+    orderOptionList.splice(foundIndex, 1); 
+    localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList)); 
 
-  useEffect(() => {
+    // console.log("del", delitem)
+    // if(delitem && delitem[0].id == row.id){
+    //   return true;
+    // }else {
+    //   return false;
+    // }
+}
+useEffect(() => {
+  if(deleteId){
+    console.log('deleted ', deleteId)
+
+    let foundIndex = orderOptionList.findIndex(x => x.id === deleteId);
+    orderOptionList.splice(foundIndex, 1); 
+    setDeleteId('');
+    setOrderOptionList(orderOptionList)
+    localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList)); 
+  }
   
-  }, [LiveLtp]);
+}, [deleteId, orderOptionList, setDeleteId]);
 
+useEffect(() => {
+  console.log('orderOptionList updated ')
+  if(orderOptionList){
+    setOrderOptionList(orderOptionList)
+    localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList)); 
+  }
+  
+}, [orderOptionList]);
+
+console.log(orderOptionList);
 
   const addInOrderPenidngList = () => {
+
+   // let tempOrderOptionList = localStorage.getItem('orderOptionList') && JSON.parse(localStorage.getItem('orderOptionList')) || []
 
       if(buyAt || buyAtBelow || sellAt || sellAtAbove ){
           const orderInput = {
@@ -54,9 +89,7 @@ const BNOptionBuyAtLevel = ({
               id: new Date().getTime()
           }
           setOrderOptionList([...orderOptionList, orderInput]);
-          localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList));
       }
-
   }
 
   const orderValueChange = (e ) => {
@@ -88,8 +121,6 @@ const BNOptionBuyAtLevel = ({
         }
     });
   }
-
-  console.log(orderOptionList);
 
 
   return (
@@ -194,7 +225,7 @@ const BNOptionBuyAtLevel = ({
             <TableRow key="1" variant="head" style={{ fontWeight: "bold" }}>
            
               <TableCell className="TableHeadFormat" align="left">
-                CreatetAt
+                CreatetAt ({orderOptionList.length})
               </TableCell>
 
               <TableCell className="TableHeadFormat" align="left">
@@ -220,7 +251,7 @@ const BNOptionBuyAtLevel = ({
 
           <TableBody id="tableAdd" style={{ width: "", whiteSpace: "nowrap" }}>
 
-            {orderOptionList.map((row, i) => (
+            {orderOptionList.length && orderOptionList.map((row, i) => (
                 <TableRow hover >
 
                     <TableCell align="left">{row.createdAt}</TableCell>
@@ -240,7 +271,7 @@ const BNOptionBuyAtLevel = ({
                     </TableCell>
 
                     <TableCell align="left">
-                    <DeleteIcon style={{cursor:"pointer"}} onClick={() => this.deleteInOrderPenidngList(row)} />
+                    <DeleteIcon style={{cursor:"pointer"}} onClick={() => setDeleteId(row.id)} />
                     </TableCell>
 
                 </TableRow>
