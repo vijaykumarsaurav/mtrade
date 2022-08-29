@@ -106,6 +106,10 @@ class AdminService {
       return axios.post('http://localhost:8081/getAll145Tokens', data,  '');
    } 
 
+   getBankniftyLatestOption(data) {
+      return axios.post('http://localhost:8081/getBankniftyLatestExpiryTokens', data,  '');
+   } 
+
 
    saveDeliveryData(data) {
       return axios.post('http://localhost:8081/store_delivery_data', data,  '');

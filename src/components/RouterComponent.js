@@ -46,6 +46,7 @@ import Track145Strategy from "./MyTrade/Track145Strategy";
 import StrongCharts from "./MyTrade/StrongCharts";
 
 import BackupHistory from "./MyTrade/BackupHistory";
+import BankniftyLatestOption from "./MyTrade/BankniftyLatestOption";
 
 
 
@@ -99,7 +100,9 @@ const AppRouter = () => {
 
                     <Route path="/custom-backtest" component={CustomBacktest}/>
                     <Route path="/track145" component={Track145Strategy}/>
+                    <Route path="/BankniftyLatestOption" component={BankniftyLatestOption}/>
 
+                    
                     <Route path="/test" component={Test}/>
                     
            

@@ -62,29 +62,29 @@ var pool = mysql.createPool(
 // Attempt to catch disconnects 
 
 
-var poolLocal = mysql.createPool(
-  {
-    host: "localhost",
-    user: "root",
-    password: "password",
-    database: "mtrade",
-    port: 3306,
-    debug    :  false
-  }
-  );  
+// var poolLocal = mysql.createPool(
+//   {
+//     host: "localhost",
+//     user: "root",
+//     password: "password",
+//     database: "mtrade",
+//     port: 3306,
+//     debug    :  false
+//   }
+//   );  
 
-var con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "password",
-  database: "mtrade",
-  port: 3306
-});
+// var con = mysql.createConnection({
+//   host: "localhost",
+//   user: "root",
+//   password: "password",
+//   database: "mtrade",
+//   port: 3306
+// });
 
-con.connect(function(err) {
-  if (err) throw err;
-  console.log("Mysql Connected with mtrade :) ");
-});
+// con.connect(function(err) {
+//   if (err) throw err;
+//   console.log("Mysql Connected with mtrade :) ");
+// });
 
 
 app.listen(8081, () => {
@@ -512,6 +512,36 @@ app.post('/getAll145Tokens', function (req, res) {
   return;
 
 });
+
+// On localhost:8081/welcome
+app.post('/getBankniftyLatestExpiryTokens', function (req, res) {
+
+  const strikeList = req.body
+  var obj, fillertedData = [];
+
+  fs.readFile(__dirname + '\\OpenAPIScripMaster.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    obj = JSON.parse(data);
+
+    strikeList.forEach(element => {
+      for (let index = 0; index < obj.length; index++) {
+        const item = obj[index];
+        let nextDate = moment(new Date()).add(8, 'days');
+        let expireAt = moment(item.expiry);
+
+        if(parseFloat(item.strike)/100 === element && item.name === 'BANKNIFTY' && expireAt <= nextDate) {
+          fillertedData.push(item); 
+        }
+      }
+    });
+
+    res.status(200).send(JSON.stringify(fillertedData));
+
+  });
+  return;
+
+});
+
 // On localhost:8081/welcome
 app.get('/search/:query', function (req, res) {
 
@@ -528,9 +558,8 @@ app.get('/search/:query', function (req, res) {
         fillertedData.push(obj[index])
       }
 
-
       //BANKNIFTY16SEP2137700CE
-      if(obj[index].symbol  == symbolName) {
+      if(obj[index].symbol === symbolName) {
         fillertedData.push(obj[index])
       }
 

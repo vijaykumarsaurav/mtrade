@@ -195,7 +195,7 @@ class Home extends React.Component{
                     symbolListArray[index].tk = foundLive[0].tk;
                     symbolListArray[index].nc = foundLive[0].nc;   
                     if(foundLive[0].tk == 'Nifty Bank'){
-                        this.props.getBankNiftyLiveLtp(foundLive[0])
+                        this.props && this.props.getBankNiftyLiveLtp(foundLive[0])
                     }
                 }
 

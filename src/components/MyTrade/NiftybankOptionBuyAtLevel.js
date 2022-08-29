@@ -546,7 +546,7 @@ class OrderBook extends React.Component{
              <Paper style={{ overflow: "auto", padding: '5px',  background:"#f500570a"}} >
 
              <Typography  color="primary" gutterBottom>
-                        Option Buy With Level ({this.state.orderPenidngOptionList && this.state.orderPenidngOptionList.length}) 
+                         Niftybank Option buy at Level ({this.state.orderPenidngOptionList && this.state.orderPenidngOptionList.length}) 
                         {window.location.hash != "#/order-watchlist" ? <Button onClick={() => this.openNewPage()}> New Page <OpenInNewIcon/> </Button> : ""}
                         {window.location.hash != "#/position" ?<Button onClick={() => this.backToPositionPage()}> Back to Position </Button> : ""}
                         </Typography> 

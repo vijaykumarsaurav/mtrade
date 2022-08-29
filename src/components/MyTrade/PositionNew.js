@@ -13,7 +13,6 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import * as moment from 'moment';
 import OrderBook from './Orderbook';
-import OrderWatchlist from './OrderWatchlist';
 import TradeConfig from './TradeConfig.json';
 import ChartDialog from './ChartDialog';
 import ChartMultiple from './ChartMultiple';
@@ -25,6 +24,8 @@ import TextField from "@material-ui/core/TextField";
 import CommonOrderMethod from "../../utils/CommonMethods";
 import CommonMethods from '../../utils/CommonMethods';
 import OrderStatusLive from './OrderStatusLive';
+import NiftybankOptionBuyAtLevel from './NiftybankOptionBuyAtLevel';
+import BNOptionBuyAtLevel from './BNOptionBuyAtLevel';
 
 class Home extends React.Component {
     constructor(props) {
@@ -796,6 +797,7 @@ class Home extends React.Component {
 
         if (LtpData && LtpData.iv) {
             let per = LtpData.nc;
+
             this.setState({ liveBankniftyLtdData: LtpData });
             if (document.getElementById('bankniftySpid')) {
                 if (per > 0)
@@ -805,7 +807,6 @@ class Home extends React.Component {
             }
         }
 
-        //console.log('this.state.activeStockOptions', this.state.activeStockOptions)
         if (this.state.activeStockOptions.length > 0) {
             for (let index = 0; index < this.state.activeStockOptions.length; index++) {
                 const element = this.state.activeStockOptions[index];
@@ -1453,7 +1454,9 @@ class Home extends React.Component {
                     </Grid>
 
                     <Grid item xs={12} sm={12} style={{ width: '90%', height: '100%', overflow: "auto" }}>
-                        {localStorage.getItem('isOpenInNewPage') == "no" ? <OrderWatchlist liveBankniftyLtdData={this.state.liveBankniftyLtdData} /> : ""}
+                       {/* <NiftybankOptionBuyAtLevel liveBankniftyLtdData={this.state.liveBankniftyLtdData} /> */}
+
+                       <BNOptionBuyAtLevel LiveLtp={this.state.liveBankniftyLtdData} />
                     </Grid>
                     <Grid item xs={12} sm={12}>
                         <OrderBook />
