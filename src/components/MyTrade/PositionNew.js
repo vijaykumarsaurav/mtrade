@@ -26,6 +26,7 @@ import CommonMethods from '../../utils/CommonMethods';
 import OrderStatusLive from './OrderStatusLive';
 import NiftybankOptionBuyAtLevel from './NiftybankOptionBuyAtLevel';
 import BNOptionBuyAtLevel from './BNOptionBuyAtLevel';
+import TrailingSwitch from "../../utils/TrailingSwitch";
 
 class Home extends React.Component {
     constructor(props) {
@@ -54,14 +55,14 @@ class Home extends React.Component {
             nextTimeMove: 0.6,
             nextTimeSLMove: 0.3,
             firstTimeMoveOption: 10,
-            firstTimeSLMoveOption: 3,
-            nextTimeMoveOption: 5,
-            nextTimeSLMoveOption: 3,
+            firstTimeSLMoveOption: 5,
+            nextTimeMoveOption: 10,
+            nextTimeSLMoveOption: 5,
             staticData: localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')) || {},
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [],
             enableSLMOrderUi: false,
             addSLInfo: {},
-            activeStockOptions: [], 
+            activeStockOptions: localStorage.getItem('activeStockOptions') && JSON.parse(localStorage.getItem('activeStockOptions')) || [], 
             liveBankniftyLtdData: ''
         };
     }
@@ -597,10 +598,12 @@ class Home extends React.Component {
                         spotDetails.tradingsymbol = element.tradingsymbol;
 
                         if (found[0]) {
-                            element.optionStockLtp = found[0] && found[0].ltp;
-                            element.optionStockChange = found[0] && found[0].perChange;
+                            element.optionStockStoploss = found[0] && found[0].optionStockStoploss;
+                            element.optionStockTarget = found[0] && found[0].optionStockTarget;
                         }else{
-                            this.setState({ activeStockOptions: [...this.state.activeStockOptions, spotDetails] })
+                            this.setState({ activeStockOptions: [...this.state.activeStockOptions, spotDetails] });
+                            localStorage.setItem("activeStockOptions", JSON.stringify(this.state.activeStockOptions));
+                            
                         }
                     }
                 }
@@ -641,6 +644,7 @@ class Home extends React.Component {
             const element = this.state.activeStockOptions[index];
             if (e.target.name === element.name) {
                 element.optionStockStoploss = e.target.value;
+                localStorage.setItem("activeStockOptions", JSON.stringify(this.state.activeStockOptions));
                 break;
             }
         }
@@ -651,6 +655,7 @@ class Home extends React.Component {
             const element = this.state.activeStockOptions[index];
             if (e.target.name === element.name) {
                 element.optionStockTarget = e.target.value;
+                localStorage.setItem("activeStockOptions", JSON.stringify(this.state.activeStockOptions));
                 break;
             }
         }
@@ -698,6 +703,7 @@ class Home extends React.Component {
                 if (this.state.activeStockOptions && this.state.activeStockOptions.length > 0) {
                     this.state.activeStockOptions.splice(deleteindex, 1);
                     this.setState({ activeStockOptions: this.state.activeStockOptions }, () => {
+                        localStorage.setItem("activeStockOptions", JSON.stringify(this.state.activeStockOptions));
                         this.squareOff(position, true);
                     });
                     break;
@@ -1064,29 +1070,33 @@ class Home extends React.Component {
 
         row.buyavgprice = parseFloat(row.buyavgprice);
         percentChange = ((row.ltp - row.buyavgprice) * 100 / row.buyavgprice);
-        if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= this.state.firstTimeMoveOption) {
+       
+        if(localStorage.getItem('isTrailing') == 'true'){
+            if (!localStorage.getItem('firstTimeModify' + row.tradingsymbol) && percentChange >= this.state.firstTimeMoveOption) {
 
-            var minTriggerPrice = row.buyavgprice + (row.buyavgprice * this.state.firstTimeSLMoveOption / 100);
-            let slPriceData = this.getSLAndTriggerPrice(minTriggerPrice);
-
-            if (localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice) {
-                this.modifyOrderMethod(row, slPriceData.minTriggerPrice, slPriceData.minSLPrice);
-            }
-
-        } else {
-            var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
-            var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
-            trailPerChange = perchngfromTriggerPrice;
-            if (perchngfromTriggerPrice >= this.state.nextTimeMoveOption) {
-                minTriggerPrice = lastTriggerprice + (lastTriggerprice * this.state.nextTimeSLMoveOption / 100);
+                var minTriggerPrice = row.buyavgprice + (row.buyavgprice * this.state.firstTimeSLMoveOption / 100);
                 let slPriceData = this.getSLAndTriggerPrice(minTriggerPrice);
-
+    
                 if (localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice) {
                     this.modifyOrderMethod(row, slPriceData.minTriggerPrice, slPriceData.minSLPrice);
                 }
+    
+            } else {
+                var lastTriggerprice = parseFloat(localStorage.getItem('lastTriggerprice_' + row.tradingsymbol));
+                var perchngfromTriggerPrice = ((row.ltp - lastTriggerprice) * 100 / lastTriggerprice);
+                trailPerChange = perchngfromTriggerPrice;
+                if (perchngfromTriggerPrice >= this.state.nextTimeMoveOption) {
+                    minTriggerPrice = lastTriggerprice + (lastTriggerprice * this.state.nextTimeSLMoveOption / 100);
+                    let slPriceData = this.getSLAndTriggerPrice(minTriggerPrice);
+    
+                    if (localStorage.getItem('lastTriggerprice_' + row.tradingsymbol) != slPriceData.minTriggerPrice) {
+                        this.modifyOrderMethod(row, slPriceData.minTriggerPrice, slPriceData.minSLPrice);
+                    }
+                }
             }
-        }
 
+        }
+       
         if (!trailPerChange) {
             return percentChange.toFixed(2) + "%";
         } else {
@@ -1301,7 +1311,8 @@ class Home extends React.Component {
 
                                             <TableCell align="left">
                                                 <p style={{ color: row.optionStockChange > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
-                                                    &nbsp;  {row.netqty && row.optionStockName ? `${row.optionStockName} ${row.optionStockLtp} (${row.optionStockChange}%)` : '-'}
+                                                    &nbsp;  {row.netqty && row.optionStockName ? `${row.optionStockName}` : '-'} 
+                                                    {/* ${row.optionStockLtp} (${row.optionStockChange}%) */}
                                                 </p>
                                             </TableCell>
 
@@ -1441,8 +1452,10 @@ class Home extends React.Component {
                                     &nbsp;SL Move<input name="nextTimeSLMove" step="0.1" type={'number'} onChange={this.onTrailChange} value={this.state.nextTimeSLMove} style={{ width: '30px', textAlign: 'center' }} />
                                 </Grid>
 
+                                <Grid><TrailingSwitch /></Grid>
+
                                 <Grid>
-                                    &nbsp; &nbsp; &nbsp;
+                                     
                                     Option Trail%: F.Move<input name="firstTimeMoveOption" type={'number'} step="0.1" onChange={this.onTrailChange} value={this.state.firstTimeMoveOption} style={{ width: '30px', textAlign: 'center' }} />
                                     &nbsp;SL Move<input name="firstTimeSLMoveOption" step="0.1" type={'number'} onChange={this.onTrailChange} value={this.state.firstTimeSLMoveOption} style={{ width: '30px', textAlign: 'center' }} />
 

@@ -57,16 +57,18 @@ const BNOptionBuyAtLevel = ({
         "exchange": nextExpiryOption.exch_seg,
         "variety": "NORMAL"
     }
-    console.log(optionInput);
+    console.log(optionInput, new Date().toLocaleTimeString());
+    setDeleteId(id); 
 
     AdminService.placeOrder(optionInput).then(res => {
         let data = resolveResponse(res);
         console.log(data);   
         if (data.status && data.message === 'SUCCESS') {
-            setDeleteId(id); 
+            //setDeleteId(id); 
             speckIt(`${strikePrice} ${optionType} +" order placed"`);
         }
     })
+
   }
 
   const speckIt = (text) => {
