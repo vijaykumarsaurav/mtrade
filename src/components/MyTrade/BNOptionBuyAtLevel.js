@@ -37,99 +37,9 @@ const BNOptionBuyAtLevel = ({
   const [orderOptionList, setOrderOptionList ] = useState(localStorage.getItem('orderOptionList') && JSON.parse(localStorage.getItem('orderOptionList')) || []);
   const [deleteId, setDeleteId] = useState('');
   const [edited, setEdited] = useState(false);
-  const [strikeLeg, setStrikeLeg] = useState(2);
+  const [strikeLeg, setStrikeLeg] = useState(1);
 
-  const placeOptionSPLevelOver=(indexData, spotPrice, optionType)=>{
-    let strikePrice = getStrikePrice(spotPrice, optionType);
-    let nextExpiryOption = getNextExpiryOption(strikePrice, optionType);
-
-    let optionInput = {
-      "transactiontype": 'BUY',
-      "tradingsymbol": nextExpiryOption.symbol,
-      "symboltoken": nextExpiryOption.token,
-      "quantity": 25,
-      "ordertype": "MARKET",
-      "price": 0,
-      "producttype": 'CARRYFORWARD',
-      "duration": "DAY",
-      "squareoff": "0",
-      "stoploss": "0",
-      "exchange": nextExpiryOption.exch_seg,
-      "variety": "NORMAL"
-  }
-  console.log('strikePrice', strikePrice, 'nextExpiryOption',nextExpiryOption, optionInput);
-
-  AdminService.placeOrder(optionInput).then(res => {
-      let data = resolveResponse(res);
-      console.log(data);   
-      if (data.status && data.message === 'SUCCESS') {
-          setDeleteId(element.id); 
-          this.speckIt(`${strikePrice} ${optionType} +" order placed"`);
-       }
-
-  })
-}
-
-const getNextExpiryOption = (strikePrice, optionType) => {
-  let optionList = localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')).NIFTYBANK_LATEST_OPTIONS || [];
-  let filteredOptions = optionList.filter(item => item.strike/100 === strikePrice && item.symbol.endsWith(optionType));
-  let nextDate = moment(new Date()).add(8, 'days');
-  let found = filteredOptions.filter(element => moment(element.expiry) <= nextDate);  
-  return found && found[0];
-}
-
-const getStrikePrice = (spotPrice, optionType) => {
-    let today = moment().isoWeekday();
-    let strikePrice = 0; 
-    if(optionType === 'CE'){
-      if(today === 5 || today === 1){
-          strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + (400 * strikeLeg)
-      }
-      else  if(today === 2){
-          strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  +  (300 * strikeLeg) 
-      }
-      else  if(today === 3){
-          strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  + (200 * strikeLeg) 
-      }else {
-          strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
-      }
-    }else if(optionType === 'PE'){
-      if(today === 5 || today === 1){
-          strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (400 * strikeLeg) 
-      }
-      else  if(today === 2){
-          strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (300 * strikeLeg)
-      }
-      else  if(today === 3){
-          strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100)  -  (200 * strikeLeg)
-      }else {
-          strikePrice = (Math.round(spotPrice) - Math.round(spotPrice) % 100) 
-      }
-  }
-  return strikePrice;
-}
-
-  useEffect(() => {
-    if(deleteId){
-      let foundIndex = orderOptionList.findIndex(x => x.id === deleteId);
-      orderOptionList.splice(foundIndex, 1); 
-      setDeleteId('');
-      setOrderOptionList(orderOptionList)
-      localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList)); 
-    }
-    
-  }, [deleteId, orderOptionList, setDeleteId]);
-
-  useEffect(() => {
-    if(orderOptionList || edited){
-      setOrderOptionList(orderOptionList)
-      localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList)); 
-      setEdited(false);
-    }
-  }, [orderOptionList, edited]);
-
-  useEffect(()=> {
-    const placeOptionSPLevelOver=(indexData, spotPrice, optionType)=>{
+  const placeOptionSPLevelOver=(spotPrice, optionType, id)=>{
       let strikePrice = getStrikePrice(spotPrice, optionType);
       let nextExpiryOption = getNextExpiryOption(strikePrice, optionType);
 
@@ -147,19 +57,23 @@ const getStrikePrice = (spotPrice, optionType) => {
         "exchange": nextExpiryOption.exch_seg,
         "variety": "NORMAL"
     }
-    console.log('strikePrice', strikePrice, 'nextExpiryOption',nextExpiryOption, optionInput);
+    console.log(optionInput);
 
     AdminService.placeOrder(optionInput).then(res => {
         let data = resolveResponse(res);
         console.log(data);   
         if (data.status && data.message === 'SUCCESS') {
-            setDeleteId(element.id); 
-            this.speckIt(`${strikePrice} ${optionType} +" order placed"`);
-         }
-
+            setDeleteId(id); 
+            speckIt(`${strikePrice} ${optionType} +" order placed"`);
+        }
     })
   }
 
+  const speckIt = (text) => {
+      var msg = new SpeechSynthesisUtterance();
+      msg.text = text.toString();
+      window.speechSynthesis.speak(msg);
+  }
   const getNextExpiryOption = (strikePrice, optionType) => {
     let optionList = localStorage.getItem('staticData') && JSON.parse(localStorage.getItem('staticData')).NIFTYBANK_LATEST_OPTIONS || [];
     let filteredOptions = optionList.filter(item => item.strike/100 === strikePrice && item.symbol.endsWith(optionType));
@@ -198,16 +112,37 @@ const getStrikePrice = (spotPrice, optionType) => {
     }
     return strikePrice;
   }
+
+  useEffect(() => {
+    if(deleteId){
+      let foundIndex = orderOptionList.findIndex(x => x.id === deleteId);
+      orderOptionList.splice(foundIndex, 1); 
+      setDeleteId('');
+      setOrderOptionList(orderOptionList)
+      localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList)); 
+    }
+    
+  }, [deleteId, orderOptionList, setDeleteId]);
+
+  useEffect(() => {
+    if(orderOptionList || edited){
+      setOrderOptionList(orderOptionList)
+      localStorage.setItem('orderOptionList', JSON.stringify(orderOptionList)); 
+      setEdited(false);
+    }
+  }, [orderOptionList, edited]);
+
+  useEffect(()=> {
     if(LiveLtp && LiveLtp.iv) {
       orderOptionList.forEach(element => {
         if((element.buyAt && LiveLtp.iv >= parseFloat(element.buyAt)) ||  (element.buyAtBelow && LiveLtp.iv <= parseFloat(element.buyAtBelow))){
-          placeOptionSPLevelOver(element, LiveLtp.iv, 'CE'); 
+          placeOptionSPLevelOver(LiveLtp.iv, 'CE', element.id); 
         }else if((element.sellAt && LiveLtp.iv <= parseFloat(element.sellAt)) || (element.sellAtAbove && LiveLtp.iv >= parseFloat(element.sellAtAbove)) ){
-          placeOptionSPLevelOver(element, LiveLtp.iv, 'PE'); 
+          placeOptionSPLevelOver(LiveLtp.iv, 'PE', element.id); 
         }
       });
   }
-  }, [LiveLtp, orderOptionList, strikeLeg])
+  }, [LiveLtp, orderOptionList, placeOptionSPLevelOver])
 
   const addInOrderPenidngList = () => { 
       if(buyAt || buyAtBelow || sellAt || sellAtAbove ){
