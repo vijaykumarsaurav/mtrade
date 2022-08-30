@@ -1472,7 +1472,9 @@ class Home extends React.Component {
                        <BNOptionBuyAtLevel LiveLtp={this.state.liveBankniftyLtdData} />
                     </Grid>
                     <Grid item xs={12} sm={12}>
+                        <Paper style={{ overflow: "auto", padding: '5px' }} >
                         <OrderBook />
+                        </Paper>
                     </Grid>
                  
 

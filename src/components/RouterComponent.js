@@ -100,7 +100,7 @@ const AppRouter = () => {
 
                     <Route path="/custom-backtest" component={CustomBacktest}/>
                     <Route path="/track145" component={Track145Strategy}/>
-                    <Route path="/BankniftyLatestOption" component={BankniftyLatestOption}/>
+                    <Route path="/bntokens" component={BankniftyLatestOption}/>
 
                     
                     <Route path="/test" component={Test}/>

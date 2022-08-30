@@ -40,8 +40,10 @@ class Home extends React.Component{
 
     makeConnection = (wsClint) => {
         var firstTime_req = '{"task":"cn","channel":"NONLM","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
-        wsClint.send(firstTime_req);
-        this.updateSocketWatch(wsClint);
+        if(this.wsClint.readyState === this.wsClint.OPEN){
+            wsClint.send(firstTime_req);
+            this.updateSocketWatch(wsClint);
+        }
     }
     decodeWebsocketData = (array) => {
         var newarray = [];
@@ -219,10 +221,24 @@ class Home extends React.Component{
                 this.makeConnection(this.wsClint);
             }
 
+           if(this.wsClint.readyState === this.wsClint.OPEN){
             var _req = '{"task":"hb","channel":"","token":"' + this.state.feedToken + '","user": "' + this.state.clientcode + '","acctid":"' + this.state.clientcode + '"}';
             console.log("Request :- " + _req);
             wsClint.send(_req);
-        }, 59000);
+           }else{
+            this.wsClint.close();
+                this.wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+                this.updateSocketDetails(this.wsClint);
+           }
+
+        
+            // if ( this.wsClint.readyState === 3 ) {
+            //     this.wsClint.close();
+            //     this.wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+            //     this.updateSocketDetails(this.wsClint);
+            // }
+
+        }, 60000);
     }
 
 

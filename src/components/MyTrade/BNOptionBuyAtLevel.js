@@ -39,36 +39,41 @@ const BNOptionBuyAtLevel = ({
   const [edited, setEdited] = useState(false);
   const [strikeLeg, setStrikeLeg] = useState(1);
 
-  const placeOptionSPLevelOver=(spotPrice, optionType, id)=>{
+  const placeOptionSPLevelOver= (spotPrice, optionType, id)=>{
       let strikePrice = getStrikePrice(spotPrice, optionType);
       let nextExpiryOption = getNextExpiryOption(strikePrice, optionType);
+      console.log(strikePrice, nextExpiryOption);
 
-      let optionInput = {
-        "transactiontype": 'BUY',
-        "tradingsymbol": nextExpiryOption.symbol,
-        "symboltoken": nextExpiryOption.token,
-        "quantity": 25,
-        "ordertype": "MARKET",
-        "price": 0,
-        "producttype": 'CARRYFORWARD',
-        "duration": "DAY",
-        "squareoff": "0",
-        "stoploss": "0",
-        "exchange": nextExpiryOption.exch_seg,
-        "variety": "NORMAL"
-    }
-    console.log(optionInput, new Date().toLocaleTimeString());
-    setDeleteId(id); 
-
-    AdminService.placeOrder(optionInput).then(res => {
-        let data = resolveResponse(res);
-        console.log(data);   
-        if (data.status && data.message === 'SUCCESS') {
-            //setDeleteId(id); 
-            speckIt(`${strikePrice} ${optionType} +" order placed"`);
-        }
-    })
-
+      if(nextExpiryOption){
+        let optionInput = {
+          "transactiontype": 'BUY',
+          "tradingsymbol": nextExpiryOption.symbol,
+          "symboltoken": nextExpiryOption.token,
+          "quantity": 25,
+          "ordertype": "MARKET",
+          "price": 0,
+          "producttype": 'CARRYFORWARD',
+          "duration": "DAY",
+          "squareoff": "0",
+          "stoploss": "0",
+          "exchange": nextExpiryOption.exch_seg,
+          "variety": "NORMAL"
+      }
+      setDeleteId(id); 
+  
+      AdminService.placeOrder(optionInput).then(res => {
+          let data = resolveResponse(res);
+          console.log(data);   
+          if (data.status && data.message === 'SUCCESS') {
+              //setDeleteId(id); 
+              speckIt(`${strikePrice} ${optionType} +" order placed"`);
+          }
+      })
+  
+      }else{
+        Notify.showError("Option token not found for " +strikePrice + " update latest tokens")
+      }
+      
   }
 
   const speckIt = (text) => {
@@ -310,7 +315,7 @@ const BNOptionBuyAtLevel = ({
                     {row.buyAt ? (
                       <input
                         step="1"
-                        style={{ width: "40%", textAlign: "center" }}
+                        style={{ width: "50px", textAlign: "center" }}
                         type="number"
                         value={row.buyAt}
                         name={`buyAt-${row.id}`}
@@ -325,7 +330,7 @@ const BNOptionBuyAtLevel = ({
                       <input
                         step="1"
                         value={row.buyAtBelow}
-                        style={{ width: "40%", textAlign: "center" }}
+                        style={{ width: "50px", textAlign: "center" }}
                         type="number"
                         name={`buyAtBelow-${row.id}`}
                         onChange={orderValueChange}
@@ -340,7 +345,7 @@ const BNOptionBuyAtLevel = ({
                       <input
                         step="1"
                         value={row.sellAt}
-                        style={{ width: "40%", textAlign: "center" }}
+                        style={{ width: "50px", textAlign: "center" }}
                         type="number"
                         name={`sellAt-${row.id}`}
                         onChange={orderValueChange}
@@ -354,7 +359,7 @@ const BNOptionBuyAtLevel = ({
                       <input
                         value={row.sellAtAbove}
                         step="1"
-                        style={{ width: "40%", textAlign: "center" }}
+                        style={{ width: "50px", textAlign: "center" }}
                         type="number"
                         name={`sellAtAbove-${row.id}`}
                         onChange={orderValueChange}
