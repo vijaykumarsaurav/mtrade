@@ -37,6 +37,7 @@ class OrderBook extends React.Component{
             firstTimeFlag: true,
             selectedStrike:[],
             symbolList: [],
+            rowSymbolList:[],
             trackSLPrice: localStorage.getItem('trackSLPrice') && JSON.parse(localStorage.getItem('trackSLPrice')) || [], 
 
         }
@@ -464,103 +465,8 @@ class OrderBook extends React.Component{
         <React.Fragment>
 
 
-            {window.location.hash !== "#/position" ?    <PostLoginNavBar/> : ""}
-            
-                
-            <Grid direction="row" alignItems="center" container>
-            <Grid item xs={12} sm={12} >
-                     <Paper style={{padding:"10px"}} >
+            {this.state.rowSymbolList.length   ? JSON.stringify(this.state.rowSymbolList) :<Spinner/>}
 
-                     <Grid spacing={1}  direction="row" alignItems="center" container>
-                                <Grid item xs={12} sm={6} >
-                                    <Typography color="primary" gutterBottom>
-                                    145 Strategy: Legs ({this.state.symbolList.length})  <span style={{color: this.state.niftyLtp.per > 0 ? 'green' : 'red'}}> Nifty { this.state.niftyLtp.ltp }  ({ this.state.niftyLtp.per }%) </span>
-                                    </Typography> 
-                                </Grid>
-                                <Grid item xs={12} sm={6} >
-                                    <Button id="orderRefresh"  type="number" variant="contained"  style={{float:"right"}} onClick={() => this.selectOnlyLtp150To170()}>Refresh</Button>    
-                                </Grid>
-                                
-                </Grid>
-
-                     <Table  size="small"  style={{width:"100%"}}  aria-label="sticky table" >
-               
-                        <TableHead style={{whiteSpace: "nowrap"}} variant="head">
-                            <TableRow variant="head" >
-                                <TableCell align="center"><b>Name</b></TableCell>
-                                <TableCell align="center"><b>Option</b></TableCell>
-                                <TableCell align="center"><b>Expiry</b></TableCell>
-
-                                <TableCell align="center"><b>Ltp</b></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                        
-                            {this.state.symbolList.length ? this.state.symbolList.map((row, i)  => (
-                                <TableRow hover key={i} >
-                                    <TableCell style={{ width: '10%'}}  align="center">{row.name}</TableCell>
-                                    <TableCell align="center">{row.symbol}</TableCell>
-                                    <TableCell align="center">{row.expiry}</TableCell>
-
-                                    <TableCell align="center">
-                                        <span style={{color: row.perChange > 0 ? 'green' : 'red'}}> {row.ltp} ({ row.perChange }%) </span>
-                                    </TableCell>
-
-                                </TableRow>
-                            )):<Spinner/>}
-                        </TableBody>
-                    </Table>
-                    </Paper>    
-                </Grid>
-                 
-               </Grid>   
-
-
-                <Grid direction="row" alignItems="center" container>
-                   <Grid item xs={12} sm={12} >
-                     <Paper style={{padding:"10px"}} >
-                     <Typography color="primary" gutterBottom> Performance</Typography> 
-
-                     <Table  size="small"  style={{width:"100%"}}  aria-label="sticky table" >
-               
-                        <TableHead style={{whiteSpace: "nowrap"}} variant="head">
-                            <TableRow variant="head" >
-                                <TableCell align="center"><b>Name</b></TableCell>
-                                <TableCell align="center"><b>Option</b></TableCell>
-                                <TableCell align="center"><b>Expiry</b></TableCell>
-                                <TableCell align="center"><b>Ltp</b></TableCell>
-                                <TableCell align="center"><b>Entry</b></TableCell>
-
-                                <TableCell align="center"><b>Upside Price</b></TableCell>
-                                <TableCell align="center"><b>Return%</b></TableCell>
-                                <TableCell align="center"><b>Downside Price</b></TableCell>
-
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                        
-                            {Track145.length ? Track145.map((row, i)  => (
-                                <TableRow hover key={i} >
-                                    <TableCell style={{ width: '10%'}}  align="center">{row.name}</TableCell>
-                                    <TableCell align="center">{row.symbol}</TableCell>
-                                    <TableCell align="center">{row.expiry}</TableCell>
-                                    <TableCell align="center">
-                                        <span style={{color: row.perChange > 0 ? 'green' : 'red'}}> {row.ltp} ({ row.perChange }%) </span>
-                                    </TableCell>
-                                    <TableCell align="center">{row.entry}</TableCell>
-
-                                    <TableCell align="center">{row.upsideLtp}</TableCell>
-                                    <TableCell align="center">{row.returnPer}</TableCell>
-                                    <TableCell align="center">{row.downsideLtp}</TableCell>
-
-                                </TableRow>
-                            )):<Typography> Nothing crossed as of now</Typography> }
-                        </TableBody>
-                    </Table>
-                    </Paper>    
-                </Grid>
-                 
-               </Grid>   
            
             </React.Fragment> 
         )
