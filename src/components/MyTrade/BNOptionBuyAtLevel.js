@@ -20,7 +20,7 @@ import TextField from "@material-ui/core/TextField";
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import DeleteIcon from '@material-ui/icons/Delete';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import CommonOrderMethod from "../../utils/CommonMethods";
+import CommonMethods from '../../utils/CommonMethods';
 import * as moment from 'moment';
 import Notify from "../../utils/Notify";
 import ShowChartIcon from '@material-ui/icons/ShowChart';
@@ -35,14 +35,23 @@ const BNOptionBuyAtLevel = ({
   const [buyAtTarget, setBuyAtTarget] = useState('');
 
   const [buyAtBelow, setBuyAtBelow] = useState('');
+  const [buyAtBelowStoploss, setBuyAtBelowStoploss] = useState('');
+  const [buyAtBelowTarget, setBuyAtBelowTarget] = useState('');
+
   const [sellAt, setSellAt] = useState('');
+  const [sellAtStoploss, setSellAtStoploss] = useState('');
+  const [sellAtTarget, setSellAtTarget] = useState('');
+
   const [sellAtAbove, setSellAtAbove] = useState('');
+  const [sellAtAboveStoploss, setSellAtAboveStoploss] = useState('');
+  const [sellAtAboveTarget, setSellAtAboveTarget] = useState('');
+
   const [orderOptionList, setOrderOptionList ] = useState(localStorage.getItem('orderOptionList') && JSON.parse(localStorage.getItem('orderOptionList')) || []);
   const [deleteId, setDeleteId] = useState('');
   const [edited, setEdited] = useState(false);
-  const [strikeLeg, setStrikeLeg] = useState(1);
+  const [strikeLeg, setStrikeLeg] = useState(3);
 
-  const placeOptionSPLevelOver= (spotPrice, optionType, id)=>{
+  const placeOptionSPLevelOver= (spotPrice, optionType, id, spottype, elementInfo)=>{
       let strikePrice = getStrikePrice(spotPrice, optionType);
       let nextExpiryOption = getNextExpiryOption(strikePrice, optionType);
       console.log(strikePrice, nextExpiryOption);
@@ -63,20 +72,43 @@ const BNOptionBuyAtLevel = ({
           "variety": "NORMAL"
       }
 
+      let spotDetails = CommonMethods.getStockTokenDetails('BANKNIFTY');
+      spotDetails.tradingsymbol = nextExpiryOption.symbol;
+      spotDetails.optiontype = optionType;
 
+      if(spottype == 'buyAt'){
+        spotDetails.optionStockStoploss = elementInfo.buyAtStoploss;
+        spotDetails.optionStockTarget =  elementInfo.buyAtTarget;
+      }
 
-      let found = this.state.activeStockOptions.filter(name => name.name == element.symbolname);
+      if(spottype == 'buyAtBelow'){
+        spotDetails.optionStockStoploss = elementInfo.buyAtBelowStoploss;
+        spotDetails.optionStockTarget =  elementInfo.buyAtBelowTarget;
+      }
+      
+      if(spottype == 'sellAt'){
+        spotDetails.optionStockStoploss = elementInfo.sellAtStoploss;
+        spotDetails.optionStockTarget =  elementInfo.sellAtTarget;
+      }
+      if(spottype == 'sellAtAbove'){
+        spotDetails.optionStockStoploss = elementInfo.sellAtAboveStoploss;
+        spotDetails.optionStockTarget =  elementInfo.sellAtAboveTarget;
+      }
+      
 
+      const activeStockOptions =  localStorage.getItem('activeStockOptions') && JSON.parse(localStorage.getItem('activeStockOptions')) || []; 
+      activeStockOptions.push(spotDetails);
+      localStorage.setItem("activeStockOptions", JSON.stringify(activeStockOptions));
       setDeleteId(id); 
 
-      AdminService.placeOrder(optionInput).then(res => {
-          let data = resolveResponse(res);
-          console.log(data);   
-          if (data.status && data.message === 'SUCCESS') {
-              //setDeleteId(id); 
-              speckIt(`${strikePrice} ${optionType} +" order placed"`);
-          }
-      })
+      // AdminService.placeOrder(optionInput).then(res => {
+      //     let data = resolveResponse(res);
+      //     console.log(data);   
+      //     if (data.status && data.message === 'SUCCESS') {
+      //         //setDeleteId(id); 
+      //         speckIt(`${strikePrice} ${optionType} +" order placed"`);
+      //     }
+      // })
   
       }else{
         Notify.showError("Option token not found for " +strikePrice + " update latest tokens")
@@ -150,10 +182,14 @@ const BNOptionBuyAtLevel = ({
   useEffect(()=> {
     if(LiveLtp && LiveLtp.iv) {
       orderOptionList.forEach(element => {
-        if((element.buyAt && LiveLtp.iv >= parseFloat(element.buyAt)) ||  (element.buyAtBelow && LiveLtp.iv <= parseFloat(element.buyAtBelow))){
-          placeOptionSPLevelOver(LiveLtp.iv, 'CE', element.id); 
-        }else if((element.sellAt && LiveLtp.iv <= parseFloat(element.sellAt)) || (element.sellAtAbove && LiveLtp.iv >= parseFloat(element.sellAtAbove)) ){
-          placeOptionSPLevelOver(LiveLtp.iv, 'PE', element.id); 
+        if(element.buyAt && LiveLtp.iv >= parseFloat(element.buyAt)){
+          placeOptionSPLevelOver(LiveLtp.iv, 'CE', element.id, 'buyAt', element ); 
+        }else if(element.buyAtBelow && LiveLtp.iv <= parseFloat(element.buyAtBelow)){
+          placeOptionSPLevelOver(LiveLtp.iv, 'CE', element.id, 'buyAtBelow', element ); 
+        }else if(element.sellAt && LiveLtp.iv <= parseFloat(element.sellAt)){
+          placeOptionSPLevelOver(LiveLtp.iv, 'PE', element.id, 'sellAt', element); 
+        }else if(element.sellAtAbove && LiveLtp.iv >= parseFloat(element.sellAtAbove) ){
+          placeOptionSPLevelOver(LiveLtp.iv, 'PE', element.id, 'sellAtAbove', element); 
         }
       });
   }
@@ -165,10 +201,20 @@ const BNOptionBuyAtLevel = ({
               createdAt : new Date().toLocaleTimeString(), 
               buyAt: buyAt,
               buyAtStoploss: buyAtStoploss, 
-              buyAtTarget: buyAtTarget,
+              buyAtTarget: buyAtTarget, 
+
               buyAtBelow: buyAtBelow,
+              buyAtBelowStoploss: buyAtBelowStoploss, 
+              buyAtBelowTarget: buyAtBelowTarget, 
+              
               sellAt: sellAt,  
+              sellAtStoploss: sellAtStoploss,  
+              sellAtTarget: sellAtTarget, 
+
               sellAtAbove: sellAtAbove,  
+              sellAtAboveStoploss: sellAtAboveStoploss,  
+              sellAtAboveTarget: sellAtAboveTarget,  
+
               id: new Date().getTime()
           }
           setOrderOptionList([...orderOptionList, orderInput]);
@@ -185,86 +231,152 @@ const BNOptionBuyAtLevel = ({
 
   const resetInput = () => {
     setBuyAt("")
+    setBuyAtStoploss("")
+    setBuyAtTarget("")
+
     setBuyAtBelow("")
+    setBuyAtBelowStoploss("")
+    setBuyAtBelowTarget("")
+
     setSellAt("")
+    setSellAtStoploss("")
+    setSellAtTarget("")
+    
     setSellAtAbove(""); 
+    setSellAtAboveStoploss("")
+    setSellAtAboveTarget("")
   }
 
   return (
     <React.Fragment>
       <Paper
-        style={{ overflow: "auto", padding: "5px", background: "#f500570a" }}
+        style={{ overflow: "auto", padding: "5px"}}
       >
         <Typography color="primary" gutterBottom>
           <button onClick={() => resetInput()}>Reset all</button> Nifty Bank Option buy on Level {LiveLtp.iv}
         </Typography>
         <br />
-
         <Grid justify="space-between" container>
-          <Grid item>
-            <ButtonGroup size="small" aria-label="small button group">
-              <TextField
-                label="Buy Above"
-                type="number"
-                name="buyAt"
-                style={{width: '100px'}}
-                value={buyAt}
-                onChange={(event) => setBuyAt(event.target.value)}
-              />
-               <TextField
-                label="Stoploss"
-                type="number"
-                name="buyAtStoploss"
-                style={{width: '100px'}}
-                value={buyAtStoploss}
-                onChange={(event) => setBuyAtStoploss(event.target.value)}
-              />
+        <Paper style={{ overflow: "auto", padding: "5px", background: "whitesmoke" }}>
+            <Typography color="primary" gutterBottom>
+                Call Buy
+            </Typography>
+            <Grid item>
+              <ButtonGroup size="small" aria-label="small button group">
                 <TextField
-                label="Target"
-                type="number"
-                name="buyAtTarget"
-                style={{width: '100px'}}
-                value={buyAtTarget}
-                onChange={(event) => setBuyAtTarget(event.target.value)}
-              />
-              <Button variant="contained" onClick={() => setBuyAt("")}>
-                <ClearIcon color="error" />
-              </Button>
-            </ButtonGroup>
+                  label="Buy Above"
+                  type="number"
+                  name="buyAt"
+                  style={{width: '125px'}}
+                  value={buyAt}
+                  onChange={(event) => setBuyAt(event.target.value)}
+                />
+                <TextField
+                  label="Stoploss"
+                  type="number"
+                  name="buyAtStoploss"
+                  style={{width: '100px'}}
+                  value={buyAtStoploss}
+                  onChange={(event) => setBuyAtStoploss(event.target.value)}
+                />
+                  <TextField
+                  label="Target"
+                  type="number"
+                  name="buyAtTarget"
+                  style={{width: '100px'}}
+                  value={buyAtTarget}
+                  onChange={(event) => setBuyAtTarget(event.target.value)}
+                />
+                <Button variant="contained" onClick={() => {
+                  setBuyAt("")
+                  setBuyAtStoploss("")
+                  setBuyAtTarget("")
+                }}>
+                  <ClearIcon color="error" />
+                </Button>
+              </ButtonGroup>
+              <br />
+              <button onClick={() => setBuyAt(LiveLtp.iv)}>
+                Copy {LiveLtp.iv}
+              </button> LiveLtp >= buyAt
+            </Grid>
             <br />
-            <button onClick={() => setBuyAt(LiveLtp.iv)}>
-              Copy {LiveLtp.iv}
-            </button>
-          </Grid>
+            <Grid item>
+              <ButtonGroup size="small" aria-label="small button group">
+                <TextField
+                  label="Buy Below"
+                  type="number"
+                  style={{width: '125px'}}
+                  name="buyAtBelow"
+                  value={buyAtBelow}
+                  onChange={(event) => setBuyAtBelow(event.target.value)}
+                />
+                  <TextField
+                  label="Stoploss"
+                  type="number"
+                  name="buyAtBelowStoploss"
+                  style={{width: '100px'}}
+                  value={buyAtBelowStoploss}
+                  onChange={(event) => setBuyAtBelowStoploss(event.target.value)}
+                />
+                  <TextField
+                  label="Target"
+                  type="number"
+                  name="buyAtBelowTarget"
+                  style={{width: '100px'}}
+                  value={buyAtBelowTarget}
+                  onChange={(event) => setBuyAtBelowTarget(event.target.value)}
+                />
+                <Button variant="contained" onClick={() => {
+                setBuyAtBelow("")
+                setBuyAtBelowStoploss("")
+                setBuyAtBelowTarget("")
+                }}>
+                  <ClearIcon color="error" />
+                </Button>
+              </ButtonGroup>
+              <br />
+              <button onClick={() => setBuyAtBelow(LiveLtp.iv)}>
+                Copy {LiveLtp.iv} 
+              </button>  LiveLtp &lt;= buyAtBelow
+              
+            </Grid>
+        </Paper>
+        <Paper style={{ overflow: "auto", padding: "5px", background: "#f500570a" }}>
+        <Typography color="primary" gutterBottom>
+                Put Buy
+            </Typography>
           <Grid item>
             <ButtonGroup size="small" aria-label="small button group">
               <TextField
-                label="BuyAt(Below)"
+                label="Sell Below"
                 type="number"
-                name="buyAtBelow"
-                value={buyAtBelow}
-                onChange={(event) => setBuyAtBelow(event.target.value)}
-              />
-              <Button variant="contained" onClick={() => setBuyAtBelow("")}>
-                <ClearIcon color="error" />
-              </Button>
-            </ButtonGroup>
-            <br />
-            <button onClick={() => setBuyAtBelow(LiveLtp.iv)}>
-              Copy {LiveLtp.iv}
-            </button>
-          </Grid>
-
-          <Grid item>
-            <ButtonGroup size="small" aria-label="small button group">
-              <TextField
-                label="SellAt(Below)"
-                type="number"
+                style={{width: '125px'}}
                 name="sellAt"
                 value={sellAt}
                 onChange={(event) => setSellAt(event.target.value)}
               />
-              <Button variant="contained" onClick={() => setSellAt("")}>
+               <TextField
+                label="Stoploss"
+                type="number"
+                name="sellAtStoploss"
+                style={{width: '100px'}}
+                value={sellAtStoploss}
+                onChange={(event) => setSellAtStoploss(event.target.value)}
+              />
+                <TextField
+                label="Target"
+                type="number"
+                name="sellAtTarget"
+                style={{width: '100px'}}
+                value={sellAtTarget}
+                onChange={(event) => setSellAtTarget(event.target.value)}
+              />
+              <Button variant="contained" onClick={() => {
+                  setSellAt("")
+                  setSellAtStoploss("")
+                  setSellAtTarget("")
+              }}>
                 <ClearIcon color="error" />
               </Button>
             </ButtonGroup>
@@ -272,28 +384,50 @@ const BNOptionBuyAtLevel = ({
             <br />
             <button onClick={() => setSellAt(LiveLtp.iv)}>
               Copy {LiveLtp.iv}
-            </button>
+            </button>  LiveLtp &lt;= sellAt
           </Grid>
+          <br />
 
           <Grid item>
             <ButtonGroup size="small" aria-label="small button group">
               <TextField
-                label="SellAt(Above)"
+                label="Sell Above"
                 type="number"
+                style={{width: '125px'}}
                 name="sellAtAbove"
                 value={sellAtAbove}
                 onChange={(event) => setSellAtAbove(event.target.value)}
               />
-              <Button variant="contained" onClick={() => setSellAtAbove("")}>
+                <TextField
+                label="Stoploss"
+                type="number"
+                name="sellAtAboveStoploss"
+                style={{width: '100px'}}
+                value={sellAtAboveStoploss}
+                onChange={(event) => setSellAtAboveStoploss(event.target.value)}
+              />
+                <TextField
+                label="Target"
+                type="number"
+                name="sellAtAboveTarget"
+                style={{width: '100px'}}
+                value={sellAtAboveTarget}
+                onChange={(event) => setSellAtAboveTarget(event.target.value)}
+              />
+              <Button variant="contained" onClick={() => {
+                    setSellAtAbove(""); 
+                    setSellAtAboveStoploss("")
+                    setSellAtAboveTarget("")
+              }}>
                 <ClearIcon color="error" />
               </Button>
             </ButtonGroup>
             <br />
             <button onClick={() => setSellAtAbove(LiveLtp.iv)}>
               Copy {LiveLtp.iv}
-            </button>
+            </button>  LiveLtp >= sellAtAbove
           </Grid>
-
+        </Paper>
           <Grid item>
             <Button
               variant="contained"
@@ -309,21 +443,43 @@ const BNOptionBuyAtLevel = ({
           <TableHead style={{ whiteSpace: "nowrap" }} variant="head">
             <TableRow key="1" variant="head" style={{ fontWeight: "bold" }}>
               <TableCell className="TableHeadFormat" align="left">
-                CreatetAt ({orderOptionList.length})
+                Time ({orderOptionList.length})
               </TableCell>
 
               <TableCell className="TableHeadFormat" align="left">
-                BuyAt(Above)
+               Buy Above
               </TableCell>
               <TableCell className="TableHeadFormat" align="left">
-                BuyAt(Below)
+                Buy Above SL
+              </TableCell>
+              <TableCell className="TableHeadFormat" align="left">
+                Buy Above T.
+              </TableCell>
+              
+              <TableCell className="TableHeadFormat" align="left">
+                Buy Below
+              </TableCell>
+              <TableCell className="TableHeadFormat" align="left">
+                Buy Below SL
+              </TableCell> <TableCell className="TableHeadFormat" align="left">
+                Buy Below T.
               </TableCell>
 
               <TableCell className="TableHeadFormat" align="left">
-                SellAt(Below)
+              Sell Below
               </TableCell>
               <TableCell className="TableHeadFormat" align="left">
-                SellAt(Above)
+                Sell Below SL
+              </TableCell> <TableCell className="TableHeadFormat" align="left">
+                Sell Below T.
+              </TableCell>
+              <TableCell className="TableHeadFormat" align="left">
+                Sell Above
+              </TableCell>
+              <TableCell className="TableHeadFormat" align="left">
+                Sell Above SL
+              </TableCell><TableCell className="TableHeadFormat" align="left">
+                Sell Above T.
               </TableCell>
 
               <TableCell className="TableHeadFormat" align="left">
@@ -333,7 +489,7 @@ const BNOptionBuyAtLevel = ({
           </TableHead>
 
           <TableBody id="tableAdd" style={{ width: "", whiteSpace: "nowrap" }}>
-            {orderOptionList.length &&
+            {orderOptionList.length ?
               orderOptionList.map((row, i) => (
                 <TableRow hover>
                   <TableCell align="left">{row.createdAt}</TableCell>
@@ -342,10 +498,37 @@ const BNOptionBuyAtLevel = ({
                     {row.buyAt ? (
                       <input
                         step="1"
-                        style={{ width: "50px", textAlign: "center" }}
+                        style={{ width: "75px", textAlign: "center" }}
                         type="number"
                         value={row.buyAt}
                         name={`buyAt-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell align="left">
+                    {row.buyAtStoploss ? (
+                      <input
+                        step="1"
+                        style={{ width: "75px", textAlign: "center" }}
+                        type="number"
+                        value={row.buyAtStoploss}
+                        name={`buyAtStoploss-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell> <TableCell align="left">
+                    {row.buyAtTarget ? (
+                      <input
+                        step="1"
+                        style={{ width: "75px", textAlign: "center" }}
+                        type="number"
+                        value={row.buyAtTarget}
+                        name={`buyAtTarget-${row.id}`}
                         onChange={orderValueChange}
                       />
                     ) : (
@@ -357,9 +540,36 @@ const BNOptionBuyAtLevel = ({
                       <input
                         step="1"
                         value={row.buyAtBelow}
-                        style={{ width: "50px", textAlign: "center" }}
+                        style={{ width: "75px", textAlign: "center" }}
                         type="number"
                         name={`buyAtBelow-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell align="left">
+                    {row.buyAtBelowStoploss ? (
+                      <input
+                        step="1"
+                        value={row.buyAtBelowStoploss}
+                        style={{ width: "75px", textAlign: "center" }}
+                        type="number"
+                        name={`buyAtBelowStoploss-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell><TableCell align="left">
+                    {row.buyAtBelowTarget ? (
+                      <input
+                        step="1"
+                        value={row.buyAtBelowTarget}
+                        style={{ width: "75px", textAlign: "center" }}
+                        type="number"
+                        name={`buyAtBelowTarget-${row.id}`}
                         onChange={orderValueChange}
                       />
                     ) : (
@@ -372,9 +582,36 @@ const BNOptionBuyAtLevel = ({
                       <input
                         step="1"
                         value={row.sellAt}
-                        style={{ width: "50px", textAlign: "center" }}
+                        style={{ width: "75px", textAlign: "center" }}
                         type="number"
                         name={`sellAt-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell align="left">
+                    {row.sellAtStoploss ? (
+                      <input
+                        step="1"
+                        value={row.sellAtStoploss}
+                        style={{ width: "75px", textAlign: "center" }}
+                        type="number"
+                        name={`sellAtStoploss-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>  <TableCell align="left">
+                    {row.sellAtTarget ? (
+                      <input
+                        step="1"
+                        value={row.sellAtTarget}
+                        style={{ width: "75px", textAlign: "center" }}
+                        type="number"
+                        name={`sellAtTarget-${row.id}`}
                         onChange={orderValueChange}
                       />
                     ) : (
@@ -386,9 +623,37 @@ const BNOptionBuyAtLevel = ({
                       <input
                         value={row.sellAtAbove}
                         step="1"
-                        style={{ width: "50px", textAlign: "center" }}
+                        style={{ width: "75px", textAlign: "center" }}
                         type="number"
                         name={`sellAtAbove-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell align="left">
+                    {row.sellAtAboveStoploss ? (
+                      <input
+                        value={row.sellAtAboveStoploss}
+                        step="1"
+                        style={{ width: "75px", textAlign: "center" }}
+                        type="number"
+                        name={`sellAtAboveStoploss-${row.id}`}
+                        onChange={orderValueChange}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell align="left">
+                    {row.sellAtAboveTarget ? (
+                      <input
+                        value={row.sellAtAboveTarget}
+                        step="1"
+                        style={{ width: "75px", textAlign: "center" }}
+                        type="number"
+                        name={`sellAtAboveTarget-${row.id}`}
                         onChange={orderValueChange}
                       />
                     ) : (
@@ -403,7 +668,7 @@ const BNOptionBuyAtLevel = ({
                     />
                   </TableCell>
                 </TableRow>
-              ))}
+              )) : ""}
           </TableBody>
         </Table>
       </Paper>

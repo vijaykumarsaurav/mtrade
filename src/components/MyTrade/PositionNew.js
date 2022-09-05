@@ -587,23 +587,22 @@ class Home extends React.Component {
 
                     this.checkSLOrTarget(element);
 
-                    if ((element.optiontype == 'CE' || element.optiontype == 'PE') && element.netqty > 0) {
-                        let found = this.state.activeStockOptions.filter(name => name.name == element.symbolname);
+                    if ((element.optiontype == 'CE' || element.optiontype == 'PE') && element.netqty > 0) { 
+                      
+                        const activeStockOptions = localStorage.getItem('activeStockOptions') && JSON.parse(localStorage.getItem('activeStockOptions')) || [];
+                        let found = activeStockOptions.filter(name => name.tradingsymbol == element.tradingsymbol);
                         element.optionStockName = element.symbolname;
-                        element.optiontype = element.optiontype;
 
-                        let spotDetails = CommonMethods.getStockTokenDetails(element.symbolname);
-                        spotDetails.optiontype = element.optiontype;
-                        spotDetails.netqty = element.netqty;
-                        spotDetails.tradingsymbol = element.tradingsymbol;
-
-                        if (found[0]) {
+                        if (!found[0]) {
+                            let spotDetails = CommonMethods.getStockTokenDetails(element.symbolname);
+                            spotDetails.optiontype = element.optiontype;
+                            spotDetails.netqty = element.netqty;
+                            spotDetails.tradingsymbol = element.tradingsymbol;
+                            this.setState({ activeStockOptions: [activeStockOptions, spotDetails] });
+                            localStorage.setItem("activeStockOptions", JSON.stringify(this.state.activeStockOptions));
+                        }else{
                             element.optionStockStoploss = found[0] && found[0].optionStockStoploss;
                             element.optionStockTarget = found[0] && found[0].optionStockTarget;
-                        }else{
-                            this.setState({ activeStockOptions: [...this.state.activeStockOptions, spotDetails] });
-                            localStorage.setItem("activeStockOptions", JSON.stringify(this.state.activeStockOptions));
-                            
                         }
                     }
                 }
@@ -640,25 +639,29 @@ class Home extends React.Component {
 
     optionStockStoplossChange = (e) => {
         this.setState({ [e.target.name]: e.target.value });
-        for (let index = 0; index < this.state.activeStockOptions.length; index++) {
-            const element = this.state.activeStockOptions[index];
-            if (e.target.name === element.name) {
+        const activeStockOptions = localStorage.getItem('activeStockOptions') && JSON.parse(localStorage.getItem('activeStockOptions')) || [];
+        for (let index = 0; index < activeStockOptions.length; index++) {
+            const element = activeStockOptions[index];
+            if (e.target.name === element.tradingsymbol) {
                 element.optionStockStoploss = e.target.value;
-                localStorage.setItem("activeStockOptions", JSON.stringify(this.state.activeStockOptions));
                 break;
             }
         }
+        localStorage.setItem("activeStockOptions", JSON.stringify(activeStockOptions));
+        this.setState({activeStockOptions :  activeStockOptions })
     }
     optionStockTargetChange = (e) => {
         this.setState({ [e.target.name]: e.target.value });
-        for (let index = 0; index < this.state.activeStockOptions.length; index++) {
-            const element = this.state.activeStockOptions[index];
-            if (e.target.name === element.name) {
+        const activeStockOptions = localStorage.getItem('activeStockOptions') && JSON.parse(localStorage.getItem('activeStockOptions')) || [];
+        for (let index = 0; index < activeStockOptions.length; index++) {
+            const element = activeStockOptions[index];
+            if (e.target.name === element.tradingsymbol) {
                 element.optionStockTarget = e.target.value;
-                localStorage.setItem("activeStockOptions", JSON.stringify(this.state.activeStockOptions));
                 break;
             }
         }
+        this.setState({activeStockOptions :  activeStockOptions })
+        localStorage.setItem("activeStockOptions", JSON.stringify(activeStockOptions));
     }
 
     onTrailChange = (e) => {
@@ -816,11 +819,11 @@ class Home extends React.Component {
         if (this.state.activeStockOptions.length > 0) {
             for (let index = 0; index < this.state.activeStockOptions.length; index++) {
                 const element = this.state.activeStockOptions[index];
-                if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && element.netqty > 0 && ((LtpData.iv < element.optionStockStoploss) || (LtpData.iv >= element.optionStockTarget))) {
+                if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && ((LtpData.iv < element.optionStockStoploss) || (LtpData.iv >= element.optionStockTarget))) {
                     //delete sloption &  trigeer sl    
                     this.deleteIndexOption(element, index);
                 }
-                if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && element.netqty > 0 && ((LtpData.iv > element.optionStockStoploss) || (LtpData.iv <= element.optionStockTarget))) {
+                if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && ((LtpData.iv > element.optionStockStoploss) || (LtpData.iv <= element.optionStockTarget))) {
                     //delete sloption &  trigeer sl    
                     this.deleteIndexOption(element, index);
                 }
@@ -1317,10 +1320,10 @@ class Home extends React.Component {
                                             </TableCell>
 
                                             <TableCell align="left">
-                                                {row.netqty  && row.optionStockName?  <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockStoploss} name={row.optionStockName} onChange={this.optionStockStoplossChange} /> : "-"}
+                                                {row.optionStockStoploss || row.netqty > 0 ?  <input step="1" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockStoploss} name={row.tradingsymbol} onChange={this.optionStockStoplossChange} /> : "-"} 
                                             </TableCell>
                                             <TableCell align="left">
-                                                {row.netqty  && row.optionStockName ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockTarget} name={row.optionStockName} onChange={this.optionStockTargetChange} /> : "-"}
+                                                {row.optionStockTarget || row.netqty > 0 ? <input step="1" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockTarget} name={row.tradingsymbol} onChange={this.optionStockTargetChange} /> : "-"}
                                             </TableCell>
 
 
