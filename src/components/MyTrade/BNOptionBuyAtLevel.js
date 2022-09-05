@@ -101,14 +101,14 @@ const BNOptionBuyAtLevel = ({
       localStorage.setItem("activeStockOptions", JSON.stringify(activeStockOptions));
       setDeleteId(id); 
 
-      // AdminService.placeOrder(optionInput).then(res => {
-      //     let data = resolveResponse(res);
-      //     console.log(data);   
-      //     if (data.status && data.message === 'SUCCESS') {
-      //         //setDeleteId(id); 
-      //         speckIt(`${strikePrice} ${optionType} +" order placed"`);
-      //     }
-      // })
+      AdminService.placeOrder(optionInput).then(res => {
+          let data = resolveResponse(res);
+          console.log(data);   
+          if (data.status && data.message === 'SUCCESS') {
+              //setDeleteId(id); 
+              speckIt(`${strikePrice} ${optionType} +" order placed"`);
+          }
+      })
   
       }else{
         Notify.showError("Option token not found for " +strikePrice + " update latest tokens")
