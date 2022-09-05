@@ -31,6 +31,9 @@ const BNOptionBuyAtLevel = ({
 }) => {
   
   const [buyAt, setBuyAt] = useState('');
+  const [buyAtStoploss, setBuyAtStoploss] = useState('');
+  const [buyAtTarget, setBuyAtTarget] = useState('');
+
   const [buyAtBelow, setBuyAtBelow] = useState('');
   const [sellAt, setSellAt] = useState('');
   const [sellAtAbove, setSellAtAbove] = useState('');
@@ -59,8 +62,13 @@ const BNOptionBuyAtLevel = ({
           "exchange": nextExpiryOption.exch_seg,
           "variety": "NORMAL"
       }
+
+
+
+      let found = this.state.activeStockOptions.filter(name => name.name == element.symbolname);
+
       setDeleteId(id); 
-  
+
       AdminService.placeOrder(optionInput).then(res => {
           let data = resolveResponse(res);
           console.log(data);   
@@ -156,6 +164,8 @@ const BNOptionBuyAtLevel = ({
           const orderInput = {
               createdAt : new Date().toLocaleTimeString(), 
               buyAt: buyAt,
+              buyAtStoploss: buyAtStoploss, 
+              buyAtTarget: buyAtTarget,
               buyAtBelow: buyAtBelow,
               sellAt: sellAt,  
               sellAtAbove: sellAtAbove,  
@@ -186,19 +196,36 @@ const BNOptionBuyAtLevel = ({
         style={{ overflow: "auto", padding: "5px", background: "#f500570a" }}
       >
         <Typography color="primary" gutterBottom>
-          <button onClick={() => resetInput()}>Reset all</button>
-          Nifty Bank Option buy on Level {LiveLtp.iv}
+          <button onClick={() => resetInput()}>Reset all</button> Nifty Bank Option buy on Level {LiveLtp.iv}
         </Typography>
+        <br />
 
         <Grid justify="space-between" container>
           <Grid item>
             <ButtonGroup size="small" aria-label="small button group">
               <TextField
-                label="BuyAt(Above)"
+                label="Buy Above"
                 type="number"
                 name="buyAt"
+                style={{width: '100px'}}
                 value={buyAt}
                 onChange={(event) => setBuyAt(event.target.value)}
+              />
+               <TextField
+                label="Stoploss"
+                type="number"
+                name="buyAtStoploss"
+                style={{width: '100px'}}
+                value={buyAtStoploss}
+                onChange={(event) => setBuyAtStoploss(event.target.value)}
+              />
+                <TextField
+                label="Target"
+                type="number"
+                name="buyAtTarget"
+                style={{width: '100px'}}
+                value={buyAtTarget}
+                onChange={(event) => setBuyAtTarget(event.target.value)}
               />
               <Button variant="contained" onClick={() => setBuyAt("")}>
                 <ClearIcon color="error" />
@@ -277,7 +304,7 @@ const BNOptionBuyAtLevel = ({
             </Button>
           </Grid>
         </Grid>
-
+        <br />
         <Table size="small" aria-label="sticky table">
           <TableHead style={{ whiteSpace: "nowrap" }} variant="head">
             <TableRow key="1" variant="head" style={{ fontWeight: "bold" }}>

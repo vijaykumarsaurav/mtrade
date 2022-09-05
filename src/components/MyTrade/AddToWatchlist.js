@@ -264,6 +264,12 @@ class MyView extends React.Component{
                    
                 </Paper>
 
+                <Paper style={{padding:"25px" }}>  
+
+                                    <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '50%'}}  label="Paste only JSON to add into watchlist"  value={JSON.stringify(this.state.staticData)}   name="addtowatchlist" onChange={this.onChange}/>
+ 
+                          {JSON.stringify(this.state.staticData)}
+                </Paper>
                 
            
           

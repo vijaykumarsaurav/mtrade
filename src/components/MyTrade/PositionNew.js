@@ -110,62 +110,62 @@ class Home extends React.Component {
         }
     }
 
-    getOptionStockLiveLtp = async () => {
+    // getOptionStockLiveLtp = async () => {
 
-        for (let index = 0; index < this.state.activeStockOptions.length; index++) {
-            const element = this.state.activeStockOptions[index];
-            var data = { "exchange": element.exch_seg, "tradingsymbol": element.symbol, "symboltoken": element.token };
+    //     for (let index = 0; index < this.state.activeStockOptions.length; index++) {
+    //         const element = this.state.activeStockOptions[index];
+    //         var data = { "exchange": element.exch_seg, "tradingsymbol": element.symbol, "symboltoken": element.token };
 
 
-            AdminService.getLTP(data).then(res => {
-                let data = resolveResponse(res, 'noPop');
-                var LtpData = data && data.data;
-                if (LtpData && LtpData.ltp) {
-                    element.ltp = LtpData.ltp;
-                    element.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
+    //         AdminService.getLTP(data).then(res => {
+    //             let data = resolveResponse(res, 'noPop');
+    //             var LtpData = data && data.data;
+    //             if (LtpData && LtpData.ltp) {
+    //                 element.ltp = LtpData.ltp;
+    //                 element.perChange = ((LtpData.ltp - LtpData.close) * 100 / LtpData.close).toFixed(2);
 
-                     console.log('element', element)
+    //                  console.log('element', element)
 
-                    let elementP = this.state.positionList.filter(name => name.symbolname == element.symbol);
+    //                 let elementP = this.state.positionList.filter(name => name.symbolname == element.symbol);
                 
-                    // for (let indexP = 0; indexP < this.state.positionList.length; indexP++) {
-                    //     elementP = this.state.positionList[indexP];
-                    //     if (elementP.symbolname === element.symbol) {
-                    //         elementP.optionStockLtp = LtpData.ltp;
-                    //         elementP.optionStockName = element.symbol;
-                    //         elementP.optionStockChange = element.perChange;
+    //                 // for (let indexP = 0; indexP < this.state.positionList.length; indexP++) {
+    //                 //     elementP = this.state.positionList[indexP];
+    //                 //     if (elementP.symbolname === element.symbol) {
+    //                 //         elementP.optionStockLtp = LtpData.ltp;
+    //                 //         elementP.optionStockName = element.symbol;
+    //                 //         elementP.optionStockChange = element.perChange;
 
-                    //         break;
-                    //     }
-                    // }
-                    // this.setState({ positionList: this.state.positionList });
+    //                 //         break;
+    //                 //     }
+    //                 // }
+    //                 // this.setState({ positionList: this.state.positionList });
 
-                    if(elementP[0]){
-                        //ce quireoff 
-                        if (elementP.optiontype === 'CE' && (LtpData.ltp < element.optionStockStoploss || LtpData.ltp >= element.optionStockTarget)) {
-                            var isDelete = this.deleteActiveOptionStock(element);
-                            if (isDelete) {
-                                //   this.squareOff(elementP, false);
-                            }
-                        }
-                        //pe squired off
-                        if (elementP.optiontype === 'PE' && (LtpData.ltp > element.optionStockStoploss || LtpData.ltp <= element.optionStockTarget)) {
-                            var isDelete = this.deleteActiveOptionStock(element);
-                            if (isDelete) {
-                                //    this.squareOff(elementP, false);
-                            }
-                        }
+    //                 if(elementP[0]){
+    //                     //ce quireoff 
+    //                     if (elementP.optiontype === 'CE' && (LtpData.ltp < element.optionStockStoploss || LtpData.ltp >= element.optionStockTarget)) {
+    //                         var isDelete = this.deleteActiveOptionStock(element);
+    //                         if (isDelete) {
+    //                             //   this.squareOff(elementP, false);
+    //                         }
+    //                     }
+    //                     //pe squired off
+    //                     if (elementP.optiontype === 'PE' && (LtpData.ltp > element.optionStockStoploss || LtpData.ltp <= element.optionStockTarget)) {
+    //                         var isDelete = this.deleteActiveOptionStock(element);
+    //                         if (isDelete) {
+    //                             //    this.squareOff(elementP, false);
+    //                         }
+    //                     }
 
-                    }
+    //                 }
                  
-                }
-                this.setState({ activeStockOptions: this.state.activeStockOptions });
+    //             }
+    //             this.setState({ activeStockOptions: this.state.activeStockOptions });
 
-            })
+    //         })
 
-            await new Promise(r => setTimeout(r, 100));
-        }
-    }
+    //         await new Promise(r => setTimeout(r, 100));
+    //     }
+    // }
 
     deleteActiveOptionStock = (row) => {
         var isDeleted = false;
@@ -578,12 +578,12 @@ class Home extends React.Component {
                     element.expenceInfo = chargeInfo.expenceInfo;
                     totalExpence += chargeInfo.tradeExpence;
 
-                    var slData = this.getStoplossFromOrderbook(element);
-                    if (slData) {
-                        element.stopLoss = slData.stopLoss;
-                        element.stopLossAmount = slData.maxLossAmount;
-                        totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;
-                    }
+                    // var slData = this.getStoplossFromOrderbook(element);
+                    // if (slData) {
+                    //     element.stopLoss = slData.stopLoss;
+                    //     element.stopLossAmount = slData.maxLossAmount;
+                    //     totalMaxPnL += parseFloat(slData.maxLossAmount) ? parseFloat(slData.maxLossAmount) : 0;
+                    // }
 
                     this.checkSLOrTarget(element);
 
