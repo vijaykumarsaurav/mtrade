@@ -224,8 +224,8 @@ class OrderBook extends React.Component{
                 this.setState({ niftyLtp: { ltp: LtpData.ltp, per : per.toFixed(2)  }}); 
 
                 if(this.state.firstTimeFlag){ 
-                    let lowerLevel = LtpData.ltp - LtpData.ltp * 8/100; 
-                    let upperLevel = LtpData.ltp + LtpData.ltp * 8/100; 
+                    let lowerLevel = LtpData.ltp - LtpData.ltp * 15/100; 
+                    let upperLevel = LtpData.ltp + LtpData.ltp * 15/100; 
 
                     let roundLower = lowerLevel - lowerLevel % 100;
                     let roundUpper = upperLevel + upperLevel % 100;

@@ -78,7 +78,7 @@ class Home extends React.Component {
         //market hours
         if (today <= friday && currentTime.isBetween(beginningTime, endTime)) {
             this.setState({ positionInterval: setInterval(() => { this.getPositionData(); }, 1000) })
-           // this.setState({ bankNiftyInterval: setInterval(() => {  this.getBankNiftyLTP(); }, 1000) })
+            this.setState({ bankNiftyInterval: setInterval(() => {  this.getBankNiftyLTP(); }, 1000) })
 
             var intervaltime = 1000;
             if (this.state.activeStockOptions.length > 10) {
@@ -771,6 +771,10 @@ class Home extends React.Component {
             var LtpData = data && data.data;
             //console.log(LtpData);
             if (LtpData && LtpData.ltp) {
+                this.setState({ liveBankniftyLtdData:  {iv: LtpData.ltp }}, () => {
+                    this.bankniftyTrackOrder(); 
+                });
+
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                 if (document.getElementById('bankniftySpid')) {
                     if (per > 0)
@@ -779,20 +783,21 @@ class Home extends React.Component {
                         document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.ltp.toFixed(2) + ' (' + (per).toFixed(2) + '%)</span>';
                 }
             }
-            let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse(localStorage.getItem('trackSLPrice')) : [];
-            if (trackSLPrice.length > 0) {
-                for (let index = 0; index < trackSLPrice.length; index++) {
-                    const element = trackSLPrice[index];
-                    if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && ((LtpData.ltp < element.priceStopLoss) || (LtpData.ltp >= element.priceTarget))) {
-                        //delete sloption &  trigeer sl    
-                        this.deleteOptionPriceSL(element, index);
-                    }
-                    if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && ((LtpData.ltp > element.priceStopLoss) || (LtpData.ltp <= element.priceTarget))) {
-                        //delete sloption &  trigeer sl    
-                        this.deleteOptionPriceSL(element, index);
-                    }
-                }
-            }
+            // let trackSLPrice = localStorage.getItem('trackSLPrice') ? JSON.parse(localStorage.getItem('trackSLPrice')) : [];
+            // if (trackSLPrice.length > 0) {
+            //     for (let index = 0; index < trackSLPrice.length; index++) {
+            //         const element = trackSLPrice[index];
+            //         if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && ((LtpData.ltp < element.priceStopLoss) || (LtpData.ltp >= element.priceTarget))) {
+            //             //delete sloption &  trigeer sl    
+            //             this.deleteOptionPriceSL(element, index);
+            //         }
+            //         if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && ((LtpData.ltp > element.priceStopLoss) || (LtpData.ltp <= element.priceTarget))) {
+            //             //delete sloption &  trigeer sl    
+            //             this.deleteOptionPriceSL(element, index);
+            //         }
+            //     }
+            // }
+           
         })
     }
 
@@ -807,23 +812,30 @@ class Home extends React.Component {
         if (LtpData && LtpData.iv) {
             let per = LtpData.nc;
 
-            this.setState({ liveBankniftyLtdData: LtpData });
+            this.setState({ liveBankniftyLtdData: LtpData }, () => {
+                this.bankniftyTrackOrder(); 
+            });
             if (document.getElementById('bankniftySpid')) {
                 if (per > 0)
                     document.getElementById('bankniftySpid').innerHTML = "<span style='color:green'> Banknifty " + LtpData.iv+ ' (' + (per) + '%)</span> '+ '<span>  '+ LtpData.cng+ '</span> ' + moment(LtpData.tvalue).format('h:mm:ss A');
                 else
                     document.getElementById('bankniftySpid').innerHTML = "<span style='color:red'> Banknifty " + LtpData.iv+ ' (' + (per) + '%)</span> ' + '<span> '+ LtpData.cng+ ' </span> ' + moment(LtpData.tvalue).format('h:mm:ss A');
             }
+            
         }
 
+        
+    }
+
+    bankniftyTrackOrder =()=>{
         if (this.state.activeStockOptions.length > 0) {
             for (let index = 0; index < this.state.activeStockOptions.length; index++) {
                 const element = this.state.activeStockOptions[index];
-                if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && ((LtpData.iv < element.optionStockStoploss) || (LtpData.iv >= element.optionStockTarget))) {
+                if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && ((this.state.liveBankniftyLtdData.iv < element.optionStockStoploss) || (this.state.liveBankniftyLtdData.iv >= element.optionStockTarget))) {
                     //delete sloption &  trigeer sl    
                     this.deleteIndexOption(element, index);
                 }
-                if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && ((LtpData.iv > element.optionStockStoploss) || (LtpData.iv <= element.optionStockTarget))) {
+                if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && ((this.state.liveBankniftyLtdData.iv > element.optionStockStoploss) || (this.state.liveBankniftyLtdData.iv <= element.optionStockTarget))) {
                     //delete sloption &  trigeer sl    
                     this.deleteIndexOption(element, index);
                 }
@@ -1307,9 +1319,10 @@ class Home extends React.Component {
                                             </TableCell> */}
 
                                             <TableCell align="left">
-                                                <Button style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
-                                                    {row.tradingsymbol} {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon />
-                                                </Button>
+                                                <Typography style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
+                                                    {row.tradingsymbol} 
+                                                    {/* {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon /> */}
+                                                </Typography>
                                             </TableCell>
 
                                             <TableCell align="left">

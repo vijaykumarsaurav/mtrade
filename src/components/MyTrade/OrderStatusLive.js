@@ -184,11 +184,11 @@ class Home extends React.Component{
             var decoded = window.atob(message.data);
             var data = this.decodeWebsocketData(pako.inflate(decoded));
             var liveData = JSON.parse(data);
+            console.log("live",data)
 
             var symbolListArray = this.state.symbolList;
             this.state.symbolList && this.state.symbolList.forEach((element, index) => {
                 var foundLive = liveData.filter(row => row.tk == element.name);
-             //   console.log("live", JSON.stringify(foundLive))
 
                 if (foundLive.length > 0 && foundLive[0].tvalue) {
                     symbolListArray[index].tvalue = foundLive[0].tvalue;

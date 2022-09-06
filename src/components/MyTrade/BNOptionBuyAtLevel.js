@@ -49,7 +49,7 @@ const BNOptionBuyAtLevel = ({
   const [orderOptionList, setOrderOptionList ] = useState(localStorage.getItem('orderOptionList') && JSON.parse(localStorage.getItem('orderOptionList')) || []);
   const [deleteId, setDeleteId] = useState('');
   const [edited, setEdited] = useState(false);
-  const [strikeLeg, setStrikeLeg] = useState(3);
+  const [strikeLeg, setStrikeLeg] = useState(2);
 
   const placeOptionSPLevelOver= (spotPrice, optionType, id, spottype, elementInfo)=>{
       let strikePrice = getStrikePrice(spotPrice, optionType);
@@ -257,7 +257,7 @@ const BNOptionBuyAtLevel = ({
         </Typography>
         <br />
         <Grid justify="space-between" container>
-        <Paper style={{ overflow: "auto", padding: "5px", background: "whitesmoke" }}>
+        <Paper style={{ overflow: "auto", padding: "15px", background: "whitesmoke" }}>
             <Typography color="primary" gutterBottom>
                 Call Buy
             </Typography>
@@ -342,7 +342,7 @@ const BNOptionBuyAtLevel = ({
               
             </Grid>
         </Paper>
-        <Paper style={{ overflow: "auto", padding: "5px", background: "#f500570a" }}>
+        <Paper style={{ overflow: "auto", padding: "15px", background: "#f500570a" }}>
         <Typography color="primary" gutterBottom>
                 Put Buy
             </Typography>
