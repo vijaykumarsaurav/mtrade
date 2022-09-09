@@ -773,7 +773,10 @@ class Home extends React.Component {
             if (LtpData && LtpData.ltp) {
                 this.setState({ liveBankniftyLtdData:  {iv: LtpData.ltp }}, () => {
                     this.bankniftyTrackOrder(); 
+                    window.document.title = LtpData.ltp; 
+
                 });
+
 
                 let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;
                 if (document.getElementById('bankniftySpid')) {
@@ -828,17 +831,30 @@ class Home extends React.Component {
     }
 
     bankniftyTrackOrder =()=>{
-        if (this.state.activeStockOptions.length > 0) {
-            for (let index = 0; index < this.state.activeStockOptions.length; index++) {
-                const element = this.state.activeStockOptions[index];
-                if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && ((this.state.liveBankniftyLtdData.iv < element.optionStockStoploss) || (this.state.liveBankniftyLtdData.iv >= element.optionStockTarget))) {
-                    //delete sloption &  trigeer sl    
+        const activeStockOptions = localStorage.getItem('activeStockOptions') && JSON.parse(localStorage.getItem('activeStockOptions')) || [];
+
+        if (activeStockOptions.length > 0) {
+            for (let index = 0; index < activeStockOptions.length; index++) {
+                const element = activeStockOptions[index];
+               
+                if(element.name == 'BANKNIFTY' && element.optiontype == 'CE' && element.optionStockStoploss && this.state.liveBankniftyLtdData.iv < element.optionStockStoploss){
                     this.deleteIndexOption(element, index);
-                }
-                if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && ((this.state.liveBankniftyLtdData.iv > element.optionStockStoploss) || (this.state.liveBankniftyLtdData.iv <= element.optionStockTarget))) {
-                    //delete sloption &  trigeer sl    
+                  }else if(element.name == 'BANKNIFTY' && element.optiontype == 'CE' && element.optionStockTarget && this.state.liveBankniftyLtdData.iv >= element.optionStockTarget){
                     this.deleteIndexOption(element, index);
-                }
+                  }else if(element.name == 'BANKNIFTY' && element.optiontype == 'PE' && element.optionStockStoploss && this.state.liveBankniftyLtdData.iv > element.optionStockStoploss){
+                    this.deleteIndexOption(element, index);
+                  }else if(element.name == 'BANKNIFTY' && element.optiontype == 'PE' && element.optionStockStoploss && this.state.liveBankniftyLtdData.iv <= element.optionStockTarget){
+                    this.deleteIndexOption(element, index);
+                  }
+                  
+                // if (element.name == 'BANKNIFTY' && element.optiontype == 'CE' && ((this.state.liveBankniftyLtdData.iv < element.optionStockStoploss) || (element.optionStockTarget && this.state.liveBankniftyLtdData.iv >= element.optionStockTarget))) {
+                //     //delete sloption &  trigeer sl    
+                //     this.deleteIndexOption(element, index);
+                // }
+                // if (element.name == 'BANKNIFTY' && element.optiontype == 'PE' && ((element.optionStockStoploss && this.state.liveBankniftyLtdData.iv > element.optionStockStoploss) || (element.optionStockTarget && this.state.liveBankniftyLtdData.iv <= element.optionStockTarget))) {
+                //     //delete sloption &  trigeer sl    
+                //     this.deleteIndexOption(element, index);
+                // }
             }
         }
     }
@@ -1218,7 +1234,8 @@ class Home extends React.Component {
                     </Grid>
 
                     <Grid item>
-                        <Typography component="h3"  {...window.document.title = "PnL:" + (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2)}>
+                        <Typography component="h3"  >  
+                        {/* {...window.document.title = "PnL:" + (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2)} */}
                             <b> Net P/L: </b> <b style={{ color: (this.state.todayProfitPnL - this.state.totalExpence) > 0 ? "green" : "red" }}>{this.state.totalExpence ? (this.state.todayProfitPnL - this.state.totalExpence).toFixed(2) : ""} </b>
                         </Typography>
                     </Grid>
@@ -1244,18 +1261,18 @@ class Home extends React.Component {
                                 <TableHead style={{ whiteSpace: "nowrap", backgroundColor: "" }} variant="head">
                                     <TableRow key="1" variant="head" style={{ fontWeight: 'bold' }}>
 
-                                        <TableCell className="TableHeadFormat" align="left">Trading Symbol</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">T. Symbol</TableCell>
 
                                         {/* <TableCell className="TableHeadFormat" align="left">Instrument</TableCell> */}
-                                        <TableCell style={{ paddingLeft: "3px" }} className="TableHeadFormat" align="left">&nbsp;Spot Name
+                                        {/* <TableCell style={{ paddingLeft: "3px" }} className="TableHeadFormat" align="left">&nbsp;Spot Name */}
                                             {/* <Button type="number" onClick={() => this.checkOpenEqualToLow()}>O=H/L</Button>
                                             <input style={{ width: "50px" }} type='number' step={10000} placeholder='25000' name="checkAmount" onChange={this.onTrailChange} onBlur={() => this.refreshBasedAmount()} />
                                             <input style={{ width: "30px" }} type='number' step={0.1} placeholder='0.5' name="checkAmountPer" onChange={this.onTrailChange} onBlur={() => this.refreshBasedAmount()} /> */}
 
-                                        </TableCell>
+                                        {/* </TableCell> */}
 
-                                        <TableCell className="TableHeadFormat" align="left">Spot Stoploss</TableCell>
-                                        <TableCell className="TableHeadFormat" align="left">Spot Target</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">Stoploss</TableCell>
+                                        <TableCell className="TableHeadFormat" align="left">Target</TableCell>
 
 
 
@@ -1319,18 +1336,18 @@ class Home extends React.Component {
                                             </TableCell> */}
 
                                             <TableCell align="left">
-                                                <Typography style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
-                                                    {row.tradingsymbol} 
+                                                <Typography title={row.tradingsymbol} style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained"  onClick={() => this.refreshCandleChartManually(row)} >
+                                                    {row.tradingsymbol.substr(16)} 
                                                     {/* {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon /> */}
                                                 </Typography>
                                             </TableCell>
 
-                                            <TableCell align="left">
-                                                <p style={{ color: row.optionStockChange > 0 ? "green" : "red" }} size="small" variant="contained" title="Candle refresh" onClick={() => this.refreshCandleChartManually(row)} >
+                                            {/* <TableCell align="left">
+                                                <p style={{ color: row.optionStockChange > 0 ? "green" : "red" }} size="small" variant="contained"  onClick={() => this.refreshCandleChartManually(row)} >
                                                     &nbsp;  {row.netqty && row.optionStockName ? `${row.optionStockName}` : '-'} 
-                                                    {/* ${row.optionStockLtp} (${row.optionStockChange}%) */}
+                                                    ${row.optionStockLtp} (${row.optionStockChange}%)
                                                 </p>
-                                            </TableCell>
+                                            </TableCell> */}
 
                                             <TableCell align="left">
                                                 {row.optionStockStoploss || row.netqty > 0 ?  <input step="1" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockStoploss} name={row.tradingsymbol} onChange={this.optionStockStoplossChange} /> : "-"} 
@@ -1398,7 +1415,7 @@ class Home extends React.Component {
                                         {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
                                         {/* <TableCell className="TableHeadFormat" align="left"></TableCell> */}
 
-                                        <TableCell className="TableHeadFormat" colSpan={7} align="left"></TableCell>
+                                        <TableCell className="TableHeadFormat" colSpan={6} align="left"></TableCell>
 
                                         {/* <TableCell className="TableHeadFormat" align="left">{this.state.allbuyavgprice}</TableCell> */}
                                         {/* <TableCell  className="TableHeadFormat" align="left">{this.state.totalbuyvalue}</TableCell> */}

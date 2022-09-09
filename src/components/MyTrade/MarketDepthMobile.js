@@ -185,7 +185,7 @@ class LiveBid extends React.Component {
         var userProfile = JSON.parse(localStorage.getItem("userProfile"));
         var clientcode = userProfile && userProfile.clientcode;
         this.setState({ feedToken: feedToken, clientcode: clientcode }, function () {
-            this.wsClint = new w3cwebsocket('wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream');
+            this.wsClint = new w3cwebsocket('ws://smartapisocket.angelone.in/smart-stream'); //wss://omnefeeds.angelbroking.com/NestHtml5Mobile/socket/stream
             this.updateSocketDetails(this.wsClint);
         });
 

@@ -252,7 +252,7 @@ class OrderBook extends React.Component{
         
         this.setState({rowSymbolList : res.data },  () => {
            // this.makeConnection(this.wsClint); 
-            this.selectOnlyLtp150To170();
+           // this.selectOnlyLtp150To170();
         })
      
         //   this.setState({stockList:  res.data}); 

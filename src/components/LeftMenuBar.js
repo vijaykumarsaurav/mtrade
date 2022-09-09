@@ -24,7 +24,7 @@ export const AdminMenuList = (
       <ListItemText primary="Home" />
     </ListItem>
 
-    <ListItem button component='a' href={"/mtrade/#/position"} >
+    <ListItem button component='a' href={"/mtrade/#/position-new"} >
       <ListItemIcon>
         <EmojiEmotionsIcon />
       </ListItemIcon>

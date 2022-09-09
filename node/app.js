@@ -523,19 +523,42 @@ app.post('/getBankniftyLatestExpiryTokens', function (req, res) {
     if (err) throw err;
     obj = JSON.parse(data);
 
-    strikeList.forEach(element => {
-      for (let index = 0; index < obj.length; index++) {
-        const item = obj[index];
+    // strikeList.forEach(element => {
+    //   for (let index = 0; index < obj.length; index++) {
+    //     const item = obj[index];
+    //     let nextDate = moment(new Date()).add(8, 'days');
+    //     let expireAt = moment(item.expiry);
+
+    //     if(parseFloat(item.strike)/100  == element && item.name === 'BANKNIFTY' && expireAt <= nextDate) {
+    //       fillertedData.push(item); 
+    //     }
+    //   }
+    // });
+    for (let index = 0; index < obj.length; index++) {
+      const item = obj[index];
+      let nextDate = moment(new Date()).add(8, 'days');
+      let expireAt = moment(item.expiry);
+
+      if(item.name === 'BANKNIFTY' ) {
+        fillertedData.push(item); 
+      }
+    }
+
+    let lastData = []; 
+     strikeList.forEach(element => {
+      for (let index = 0; index < fillertedData.length; index++) {
+        const item = fillertedData[index];
         let nextDate = moment(new Date()).add(8, 'days');
         let expireAt = moment(item.expiry);
+        let today = moment(new Date());
 
-        if(parseFloat(item.strike)/100  == element && item.name === 'BANKNIFTY' && expireAt <= nextDate) {
-          fillertedData.push(item); 
+        if(parseFloat(item.strike)/100  == element && expireAt <= nextDate &&  expireAt >= today) {
+          lastData.push(item); 
         }
       }
     });
 
-    res.status(200).send(JSON.stringify(fillertedData));
+    res.status(200).send(JSON.stringify(lastData));
 
   });
   return;

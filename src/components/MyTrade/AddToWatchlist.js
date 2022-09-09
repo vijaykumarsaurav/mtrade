@@ -64,8 +64,6 @@ class MyView extends React.Component{
             
             //JSON.parse(localStorage.getItem('optionChainDataBN')).records.data
 
-
-
         }
 //          this.findSupportResistence = this.findSupportResistence.bind(this);
             
@@ -209,12 +207,6 @@ class MyView extends React.Component{
             
             <Grid   direction="row" container className="flexGrow" spacing={2}  style={{paddingLeft:"5px",paddingRight:"5px", justifyContent:'center'}}>
               
-              
-           
-              
-
-
-              
 
                 <Grid item xs={12} sm={8}> 
                 <Typography variant="h6">
@@ -266,9 +258,9 @@ class MyView extends React.Component{
 
                 <Paper style={{padding:"25px" }}>  
 
-                                    <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '50%'}}  label="Paste only JSON to add into watchlist"  value={JSON.stringify(this.state.staticData)}   name="addtowatchlist" onChange={this.onChange}/>
- 
-                          {JSON.stringify(this.state.staticData)}
+                  <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '50%'}}  label="Paste only JSON to add into watchlist"  value={JSON.stringify(this.state.staticData && this.state.staticData.NIFTYBANK_LATEST_OPTIONS)}   name="addtowatchlist" onChange={this.onChange}/>
+
+
                 </Paper>
                 
            

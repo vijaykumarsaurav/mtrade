@@ -47,6 +47,7 @@ import StrongCharts from "./MyTrade/StrongCharts";
 
 import BackupHistory from "./MyTrade/BackupHistory";
 import BankniftyLatestOption from "./MyTrade/BankniftyLatestOption";
+import Websocket2 from "./MyTrade/Websocket2";
 
 
 
@@ -101,6 +102,7 @@ const AppRouter = () => {
                     <Route path="/custom-backtest" component={CustomBacktest}/>
                     <Route path="/track145" component={Track145Strategy}/>
                     <Route path="/bntokens" component={BankniftyLatestOption}/>
+                    <Route path="/Websocket2" component={Websocket2}/>
 
                     
                     <Route path="/test" component={Test}/>
