@@ -51,7 +51,7 @@ const BNOptionBuyAtLevel = ({
   const [edited, setEdited] = useState(false);
   const [strikeLeg, setStrikeLeg] = useState(2);
 
-  const placeOptionSPLevelOver= (spotPrice, optionType, id, spottype, elementInfo)=>{
+  const placeOptionSPLevelOver= (spotPrice, optionType, spottype, elementInfo)=>{
       let strikePrice = getStrikePrice(spotPrice, optionType);
       let nextExpiryOption = getNextExpiryOption(strikePrice, optionType);
       console.log(strikePrice, nextExpiryOption);
@@ -94,12 +94,30 @@ const BNOptionBuyAtLevel = ({
         spotDetails.optionStockStoploss = elementInfo.sellAtAboveStoploss;
         spotDetails.optionStockTarget =  elementInfo.sellAtAboveTarget;
       }
-      
+
+      if(spottype == 'market' && optionType == 'CE' ){
+        spotDetails.optionStockStoploss = spotPrice - 100;
+        spotDetails.optionStockTarget =  spotPrice + 100;
+      }
+
+      if(spottype == 'market' && optionType == 'PE' ){
+        spotDetails.optionStockStoploss = spotPrice + 100;
+        spotDetails.optionStockTarget =  spotPrice - 100;
+      }
 
       const activeStockOptions =  localStorage.getItem('activeStockOptions') && JSON.parse(localStorage.getItem('activeStockOptions')) || []; 
+      // delete if any existing sl 
+      for(let i = activeStockOptions.length - 1; i >= 0; i--) {
+        if(activeStockOptions[i].tradingsymbol === optionInput.tradingsymbol) {
+           activeStockOptions.splice(i, 1);
+        }
+      }
       activeStockOptions.push(spotDetails);
       localStorage.setItem("activeStockOptions", JSON.stringify(activeStockOptions));
-      setDeleteId(id); 
+
+      if(elementInfo && elementInfo.id){
+        setDeleteId(elementInfo.id); 
+      }
 
       AdminService.placeOrder(optionInput).then(res => {
           let data = resolveResponse(res);
@@ -183,13 +201,13 @@ const BNOptionBuyAtLevel = ({
     if(LiveLtp && LiveLtp.iv) {
       orderOptionList.forEach(element => {
         if(element.buyAt && LiveLtp.iv >= parseFloat(element.buyAt)){
-          placeOptionSPLevelOver(LiveLtp.iv, 'CE', element.id, 'buyAt', element ); 
+          placeOptionSPLevelOver(LiveLtp.iv, 'CE', 'buyAt', element ); 
         }else if(element.buyAtBelow && LiveLtp.iv <= parseFloat(element.buyAtBelow)){
-          placeOptionSPLevelOver(LiveLtp.iv, 'CE', element.id, 'buyAtBelow', element ); 
+          placeOptionSPLevelOver(LiveLtp.iv, 'CE', 'buyAtBelow', element ); 
         }else if(element.sellAt && LiveLtp.iv <= parseFloat(element.sellAt)){
-          placeOptionSPLevelOver(LiveLtp.iv, 'PE', element.id, 'sellAt', element); 
+          placeOptionSPLevelOver(LiveLtp.iv, 'PE',  'sellAt', element); 
         }else if(element.sellAtAbove && LiveLtp.iv >= parseFloat(element.sellAtAbove) ){
-          placeOptionSPLevelOver(LiveLtp.iv, 'PE', element.id, 'sellAtAbove', element); 
+          placeOptionSPLevelOver(LiveLtp.iv, 'PE', 'sellAtAbove', element); 
         }
       });
   }
@@ -259,7 +277,7 @@ const BNOptionBuyAtLevel = ({
         <Grid justify="space-between" container>
         <Paper style={{ overflow: "auto", padding: "15px", background: "whitesmoke" }}>
             <Typography color="primary" gutterBottom>
-                Call Buy
+                Call Buy   <button variant="contained" onClick={() =>placeOptionSPLevelOver(LiveLtp.iv, 'CE', 'market')}> Buy Market Order</button>
             </Typography>
             <Grid item>
               <ButtonGroup size="small" aria-label="small button group">
@@ -344,7 +362,7 @@ const BNOptionBuyAtLevel = ({
         </Paper>
         <Paper style={{ overflow: "auto", padding: "15px", background: "#f500570a" }}>
         <Typography color="primary" gutterBottom>
-                Put Buy
+                Put Buy   <button variant="contained" onClick={() =>placeOptionSPLevelOver(LiveLtp.iv, 'PE', 'market')}> Buy Market Order</button>
             </Typography>
           <Grid item>
             <ButtonGroup size="small" aria-label="small button group">
