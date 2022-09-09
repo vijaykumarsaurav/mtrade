@@ -60,8 +60,10 @@ class MyView extends React.Component{
             scrollcount : 0,
             resMessage: [],
             counter:0,
-            listCount:0
-            
+            listCount:0,
+            selectedWatchlist: "",    
+            addtowatchlist : "",
+            getbnlatesttokensflag : true,  
             //JSON.parse(localStorage.getItem('optionChainDataBN')).records.data
 
         }
@@ -131,52 +133,51 @@ class MyView extends React.Component{
       
       var newJsonList = []; 
 
-      for (let index = 0; index < parsedList.length; index++) {
-        const element = parsedList[index];
-        console.log(element);
+      // for (let index = 0; index < parsedList.length; index++) {
+      //   const element = parsedList[index];
+      //   console.log(element);
 
-        AdminService.autoCompleteSearch(element.SYMBOL).then(searchRes => {
+      //   AdminService.autoCompleteSearch(element.SYMBOL).then(searchRes => {
 
-          let searchResdata =  searchRes.data; 
-          var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === element.SYMBOL);                                
+      //     let searchResdata =  searchRes.data; 
+      //     var found = searchResdata.filter(row => row.exch_seg  === "NSE" &&  row.lotsize === "1" && row.name === element.SYMBOL);                                
         
-         // && element.LTP >= 200
-          if(found.length){ 
-            newJsonList.push(found[0]); 
+      //    // && element.LTP >= 200
+      //     if(found.length){
+      //       newJsonList.push(found[0]); 
          
-            var watchlist = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
-              var foundInWatchlist = watchlist.filter(row => row && row.token  === found[0] && found[0].token);                                
-              if(!foundInWatchlist.length){
-                this.setState({resMessage: [...this.state.resMessage,  index + ". ======================> New Symbol:  "+ element.SYMBOL]})
+      //       var watchlist = localStorage.getItem("watchList") ? JSON.parse(localStorage.getItem("watchList")) : []; 
+      //         var foundInWatchlist = watchlist.filter(row => row && row.token  === found[0] && found[0].token);                                
+      //         if(!foundInWatchlist.length){
+      //           this.setState({resMessage: [...this.state.resMessage,  index + ". ======================> New Symbol:  "+ element.SYMBOL]})
 
-                this.setState({watchlistCount : watchlist.length, counter:this.state.counter+1})
-                watchlist.push(found[0]); 
-                localStorage.setItem('watchList', JSON.stringify(watchlist));
-                console.log("fdaata");
+      //           this.setState({watchlistCount : watchlist.length, counter:this.state.counter+1})
+      //           watchlist.push(found[0]); 
+      //           localStorage.setItem('watchList', JSON.stringify(watchlist));
+      //           console.log("fdaata");
                
-              }else{
-                this.setState({watchlistCount : watchlist.length,})
-                this.setState({resMessage: [...this.state.resMessage,  index + ". Already in List:  "+ element.SYMBOL]})
+      //         }else{
+      //           this.setState({watchlistCount : watchlist.length,})
+      //           this.setState({resMessage: [...this.state.resMessage,  index + ". Already in List:  "+ element.SYMBOL]})
 
-              }
-            //  console.log(found[0].symbol, "found",found);      
-            //  localStorage.setItem('NseStock_' + found[0].symbol, "orderdone");
-          }
-          if(this.state.resMessage && this.state.resMessage.length){
-            this.setState({resMessage: [...this.state.resMessage.reverse()]})
-
-          }
+      //         }
+      //       //  console.log(found[0].symbol, "found",found);      
+      //       //  localStorage.setItem('NseStock_' + found[0].symbol, "orderdone");
+      //     }
+      //     if(this.state.resMessage && this.state.resMessage.length){
+      //       this.setState({resMessage: [...this.state.resMessage.reverse()]})
+      //     }
         
-       })
+      //  })
 
-       await new Promise(r => setTimeout(r, 500));  
-      }
+      //  await new Promise(r => setTimeout(r, 500));  
+      // }
 
       //"NIFTY PSU BANK".split(' ').join('') // "NIFTYPSUBANK"
       
       var data = {
-        listName : parsedList[0].SYMBOL, 
-        listItem : newJsonList 
+        listName : this.state.selectedWatchlist, 
+        listItem : parsedList 
       }
       console.log("newjosnlist:", data);
       AdminService.addIntoStaticData(data).then(res => {
@@ -187,11 +188,91 @@ class MyView extends React.Component{
       
     }
     resetCsv=()=>{
-      this.setState({addtowatchlist:"",resMessage:""})
-
+      this.setState({addtowatchlist:"",resMessage:"", listCount : 0})
     }
-   
-  
+
+    
+    onChangeWatchlist = (e) => {
+      this.setState({ [e.target.name]: e.target.value }, function () {
+
+        let list = this.state.staticData[e.target.value]; 
+
+
+        this.setState({addtowatchlist: JSON.stringify(list), listCount: list.length})
+
+      });
+  }
+
+    
+    getbnlatesttokens = () => {
+
+      this.setState({getbnlatesttokensflag : false})
+      var data = {
+          "exchange": "NSE",
+          "tradingsymbol": "BANKNIFTY",
+          "symboltoken": "26009",
+      }
+      AdminService.getLTP(data).then(res => {
+          let data = resolveResponse(res, 'noPop');
+          var LtpData = data && data.data;
+          //console.log(LtpData);
+          if (LtpData && LtpData.ltp) {
+              let per = (LtpData.ltp - LtpData.close) * 100 / LtpData.close;                 
+              this.setState({ niftyLtp: { ltp: LtpData.ltp, per : per.toFixed(2)  }}); 
+
+              let lowerLevel = LtpData.ltp - LtpData.ltp * 15/100; 
+              let upperLevel = LtpData.ltp + LtpData.ltp * 15/100; 
+
+              let roundLower = lowerLevel - lowerLevel % 100;
+              let roundUpper = upperLevel + upperLevel % 100;
+              let selectedStrike = [];
+              for (let index = roundLower; index <= roundUpper; index+=100) {
+                  selectedStrike.push(index)
+              }
+
+              AdminService.getBankniftyLatestOption(selectedStrike).then(res => {
+                this.setState({getbnlatesttokensflag : true})
+
+                this.setState({addtowatchlist: JSON.stringify(res.data), listCount: res.data.length, selectedWatchlist : "NIFTYBANK_LATEST_OPTIONS"})
+              })
+            }
+        })
+  }
+
+
+ downloadObjectAsJson =(exportObj, exportName) => {
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+    var downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", exportName + ".json");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+
+
+    // var zipName = 'download.zip';
+    // var dataURL = 'data:application/zip;base64,' + content;
+    // chrome.downloads.download({
+    //     url:      dataURL,
+    //     filename: zipName,
+    //     saveAs:   true
+    // });
+    // count = 0;
+  }
+
+
+downloadMasterTokens =() => {
+  let url = 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json';
+
+  fetch(url)
+  .then(res => res.json())
+  .then((out) => {
+      this.downloadObjectAsJson(out, 'OpenAPIScripMaster')
+    console.log('Checkout this JSON! ', out);
+  })
+  .catch(err => { throw err });
+    
+}
 
 
     render(){
@@ -202,67 +283,94 @@ class MyView extends React.Component{
             <PostLoginNavBar />
 
           
-            <Paper style={{padding:"25px" }}>   
+          <Paper style={{ padding: "25px" }}>
 
-            
-            <Grid   direction="row" container className="flexGrow" spacing={2}  style={{paddingLeft:"5px",paddingRight:"5px", justifyContent:'center'}}>
-              
 
-                <Grid item xs={12} sm={8}> 
-                <Typography variant="h6">
-                   Current Watchlist Count   {this.state.watchlistCount} 
-
-                   &nbsp; &nbsp;   &nbsp; &nbsp;   &nbsp; &nbsp;  
+            <Typography variant="h6">
+              Current Watchlist
+              {/* &nbsp; &nbsp;   &nbsp; &nbsp;   &nbsp; &nbsp;  
                    <Button  onClick={() => { localStorage.setItem('watchList', []); window.location.reload();}}>Delete All</Button>    
+                   <br /> */}
+            </Typography>
 
-                   <br />
-                  </Typography>
-                         
-
-                    <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '50%'}}  label="Paste only JSON to add into watchlist"  value={this.state.addtowatchlist}   name="addtowatchlist" onChange={this.onChange}/>
-              
-
-                </Grid>
-
-            
-                  
-                <Grid  item xs={8} sm={8}>
-
-                    <Button variant="contained" color="primary" onClick={() => this.readCsv()}> Add to Watchlist</Button>    &nbsp; &nbsp;
-                    <Button variant="contained" color="secondary" onClick={() => this.resetCsv()}>Reset</Button>    
-                &nbsp; &nbsp;   <b>Total Added to Watchlist : {this.state.counter}</b>
-                &nbsp; &nbsp;   <b> Static Data Update: {this.state.listName}({this.state.listCount})</b>
+            <Grid justify="space-between">
 
 
+              <Grid item>
+                <FormControl style={styles.selectStyle} >
+                  <InputLabel htmlFor="gender">Select Watchlist</InputLabel>
+                  <Select value={this.state.selectedWatchlist} name="selectedWatchlist" onChange={this.onChangeWatchlist}>
+                    <MenuItem value={"selectall"}>{"Select All"}</MenuItem>
+                    {this.state.totalWatchlist && this.state.totalWatchlist.map(element => (
+                      <MenuItem value={element}>{element}</MenuItem>
+                    ))
+                    }
+                  </Select>
+                </FormControl>
+                &nbsp; &nbsp;
 
-                   
-                    {/* {this.state.notAddedSymbol? "Already in list: " + this.state.notAddedSymbol : "" }
-                    {this.state.addedSymbol? "Added: " + this.state.addedSymbol : "" }
-                     */}
-                       
-                </Grid>
+                {/* <Button variant="contained" onClick={() => this.downloadMasterTokens()}>Download master tokens</Button> */}
 
-                <Grid  item xs={8} sm={8}>
-                        {this.state.resMessage ? this.state.resMessage.map(data => (
-                         <>  <span> {data} </span>  <br /> </>
-                           
-                        )) : ''}
-   
-                </Grid>
+                <a href="https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json" target="_blank"> Download master tokens </a>
+                
+                &nbsp; &nbsp;
 
                
-              
-                </Grid>
-                   
-                </Paper>
+        
+                {this.state.getbnlatesttokensflag ?  <Button variant="contained" color="primary" onClick={() => this.getbnlatesttokens()}> get banknifty latest tokens</Button> :<Spinner size="small"/>}
 
+                </Grid>
+        
+
+              </Grid>
+
+
+
+              <Grid item xs={12} sm={12}>
+
+                    <br />
+
+                <TextField variant="outlined" multiline rows={20} fullwidth style={{ width: '100%', autoflow :true }} label="Paste only JSON to add into watchlist" value={this.state.addtowatchlist} name="addtowatchlist" onChange={this.onChange} />
+
+
+
+              </Grid>
+
+
+
+              <Grid item xs={8} sm={8}>
+
+                <Button variant="contained" color="primary" onClick={() => this.readCsv()}> Add to Watchlist</Button>    &nbsp; &nbsp;
+                <Button variant="contained" color="secondary" onClick={() => this.resetCsv()}>Reset</Button>
+                &nbsp; &nbsp;   <b>{this.state.selectedWatchlist} ({this.state.listCount})</b>
+
+
+
+
+                {/* {this.state.notAddedSymbol? "Already in list: " + this.state.notAddedSymbol : "" }
+                    {this.state.addedSymbol? "Added: " + this.state.addedSymbol : "" }
+                     */}
+
+              </Grid>
+
+              <Grid item xs={8} sm={8}>
+                {this.state.resMessage ? this.state.resMessage.map(data => (
+                  <>  <span> {data} </span>  <br /> </>
+
+                )) : ''}
+
+              </Grid>
+
+
+          </Paper>
+{/* 
                 <Paper style={{padding:"25px" }}>  
 
                   <TextField variant="outlined" multiline rows={10} fullwidth style={{width:'90%', height: '50%'}}  label="Paste only JSON to add into watchlist"  value={JSON.stringify(this.state.staticData && this.state.staticData.NIFTYBANK_LATEST_OPTIONS)}   name="addtowatchlist" onChange={this.onChange}/>
 
 
                 </Paper>
-                
+                 */}
            
           
 
