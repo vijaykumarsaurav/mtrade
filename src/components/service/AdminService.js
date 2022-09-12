@@ -34,6 +34,9 @@ class AdminService {
     placeOrder(credentials) {
         return axios.post(apiConstant.PlaceOrderApi, credentials, AuthService.getHeader());
     } 
+    shoonyaPlaceOrder(optionInput) {
+      return axios.post('http://localhost:8082/shoonyaPlaceOrder', optionInput, '');
+    } 
     modifyOrder(credentials) {
         return axios.post(apiConstant.modifyOrderApi, credentials, AuthService.getHeader());
     } 
@@ -132,6 +135,9 @@ class AdminService {
 
    getPosition(data){
       return axios.get(apiConstant.getPosition, AuthService.getHeader());
+   }
+   getPositionShoonya(data){
+      return axios.get('http://localhost:8082/getPositionShoonya', '');
    }
 
    getAutoScanStock(){

@@ -465,14 +465,14 @@ class Home extends React.Component {
     calculateTradeExpence = (element) => {
 
         var totalbuyvalue = parseFloat(element.totalbuyvalue) === 0 ? parseFloat(element.totalsellvalue) : parseFloat(element.totalbuyvalue);
-        var buyCharge = parseFloat(totalbuyvalue) * 0.25 / 100;
-        if (buyCharge > 20 || (element.optiontype == 'CE' || element.optiontype == 'PE')) {
-            buyCharge = 20;
+        var buyCharge = parseFloat(totalbuyvalue) * 0 / 100;
+        if ( (element.optiontype == 'CE' || element.optiontype == 'PE')) {
+            buyCharge = 0;
         }
         var totalsellvalue = parseFloat(element.totalsellvalue) === 0 ? parseFloat(element.totalbuyvalue) : parseFloat(element.totalsellvalue);
-        var sellCharge = parseFloat(totalsellvalue) * 0.25 / 100;
-        if (sellCharge > 20 || (element.optiontype == 'CE' || element.optiontype == 'PE')) {
-            sellCharge = 20;
+        var sellCharge = parseFloat(totalsellvalue) * 0 / 100;
+        if ( (element.optiontype == 'CE' || element.optiontype == 'PE')) {
+            sellCharge = 0;
         }
         let turnOver = totalbuyvalue + totalsellvalue;
         let totalBroker = buyCharge + sellCharge;
@@ -542,12 +542,12 @@ class Home extends React.Component {
         var maxPnL = 0, totalMaxPnL = 0;
         var trackSLPriceList = localStorage.getItem('trackSLPrice') ? JSON.parse(localStorage.getItem('trackSLPrice')) : [];
 
-        AdminService.getPosition().then(res => {
-            let data = resolveResponse(res, 'noPop');
-            var positionList = data && data.data;
+        AdminService.getPositionShoonya().then(res => {
+            var positionList = res.data;
+            console.log('data', res)
             if (positionList && positionList.length > 0) {
 
-
+                  
                 var todayProfitPnL = 0, totalbuyvalue = 0, totalsellvalue = 0, totalQtyTraded = 0, allbuyavgprice = 0, allsellavgprice = 0, totalPercentage = 0, totalExpence = 0;
 
                 let tradingPositionlist = [];
@@ -556,6 +556,17 @@ class Home extends React.Component {
                     // if (element.netqty < 0) {
                     //     continue;
                     // }
+                    
+
+                    element.tradingsymbol = element.dname || element.tsym; 
+                    element.ltp = element.lp; 
+                    element.totalbuyavgprice = element.daybuyavgprc; 
+                    element.totalsellavgprice = element.daysellavgprc; 
+                    element.buyqty = element.daybuyqty; 
+                    element.sellqty = element.daysellqty; 
+                    element.pnl = element.rpnl || element.urmtom; 
+                    //element.percentPnL = (parseFloat(element.daysellavgprc) - parseFloat(element.daybuyavgprc))*100/parseFloat(element.daybuyavgprc);
+                    
                     tradingPositionlist.push(element);
 
                     todayProfitPnL += parseFloat(element.pnl);
@@ -565,7 +576,7 @@ class Home extends React.Component {
                     allbuyavgprice += parseFloat(element.buyavgprice);
                     allsellavgprice += parseFloat(element.sellavgprice);
                     if (element.netqty == 0) {
-                        let percentPnL = ((parseFloat(element.sellavgprice) - parseFloat(element.buyavgprice)) * 100 / parseFloat(element.buyavgprice));
+                        let percentPnL = ((parseFloat(element.totalsellavgprice) - parseFloat(element.totalbuyavgprice)) * 100 / parseFloat(element.totalbuyavgprice));
                         element.percentPnL = percentPnL.toFixed(2);
                         totalPercentage += parseFloat(percentPnL);
 
@@ -702,9 +713,7 @@ class Home extends React.Component {
     deleteIndexOption = (element, deleteindex) => {
         for (let indexP = 0; indexP < this.state.positionList.length; indexP++) {
             const position = this.state.positionList[indexP];
-
-            if (position.tradingsymbol == element.tradingsymbol && position.netqty > 0) {
-                
+            if (position.tradingsymbol == element.tradingsymbol && position.netqty > 0) { 
                 if (this.state.activeStockOptions && this.state.activeStockOptions.length > 0) {
                     this.state.activeStockOptions.splice(deleteindex, 1);
                     this.setState({ activeStockOptions: this.state.activeStockOptions }, () => {
@@ -713,7 +722,6 @@ class Home extends React.Component {
                     });
                     break;
                 }
-
             }
         }
     }
@@ -913,39 +921,24 @@ class Home extends React.Component {
     squareOff = (row, marketOrder) => {
       //  this.cancelOrderOfSame(row);
 
-        let price = 0;
-        var data = {
-            "variety": "NORMAL",
-            "tradingsymbol": row.tradingsymbol,
-            "symboltoken": row.symboltoken,
-            "transactiontype": row.netqty > 0 ? 'SELL' : "BUY",
-            "exchange": row.exchange,
-            "ordertype": marketOrder ? "MARKET" : "LIMIT",
-            "producttype": row.producttype, //"DELIVERY",//"DELIVERY",
-            "duration": "DAY",
-            "price": price,
-            "squareoff": "0",
-            "stoploss": "0",
-            "quantity": Math.abs(row.netqty),
+        let optionInput = {
+            'buy_or_sell': 'S',
+            'product_type': 'M',
+            'exchange': 'NFO',
+            'tradingsymbol': row.tradingsymbol,
+            'quantity': Math.abs(row.netqty),
+            'discloseqty': 0,
+            'price_type': 'MKT',
+            'price': 0
         }
 
-        if (marketOrder) {
-            data.price = 0;
-        }
-
-        if (row.instrumenttype == "OPTSTK" && (row.optiontype == "PE" || row.optiontype == "CE")) {
-            data.price = CommonOrderMethod.getMinPriceAllowTick(row.ltp - (row.ltp * 0.5 / 100));
-            data.triggerprice = CommonOrderMethod.getMinPriceAllowTick(row.ltp - (row.ltp * 0.1 / 100));
-        }
-
-        AdminService.placeOrder(data).then(res => {
+        AdminService.shoonyaPlaceOrder(optionInput).then(res => {
             let data = resolveResponse(res);
-            //  console.log("squireoff", data);
+            console.log(data);   
             if (data.status && data.message === 'SUCCESS') {
-                this.setState({ orderid: data.data && data.data.orderid });
-                document.getElementById('orderRefresh') && document.getElementById('orderRefresh').click();
+                //setDeleteId(id); 
             }
-        })
+        });
 
     }
     updateOrderList = () => {
@@ -1337,9 +1330,9 @@ class Home extends React.Component {
                                                 {row.optionStockName ? <input step="0.5" style={{ width: '40%', textAlign: 'center' }} type='number' value={row.optionStockTarget} name={row.optionStockName} onChange={this.optionStockTargetChange} /> : "-"}
                                             </TableCell> */}
 
-                                            <TableCell align="left">
+                                            <TableCell align="left"> 
                                                 <Typography title={row.tradingsymbol} style={{ color: (row.ltp - row.close) * 100 / row.close > 0 ? "green" : "red" }} size="small" variant="contained"  onClick={() => this.refreshCandleChartManually(row)} >
-                                                    {row.tradingsymbol.substr(16)} 
+                                                    {row.tradingsymbol} 
                                                     {/* {row.ltp} ({((row.ltp - row.close) * 100 / row.close).toFixed(2)}%) <ShowChartIcon /> */}
                                                 </Typography>
                                             </TableCell>
@@ -1368,7 +1361,6 @@ class Home extends React.Component {
 
                                             {/* <TableCell align="left">{row.symboltoken}</TableCell> */}
                                             {/* <TableCell align="left">{row.producttype}</TableCell> */}
-
                                             <TableCell align="left"><Button onClick={() => this.addSLOrderInfo(row)}> {row.totalbuyavgprice} </Button>  </TableCell>
                                             {/* <TableCell align="left">{row.totalbuyvalue}</TableCell> */}
 

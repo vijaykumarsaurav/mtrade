@@ -20,6 +20,7 @@ import Tradebook from "./MyTrade/Tradebook";
 import OrderStatusLive from "./MyTrade/OrderStatusLive";
 import Position from "./MyTrade/Position";
 import PositionNew from "./MyTrade/PositionNew";
+import PositionShoonya from "./MyTrade/PositionShoonya";
 
 import Test from "./MyTrade/Test";
 
@@ -47,6 +48,8 @@ import StrongCharts from "./MyTrade/StrongCharts";
 
 import BackupHistory from "./MyTrade/BackupHistory";
 import BankniftyLatestOption from "./MyTrade/BankniftyLatestOption";
+import ShoonyaBuyAtLevel from "./MyTrade/ShoonyaBuyAtLevel";
+
 import Websocket2 from "./MyTrade/Websocket2";
 
 
@@ -73,6 +76,7 @@ const AppRouter = () => {
                     <Route path="/order-status-live" component={OrderStatusLive}/>
                     <Route path="/position" component={Position}/>
                     <Route path="/position-new" component={PositionNew}/>
+                    <Route path="/position-shoonya" component={PositionShoonya}/>
 
                     <Route path="/addtowatchlist" component={AddToWatchlist}/>
                     <Route path="/sector-heat-map" component={SectorHeatMap}/>
@@ -103,6 +107,7 @@ const AppRouter = () => {
                     <Route path="/track145" component={Track145Strategy}/>
                     <Route path="/bntokens" component={BankniftyLatestOption}/>
                     <Route path="/Websocket2" component={Websocket2}/>
+                    <Route path="/shoonya-order" component={ShoonyaBuyAtLevel}/>
 
                     
                     <Route path="/test" component={Test}/>

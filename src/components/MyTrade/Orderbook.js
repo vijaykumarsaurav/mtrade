@@ -238,8 +238,8 @@ class OrderBook extends React.Component{
 
                                 <TableCell align="center">Action&nbsp;</TableCell>
                                 <TableCell align="center"><b>Status</b>&nbsp;</TableCell>
-                                <TableCell align="center"><b>SLPrice</b>&nbsp;</TableCell>
-                                <TableCell align="center"><b>TargetPrice</b></TableCell>
+                                {/* <TableCell align="center"><b>SLPrice</b>&nbsp;</TableCell>
+                                <TableCell align="center"><b>TargetPrice</b></TableCell> */}
 
                                 <TableCell align="center"><b>Details </b></TableCell>
                 
@@ -306,7 +306,7 @@ class OrderBook extends React.Component{
                                     </TableCell>
 
 
-                                    <TableCell align="center">
+                                    {/* <TableCell align="center">
                                         {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' || row.orderstatus ==='complete' ? 
                                          <TextField  type="number" style={{textAlign:'center', width:'50px'}}  value={this.state['priceStopLoss_'+row.tradingsymbol]}  name={'priceStopLoss_'+row.tradingsymbol} onBlur={this.onChangePriceStopLoss}/>
                                                 : ''}
@@ -316,7 +316,7 @@ class OrderBook extends React.Component{
                                         {row.orderstatus === 'trigger pending' || row.orderstatus ==='open' || row.orderstatus ==='complete'? 
                                         <TextField  type="number" style={{textAlign:'center', width:'50px'}} value={this.state['priceTarget_'+row.tradingsymbol]}  name={'priceTarget_'+row.tradingsymbol}  onBlur={this.onChangePriceTarget}/>
                                         : ''}
-                                    </TableCell>
+                                    </TableCell> */}
 
                                     <TableCell style={{fontSize: "11px", width:"15%"}} align="center">{row.text}</TableCell>
                                     
