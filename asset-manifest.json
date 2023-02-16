@@ -1,21 +1,17 @@
 {
   "files": {
-    "main.css": "/mtrade/static/css/main.7c840ea3.chunk.css",
-    "main.js": "/mtrade/static/js/main.3c2b71cc.chunk.js",
-    "main.js.map": "/mtrade/static/js/main.3c2b71cc.chunk.js.map",
-    "runtime~main.js": "/mtrade/static/js/runtime~main.72b3d60e.js",
-    "runtime~main.js.map": "/mtrade/static/js/runtime~main.72b3d60e.js.map",
-    "static/css/2.39017165.chunk.css": "/mtrade/static/css/2.39017165.chunk.css",
-    "static/js/2.5035250e.chunk.js": "/mtrade/static/js/2.5035250e.chunk.js",
-    "static/js/2.5035250e.chunk.js.map": "/mtrade/static/js/2.5035250e.chunk.js.map",
+    "main.css": "/mtrade/static/css/main.83bb03ef.css",
+    "main.js": "/mtrade/static/js/main.87f92fa5.js",
+    "static/media/order-placed.mp3": "/mtrade/static/media/order-placed.6498a190f0a6c337e319.mp3",
+    "static/media/squired-off.mp3": "/mtrade/static/media/squired-off.95ca04965cbb518f1a1d.mp3",
+    "static/media/mylogo.png": "/mtrade/static/media/mylogo.89863d36b242dc31da3b.png",
+    "static/media/buy-order-added.ogg": "/mtrade/static/media/buy-order-added.626140a24ad23671a165.ogg",
     "index.html": "/mtrade/index.html",
-    "precache-manifest.2bb5fdb48fd1b7e61f9215bbff4c6be2.js": "/mtrade/precache-manifest.2bb5fdb48fd1b7e61f9215bbff4c6be2.js",
-    "service-worker.js": "/mtrade/service-worker.js",
-    "static/css/2.39017165.chunk.css.map": "/mtrade/static/css/2.39017165.chunk.css.map",
-    "static/css/main.7c840ea3.chunk.css.map": "/mtrade/static/css/main.7c840ea3.chunk.css.map",
-    "static/media/buy-order-added.ogg": "/mtrade/static/media/buy-order-added.cce6bf02.ogg",
-    "static/media/mylogo.png": "/mtrade/static/media/mylogo.92bbdbd4.png",
-    "static/media/order-placed.mp3": "/mtrade/static/media/order-placed.356d4bbe.mp3",
-    "static/media/squired-off.mp3": "/mtrade/static/media/squired-off.26e7d9db.mp3"
-  }
+    "main.83bb03ef.css.map": "/mtrade/static/css/main.83bb03ef.css.map",
+    "main.87f92fa5.js.map": "/mtrade/static/js/main.87f92fa5.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.83bb03ef.css",
+    "static/js/main.87f92fa5.js"
+  ]
 }
